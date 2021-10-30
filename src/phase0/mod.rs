@@ -1,93 +1,98 @@
+//! This module provides an implementation of the `phase0` fork
+//! of the consensus spec. The primary entrypoints should be one of
+//! the "presets" like `mainnet` or `minimal`.
 mod beacon_block;
-mod beacon_state;
+pub mod mainnet;
+pub mod minimal;
 mod operations;
-mod validator;
 
 use crate::crypto::{BLSPubkey, BLSSignature};
-use crate::presets::{MAX_VALIDATORS_PER_COMMITTEE, SLOTS_PER_HISTORICAL_ROOT};
 use crate::primitives::{
-    Bytes32, CommitteeIndex, Domain, Epoch, Gwei, Hash32, Root, Slot, ValidatorIndex, Version,
+    Bytes32, CommitteeIndex, Domain, Epoch, Gwei, Hash32, Root, Slot, Version,
 };
 use ssz_rs::prelude::*;
 
-pub use beacon_block::*;
-pub use beacon_state::*;
-pub use operations::*;
-pub use validator::*;
+// Required for bounds on the `BeaconState`.
+pub(crate) const fn get_eth1_data_votes_bound(
+    epochs_per_eth1_voting_period: usize,
+    slots_per_epoch: usize,
+) -> usize {
+    epochs_per_eth1_voting_period * slots_per_epoch
+}
+
+// Required for bounds on the `BeaconState`.
+pub(crate) const fn get_pending_attestations_bound(
+    max_attestations: usize,
+    slots_per_epoch: usize,
+) -> usize {
+    max_attestations * slots_per_epoch
+}
 
 #[derive(Default, Debug, SimpleSerialize)]
 pub struct Fork {
-    previous_version: Version,
-    current_version: Version,
-    epoch: Epoch,
+    pub previous_version: Version,
+    pub current_version: Version,
+    pub epoch: Epoch,
 }
 
 #[derive(Default, Debug, SimpleSerialize)]
 pub struct ForkData {
-    current_version: Version,
-    genesis_validators_root: Root,
+    pub current_version: Version,
+    pub genesis_validators_root: Root,
 }
 
 #[derive(Default, Debug, SimpleSerialize)]
 pub struct Checkpoint {
-    epoch: Epoch,
-    root: Root,
+    pub epoch: Epoch,
+    pub root: Root,
+}
+
+#[derive(Default, Debug, SimpleSerialize)]
+pub struct Validator {
+    pub pubkey: BLSPubkey,
+    pub withdrawal_credentials: Bytes32,
+    pub effective_balance: Gwei,
+    pub slashed: bool,
+    // Status epochs
+    pub activation_eligibility_epoch: Epoch,
+    pub activation_epoch: Epoch,
+    pub exit_epoch: Epoch,
+    pub withdrawable_epoch: Epoch,
 }
 
 #[derive(Default, Debug, SimpleSerialize)]
 pub struct AttestationData {
-    slot: Slot,
-    index: CommitteeIndex,
-    beacon_block_root: Root,
-    source: Checkpoint,
-    target: Checkpoint,
-}
-
-#[derive(Default, Debug, SimpleSerialize)]
-pub struct IndexedAttestation {
-    attesting_indices: List<ValidatorIndex, MAX_VALIDATORS_PER_COMMITTEE>,
-    data: AttestationData,
-    signature: BLSSignature,
-}
-
-#[derive(Default, Debug, SimpleSerialize)]
-pub struct PendingAttestation {
-    aggregation_bits: Bitlist<MAX_VALIDATORS_PER_COMMITTEE>,
-    data: AttestationData,
-    inclusion_delay: Slot,
-    proposer_index: ValidatorIndex,
+    pub slot: Slot,
+    pub index: CommitteeIndex,
+    pub beacon_block_root: Root,
+    pub source: Checkpoint,
+    pub target: Checkpoint,
 }
 
 #[derive(Default, Debug, SimpleSerialize)]
 pub struct Eth1Data {
-    deposit_root: Root,
-    deposit_count: u64,
-    block_hash: Hash32,
-}
-
-#[derive(Default, Debug, SimpleSerialize)]
-pub struct HistoricalBatch {
-    block_roots: Vector<Root, SLOTS_PER_HISTORICAL_ROOT>,
-    state_roots: Vector<Root, SLOTS_PER_HISTORICAL_ROOT>,
+    pub deposit_root: Root,
+    pub deposit_count: u64,
+    pub block_hash: Hash32,
 }
 
 #[derive(Default, Debug, SimpleSerialize)]
 pub struct DepositMessage {
-    pubkey: BLSPubkey,
-    withdrawal_credentials: Bytes32,
-    amount: Gwei,
+    pub pubkey: BLSPubkey,
+    pub withdrawal_credentials: Bytes32,
+    pub amount: Gwei,
 }
 
 #[derive(Default, Debug, SimpleSerialize)]
 pub struct DepositData {
-    pubkey: BLSPubkey,
-    withdrawal_credentials: Bytes32,
-    amount: Gwei,
-    signature: BLSSignature,
+    pub pubkey: BLSPubkey,
+    pub withdrawal_credentials: Bytes32,
+    pub amount: Gwei,
+    pub signature: BLSSignature,
 }
 
 #[derive(Default, Debug, SimpleSerialize)]
 pub struct SigningData {
-    object_root: Root,
-    domain: Domain,
+    pub object_root: Root,
+    pub domain: Domain,
 }
