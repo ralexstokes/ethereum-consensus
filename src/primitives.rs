@@ -1,6 +1,7 @@
 use ethereum_types::H256;
 use ssz_rs::prelude::*;
-pub use ssz_rs::prelude::{Root, Vector};
+
+pub use ssz_rs::prelude::Root;
 
 pub type Slot = u64;
 pub type Epoch = u64;
