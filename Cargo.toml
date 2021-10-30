@@ -10,10 +10,3 @@ license = "MIT OR Apache-2.0"
 [dependencies]
 ssz_rs = { git = "https://github.com/ralexstokes/ssz_rs", branch = "main" }
 ssz_rs_derive = "0.1.0"
-# NOTE: exclude default features of this crate
-# the default feature set eventually pulls in a conflicting version of
-# `bitvec` which conflicts with `ssz_rs` through another dependency
-# See: https://github.com/myrrlyn/funty/issues/3 for the underlying cause
-# Given that we only use the definition of `H256`, this should be ok for now.
-# Ideally that issue is resolved and we can recover more features of this crate.
-ethereum-types = { version = "0.12.1", default-features = false }

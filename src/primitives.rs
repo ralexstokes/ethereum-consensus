@@ -1,4 +1,3 @@
-use ethereum_types::H256;
 use ssz_rs::prelude::*;
 
 pub use ssz_rs::prelude::Root;
@@ -8,7 +7,7 @@ pub type Epoch = u64;
 pub type CommitteeIndex = u64;
 pub type ValidatorIndex = u64;
 pub type Gwei = u64;
-pub type Hash32 = H256;
+pub type Hash32 = U256;
 pub type Bytes32 = Vector<u8, 32>;
 pub type Version = Vector<u8, 4>;
 pub type DomainType = Vector<u8, 4>;
