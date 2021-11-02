@@ -1,7 +1,10 @@
+use thiserror::Error;
 use ssz_rs::prelude::*;
 use rand::prelude::*;
 
 use blst::{min_pk as blst_core, BLST_ERROR};
+use crate::crypto::Error::SizeMismatch;
+use blst::min_pk::AggregateSignature;
 
 pub const BLS_PUBLIC_KEY_BYTES_LEN: usize = 48;
 pub const BLS_SECRET_KEY_BYTES_LEN: usize = 32;
@@ -9,6 +12,16 @@ pub const BLS_SIGNATURE_BYTES_LEN: usize = 96;
 
 pub type BLSPubkey = Vector<u8, BLS_PUBLIC_KEY_BYTES_LEN>;
 pub type BLSSignature = Vector<u8, BLS_SIGNATURE_BYTES_LEN>;
+
+#[derive(Debug, Error)]
+pub enum Error {
+    #[error("Size mismatch")]
+    SizeMismatch,
+    #[error("Aggregation error")]
+    AggregateError,
+    #[error("Zero sized input")]
+    ZeroSizedInput,
+}
 
 #[derive(Debug)]
 pub struct SecretKey(pub(crate) blst_core::SecretKey);
@@ -70,9 +83,29 @@ impl Signature {
     }
 }
 
+pub fn aggregate(signatures: &[Signature])-> Result<Signature, Error> {
+    if signatures.is_empty() {
+        return Err(Error::ZeroSizedInput);
+    }
+    let v: Vec<&blst_core::Signature> = signatures.into_iter().map(|x| &x.0).collect();
+    let s = blst_core::AggregateSignature::aggregate(&v[..], true)
+        .map(|s| Signature(s.to_signature()))
+        .map_err(|_| Error::SizeMismatch);
+
+    return s
+}
+
+pub fn aggregate_verify(signature: Signature, msgs: &[&[u8]], pks: &[PublicKey]) -> bool {
+    let dst = b"BLS_SIG_BLS12381G2_XMD:SHA-256_SSWU_RO_NUL_";
+    let pp: Vec<&blst_core::PublicKey> = pks.into_iter().map(|x| &x.0).collect();
+    let err = signature.0.aggregate_verify(true, msgs, dst, &pp[..], true);
+    err == BLST_ERROR::BLST_SUCCESS
+}
+
 #[cfg(test)]
 mod tests {
     use super::SecretKey;
+    use crate::crypto::{aggregate, aggregate_verify};
 
     #[test]
     fn signature() {
@@ -106,6 +139,26 @@ mod tests {
         let pk = SecretKey::random().public_key();
         let valid = pk.validate();
         assert!(valid)
+    }
+
+    #[test]
+    fn aggregated_signatures() {
+        let sk1 = SecretKey::random();
+        let pk1 = sk1.public_key();
+
+        let sk2 = SecretKey::random();
+        let pk2 = sk2.public_key();
+
+        let msg1 = "message1";
+        let msg2 = "message2";
+
+        let sig1 = sk1.sign(msg1.as_ref());
+        let sig2 = sk2.sign(msg2.as_ref());
+
+        let agg = aggregate(&[sig1, sig2]).unwrap();
+        let v = aggregate_verify(agg, &[msg1.as_ref(), msg2.as_ref()], &[pk1, pk2]);
+
+        assert!(v);
     }
 }
 
