@@ -1,7 +1,6 @@
 use crate::primitives::{Epoch, Gwei, Version};
 use ssz_rs::prelude::Vector;
 
-// NOTE: these are mainnet values
 pub const MIN_GENESIS_ACTIVE_VALIDATOR_COUNT: u64 = 16384;
 pub const MIN_GENESIS_TIME: u64 = 1606824000;
 pub const GENESIS_FORK_VERSION: Version = Vector([0u8, 0u8, 0u8, 0u8]);
