@@ -17,7 +17,11 @@ impl SecretKey {
     pub fn random() -> Self {
         let mut ikm=[0u8; 32];
         let mut rng = rand::thread_rng();
-        rng.try_fill_bytes(&mut ikm).expect("unable to generate random data");
+        rng.try_fill_bytes(&mut ikm).expect("unable to generate key material");
+        return Self::from_bytes(&ikm)
+    }
+
+    pub fn from_bytes(ikm: &[u8]) -> Self {
         let sk = blst_core::SecretKey::key_gen(&ikm, &[]).expect("unable to generate a secret key");
         SecretKey(sk)
     }
@@ -37,12 +41,20 @@ impl SecretKey {
 pub struct PublicKey(pub(crate) blst_core::PublicKey);
 
 impl PublicKey {
-    pub fn verify(&self, sig: Signature, msg: &[u8]) -> bool {
+    pub fn verify_signature(&self, sig: Signature, msg: &[u8]) -> bool {
         let dst = b"BLS_SIG_BLS12381G2_XMD:SHA-256_SSWU_RO_NUL_";
         let pk = self.0;
         let avg = &[];
         let err = sig.0.verify(true, msg, dst, avg, &pk, true);
         err == BLST_ERROR::BLST_SUCCESS
+    }
+
+    pub fn validate(&self) -> bool {
+        let valid = self.0.validate();
+        match valid {
+            Ok(()) => true,
+            Err(_) => false
+        }
     }
 }
 
@@ -72,10 +84,29 @@ mod tests {
         assert!(sig.verify(pk, msg.as_ref()));
 
         let pk = sk.public_key();
-        assert!(pk.verify(sig, msg.as_ref()));
+        assert!(pk.verify_signature(sig, msg.as_ref()));
     }
 
+    #[test]
+    #[should_panic(expected = "unable to generate a secret key")]
+    fn secret_key_is_null() {
+        let ikm = [0u8;0];
+        SecretKey::from_bytes(&ikm);
+    }
 
+    #[test]
+    #[should_panic(expected = "unable to generate a secret key")]
+    fn secret_key_len_31() {
+        let ikm = [1u8;31];
+        SecretKey::from_bytes(&ikm);
+    }
+
+    #[test]
+    fn valid_public_key() {
+        let pk = SecretKey::random().public_key();
+        let valid = pk.validate();
+        assert!(valid)
+    }
 }
 
 
