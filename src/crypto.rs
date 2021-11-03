@@ -30,11 +30,11 @@ impl SecretKey {
         let mut ikm=[0u8; 32];
         let mut rng = rand::thread_rng();
         rng.try_fill_bytes(&mut ikm).expect("unable to generate key material");
-        return Self::from_bytes(&ikm)
+        Self::from_bytes(&ikm)
     }
 
     pub fn from_bytes(ikm: &[u8]) -> Self {
-        let sk = blst_core::SecretKey::key_gen(&ikm, &[]).expect("unable to generate a secret key");
+        let sk = blst_core::SecretKey::key_gen(ikm, &[]).expect("unable to generate a secret key");
         SecretKey(sk)
     }
 
@@ -83,21 +83,21 @@ pub fn aggregate(signatures: &[Signature])-> Result<Signature, Error> {
     if signatures.is_empty() {
         return Err(Error::ZeroSizedInput);
     }
-    let vs: Vec<&blst_core::Signature> = signatures.into_iter().map(|s| &s.0).collect();
+    let vs: Vec<&blst_core::Signature> = signatures.iter().map(|s| &s.0).collect();
 
-    return blst_core::AggregateSignature::aggregate(&vs, true)
+    blst_core::AggregateSignature::aggregate(&vs, true)
         .map(|s| Signature(s.to_signature()))
         .map_err(|_| Error::SizeMismatch)
 }
 
 pub fn aggregate_verify(pks: &[PublicKey], msgs: &[&[u8]], signature: Signature) -> bool {
-    let v: Vec<&blst_core::PublicKey> = pks.into_iter().map(|pk| &pk.0).collect();
+    let v: Vec<&blst_core::PublicKey> = pks.iter().map(|pk| &pk.0).collect();
     let res = signature.0.aggregate_verify(true, msgs, BLS_DST, &v, true);
     res == BLST_ERROR::BLST_SUCCESS
 }
 
 pub fn fast_aggregate_verify(pks: &[PublicKey], msg: &[u8], signature: Signature) -> bool {
-    let v: Vec<&blst_core::PublicKey> = pks.into_iter().map(|pk| &pk.0).collect();
+    let v: Vec<&blst_core::PublicKey> = pks.iter().map(|pk| &pk.0).collect();
     let res = signature.0.fast_aggregate_verify(true, msg, BLS_DST, &v);
     res == BLST_ERROR::BLST_SUCCESS
 }
