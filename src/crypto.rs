@@ -1,14 +1,13 @@
 use thiserror::Error;
 use ssz_rs::prelude::*;
 use rand::prelude::*;
-
 use blst::{min_pk as blst_core, BLST_ERROR};
-use crate::crypto::Error::SizeMismatch;
-use blst::min_pk::AggregateSignature;
 
+pub const BLS_SIGNATURE_BYTES_LEN: usize = 96;
 pub const BLS_PUBLIC_KEY_BYTES_LEN: usize = 48;
 pub const BLS_SECRET_KEY_BYTES_LEN: usize = 32;
-pub const BLS_SIGNATURE_BYTES_LEN: usize = 96;
+
+const BLS_DST: &[u8] = b"BLS_SIG_BLS12381G2_XMD:SHA-256_SSWU_RO_NUL_";
 
 pub type BLSPubkey = Vector<u8, BLS_PUBLIC_KEY_BYTES_LEN>;
 pub type BLSSignature = Vector<u8, BLS_SIGNATURE_BYTES_LEN>;
@@ -45,8 +44,7 @@ impl SecretKey {
     }
 
     pub fn sign(&self, msg: &[u8]) -> Signature {
-        let dst = b"BLS_SIG_BLS12381G2_XMD:SHA-256_SSWU_RO_NUL_";
-        Signature(self.0.sign(msg, dst, &[]))
+        Signature(self.0.sign(msg, BLS_DST, &[]))
     }
 }
 
@@ -55,11 +53,10 @@ pub struct PublicKey(pub(crate) blst_core::PublicKey);
 
 impl PublicKey {
     pub fn verify_signature(&self, sig: Signature, msg: &[u8]) -> bool {
-        let dst = b"BLS_SIG_BLS12381G2_XMD:SHA-256_SSWU_RO_NUL_";
         let pk = self.0;
         let avg = &[];
-        let err = sig.0.verify(true, msg, dst, avg, &pk, true);
-        err == BLST_ERROR::BLST_SUCCESS
+        let res = sig.0.verify(true, msg, BLS_DST, avg, &pk, true);
+        res == BLST_ERROR::BLST_SUCCESS
     }
 
     pub fn validate(&self) -> bool {
@@ -76,9 +73,8 @@ pub struct Signature(pub(crate) blst_core::Signature);
 
 impl Signature {
     pub fn verify(&self, pk: PublicKey, msg: &[u8]) -> bool {
-        let dst = b"BLS_SIG_BLS12381G2_XMD:SHA-256_SSWU_RO_NUL_";
         let avg = &[];
-        let err = self.0.verify(true, msg, dst, avg, &pk.0, true);
+        let err = self.0.verify(true, msg, BLS_DST, avg, &pk.0, true);
         err == BLST_ERROR::BLST_SUCCESS
     }
 }
@@ -87,19 +83,17 @@ pub fn aggregate(signatures: &[Signature])-> Result<Signature, Error> {
     if signatures.is_empty() {
         return Err(Error::ZeroSizedInput);
     }
-    let v: Vec<&blst_core::Signature> = signatures.into_iter().map(|x| &x.0).collect();
-    let s = blst_core::AggregateSignature::aggregate(&v[..], true)
-        .map(|s| Signature(s.to_signature()))
-        .map_err(|_| Error::SizeMismatch);
+    let vs: Vec<&blst_core::Signature> = signatures.into_iter().map(|s| &s.0).collect();
 
-    return s
+    return blst_core::AggregateSignature::aggregate(&vs, true)
+        .map(|s| Signature(s.to_signature()))
+        .map_err(|_| Error::SizeMismatch)
 }
 
 pub fn aggregate_verify(signature: Signature, msgs: &[&[u8]], pks: &[PublicKey]) -> bool {
-    let dst = b"BLS_SIG_BLS12381G2_XMD:SHA-256_SSWU_RO_NUL_";
-    let pp: Vec<&blst_core::PublicKey> = pks.into_iter().map(|x| &x.0).collect();
-    let err = signature.0.aggregate_verify(true, msgs, dst, &pp[..], true);
-    err == BLST_ERROR::BLST_SUCCESS
+    let v: Vec<&blst_core::PublicKey> = pks.into_iter().map(|pk| &pk.0).collect();
+    let res = signature.0.aggregate_verify(true, msgs, BLS_DST, &v, true);
+    res == BLST_ERROR::BLST_SUCCESS
 }
 
 #[cfg(test)]
