@@ -52,7 +52,7 @@ impl SecretKey {
 pub struct PublicKey(pub(crate) blst_core::PublicKey);
 
 impl PublicKey {
-    pub fn verify_signature(&self, sig: Signature, msg: &[u8]) -> bool {
+    pub fn verify_signature(&self, msg: &[u8], sig: Signature) -> bool {
         let pk = self.0;
         let avg = &[];
         let res = sig.0.verify(true, msg, BLS_DST, avg, &pk, true);
@@ -90,16 +90,23 @@ pub fn aggregate(signatures: &[Signature])-> Result<Signature, Error> {
         .map_err(|_| Error::SizeMismatch)
 }
 
-pub fn aggregate_verify(signature: Signature, msgs: &[&[u8]], pks: &[PublicKey]) -> bool {
+pub fn aggregate_verify(pks: &[PublicKey], msgs: &[&[u8]], signature: Signature) -> bool {
     let v: Vec<&blst_core::PublicKey> = pks.into_iter().map(|pk| &pk.0).collect();
     let res = signature.0.aggregate_verify(true, msgs, BLS_DST, &v, true);
+    res == BLST_ERROR::BLST_SUCCESS
+}
+
+pub fn fast_aggregate_verify(pks: &[PublicKey], msg: &[u8], signature: Signature) -> bool {
+    let v: Vec<&blst_core::PublicKey> = pks.into_iter().map(|pk| &pk.0).collect();
+    let res = signature.0.fast_aggregate_verify(true, msg, BLS_DST, &v);
     res == BLST_ERROR::BLST_SUCCESS
 }
 
 #[cfg(test)]
 mod tests {
     use super::SecretKey;
-    use crate::crypto::{aggregate, aggregate_verify};
+    use crate::crypto::{aggregate, fast_aggregate_verify, aggregate_verify};
+    use rand::prelude::*;
 
     #[test]
     fn signature() {
@@ -111,7 +118,7 @@ mod tests {
         assert!(sig.verify(pk, msg.as_ref()));
 
         let pk = sk.public_key();
-        assert!(pk.verify_signature(sig, msg.as_ref()));
+        assert!(pk.verify_signature(msg.as_ref(), sig));
     }
 
     #[test]
@@ -136,24 +143,50 @@ mod tests {
     }
 
     #[test]
-    fn aggregated_signatures() {
-        let sk1 = SecretKey::random();
-        let pk1 = sk1.public_key();
+    fn test_aggregate_verify() {
+        let n = 20;
+        let sks: Vec<_> = (0..n)
+            .map(|_| SecretKey::random())
+            .collect();
+        let pks: Vec<_> = sks.iter()
+            .map(|sk| sk.public_key())
+            .collect();
+        let msgs: Vec<Vec<u8>> = (0..n)
+            .map(|_| (0..64).map(|_| rand::thread_rng().gen()).collect())
+            .collect();
 
-        let sk2 = SecretKey::random();
-        let pk2 = sk2.public_key();
+        let signatures: Vec<_> = msgs.iter()
+            .zip(&sks)
+            .map(|(msg, sk)| sk.sign(msg.as_ref()))
+            .collect();
 
-        let msg1 = "message1";
-        let msg2 = "message2";
+        let msgs = msgs.iter()
+            .map(|r| &r[..]).collect::<Vec<_>>();
 
-        let sig1 = sk1.sign(msg1.as_ref());
-        let sig2 = sk2.sign(msg2.as_ref());
+        let sig = aggregate(signatures.as_ref()).unwrap();
+        let v = aggregate_verify(pks.as_slice(), msgs.as_ref(),sig);
 
-        let agg = aggregate(&[sig1, sig2]).unwrap();
-        let v = aggregate_verify(agg, &[msg1.as_ref(), msg2.as_ref()], &[pk1, pk2]);
+        assert!(v);
+    }
+
+    #[test]
+    fn test_fast_aggregated_verify() {
+        let n = 20;
+        let sks: Vec<_> = (0..n)
+            .map(|_| SecretKey::random())
+            .collect();
+        let pks: Vec<_> = sks.iter()
+            .map(|sk| sk.public_key())
+            .collect();
+        let msg = "message";
+
+        let signatures: Vec<_> = sks.iter()
+            .map(|sk| sk.sign(msg.as_ref()))
+            .collect();
+
+        let sig = aggregate(signatures.as_slice()).unwrap();
+        let v = fast_aggregate_verify(pks.as_slice(), msg.as_ref(),sig);
 
         assert!(v);
     }
 }
-
-
