@@ -60,11 +60,7 @@ impl PublicKey {
     }
 
     pub fn validate(&self) -> bool {
-        let valid = self.0.validate();
-        match valid {
-            Ok(()) => true,
-            Err(_) => false
-        }
+        self.0.validate().is_ok()
     }
 }
 
