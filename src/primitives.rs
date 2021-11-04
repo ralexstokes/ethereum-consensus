@@ -10,6 +10,7 @@ pub type Gwei = u64;
 pub type Hash32 = U256;
 pub type Bytes32 = Vector<u8, 32>;
 pub type Version = Vector<u8, 4>;
+pub(crate) type VersionBytes = [u8; 4];
 pub type DomainType = Vector<u8, 4>;
 pub type ForkDigest = Vector<u8, 4>;
 pub type Domain = Vector<u8, 32>;
