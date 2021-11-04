@@ -3,6 +3,7 @@ use blst::{min_pk as blst_core, BLST_ERROR};
 use rand::prelude::*;
 use sha2::{digest::FixedOutput, Digest, Sha256};
 use ssz_rs::prelude::*;
+use std::fmt;
 use std::ops::DerefMut;
 use thiserror::Error;
 
@@ -26,8 +27,26 @@ pub enum Error {
     ZeroSizedInput,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Clone)]
 pub struct SecretKey(blst_core::SecretKey);
+
+impl fmt::Debug for SecretKey {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{:#x}", self)
+    }
+}
+
+impl fmt::LowerHex for SecretKey {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        if f.alternate() {
+            write!(f, "0x")?;
+        }
+        for i in self.0.to_bytes() {
+            write!(f, "{:02x}", i)?;
+        }
+        Ok(())
+    }
+}
 
 impl SecretKey {
     pub fn random() -> Self {
@@ -53,8 +72,26 @@ impl SecretKey {
     }
 }
 
-#[derive(Debug, Default, Clone)]
+#[derive(Default, Clone)]
 pub struct PublicKey(blst_core::PublicKey);
+
+impl fmt::Debug for PublicKey {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{:#x}", self)
+    }
+}
+
+impl fmt::LowerHex for PublicKey {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        if f.alternate() {
+            write!(f, "0x")?;
+        }
+        for i in self.0.to_bytes() {
+            write!(f, "{:02x}", i)?;
+        }
+        Ok(())
+    }
+}
 
 impl PublicKey {
     pub fn verify_signature(&self, msg: &[u8], sig: Signature) -> bool {
@@ -115,8 +152,26 @@ impl SimpleSerialize for PublicKey {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Clone)]
 pub struct Signature(blst_core::Signature);
+
+impl fmt::Debug for Signature {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{:#x}", self)
+    }
+}
+
+impl fmt::LowerHex for Signature {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        if f.alternate() {
+            write!(f, "0x")?;
+        }
+        for i in self.0.to_bytes() {
+            write!(f, "{:02x}", i)?;
+        }
+        Ok(())
+    }
+}
 
 impl Default for Signature {
     fn default() -> Self {
