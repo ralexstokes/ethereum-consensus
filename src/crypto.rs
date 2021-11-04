@@ -5,7 +5,6 @@ use thiserror::Error;
 
 pub const BLS_SIGNATURE_BYTES_LEN: usize = 96;
 pub const BLS_PUBLIC_KEY_BYTES_LEN: usize = 48;
-pub const BLS_SECRET_KEY_BYTES_LEN: usize = 32;
 
 const BLS_DST: &[u8] = b"BLS_SIG_BLS12381G2_XMD:SHA-256_SSWU_RO_NUL_";
 
@@ -23,7 +22,7 @@ pub enum Error {
 }
 
 #[derive(Debug)]
-pub struct SecretKey(pub(crate) blst_core::SecretKey);
+pub struct SecretKey(blst_core::SecretKey);
 
 impl SecretKey {
     pub fn random() -> Self {
@@ -50,7 +49,7 @@ impl SecretKey {
 }
 
 #[derive(Debug)]
-pub struct PublicKey(pub(crate) blst_core::PublicKey);
+pub struct PublicKey(blst_core::PublicKey);
 
 impl PublicKey {
     pub fn verify_signature(&self, msg: &[u8], sig: Signature) -> bool {
@@ -66,7 +65,7 @@ impl PublicKey {
 }
 
 #[derive(Debug)]
-pub struct Signature(pub(crate) blst_core::Signature);
+pub struct Signature(blst_core::Signature);
 
 impl Signature {
     pub fn verify(&self, pk: PublicKey, msg: &[u8]) -> bool {
