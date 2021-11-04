@@ -18,6 +18,8 @@ jobs:
     - uses: actions/checkout@v2
     - name: Install
       run: rustup update stable
+    - name: Format
+      run: cargo fmt -- --check
     - name: Run clippy
       run: cargo clippy --verbose -- -D warnings
     - name: Build
