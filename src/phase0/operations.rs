@@ -1,4 +1,4 @@
-use crate::crypto::{BLSPubkey, BLSSignature};
+use crate::crypto::{PublicKey as BLSPubkey, Signature as BLSSignature};
 use crate::phase0::beacon_block::SignedBeaconBlockHeader;
 use crate::primitives::{
     Bytes32, CommitteeIndex, Epoch, Gwei, Hash32, Root, Slot, ValidatorIndex,

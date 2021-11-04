@@ -1,4 +1,4 @@
-use crate::crypto::BLSPubkey;
+use crate::crypto::PublicKey as BLSPubkey;
 use crate::primitives::{Bytes32, Epoch, Gwei};
 use ssz_rs::prelude::*;
 
