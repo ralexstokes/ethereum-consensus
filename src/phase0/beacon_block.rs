@@ -1,4 +1,4 @@
-use crate::crypto::BLSSignature;
+use crate::crypto::Signature as BLSSignature;
 use crate::phase0::operations::{
     Attestation, AttesterSlashing, Deposit, Eth1Data, ProposerSlashing, SignedVoluntaryExit,
 };
