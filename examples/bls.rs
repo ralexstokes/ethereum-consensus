@@ -9,6 +9,6 @@ fn main() {
     let msg = b"blst is such a blast";
     let sig = sk.sign(msg);
 
-    let valid = sig.verify(pk, msg,);
+    let valid = sig.verify(pk, msg);
     println!("Signature is valid: {:?}", valid);
 }
