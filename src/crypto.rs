@@ -1,15 +1,21 @@
+use crate::primitives::Bytes32;
 use blst::{min_pk as blst_core, BLST_ERROR};
 use rand::prelude::*;
-use sha2::{Digest, Sha256};
+use sha2::{digest::FixedOutput, Digest, Sha256};
 use ssz_rs::prelude::*;
+use std::ops::DerefMut;
 use thiserror::Error;
 
 pub const BLS_SIGNATURE_BYTES_LEN: usize = 96;
 pub const BLS_PUBLIC_KEY_BYTES_LEN: usize = 48;
 const BLS_DST: &[u8] = b"BLS_SIG_BLS12381G2_XMD:SHA-256_SSWU_RO_NUL_";
 
-pub fn hash(data: &[u8]) -> [u8; 32] {
-    Sha256::digest(data).try_into().expect("can make hash")
+pub fn hash(data: &[u8]) -> Bytes32 {
+    let mut result = Bytes32::default();
+    let mut hasher = Sha256::new();
+    hasher.update(data);
+    hasher.finalize_into(result.deref_mut().as_mut_slice().into());
+    result
 }
 
 pub type BLSPubkey = Vector<u8, BLS_PUBLIC_KEY_BYTES_LEN>;
