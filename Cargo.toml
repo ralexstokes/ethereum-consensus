@@ -15,3 +15,5 @@ rand = "0.8.0"
 thiserror = "1.0.30"
 sha2 = "0.9.8"
 hex = "0.4.3"
+serde = { version = "1.0", features = ["derive"] }
+serde_yaml = "0.8"
