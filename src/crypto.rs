@@ -6,8 +6,6 @@ use ssz_rs::prelude::*;
 use std::ops::DerefMut;
 use thiserror::Error;
 
-pub const BLS_SIGNATURE_BYTES_LEN: usize = 96;
-pub const BLS_PUBLIC_KEY_BYTES_LEN: usize = 48;
 const BLS_DST: &[u8] = b"BLS_SIG_BLS12381G2_XMD:SHA-256_SSWU_RO_NUL_";
 
 pub fn hash(data: &[u8]) -> Bytes32 {
@@ -17,9 +15,6 @@ pub fn hash(data: &[u8]) -> Bytes32 {
     hasher.finalize_into(result.deref_mut().as_mut_slice().into());
     result
 }
-
-pub type BLSPubkey = Vector<u8, BLS_PUBLIC_KEY_BYTES_LEN>;
-pub type BLSSignature = Vector<u8, BLS_SIGNATURE_BYTES_LEN>;
 
 #[derive(Debug, Error)]
 pub enum Error {
@@ -31,7 +26,7 @@ pub enum Error {
     ZeroSizedInput,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct SecretKey(blst_core::SecretKey);
 
 impl SecretKey {
@@ -58,7 +53,7 @@ impl SecretKey {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Default, Clone)]
 pub struct PublicKey(blst_core::PublicKey);
 
 impl PublicKey {
@@ -74,8 +69,66 @@ impl PublicKey {
     }
 }
 
-#[derive(Debug)]
+impl Sized for PublicKey {
+    fn is_variable_size() -> bool {
+        false
+    }
+
+    fn size_hint() -> usize {
+        48
+    }
+}
+
+impl Serialize for PublicKey {
+    fn serialize(&self, buffer: &mut Vec<u8>) -> Result<usize, SerializeError> {
+        let start = buffer.len();
+        buffer.extend_from_slice(&self.0.to_bytes());
+        let encoded_length = buffer.len() - start;
+        debug_assert!(encoded_length == Self::size_hint());
+        Ok(encoded_length)
+    }
+}
+
+impl Deserialize for PublicKey {
+    fn deserialize(encoding: &[u8]) -> Result<Self, DeserializeError>
+    where
+        Self: Sized,
+    {
+        let inner = blst_core::PublicKey::deserialize(encoding)
+            .map_err(|_| DeserializeError::InvalidInput)?;
+        Ok(Self(inner))
+    }
+}
+
+impl Merkleized for PublicKey {
+    fn hash_tree_root(&self, context: &MerkleizationContext) -> Result<Root, MerkleizationError> {
+        let mut buffer = vec![];
+        self.serialize(&mut buffer)?;
+        pack_bytes(&mut buffer);
+        merkleize(&buffer, None, context)
+    }
+}
+
+impl SimpleSerialize for PublicKey {
+    fn is_composite_type() -> bool {
+        false
+    }
+}
+
+#[derive(Debug, Clone)]
 pub struct Signature(blst_core::Signature);
+
+impl Default for Signature {
+    fn default() -> Self {
+        let mut encoding = vec![0u8; Self::size_hint()];
+        // set top two bits, particularity of the `BLS12-381` encoding
+        encoding[0] = 192;
+        Self(
+            blst_core::Signature::from_bytes(&encoding)
+                .expect("default is a well-formed signature"),
+        )
+    }
+}
 
 impl Signature {
     pub fn verify(&self, pk: PublicKey, msg: &[u8]) -> bool {
@@ -88,6 +141,52 @@ impl Signature {
         let sig =
             blst_core::Signature::from_bytes(b).expect("unable to create a signature from bytes");
         Signature(sig)
+    }
+}
+
+impl Sized for Signature {
+    fn is_variable_size() -> bool {
+        false
+    }
+
+    fn size_hint() -> usize {
+        96
+    }
+}
+
+impl Serialize for Signature {
+    fn serialize(&self, buffer: &mut Vec<u8>) -> Result<usize, SerializeError> {
+        let start = buffer.len();
+        buffer.extend_from_slice(&self.0.to_bytes());
+        let encoded_length = buffer.len() - start;
+        debug_assert!(encoded_length == Self::size_hint());
+        Ok(encoded_length)
+    }
+}
+
+impl Deserialize for Signature {
+    fn deserialize(encoding: &[u8]) -> Result<Self, DeserializeError>
+    where
+        Self: Sized,
+    {
+        let inner = blst_core::Signature::deserialize(encoding)
+            .map_err(|_| DeserializeError::InvalidInput)?;
+        Ok(Self(inner))
+    }
+}
+
+impl Merkleized for Signature {
+    fn hash_tree_root(&self, context: &MerkleizationContext) -> Result<Root, MerkleizationError> {
+        let mut buffer = vec![];
+        self.serialize(&mut buffer)?;
+        pack_bytes(&mut buffer);
+        merkleize(&buffer, None, context)
+    }
+}
+
+impl SimpleSerialize for Signature {
+    fn is_composite_type() -> bool {
+        false
     }
 }
 
@@ -211,5 +310,11 @@ mod tests {
         let v = fast_aggregate_verify(pks.as_slice(), msg.as_ref(), sig);
 
         assert!(v);
+    }
+
+    #[test]
+    fn test_can_make_default_signature() {
+        let signature = Signature::default();
+        dbg!(signature);
     }
 }

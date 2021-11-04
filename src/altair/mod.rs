@@ -1,6 +1,6 @@
 pub mod light_client;
 
-use crate::{crypto::BLSPubkey, phase0};
+use crate::{crypto::PublicKey as BLSPubkey, phase0};
 use ssz_rs::prelude::*;
 
 pub type BeaconBlockHeader = phase0::mainnet::BeaconBlockHeader;
