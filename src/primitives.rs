@@ -40,7 +40,6 @@ pub type Domain = Vector<u8, 32>;
 pub const GENESIS_SLOT: Slot = 0;
 pub const GENESIS_EPOCH: Epoch = 0;
 pub const FAR_FUTURE_EPOCH: Epoch = Epoch::MAX;
-pub const BASE_REWARDS_PER_EPOCH: usize = 4;
 pub const DEPOSIT_CONTRACT_TREE_DEPTH: usize = 2usize.pow(5);
 pub const JUSTIFICATION_BITS_LENGTH: usize = 4;
 

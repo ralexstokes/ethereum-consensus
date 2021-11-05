@@ -11,3 +11,5 @@ mod state_transition;
 mod validator;
 
 pub use presets::{mainnet, minimal};
+
+pub const BASE_REWARDS_PER_EPOCH: usize = 4;
