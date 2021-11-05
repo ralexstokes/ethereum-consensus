@@ -1,4 +1,5 @@
 use ssz_rs::prelude::*;
+use std::fmt;
 
 pub use ssz_rs::prelude::Root;
 
@@ -8,7 +9,28 @@ pub type CommitteeIndex = u64;
 pub type ValidatorIndex = u64;
 pub type Gwei = u64;
 pub type Hash32 = U256;
-pub type Bytes32 = Vector<u8, 32>;
+
+#[derive(Default, Clone, PartialEq, Eq, SimpleSerialize)]
+pub struct Bytes32(pub(crate) Vector<u8, 32>);
+
+impl fmt::LowerHex for Bytes32 {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        if f.alternate() {
+            write!(f, "0x")?;
+        }
+        for i in &self.0[..] {
+            write!(f, "{:02x}", i)?;
+        }
+        Ok(())
+    }
+}
+
+impl fmt::Debug for Bytes32 {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{:#x}", self)
+    }
+}
+
 pub type Version = Vector<u8, 4>;
 pub(crate) type VersionBytes = [u8; 4];
 pub type DomainType = Vector<u8, 4>;
