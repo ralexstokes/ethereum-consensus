@@ -1,35 +1,44 @@
-use ethereum_consensus::crypto::{SecretKey};
+use ethereum_consensus::crypto::{SecretKey, Signature};
+use hex;
 #[allow(unused_imports)]
 use rand::Rng;
 use serde::{Deserialize, Serialize};
 use serde_yaml;
-
+use std::fs::File;
 
 #[derive(Debug, Serialize, Deserialize)]
 struct Input {
     privkey: String,
-    message: String
-
+    message: String,
 }
+
 #[derive(Debug, Serialize, Deserialize)]
 struct TestIO {
     input: Input,
     output: String,
 }
 
+use std::fmt::Debug;
+fn decode_hex_with_prefix<T: AsRef<[u8]> + Debug>(data: T) -> Vec<u8> {
+    hex::decode(&data.as_ref()[2..]).expect("is well-formed hex")
+}
+
 #[test]
-
 fn try_signing() {
+    let path = "consensus-spec-tests/tests/general/phase0/bls/sign/small/sign_case_8cd3d4d0d9a5b265/data.yaml";
+    let file = File::open(path).expect("file exists");
+    let test_case: TestIO = serde_yaml::from_reader(file).expect("is well-formatted yaml");
+    let input = test_case.input;
 
-    let paths = "consensus-spec-tests/tests/general/phase0/bls/sign/small/sign_case_8cd3d4d0d9a5b265/data.yaml";
-    let f = std::fs::File::open(paths).expect("Could not open file.");
-    let scrape_config: TestIO = serde_yaml::from_reader(f).expect("Could not read values.");
-    let secretkey = SecretKey::from_bytes(&scrape_config.input.privkey.as_bytes());
-    let signed = secretkey.sign(&scrape_config.input.message.as_bytes());
-    println!("signed message {:?}",signed);
-    println!("should match {:?}",scrape_config.output);
-    assert_eq!(false)
+    let secret_key_bytes = decode_hex_with_prefix(&input.privkey);
+    let secret_key = SecretKey::from_bytes(&secret_key_bytes);
 
+    let message_bytes = decode_hex_with_prefix(&input.message);
+    let signature = secret_key.sign(&message_bytes);
+
+    let signature_bytes = decode_hex_with_prefix(test_case.output);
+    let expected_signature = Signature::from_bytes(&signature_bytes);
+    assert_eq!(expected_signature, signature);
 }
 // #[test]
 // fn try_one_case() {
@@ -73,5 +82,3 @@ fn try_signing() {
 //         scrape_config.output.trim_start_matches("0x")
 //     )
 // }
-
-
