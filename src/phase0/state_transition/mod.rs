@@ -1,13 +1,14 @@
 mod block_processing;
 mod epoch_processing;
 
-use crate::crypto::fast_aggregate_verify;
+use crate::crypto::{fast_aggregate_verify, hash};
 use crate::domains::{DomainType, SigningData};
 use crate::phase0::beacon_block::SignedBeaconBlock;
 use crate::phase0::beacon_state::BeaconState;
 use crate::phase0::operations::{AttestationData, IndexedAttestation};
 use crate::phase0::validator::Validator;
-use crate::primitives::{Domain, Epoch, Gwei, Root, Version, FAR_FUTURE_EPOCH};
+use crate::primitives::{Bytes32, Domain, Epoch, Gwei, Root, Version, FAR_FUTURE_EPOCH};
+use sha2::digest::generic_array::functional::FunctionalSequence;
 use ssz_rs::prelude::*;
 use std::collections::HashSet;
 use thiserror::Error;
@@ -111,6 +112,26 @@ pub fn is_valid_indexed_attestation<
     } else {
         Err(Error::InvalidSignature)
     }
+}
+
+pub fn is_valid_merkle_branch(
+    leaf: Bytes32,
+    branch: &[Bytes32],
+    depth: usize,
+    index: usize,
+    root: Root,
+) -> bool {
+    let mut value = leaf;
+    for i in 0..depth {
+        if (index / 2usize.pow(i as u32)) % 2 == 0 {
+            let x = branch[i].xor(value);
+            value = hash(x.0.as_slice());
+        } else {
+            let x = value.xor(branch[i].clone());
+            value = hash(x.0.as_slice())
+        }
+    }
+    value.as_bytes() == <ssz_rs::Root as AsRef<[u8]>>::as_ref(&root)
 }
 
 #[derive(Debug, Error)]
