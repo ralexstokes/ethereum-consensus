@@ -6,13 +6,13 @@ use crate::primitives::{
 };
 use ssz_rs::prelude::*;
 
-#[derive(Default, Debug, SimpleSerialize)]
+#[derive(Default, Debug, SimpleSerialize, PartialEq, Eq)]
 pub struct Checkpoint {
     pub epoch: Epoch,
     pub root: Root,
 }
 
-#[derive(Default, Debug, SimpleSerialize)]
+#[derive(Default, Debug, SimpleSerialize, PartialEq, Eq)]
 pub struct AttestationData {
     pub slot: Slot,
     pub index: CommitteeIndex,
