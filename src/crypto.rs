@@ -72,7 +72,7 @@ impl SecretKey {
     }
 }
 
-#[derive(Default, Clone)]
+#[derive(Default, Clone, PartialEq, Eq)]
 pub struct PublicKey(blst_core::PublicKey);
 
 impl fmt::Debug for PublicKey {
@@ -152,7 +152,7 @@ impl SimpleSerialize for PublicKey {
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, PartialEq, Eq)]
 pub struct Signature(blst_core::Signature);
 
 impl fmt::Debug for Signature {
