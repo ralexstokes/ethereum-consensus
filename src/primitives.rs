@@ -30,6 +30,16 @@ impl fmt::Debug for Bytes32 {
     }
 }
 
+impl Bytes32 {
+    pub fn xor(&self, other: Self) -> Self {
+        let mut result = Vector::default();
+        for (i, (a, b)) in self.0.iter().zip(other.0.iter()).enumerate() {
+            result[i] = a ^ b;
+        }
+        Self(result)
+    }
+}
+
 pub type Version = Vector<u8, 4>;
 pub(crate) type VersionBytes = [u8; 4];
 pub type DomainType = Vector<u8, 4>;
