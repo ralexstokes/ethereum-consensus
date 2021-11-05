@@ -1,14 +1,16 @@
 use crate::domains::{DomainType, SigningData};
 use crate::phase0::beacon_block::SignedBeaconBlock;
 use crate::phase0::beacon_state::BeaconState;
-use crate::primitives::{Domain, Epoch, Version};
-use ssz_rs::prelude::*;
+use crate::primitives::{Domain, Epoch, Root, Version};
+use ssz_rs::{MerkleizationContext, Merkleized, SimpleSerialize};
 use thiserror::Error;
 
 #[derive(Debug, Error)]
 pub enum Error {
     #[error("Block Signature Error")]
     BlockSignatureError,
+    #[error("Merkleization Error")]
+    MerkleizationError(#[from] ssz_rs::MerkleizationError),
 }
 
 pub fn apply_block<
@@ -185,13 +187,14 @@ pub fn get_current_epoch<
 pub fn compute_signing_root<T: SimpleSerialize>(
     ssz_object: T,
     domain: Domain,
-) -> Result<ssz_rs::Root, ssz_rs::MerkleizationError> {
+) -> Result<Root, Error> {
     let context = MerkleizationContext::new();
     let object_root = ssz_object.hash_tree_root(&context)?;
-    let sd = SigningData {
+
+    let s = SigningData {
         object_root,
         domain,
     };
-    let context = MerkleizationContext::new();
-    sd.hash_tree_root(&context)
+    s.hash_tree_root(&context)
+        .map_err(Error::MerkleizationError)
 }
