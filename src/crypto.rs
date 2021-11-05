@@ -6,7 +6,7 @@ use ssz_rs::prelude::*;
 use std::fmt;
 use thiserror::Error;
 
-const BLS_DST: &[u8] = b"BLS_SIG_BLS12381G2_XMD:SHA-256_SSWU_RO_NUL_";
+const BLS_DST: &[u8] = b"BLS_SIG_BLS12381G2_XMD:SHA-256_SSWU_RO_POP_";
 
 pub fn hash(data: &[u8]) -> Bytes32 {
     let mut result = Bytes32::default();
@@ -53,12 +53,20 @@ impl SecretKey {
         let mut rng = rand::thread_rng();
         rng.try_fill_bytes(&mut ikm)
             .expect("unable to generate key material");
-        Self::from_bytes(&ikm)
+        Self::key_gen(&ikm)
     }
 
-    pub fn from_bytes(ikm: &[u8]) -> Self {
+    pub fn key_gen(ikm: &[u8]) -> Self {
         let sk = blst_core::SecretKey::key_gen(ikm, &[]).expect("unable to generate a secret key");
         SecretKey(sk)
+    }
+
+    pub fn from_bytes(encoding: &[u8]) -> Self {
+        Self(blst_core::SecretKey::from_bytes(encoding).expect("secret key bytes are valid"))
+    }
+
+    pub fn as_bytes(&self) -> [u8; 32] {
+        self.0.to_bytes()
     }
 
     pub fn public_key(&self) -> PublicKey {
@@ -311,14 +319,14 @@ mod tests {
     #[should_panic(expected = "unable to generate a secret key")]
     fn secret_key_is_null() {
         let ikm = [0u8; 0];
-        SecretKey::from_bytes(&ikm);
+        SecretKey::key_gen(&ikm);
     }
 
     #[test]
     #[should_panic(expected = "unable to generate a secret key")]
     fn secret_key_len_31() {
         let ikm = [1u8; 31];
-        SecretKey::from_bytes(&ikm);
+        SecretKey::key_gen(&ikm);
     }
 
     #[test]
@@ -370,5 +378,20 @@ mod tests {
     fn test_can_make_default_signature() {
         let signature = Signature::default();
         dbg!(signature);
+    }
+
+    #[test]
+    fn test_can_sign() {
+        let secret_key_hex = "40094c5c6c378857eac09b8ec64c87182f58700c056a8b371ad0eb0a5b983d50";
+        let secret_key_bytes = hex::decode(secret_key_hex).expect("is hex");
+        let secret_key = SecretKey::from_bytes(&secret_key_bytes);
+
+        let signature_hex = "a01e49276730e4752eef31b0570c8707de501398dac70dd144438cd1bd05fb9b9bb3e1a9ceef0a68cc08904362cafa3f1005e5b699a41847fff6f5552260468846de5bdbf94a9aedeb29bc6cdb2c1d34922d9e9af4c0593a69ae978a90b5aba6";
+        let signature_bytes = hex::decode(signature_hex).expect("can decode hex");
+        let expected_signature = Signature::from_bytes(&signature_bytes);
+
+        let message = b"blst is such a blast";
+        let signature = secret_key.sign(message);
+        assert_eq!(expected_signature, signature);
     }
 }
