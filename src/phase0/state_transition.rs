@@ -1,7 +1,7 @@
 use crate::domains::{DomainType, SigningData};
 use crate::phase0::beacon_block::SignedBeaconBlock;
 use crate::phase0::beacon_state::BeaconState;
-use crate::primitives::{Domain, Epoch};
+use crate::primitives::{Domain, Epoch, Version};
 use ssz_rs::prelude::*;
 use thiserror::Error;
 
@@ -98,7 +98,7 @@ pub fn verify_block_signature<
         .expect("failed to get validator");
     let signing_root = match compute_signing_root(
         signed_block.message,
-        get_domain(state, DomainType::BeaconProposer, None),
+        get_domain(&state, DomainType::BeaconProposer, None),
     ) {
         Ok(root) => root,
         Err(_) => return false,
@@ -119,7 +119,7 @@ pub fn get_domain<
     const MAX_VALIDATORS_PER_COMMITTEE: usize,
     const PENDING_ATTESTATIONS_BOUND: usize,
 >(
-    state: BeaconState<
+    state: &BeaconState<
         SLOTS_PER_HISTORICAL_ROOT,
         HISTORICAL_ROOTS_LIMIT,
         ETH1_DATA_VOTES_BOUND,
@@ -133,21 +133,29 @@ pub fn get_domain<
     epoch: Option<Epoch>,
 ) -> Domain {
     let epoch = if epoch.is_none() {
-        get_current_epoch(state)
+        get_current_epoch(&state)
     } else {
         epoch.unwrap()
     };
     let fork_version = if epoch < state.fork.epoch {
-        state.fork.previous_version.clone()
+        Some(&state.fork.previous_version)
     } else {
-        state.fork.current_version.clone()
+        Some(&state.fork.current_version)
     };
 
-    return compute_domain(
+    compute_domain(
         domain_type,
         fork_version,
-        state.genesis_validators_root.clone(),
-    );
+        Some(&state.genesis_validators_root),
+    )
+}
+
+pub fn compute_domain(
+    domain_type: DomainType,
+    fork_version: Option<&Version>,
+    genesis_validators_root: Option<&Root>,
+) -> Domain {
+    todo!()
 }
 
 pub fn get_current_epoch<
@@ -160,7 +168,7 @@ pub fn get_current_epoch<
     const MAX_VALIDATORS_PER_COMMITTEE: usize,
     const PENDING_ATTESTATIONS_BOUND: usize,
 >(
-    state: BeaconState<
+    state: &BeaconState<
         SLOTS_PER_HISTORICAL_ROOT,
         HISTORICAL_ROOTS_LIMIT,
         ETH1_DATA_VOTES_BOUND,
