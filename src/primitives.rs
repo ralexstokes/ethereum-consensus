@@ -4,8 +4,8 @@ use std::fmt;
 pub type Root = Node;
 pub type Slot = u64;
 pub type Epoch = u64;
-pub type CommitteeIndex = u64;
-pub type ValidatorIndex = u64;
+pub type CommitteeIndex = usize;
+pub type ValidatorIndex = usize;
 pub type Gwei = u64;
 pub type Hash32 = U256;
 
@@ -39,6 +39,7 @@ pub type Domain = Vector<u8, 32>;
 pub const GENESIS_SLOT: Slot = 0;
 pub const GENESIS_EPOCH: Epoch = 0;
 pub const FAR_FUTURE_EPOCH: Epoch = Epoch::MAX;
+pub const BASE_REWARDS_PER_EPOCH: usize = 4;
 pub const DEPOSIT_CONTRACT_TREE_DEPTH: usize = 2usize.pow(5);
 pub const JUSTIFICATION_BITS_LENGTH: usize = 4;
 
