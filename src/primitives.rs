@@ -39,6 +39,10 @@ impl Bytes32 {
         }
         Self(result)
     }
+
+    pub fn as_bytes(&self) -> &[u8] {
+        self.0.as_slice()
+    }
 }
 
 pub type Version = Vector<u8, 4>;
