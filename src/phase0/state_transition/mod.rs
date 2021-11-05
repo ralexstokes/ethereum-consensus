@@ -123,7 +123,7 @@ pub fn is_valid_merkle_branch(
 ) -> bool {
     let mut value = leaf;
     for i in 0..depth {
-        if (index / 2usize.pow(i as u32)) % 2 == 0 {
+        if (index / 2usize.pow(i as u32)) % 2 != 0 {
             let x = branch[i].xor(value);
             value = hash(x.0.as_slice());
         } else {
