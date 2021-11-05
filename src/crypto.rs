@@ -4,7 +4,6 @@ use rand::prelude::*;
 use sha2::{digest::FixedOutput, Digest, Sha256};
 use ssz_rs::prelude::*;
 use std::fmt;
-use std::ops::DerefMut;
 use thiserror::Error;
 
 const BLS_DST: &[u8] = b"BLS_SIG_BLS12381G2_XMD:SHA-256_SSWU_RO_POP_";
@@ -13,7 +12,7 @@ pub fn hash(data: &[u8]) -> Bytes32 {
     let mut result = Bytes32::default();
     let mut hasher = Sha256::new();
     hasher.update(data);
-    hasher.finalize_into(result.deref_mut().as_mut_slice().into());
+    hasher.finalize_into(result.0.as_mut_slice().into());
     result
 }
 
