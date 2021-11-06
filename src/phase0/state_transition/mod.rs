@@ -5,12 +5,18 @@ use crate::crypto::{fast_aggregate_verify, hash};
 use crate::domains::{DomainType, SigningData};
 use crate::phase0::beacon_block::SignedBeaconBlock;
 use crate::phase0::beacon_state::BeaconState;
+use crate::phase0::configs::mainnet::{GENESIS_FORK_VERSION, GENESIS_FORK_VERSION_BYTES};
+use crate::phase0::fork::ForkData;
+use crate::phase0::mainnet::{MAX_SEED_LOOKAHEAD, SLOTS_PER_EPOCH};
 use crate::phase0::operations::{AttestationData, IndexedAttestation};
 use crate::phase0::validator::Validator;
-use crate::primitives::{Bytes32, Domain, Epoch, Gwei, Root, Version, FAR_FUTURE_EPOCH};
+use crate::primitives::{
+    Bytes32, Domain, Epoch, ForkDigest, Gwei, Root, Slot, Version, FAR_FUTURE_EPOCH,
+};
 use sha2::digest::generic_array::functional::FunctionalSequence;
 use ssz_rs::prelude::*;
 use std::collections::HashSet;
+use std::io::Bytes;
 use thiserror::Error;
 
 pub fn is_active_validator(validator: Validator, epoch: Epoch) -> bool {
@@ -140,6 +146,8 @@ pub enum Error {
     BlockSignatureError,
     #[error("Merkleization Error")]
     MerkleizationError(#[from] MerkleizationError),
+    #[error("Deserializen Error")]
+    DeserializeError(#[from] DeserializeError),
     #[error("invalid operation")]
     InvalidOperation,
     #[error("invalid signature")]
@@ -266,7 +274,7 @@ pub fn get_domain<
     >,
     domain_type: DomainType,
     epoch: Option<Epoch>,
-) -> Domain {
+) -> Result<Domain, Error> {
     let epoch = if epoch.is_none() {
         get_current_epoch(&state)
     } else {
@@ -278,21 +286,12 @@ pub fn get_domain<
         Some(&state.fork.current_version)
     };
 
-    compute_domain(
+    let d = compute_domain(
         domain_type,
         fork_version,
         Some(&state.genesis_validators_root),
-    )
+    );
 }
-
-pub fn compute_domain(
-    domain_type: DomainType,
-    fork_version: Option<&Version>,
-    genesis_validators_root: Option<&Root>,
-) -> Domain {
-    todo!()
-}
-
 pub fn get_current_epoch<
     const SLOTS_PER_HISTORICAL_ROOT: usize,
     const HISTORICAL_ROOTS_LIMIT: usize,
@@ -329,5 +328,54 @@ pub fn compute_signing_root<T: SimpleSerialize>(
         domain,
     };
     s.hash_tree_root(&context)
+        .map_err(Error::MerkleizationError)
+}
+
+pub fn compute_epoch_at_slot(slot: Slot) -> Epoch {
+    slot / SLOTS_PER_EPOCH
+}
+
+pub fn compute_start_slot_at_epoch(epoch: Epoch) -> Slot {
+    epoch * SLOTS_PER_EPOCH
+}
+
+pub fn compute_activation_exit_epoch(epoch: Epoch) -> Epoch {
+    epoch + 1 + MAX_SEED_LOOKAHEAD
+}
+
+pub fn compute_fork_digest(
+    current_version: Version,
+    genesis_validators_root: Root,
+) -> Result<ForkDigest, Error> {
+    let fork_data_root = compute_fork_data_root(current_version, genesis_validators_root)?;
+    let fork_digest: Vector<u8, 4> = ForkDigest::deserialize(fork_data_root.as_ref())?;
+    Ok(fork_digest)
+}
+
+pub fn compute_domain(
+    domain_type: DomainType,
+    fork_version: Option<Version>,
+    genesis_validators_root: Option<Root>,
+) -> Result<Domain, Error> {
+    let fork_version = fork_version.unwrap_or(GENESIS_FORK_VERSION);
+    let genesis_validators_root = genesis_validators_root.unwrap_or(Root::from_bytes([0u8; 32]));
+    let fork_data_root = compute_fork_data_root(fork_version, genesis_validators_root)?;
+    Ok(Domain(domain(domain_type, fork_data_root)))
+}
+
+pub fn domain(domain_type: DomainType, fork_data_root: Root) -> Vector<u8, 32> {
+    todo!()
+}
+
+pub fn compute_fork_data_root(
+    current_version: Version,
+    genesis_validators_root: Root,
+) -> Result<Root, Error> {
+    let d = ForkData {
+        current_version,
+        genesis_validators_root,
+    };
+    let context = MerkleizationContext::new();
+    d.hash_tree_root(&context)
         .map_err(Error::MerkleizationError)
 }
