@@ -3,11 +3,11 @@ use std::fmt;
 
 pub use ssz_rs::prelude::Root;
 
-pub type Slot = u64;
-pub type Epoch = u64;
+pub type Slot = usize;
+pub type Epoch = usize;
 pub type CommitteeIndex = usize;
 pub type ValidatorIndex = usize;
-pub type Gwei = u64;
+pub type Gwei = usize;
 pub type Hash32 = U256;
 
 #[derive(Default, Clone, PartialEq, Eq, SimpleSerialize)]
