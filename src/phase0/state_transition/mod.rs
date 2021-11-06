@@ -19,6 +19,20 @@ use std::collections::HashSet;
 use std::io::Bytes;
 use thiserror::Error;
 
+#[derive(Debug, Error)]
+pub enum Error {
+    #[error("Block Signature Error")]
+    BlockSignatureError,
+    #[error("Merkleization Error")]
+    MerkleizationError(#[from] MerkleizationError),
+    #[error("Deserializen Error")]
+    DeserializeError(#[from] DeserializeError),
+    #[error("invalid operation")]
+    InvalidOperation,
+    #[error("invalid signature")]
+    InvalidSignature,
+}
+
 pub fn is_active_validator(validator: Validator, epoch: Epoch) -> bool {
     validator.activation_epoch <= epoch && epoch < validator.exit_epoch
 }
@@ -111,7 +125,7 @@ pub fn is_valid_indexed_attestation<
         &state,
         DomainType::BeaconAttester,
         Some(indexed_attestation.data.target.epoch),
-    );
+    )?;
     let signing_root = compute_signing_root(&indexed_attestation.data, domain)?;
     if fast_aggregate_verify(pubkeys, signing_root, &indexed_attestation.signature) {
         Ok(())
@@ -138,20 +152,6 @@ pub fn is_valid_merkle_branch(
         }
     }
     value.as_bytes() == <ssz_rs::Root as AsRef<[u8]>>::as_ref(&root)
-}
-
-#[derive(Debug, Error)]
-pub enum Error {
-    #[error("Block Signature Error")]
-    BlockSignatureError,
-    #[error("Merkleization Error")]
-    MerkleizationError(#[from] MerkleizationError),
-    #[error("Deserializen Error")]
-    DeserializeError(#[from] DeserializeError),
-    #[error("invalid operation")]
-    InvalidOperation,
-    #[error("invalid signature")]
-    InvalidSignature,
 }
 
 pub fn apply_block<
@@ -239,10 +239,11 @@ pub fn verify_block_signature<
         .validators
         .get(proposer_index)
         .expect("failed to get validator");
-    let signing_root = match compute_signing_root(
-        &signed_block.message,
-        get_domain(&state, DomainType::BeaconProposer, None),
-    ) {
+    let domain = match get_domain(&state, DomainType::BeaconProposer, None) {
+        Ok(domain) => domain,
+        Err(_) => return false,
+    };
+    let signing_root = match compute_signing_root(&signed_block.message, domain) {
         Ok(root) => root,
         Err(_) => return false,
     };
@@ -281,17 +282,18 @@ pub fn get_domain<
         epoch.unwrap()
     };
     let fork_version = if epoch < state.fork.epoch {
-        Some(&state.fork.previous_version)
+        Some(state.fork.previous_version.clone())
     } else {
-        Some(&state.fork.current_version)
+        Some(state.fork.current_version.clone())
     };
 
-    let d = compute_domain(
+    compute_domain(
         domain_type,
         fork_version,
-        Some(&state.genesis_validators_root),
-    );
+        Some(state.genesis_validators_root.clone()),
+    )
 }
+
 pub fn get_current_epoch<
     const SLOTS_PER_HISTORICAL_ROOT: usize,
     const HISTORICAL_ROOTS_LIMIT: usize,
@@ -313,7 +315,7 @@ pub fn get_current_epoch<
         PENDING_ATTESTATIONS_BOUND,
     >,
 ) -> Epoch {
-    todo!()
+    compute_epoch_at_slot(state.slot)
 }
 
 pub fn compute_signing_root<T: SimpleSerialize>(
@@ -357,14 +359,18 @@ pub fn compute_domain(
     fork_version: Option<Version>,
     genesis_validators_root: Option<Root>,
 ) -> Result<Domain, Error> {
-    let fork_version = fork_version.unwrap_or(GENESIS_FORK_VERSION);
+    let mut default_fork_version = Vector::<u8, 4>::default();
+    default_fork_version.copy_from_slice(&GENESIS_FORK_VERSION[..]);
+    let fork_version = fork_version.unwrap_or(default_fork_version);
     let genesis_validators_root = genesis_validators_root.unwrap_or(Root::from_bytes([0u8; 32]));
     let fork_data_root = compute_fork_data_root(fork_version, genesis_validators_root)?;
-    Ok(Domain(domain(domain_type, fork_data_root)))
-}
+    let domain_constant = domain_type.get_domain_constant();
+    let fork_data_root_value: &[u8; 32] = fork_data_root.as_ref();
 
-pub fn domain(domain_type: DomainType, fork_data_root: Root) -> Vector<u8, 32> {
-    todo!()
+    let mut domain: Domain = Vector::default();
+    domain[0..4].copy_from_slice(&domain_constant[..]);
+    domain[4..31].copy_from_slice(&fork_data_root_value[..]);
+    Ok(domain)
 }
 
 pub fn compute_fork_data_root(
