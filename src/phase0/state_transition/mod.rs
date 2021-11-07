@@ -276,11 +276,7 @@ pub fn get_domain<
     domain_type: DomainType,
     epoch: Option<Epoch>,
 ) -> Result<Domain, Error> {
-    let epoch = if epoch.is_none() {
-        get_current_epoch(&state)
-    } else {
-        epoch.unwrap()
-    };
+    let epoch = epoch.unwrap_or_else(|| get_current_epoch(&state));
     let fork_version = if epoch < state.fork.epoch {
         Some(state.fork.previous_version.clone())
     } else {
@@ -350,7 +346,9 @@ pub fn compute_fork_digest(
     genesis_validators_root: Root,
 ) -> Result<ForkDigest, Error> {
     let fork_data_root = compute_fork_data_root(current_version, genesis_validators_root)?;
-    let fork_digest: Vector<u8, 4> = ForkDigest::deserialize(fork_data_root.as_ref())?;
+    let fork_digest = fork_data_root[..4]
+        .try_into()
+        .expect("is the correct length");
     Ok(fork_digest)
 }
 
@@ -364,7 +362,7 @@ pub fn compute_domain(
     let fork_version = fork_version.unwrap_or(default_fork_version);
     let genesis_validators_root = genesis_validators_root.unwrap_or(Root::from_bytes([0u8; 32]));
     let fork_data_root = compute_fork_data_root(fork_version, genesis_validators_root)?;
-    let domain_constant = domain_type.get_domain_constant();
+    let domain_constant = domain_type.as_bytes();
     let fork_data_root_value: &[u8; 32] = fork_data_root.as_ref();
 
     let mut domain: Domain = Vector::default();
