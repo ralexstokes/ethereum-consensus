@@ -145,7 +145,7 @@ impl Deserialize for PublicKey {
 }
 
 impl Merkleized for PublicKey {
-    fn hash_tree_root(&self, context: &MerkleizationContext) -> Result<Root, MerkleizationError> {
+    fn hash_tree_root(&self, context: &MerkleizationContext) -> Result<Node, MerkleizationError> {
         let mut buffer = vec![];
         self.serialize(&mut buffer)?;
         pack_bytes(&mut buffer);
@@ -238,7 +238,7 @@ impl Deserialize for Signature {
 }
 
 impl Merkleized for Signature {
-    fn hash_tree_root(&self, context: &MerkleizationContext) -> Result<Root, MerkleizationError> {
+    fn hash_tree_root(&self, context: &MerkleizationContext) -> Result<Node, MerkleizationError> {
         let mut buffer = vec![];
         self.serialize(&mut buffer)?;
         pack_bytes(&mut buffer);

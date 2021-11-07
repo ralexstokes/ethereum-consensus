@@ -1,8 +1,7 @@
 use ssz_rs::prelude::*;
 use std::fmt;
 
-pub use ssz_rs::prelude::Root;
-
+pub type Root = Node;
 pub type Slot = u64;
 pub type Epoch = u64;
 pub type CommitteeIndex = u64;
