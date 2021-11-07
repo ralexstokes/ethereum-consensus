@@ -1,4 +1,4 @@
-use ethereum_consensus::crypto::{SecretKey};
+use ethereum_consensus::crypto::{SecretKey, Signature};
 #[allow(unused_imports)]
 use rand::Rng;
 use serde::{Deserialize, Serialize};
@@ -25,10 +25,12 @@ fn try_signing() {
     let f = std::fs::File::open(paths).expect("Could not open file.");
     let scrape_config: TestIO = serde_yaml::from_reader(f).expect("Could not read values.");
     let secretkey = SecretKey::from_bytes(&scrape_config.input.privkey.as_bytes());
+    let pubkey = secretkey.public_key();
+    let verify = pubkey.verify_signature(&scrape_config.input.message.as_bytes(), Signature::from_bytes(scrape_config.output.as_bytes()));
     let signed = secretkey.sign(&scrape_config.input.message.as_bytes());
-    println!("signed message {:?}",signed);
+    println!("signed message {:?}",verify);
     println!("should match {:?}",scrape_config.output);
-    assert_eq!(false)
+    assert!(verify)
 
 }
 // #[test]
