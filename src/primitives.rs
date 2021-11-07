@@ -13,7 +13,7 @@ pub type Hash32 = U256;
 
 pub type Version = Vector<u8, 4>;
 pub type DomainType = Vector<u8, 4>;
-pub type ForkDigest = Vector<u8, 4>;
+pub type ForkDigest = [u8; 4];
 pub type Domain = Vector<u8, 32>;
 
 pub const GENESIS_SLOT: Slot = 0;

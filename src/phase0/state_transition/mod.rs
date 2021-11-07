@@ -9,6 +9,7 @@ use crate::phase0::configs::mainnet::GENESIS_FORK_VERSION;
 use crate::phase0::fork::ForkData;
 use crate::phase0::mainnet::{MAX_SEED_LOOKAHEAD, SLOTS_PER_EPOCH};
 use crate::phase0::operations::{AttestationData, IndexedAttestation};
+use crate::phase0::state_transition::Error::{BlockSignatureError, ForkDigestError};
 use crate::phase0::validator::Validator;
 use crate::primitives::{
     Bytes32, Domain, Epoch, ForkDigest, Gwei, Root, Slot, Version, FAR_FUTURE_EPOCH,
@@ -21,6 +22,8 @@ use thiserror::Error;
 pub enum Error {
     #[error("Block Signature Error")]
     BlockSignatureError,
+    #[error("Fork Digest Error")]
+    ForkDigestError,
     #[error("Merkleization Error")]
     MerkleizationError(#[from] MerkleizationError),
     #[error("Deserializen Error")]
@@ -344,10 +347,10 @@ pub fn compute_fork_digest(
     genesis_validators_root: Root,
 ) -> Result<ForkDigest, Error> {
     let fork_data_root = compute_fork_data_root(current_version, genesis_validators_root)?;
-    let fork_digest = fork_data_root[..4]
+    fork_data_root
+        .as_ref()
         .try_into()
-        .expect("is the correct length");
-    Ok(fork_digest)
+        .map_err(|_| ForkDigestError)
 }
 
 pub fn compute_domain(
