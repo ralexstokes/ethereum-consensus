@@ -5,7 +5,7 @@ use crate::crypto::{fast_aggregate_verify, hash};
 use crate::domains::{DomainType, SigningData};
 use crate::phase0::beacon_block::SignedBeaconBlock;
 use crate::phase0::beacon_state::BeaconState;
-use crate::phase0::configs::mainnet::{GENESIS_FORK_VERSION, GENESIS_FORK_VERSION_BYTES};
+use crate::phase0::configs::mainnet::GENESIS_FORK_VERSION;
 use crate::phase0::fork::ForkData;
 use crate::phase0::mainnet::{MAX_SEED_LOOKAHEAD, SLOTS_PER_EPOCH};
 use crate::phase0::operations::{AttestationData, IndexedAttestation};
@@ -13,10 +13,8 @@ use crate::phase0::validator::Validator;
 use crate::primitives::{
     Bytes32, Domain, Epoch, ForkDigest, Gwei, Root, Slot, Version, FAR_FUTURE_EPOCH,
 };
-use sha2::digest::generic_array::functional::FunctionalSequence;
 use ssz_rs::prelude::*;
 use std::collections::HashSet;
-use std::io::Bytes;
 use thiserror::Error;
 
 #[derive(Debug, Error)]
@@ -151,7 +149,7 @@ pub fn is_valid_merkle_branch(
             value = hash(x.0.as_slice())
         }
     }
-    value.as_bytes() == <ssz_rs::Root as AsRef<[u8]>>::as_ref(&root)
+    value.as_bytes() == <ssz_rs::Node as AsRef<[u8]>>::as_ref(&root)
 }
 
 pub fn apply_block<
@@ -363,11 +361,11 @@ pub fn compute_domain(
     let genesis_validators_root = genesis_validators_root.unwrap_or(Root::from_bytes([0u8; 32]));
     let fork_data_root = compute_fork_data_root(fork_version, genesis_validators_root)?;
     let domain_constant = domain_type.as_bytes();
-    let fork_data_root_value: &[u8; 32] = fork_data_root.as_ref();
+    let fork_data_root_value = fork_data_root.as_ref();
 
     let mut domain: Domain = Vector::default();
-    domain[0..4].copy_from_slice(&domain_constant[..]);
-    domain[4..31].copy_from_slice(&fork_data_root_value[..]);
+    domain[0..4].copy_from_slice(&domain_constant);
+    domain[4..31].copy_from_slice(&fork_data_root_value);
     Ok(domain)
 }
 

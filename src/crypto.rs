@@ -1,4 +1,4 @@
-use crate::primitives::Bytes32;
+use crate::primitives::{Bytes32, Root};
 use blst::{min_pk as blst_core, BLST_ERROR};
 use rand::prelude::*;
 use sha2::{digest::FixedOutput, Digest, Sha256};
