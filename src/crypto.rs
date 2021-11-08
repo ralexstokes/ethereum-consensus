@@ -101,6 +101,14 @@ impl fmt::LowerHex for PublicKey {
 }
 
 impl PublicKey {
+    pub fn from_bytes(encoding: &[u8]) -> Self {
+        Self(blst_core::PublicKey::from_bytes(encoding).expect("public key bytes are invalid"))
+    }
+
+    pub fn as_bytes(&self) -> [u8; 48] {
+        self.0.to_bytes()
+    }
+
     pub fn verify_signature(&self, msg: &[u8], sig: Signature) -> bool {
         let pk = self.0;
         let avg = &[];
