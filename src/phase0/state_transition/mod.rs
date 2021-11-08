@@ -12,7 +12,7 @@ use crate::phase0::operations::{AttestationData, IndexedAttestation};
 use crate::phase0::state_transition::Error::{BlockSignatureError, ForkDigestError};
 use crate::phase0::validator::Validator;
 use crate::primitives::{
-    Bytes32, Domain, Epoch, ForkDigest, Gwei, Root, Slot, Version, FAR_FUTURE_EPOCH,
+    Bytes32, Domain, Epoch, ForkDigest, Gwei, Root, Slot, ValidatorIndex, Version, FAR_FUTURE_EPOCH,
 };
 use ssz_rs::prelude::*;
 use std::collections::HashSet;
@@ -328,6 +328,52 @@ pub fn compute_signing_root<T: SimpleSerialize>(
     };
     s.hash_tree_root(&context)
         .map_err(Error::MerkleizationError)
+}
+
+pub fn compute_shuffled_index(index: usize, index_count: usize, seed: &Bytes32) -> usize {
+    todo!()
+}
+
+pub fn compute_proposer_index<
+    const SLOTS_PER_HISTORICAL_ROOT: usize,
+    const HISTORICAL_ROOTS_LIMIT: usize,
+    const ETH1_DATA_VOTES_BOUND: usize,
+    const VALIDATOR_REGISTRY_LIMIT: usize,
+    const EPOCHS_PER_HISTORICAL_VECTOR: usize,
+    const EPOCHS_PER_SLASHINGS_VECTOR: usize,
+    const MAX_VALIDATORS_PER_COMMITTEE: usize,
+    const PENDING_ATTESTATIONS_BOUND: usize,
+>(
+    state: &BeaconState<
+        SLOTS_PER_HISTORICAL_ROOT,
+        HISTORICAL_ROOTS_LIMIT,
+        ETH1_DATA_VOTES_BOUND,
+        VALIDATOR_REGISTRY_LIMIT,
+        EPOCHS_PER_HISTORICAL_VECTOR,
+        EPOCHS_PER_SLASHINGS_VECTOR,
+        MAX_VALIDATORS_PER_COMMITTEE,
+        PENDING_ATTESTATIONS_BOUND,
+    >,
+    indices: &[ValidatorIndex],
+    seed: Bytes32,
+) -> ValidatorIndex {
+    todo!()
+}
+
+pub fn compute_committee(
+    indices: &[ValidatorIndex],
+    seed: Bytes32,
+    index: usize,
+    count: usize,
+) -> &[ValidatorIndex] {
+    let committee: &mut [ValidatorIndex] = &mut [];
+    let start = (indices.len() * index) / count;
+    let end = (indices.len()) * (index + 1) / count;
+    for i in start..end {
+        let index = compute_shuffled_index(i, indices.len(), &seed);
+        committee[index] = indices[index];
+    }
+    committee
 }
 
 pub fn compute_epoch_at_slot(slot: Slot) -> Epoch {
