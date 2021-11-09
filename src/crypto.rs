@@ -7,7 +7,7 @@ use thiserror::Error;
 
 const BLS_DST: &[u8] = b"BLS_SIG_BLS12381G2_XMD:SHA-256_SSWU_RO_POP_";
 
-pub fn hash(data: &[u8]) -> Bytes32 {
+pub fn hash<D: AsRef<[u8]>>(data: D) -> Bytes32 {
     let mut result = Bytes32::default();
     let mut hasher = Sha256::new();
     hasher.update(data);
@@ -302,7 +302,7 @@ pub fn aggregate_verify(pks: &[PublicKey], msgs: &[&[u8]], signature: Signature)
     res == BLST_ERROR::BLST_SUCCESS
 }
 
-pub fn fast_aggregate_verify(pks: &[PublicKey], msg: &[u8], signature: Signature) -> bool {
+pub fn fast_aggregate_verify(pks: &[&PublicKey], msg: &[u8], signature: &Signature) -> bool {
     let v: Vec<&blst_core::PublicKey> = pks.iter().map(|pk| &pk.0).collect();
     let res = signature.0.fast_aggregate_verify(true, msg, BLS_DST, &v);
     res == BLST_ERROR::BLST_SUCCESS
@@ -319,13 +319,13 @@ mod tests {
         let mut rng = thread_rng();
         let sk = SecretKey::random(&mut rng).unwrap();
         let pk = sk.public_key();
-        let msg = "message";
-        let sig = sk.sign(msg.as_ref());
+        let msg = "message".as_bytes();
+        let sig = sk.sign(msg);
 
-        assert!(sig.verify(&pk, msg.as_ref()));
+        assert!(sig.verify(&pk, msg));
 
         let pk = sk.public_key();
-        assert!(pk.verify_signature(msg.as_ref(), &sig));
+        assert!(pk.verify_signature(msg, &sig));
     }
 
     #[test]
@@ -386,7 +386,7 @@ mod tests {
         let signatures: Vec<_> = msgs
             .iter()
             .zip(&sks)
-            .map(|(msg, sk)| sk.sign(msg.as_ref()))
+            .map(|(msg, sk)| sk.sign(msg))
             .collect();
 
         let msgs = msgs.iter().map(|r| &r[..]).collect::<Vec<_>>();
@@ -405,12 +405,13 @@ mod tests {
             .map(|_| SecretKey::random(&mut rng).unwrap())
             .collect();
         let pks: Vec<_> = sks.iter().map(|sk| sk.public_key()).collect();
-        let msg = "message";
+        let msg = "message".as_bytes();
 
-        let signatures: Vec<_> = sks.iter().map(|sk| sk.sign(msg.as_ref())).collect();
+        let signatures: Vec<_> = sks.iter().map(|sk| sk.sign(msg)).collect();
 
+        let pks = pks.iter().map(|pk| pk).collect::<Vec<_>>();
         let sig = aggregate(signatures.as_slice()).unwrap();
-        let v = fast_aggregate_verify(pks.as_slice(), msg.as_ref(), sig);
+        let v = fast_aggregate_verify(&pks, msg, &sig);
 
         assert!(v);
     }

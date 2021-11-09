@@ -20,10 +20,10 @@ pub const HYSTERESIS_QUOTIENT: u64 = 4;
 pub const HYSTERESIS_DOWNWARD_MULTIPLIER: u64 = 1;
 pub const HYSTERESIS_UPWARD_MULTIPLIER: u64 = 5;
 pub const MIN_DEPOSIT_AMOUNT: Gwei = 10u64.pow(9);
-pub const MAX_EFFECTIVE_BALANCE: Gwei = 32u64 * 10u64.pow(9);
+pub const MAX_EFFECTIVE_BALANCE: Gwei = 32 * 10u64.pow(9);
 pub const EFFECTIVE_BALANCE_INCREMENT: Gwei = 10u64.pow(9);
 pub const MIN_ATTESTATION_INCLUSION_DELAY: Slot = 1;
-pub const SLOTS_PER_EPOCH: usize = 8;
+pub const SLOTS_PER_EPOCH: u64 = 8;
 pub const MIN_SEED_LOOKAHEAD: Epoch = 1;
 pub const MAX_SEED_LOOKAHEAD: Epoch = 4;
 pub const MIN_EPOCHS_TO_INACTIVITY_PENALTY: Epoch = 4;
@@ -52,9 +52,9 @@ pub type AttesterSlashing = operations::AttesterSlashing<MAX_VALIDATORS_PER_COMM
 pub type Attestation = operations::Attestation<MAX_VALIDATORS_PER_COMMITTEE>;
 
 const ETH1_DATA_VOTES_BOUND: usize =
-    get_eth1_data_votes_bound(EPOCHS_PER_ETH1_VOTING_PERIOD, SLOTS_PER_EPOCH);
+    get_eth1_data_votes_bound(EPOCHS_PER_ETH1_VOTING_PERIOD, SLOTS_PER_EPOCH as usize);
 const PENDING_ATTESTATIONS_BOUND: usize =
-    get_pending_attestations_bound(MAX_ATTESTATIONS, SLOTS_PER_EPOCH);
+    get_pending_attestations_bound(MAX_ATTESTATIONS, SLOTS_PER_EPOCH as usize);
 
 pub type BeaconState = beacon_state::BeaconState<
     SLOTS_PER_HISTORICAL_ROOT,
