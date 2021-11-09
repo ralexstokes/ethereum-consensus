@@ -9,6 +9,6 @@ pub const SECONDS_PER_ETH1_BLOCK: u64 = 14;
 pub const MIN_VALIDATOR_WITHDRAWABILITY_DELAY: Epoch = 256;
 pub const SHARD_COMMITTEE_PERIOD: Epoch = 256;
 pub const ETH1_FOLLOW_DISTANCE: u64 = 2048;
-pub const EJECTION_BALANCE: Gwei = 16 * 10usize.pow(9);
+pub const EJECTION_BALANCE: Gwei = 16 * 10u64.pow(9);
 pub const MIN_PER_EPOCH_CHURN_LIMIT: u64 = 4;
 pub const CHURN_LIMIT_QUOTIENT: u64 = 65536;

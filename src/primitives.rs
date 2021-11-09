@@ -7,7 +7,7 @@ pub type Slot = u64;
 pub type Epoch = u64;
 pub type CommitteeIndex = usize;
 pub type ValidatorIndex = usize;
-pub type Gwei = usize;
+pub type Gwei = u64;
 pub type Hash32 = U256;
 
 pub type Version = [u8; 4];

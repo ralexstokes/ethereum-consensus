@@ -23,19 +23,19 @@ use thiserror::Error;
 #[derive(Debug, Error)]
 pub enum Error {
     #[error("Block Signature Error")]
-    BlockSignatureError,
+    BlockSignature,
     #[error("Fork Digest Error")]
-    ForkDigestError,
+    ForkDigest,
     #[error("Merkleization Error")]
-    MerkleizationError(#[from] MerkleizationError),
+    Merkleization(#[from] MerkleizationError),
     #[error("Deserializen Error")]
-    DeserializeError(#[from] DeserializeError),
+    Deserialize(#[from] DeserializeError),
     #[error("invalid operation")]
     InvalidOperation,
     #[error("invalid signature")]
     InvalidSignature,
     #[error("unable to shuffle")]
-    ShuffleError,
+    Shuffle,
     #[error("insufficient validators")]
     InsufficientValidators,
 }
@@ -265,15 +265,15 @@ pub fn get_domain<
 ) -> Result<Domain, Error> {
     let epoch = epoch.unwrap_or_else(|| get_current_epoch(state));
     let fork_version = if epoch < state.fork.epoch {
-        Some(state.fork.previous_version.clone())
+        state.fork.previous_version
     } else {
-        Some(state.fork.current_version.clone())
+        state.fork.current_version
     };
 
     compute_domain(
         domain_type,
-        fork_version,
-        Some(state.genesis_validators_root.clone()),
+        Some(fork_version),
+        Some(state.genesis_validators_root),
     )
 }
 
@@ -312,8 +312,7 @@ pub fn compute_signing_root<T: SimpleSerialize>(
         object_root,
         domain,
     };
-    s.hash_tree_root(&context)
-        .map_err(Error::MerkleizationError)
+    s.hash_tree_root(&context).map_err(Error::Merkleization)
 }
 
 pub fn bytes_to_int64(slice: &[u8]) -> u64 {
@@ -337,7 +336,8 @@ pub fn compute_shuffled_index(index: usize, index_count: usize, seed: &Bytes32) 
         h[32..33].copy_from_slice(&round_bytes);
 
         let mut v: [u8; 8] = [0u8; 8];
-        &v.copy_from_slice(hash(h.as_slice()).as_ref());
+        v.copy_from_slice(hash(h.as_slice()).as_ref());
+
         let pivot = (bytes_to_int64(&v[..]) as usize) % index_count;
 
         let flip = (pivot + index_count - index) % index_count;
@@ -380,26 +380,26 @@ pub fn compute_proposer_index<
     indices: &[ValidatorIndex],
     seed: &Bytes32,
 ) -> Result<ValidatorIndex, Error> {
-    if indices.len() == 0 {
+    if indices.is_empty() {
         return Err(Error::InsufficientValidators);
     }
-    let MAX_RANDOM_BYTE: usize = 255;
+    let max_byte = u8::MAX as u64;
     let mut i: usize = 0;
     let total: usize = indices.len();
 
     loop {
         let shuffled_index =
-            compute_shuffled_index((i % total) as usize, total, seed).ok_or(Error::ShuffleError)?;
+            compute_shuffled_index((i % total) as usize, total, seed).ok_or(Error::Shuffle)?;
         let candidate_index = indices[shuffled_index];
 
         let mut h: Vector<u8, 40> = Vector::default();
         let i_bytes: [u8; 8] = (i / 32).to_le_bytes();
         h[0..32].copy_from_slice(seed.as_ref());
         h[32..33].copy_from_slice(&i_bytes);
-        let random_byte = hash(h.as_slice()).as_ref()[(i % 32)];
+        let random_byte = hash(h.as_slice()).as_ref()[(i % 32)] as u64;
 
         let effective_balance = state.validators[candidate_index].effective_balance;
-        if effective_balance * MAX_RANDOM_BYTE >= MAX_EFFECTIVE_BALANCE * (random_byte as usize) {
+        if effective_balance * max_byte >= MAX_EFFECTIVE_BALANCE * random_byte {
             return Ok(candidate_index);
         }
         i += 1
@@ -416,7 +416,7 @@ pub fn compute_committee(
     let start = (indices.len() * index) / count;
     let end = (indices.len()) * (index + 1) / count;
     for i in start..end {
-        let index = compute_shuffled_index(i, indices.len(), &seed).ok_or(Error::ShuffleError)?;
+        let index = compute_shuffled_index(i, indices.len(), &seed).ok_or(Error::Shuffle)?;
         committee[index] = indices[index];
     }
     Ok(committee)
@@ -448,7 +448,8 @@ pub fn compute_domain(
     fork_version: Option<Version>,
     genesis_validators_root: Option<Root>,
 ) -> Result<Domain, Error> {
-    let fork_version = fork_version.unwrap_or_else(|| GENESIS_FORK_VERSION.clone());
+    // NOTE: `GENESIS_FORK_VERSION` is equivalent to the `Default` impl
+    let fork_version = fork_version.unwrap_or_default();
     let genesis_validators_root = genesis_validators_root.unwrap_or_default();
     let fork_data_root = compute_fork_data_root(fork_version, genesis_validators_root)?;
 
@@ -467,6 +468,5 @@ pub fn compute_fork_data_root(
         genesis_validators_root,
     };
     let context = MerkleizationContext::new();
-    d.hash_tree_root(&context)
-        .map_err(Error::MerkleizationError)
+    d.hash_tree_root(&context).map_err(Error::Merkleization)
 }
