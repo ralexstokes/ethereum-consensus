@@ -7,14 +7,15 @@ use crate::phase0::beacon_block::SignedBeaconBlock;
 use crate::phase0::beacon_state::BeaconState;
 use crate::phase0::configs::mainnet::GENESIS_FORK_VERSION;
 use crate::phase0::fork::ForkData;
-use crate::phase0::mainnet::{MAX_SEED_LOOKAHEAD, SLOTS_PER_EPOCH};
+use crate::phase0::mainnet::{MAX_SEED_LOOKAHEAD, SHUFFLE_ROUND_COUNT, SLOTS_PER_EPOCH};
 use crate::phase0::operations::{AttestationData, IndexedAttestation};
-use crate::phase0::state_transition::Error::{BlockSignatureError, ForkDigestError};
+use crate::phase0::state_transition::Error::{BlockSignatureError, ForkDigestError, ShuffleError};
 use crate::phase0::validator::Validator;
 use crate::primitives::{
     Bytes32, Domain, Epoch, ForkDigest, Gwei, Root, Slot, ValidatorIndex, Version, FAR_FUTURE_EPOCH,
 };
 use ssz_rs::prelude::*;
+use std::cmp;
 use std::collections::HashSet;
 use thiserror::Error;
 
@@ -32,6 +33,8 @@ pub enum Error {
     InvalidOperation,
     #[error("invalid signature")]
     InvalidSignature,
+    #[error("unable ti shuffle")]
+    ShuffleError,
 }
 
 pub fn is_active_validator(validator: Validator, epoch: Epoch) -> bool {
@@ -330,8 +333,45 @@ pub fn compute_signing_root<T: SimpleSerialize>(
         .map_err(Error::MerkleizationError)
 }
 
-pub fn compute_shuffled_index(index: usize, index_count: usize, seed: &Bytes32) -> usize {
-    todo!()
+pub fn bytes_to_int64(slice: &[u8]) -> u64 {
+    let mut bytes = [0; 8];
+    bytes.copy_from_slice(&slice[0..8]);
+    u64::from_le_bytes(bytes)
+}
+
+pub fn compute_shuffled_index(index: usize, index_count: usize, seed: &Bytes32) -> Option<usize> {
+    if index < index_count {
+        return None;
+    }
+
+    let mut index = index;
+
+    for current_round in 0..SHUFFLE_ROUND_COUNT {
+        let round_bytes: [u8; 1] = (current_round as u8).to_le_bytes();
+
+        let mut h: Vector<u8, 33> = Vector::default();
+        h[0..32].copy_from_slice(seed.as_bytes());
+        h[32..33].copy_from_slice(&round_bytes);
+
+        let mut v: [u8; 8] = [0u8; 8];
+        &v.copy_from_slice(hash(h.as_slice()).as_bytes());
+        let pivot = (bytes_to_int64(&v[..]) as usize) % index_count;
+
+        let flip = (pivot + index_count - index) % index_count;
+        let position = cmp::max(index, flip);
+        let position_bytes: [u8; 4] = ((position / 256) as u32).to_le_bytes();
+
+        let mut h: Vector<u8, 37> = Vector::default();
+        h[0..32].copy_from_slice(seed.as_bytes());
+        h[32..33].copy_from_slice(&round_bytes);
+        h[33..37].copy_from_slice(&position_bytes);
+
+        let byte = (hash(h.as_slice()).as_bytes()[(position % 256) / 8]) as u8;
+        let bit = (byte >> (position % 8)) % 2;
+        index = if bit != 0 { flip } else { index };
+    }
+
+    Some(index)
 }
 
 pub fn compute_proposer_index<
@@ -365,15 +405,15 @@ pub fn compute_committee(
     seed: Bytes32,
     index: usize,
     count: usize,
-) -> &[ValidatorIndex] {
+) -> Result<&[ValidatorIndex], Error> {
     let committee: &mut [ValidatorIndex] = &mut [];
     let start = (indices.len() * index) / count;
     let end = (indices.len()) * (index + 1) / count;
     for i in start..end {
-        let index = compute_shuffled_index(i, indices.len(), &seed);
+        let index = compute_shuffled_index(i, indices.len(), &seed).ok_or(ShuffleError)?;
         committee[index] = indices[index];
     }
-    committee
+    Ok(committee)
 }
 
 pub fn compute_epoch_at_slot(slot: Slot) -> Epoch {
