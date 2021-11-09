@@ -117,13 +117,18 @@ pub fn is_valid_indexed_attestation<
     if indices.len() != indexed_attestation.attesting_indices.len() {
         return Err(Error::InvalidOperation);
     }
-    let pubkeys = state.validators.iter().enumerate().filter_map(|(i, v)| {
-        if indices.contains(&i) {
-            Some(&v.pubkey)
-        } else {
-            None
-        }
-    });
+    let pubkeys = state
+        .validators
+        .iter()
+        .enumerate()
+        .filter_map(|(i, v)| {
+            if indices.contains(&i) {
+                Some(&v.pubkey)
+            } else {
+                None
+            }
+        })
+        .collect::<Vec<_>>();
 
     let domain = get_domain::<
         SLOTS_PER_HISTORICAL_ROOT,
@@ -141,7 +146,11 @@ pub fn is_valid_indexed_attestation<
         Some(indexed_attestation.data.target.epoch),
     )?;
     let signing_root = compute_signing_root(&indexed_attestation.data, domain)?;
-    if fast_aggregate_verify(pubkeys, signing_root, &indexed_attestation.signature) {
+    if fast_aggregate_verify(
+        &pubkeys,
+        signing_root.as_bytes(),
+        &indexed_attestation.signature,
+    ) {
         Ok(())
     } else {
         Err(Error::InvalidSignature)
@@ -256,7 +265,7 @@ pub fn verify_block_signature<
 
     proposer
         .pubkey
-        .verify_signature(signing_root, signed_block.signature)
+        .verify_signature(signing_root.as_bytes(), &signed_block.signature)
 }
 
 pub fn get_domain<

@@ -93,8 +93,8 @@ impl SecretKey {
         PublicKey(pk)
     }
 
-    pub fn sign<M: AsRef<[u8]>>(&self, msg: M) -> Signature {
-        Signature(self.0.sign(msg.as_ref(), BLS_DST, &[]))
+    pub fn sign(&self, msg: &[u8]) -> Signature {
+        Signature(self.0.sign(msg, BLS_DST, &[]))
     }
 }
 
@@ -302,15 +302,9 @@ pub fn aggregate_verify(pks: &[PublicKey], msgs: &[&[u8]], signature: Signature)
     res == BLST_ERROR::BLST_SUCCESS
 }
 
-pub fn fast_aggregate_verify(
-    pks: &[PublicKey],
-    msg: &[u8],
-    signature: &Signature,
-) -> bool {
-    let v: Vec<&blst_core::PublicKey> = pks.map(|pk| &pk.0).collect();
-    let res = signature
-        .0
-        .fast_aggregate_verify(true, msg.as_ref(), BLS_DST, &v);
+pub fn fast_aggregate_verify(pks: &[&PublicKey], msg: &[u8], signature: &Signature) -> bool {
+    let v: Vec<&blst_core::PublicKey> = pks.iter().map(|pk| &pk.0).collect();
+    let res = signature.0.fast_aggregate_verify(true, msg, BLS_DST, &v);
     res == BLST_ERROR::BLST_SUCCESS
 }
 
@@ -325,7 +319,7 @@ mod tests {
         let mut rng = thread_rng();
         let sk = SecretKey::random(&mut rng).unwrap();
         let pk = sk.public_key();
-        let msg = "message";
+        let msg = "message".as_bytes();
         let sig = sk.sign(msg);
 
         assert!(sig.verify(&pk, msg));
@@ -411,12 +405,13 @@ mod tests {
             .map(|_| SecretKey::random(&mut rng).unwrap())
             .collect();
         let pks: Vec<_> = sks.iter().map(|sk| sk.public_key()).collect();
-        let msg = "message";
+        let msg = "message".as_bytes();
 
         let signatures: Vec<_> = sks.iter().map(|sk| sk.sign(msg)).collect();
 
+        let pks = pks.iter().map(|pk| pk).collect::<Vec<_>>();
         let sig = aggregate(signatures.as_slice()).unwrap();
-        let v = fast_aggregate_verify(pks.iter(), msg, &sig);
+        let v = fast_aggregate_verify(&pks, msg, &sig);
 
         assert!(v);
     }
