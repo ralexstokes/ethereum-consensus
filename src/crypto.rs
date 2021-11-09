@@ -134,6 +134,15 @@ impl PublicKey {
     pub fn validate(&self) -> bool {
         self.0.validate().is_ok()
     }
+
+    pub fn from_bytes(encoding: &[u8]) -> Result<Self, Error> {
+        let inner = blst_core::PublicKey::from_bytes(encoding).map_err(BLSTError::from)?;
+        Ok(Self(inner))
+    }
+
+    pub fn as_bytes(&self) -> [u8; 48] {
+        self.0.to_bytes()
+    }
 }
 
 impl Sized for PublicKey {
@@ -149,7 +158,7 @@ impl Sized for PublicKey {
 impl Serialize for PublicKey {
     fn serialize(&self, buffer: &mut Vec<u8>) -> Result<usize, SerializeError> {
         let start = buffer.len();
-        buffer.extend_from_slice(&self.0.to_bytes());
+        buffer.extend_from_slice(&self.as_bytes());
         let encoded_length = buffer.len() - start;
         debug_assert_eq!(encoded_length, Self::size_hint());
         Ok(encoded_length)
@@ -220,9 +229,13 @@ impl Signature {
         verify_signature(pk, msg, self)
     }
 
-    pub fn from_bytes(b: &[u8]) -> Result<Self, Error> {
-        let sig = blst_core::Signature::from_bytes(b).map_err(BLSTError::from)?;
-        Ok(Signature(sig))
+    pub fn from_bytes(encoding: &[u8]) -> Result<Self, Error> {
+        let sig = blst_core::Signature::from_bytes(encoding).map_err(BLSTError::from)?;
+        Ok(Self(sig))
+    }
+
+    pub fn as_bytes(&self) -> [u8; 96] {
+        self.0.to_bytes()
     }
 }
 
@@ -239,7 +252,7 @@ impl Sized for Signature {
 impl Serialize for Signature {
     fn serialize(&self, buffer: &mut Vec<u8>) -> Result<usize, SerializeError> {
         let start = buffer.len();
-        buffer.extend_from_slice(&self.0.to_bytes());
+        buffer.extend_from_slice(&self.as_bytes());
         let encoded_length = buffer.len() - start;
         debug_assert!(encoded_length == Self::size_hint());
         Ok(encoded_length)
@@ -297,7 +310,7 @@ pub fn fast_aggregate_verify(pks: &[PublicKey], msg: &[u8], signature: Signature
 
 #[cfg(test)]
 mod tests {
-    use super::{SecretKey, Signature};
+    use super::*;
     use crate::crypto::{aggregate, aggregate_verify, fast_aggregate_verify};
     use rand::prelude::*;
 
@@ -421,5 +434,27 @@ mod tests {
         let message = b"blst is such a blast";
         let signature = secret_key.sign(message);
         assert_eq!(expected_signature, signature);
+    }
+
+    #[test]
+    fn test_roundtrip_bytes() {
+        let mut rng = thread_rng();
+        let secret_key = SecretKey::random(&mut rng).unwrap();
+        let public_key = secret_key.public_key();
+        let msg = b"blst is such a blast";
+        let signature = secret_key.sign(msg);
+
+        let secret_key_bytes = secret_key.as_bytes();
+        let publicy_key_bytes = public_key.as_bytes();
+        let signature_bytes = signature.as_bytes();
+
+        let _ = SecretKey::from_bytes(&secret_key_bytes).unwrap();
+
+        let recovered_public_key = PublicKey::from_bytes(&publicy_key_bytes).unwrap();
+        assert_eq!(public_key, recovered_public_key);
+        let recovered_signature = Signature::from_bytes(&signature_bytes).unwrap();
+        assert_eq!(signature, recovered_signature);
+
+        assert!(signature.verify(&public_key, msg));
     }
 }
