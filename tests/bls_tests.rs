@@ -6,6 +6,11 @@ use hex;
 use serde::{Deserialize, Serialize};
 use serde_yaml;
 use std::fs::File;
+use std::fmt::Debug;
+
+fn decode_hex_with_prefix<T: AsRef<[u8]> + Debug>(data: T) -> Vec<u8> {
+    hex::decode(&data.as_ref()[2..]).expect("is well-formed hex")
+}
 
 #[derive(Debug, Serialize, Deserialize)]
 struct SigningInput {
@@ -34,10 +39,6 @@ impl SigningTestIO {
 
         signature == expected_signature
     }
-}
-use std::fmt::Debug;
-fn decode_hex_with_prefix<T: AsRef<[u8]> + Debug>(data: T) -> Vec<u8> {
-    hex::decode(&data.as_ref()[2..]).expect("is well-formed hex")
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -172,7 +173,7 @@ fn test_fast_aggregate_verify() {
 }
 
 #[test]
-#[ignore]
+// #[ignore]
 #[cfg(feature = "ef_spec_tests")]
 fn test_verify() {
     for entry in glob("consensus-spec-tests/tests/general/phase0/bls/verify/small/**/*.yaml")
@@ -191,7 +192,7 @@ fn test_verify() {
     }
 }
 #[test]
-#[ignore]
+// #[ignore]
 #[cfg(feature = "ef_spec_tests")]
 fn test_aggregate_verify() {
     for entry in
@@ -214,7 +215,7 @@ fn test_aggregate_verify() {
 }
 
 #[test]
-#[ignore]
+// #[ignore]
 #[cfg(feature = "ef_spec_tests")]
 
 fn test_aggregate() {
@@ -234,7 +235,7 @@ fn test_aggregate() {
     }
 }
 #[test]
-#[ignore]
+// #[ignore]
 #[cfg(feature = "ef_spec_tests")]
 
 fn test_sign() {
