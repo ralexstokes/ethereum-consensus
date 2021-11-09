@@ -1,6 +1,5 @@
 use crate::primitives::Bytes32;
 use blst::{min_pk as blst_core, BLST_ERROR};
-use rand::prelude::*;
 use sha2::{digest::FixedOutput, Digest, Sha256};
 use ssz_rs::prelude::*;
 use std::fmt;
@@ -18,15 +17,35 @@ pub fn hash(data: &[u8]) -> Bytes32 {
 
 #[derive(Debug, Error)]
 pub enum Error {
-    #[error("Size mismatch")]
-    SizeMismatch,
-    #[error("Aggregation error")]
-    AggregateError,
     #[error("Zero sized input")]
     ZeroSizedInput,
+    #[error("randomness failure: {0}")]
+    Randomness(#[from] rand::Error),
+    #[error("blst error: {0}")]
+    BLST(#[from] BLSTError),
 }
 
-#[derive(Clone)]
+#[derive(Debug, Error)]
+#[error("{0}")]
+pub struct BLSTError(String);
+
+impl From<BLST_ERROR> for BLSTError {
+    fn from(err: BLST_ERROR) -> Self {
+        let inner = match err {
+            BLST_ERROR::BLST_SUCCESS => unreachable!("do not create a BLSTError from a sucess"),
+            BLST_ERROR::BLST_BAD_ENCODING => "bad encoding",
+            BLST_ERROR::BLST_POINT_NOT_ON_CURVE => "point not on curve",
+            BLST_ERROR::BLST_POINT_NOT_IN_GROUP => "point not in group",
+            BLST_ERROR::BLST_AGGR_TYPE_MISMATCH => "aggregation type mismatch",
+            BLST_ERROR::BLST_VERIFY_FAIL => "verification failed",
+            BLST_ERROR::BLST_PK_IS_INFINITY => "public key is infinity",
+            BLST_ERROR::BLST_BAD_SCALAR => "bad scalar input",
+        };
+        Self(inner.to_string())
+    }
+}
+
+#[derive(Clone, Default)]
 pub struct SecretKey(blst_core::SecretKey);
 
 impl fmt::Debug for SecretKey {
@@ -48,21 +67,21 @@ impl fmt::LowerHex for SecretKey {
 }
 
 impl SecretKey {
-    pub fn random() -> Self {
+    // https://docs.rs/rand/latest/rand/trait.Rng.html#generic-usage
+    pub fn random<R: rand::Rng>(rng: &mut R) -> Result<Self, Error> {
         let mut ikm = [0u8; 32];
-        let mut rng = rand::thread_rng();
-        rng.try_fill_bytes(&mut ikm)
-            .expect("unable to generate key material");
+        rng.try_fill_bytes(&mut ikm)?;
         Self::key_gen(&ikm)
     }
 
-    pub fn key_gen(ikm: &[u8]) -> Self {
-        let sk = blst_core::SecretKey::key_gen(ikm, &[]).expect("unable to generate a secret key");
-        SecretKey(sk)
+    pub fn key_gen(ikm: &[u8]) -> Result<Self, Error> {
+        let sk = blst_core::SecretKey::key_gen(ikm, &[]).map_err(BLSTError::from)?;
+        Ok(SecretKey(sk))
     }
 
-    pub fn from_bytes(encoding: &[u8]) -> Self {
-        Self(blst_core::SecretKey::from_bytes(encoding).expect("secret key bytes are valid"))
+    pub fn from_bytes(encoding: &[u8]) -> Result<Self, Error> {
+        let inner = blst_core::SecretKey::from_bytes(encoding).map_err(BLSTError::from)?;
+        Ok(Self(inner))
     }
 
     pub fn as_bytes(&self) -> [u8; 32] {
@@ -77,6 +96,13 @@ impl SecretKey {
     pub fn sign(&self, msg: &[u8]) -> Signature {
         Signature(self.0.sign(msg, BLS_DST, &[]))
     }
+}
+
+fn verify_signature(public_key: &PublicKey, msg: &[u8], sig: &Signature) -> bool {
+    let pk = &public_key.0;
+    let avg = &[];
+    let res = sig.0.verify(true, msg, BLS_DST, avg, pk, true);
+    res == BLST_ERROR::BLST_SUCCESS
 }
 
 #[derive(Default, Clone, PartialEq, Eq)]
@@ -101,11 +127,8 @@ impl fmt::LowerHex for PublicKey {
 }
 
 impl PublicKey {
-    pub fn verify_signature(&self, msg: &[u8], sig: Signature) -> bool {
-        let pk = self.0;
-        let avg = &[];
-        let res = sig.0.verify(true, msg, BLS_DST, avg, &pk, true);
-        res == BLST_ERROR::BLST_SUCCESS
+    pub fn verify_signature(&self, msg: &[u8], sig: &Signature) -> bool {
+        verify_signature(self, msg, sig)
     }
 
     pub fn validate(&self) -> bool {
@@ -128,7 +151,7 @@ impl Serialize for PublicKey {
         let start = buffer.len();
         buffer.extend_from_slice(&self.0.to_bytes());
         let encoded_length = buffer.len() - start;
-        debug_assert!(encoded_length == Self::size_hint());
+        debug_assert_eq!(encoded_length, Self::size_hint());
         Ok(encoded_length)
     }
 }
@@ -193,16 +216,13 @@ impl Default for Signature {
 }
 
 impl Signature {
-    pub fn verify(&self, pk: PublicKey, msg: &[u8]) -> bool {
-        let avg = &[];
-        let err = self.0.verify(true, msg, BLS_DST, avg, &pk.0, true);
-        err == BLST_ERROR::BLST_SUCCESS
+    pub fn verify(&self, pk: &PublicKey, msg: &[u8]) -> bool {
+        verify_signature(pk, msg, self)
     }
 
-    pub fn from_bytes(b: &[u8]) -> Self {
-        let sig =
-            blst_core::Signature::from_bytes(b).expect("unable to create a signature from bytes");
-        Signature(sig)
+    pub fn from_bytes(b: &[u8]) -> Result<Self, Error> {
+        let sig = blst_core::Signature::from_bytes(b).map_err(BLSTError::from)?;
+        Ok(Signature(sig))
     }
 }
 
@@ -260,7 +280,7 @@ pub fn aggregate(signatures: &[Signature]) -> Result<Signature, Error> {
 
     blst_core::AggregateSignature::aggregate(&vs, true)
         .map(|s| Signature(s.to_signature()))
-        .map_err(|_| Error::SizeMismatch)
+        .map_err(|e| BLSTError::from(e).into())
 }
 
 pub fn aggregate_verify(pks: &[PublicKey], msgs: &[&[u8]], signature: Signature) -> bool {
@@ -283,22 +303,23 @@ mod tests {
 
     #[test]
     fn signature() {
-        let sk = SecretKey::random();
+        let mut rng = thread_rng();
+        let sk = SecretKey::random(&mut rng).unwrap();
         let pk = sk.public_key();
         let msg = "message";
         let sig = sk.sign(msg.as_ref());
 
-        assert!(sig.verify(pk, msg.as_ref()));
+        assert!(sig.verify(&pk, msg.as_ref()));
 
         let pk = sk.public_key();
-        assert!(pk.verify_signature(msg.as_ref(), sig));
+        assert!(pk.verify_signature(msg.as_ref(), &sig));
     }
 
     #[test]
-    #[should_panic(expected = "unable to create a signature from bytes")]
+    #[should_panic(expected = "bad encoding")]
     fn test_signature_from_null_bytes() {
         let b = [0u8; 0];
-        Signature::from_bytes(&b);
+        Signature::from_bytes(&b).expect("can make a signature");
     }
 
     #[test]
@@ -312,26 +333,27 @@ mod tests {
             0xd8, 0x3a, 0x40, 0x10, 0x1f, 0x4a, 0x45, 0x3f, 0xca, 0x62, 0x87, 0x8c, 0x89, 0x0e,
             0xca, 0x62, 0x23, 0x63, 0xf9, 0xdd, 0xb8, 0xf3, 0x67, 0xa9, 0x1e, 0x84,
         ];
-        Signature::from_bytes(&b);
+        Signature::from_bytes(&b).expect("can make a signature");
     }
 
     #[test]
-    #[should_panic(expected = "unable to generate a secret key")]
+    #[should_panic(expected = "bad encoding")]
     fn secret_key_is_null() {
         let ikm = [0u8; 0];
-        SecretKey::key_gen(&ikm);
+        SecretKey::key_gen(&ikm).expect("can make a secret key");
     }
 
     #[test]
-    #[should_panic(expected = "unable to generate a secret key")]
+    #[should_panic(expected = "bad encoding")]
     fn secret_key_len_31() {
         let ikm = [1u8; 31];
-        SecretKey::key_gen(&ikm);
+        SecretKey::key_gen(&ikm).expect("can make a secret key");
     }
 
     #[test]
     fn valid_public_key() {
-        let pk = SecretKey::random().public_key();
+        let mut rng = thread_rng();
+        let pk = SecretKey::random(&mut rng).unwrap().public_key();
         let valid = pk.validate();
         assert!(valid)
     }
@@ -339,7 +361,10 @@ mod tests {
     #[test]
     fn test_aggregate_verify() {
         let n = 20;
-        let sks: Vec<_> = (0..n).map(|_| SecretKey::random()).collect();
+        let mut rng = thread_rng();
+        let sks: Vec<_> = (0..n)
+            .map(|_| SecretKey::random(&mut rng).unwrap())
+            .collect();
         let pks: Vec<_> = sks.iter().map(|sk| sk.public_key()).collect();
         let msgs: Vec<Vec<u8>> = (0..n)
             .map(|_| (0..64).map(|_| rand::thread_rng().gen()).collect())
@@ -362,7 +387,10 @@ mod tests {
     #[test]
     fn test_fast_aggregated_verify() {
         let n = 20;
-        let sks: Vec<_> = (0..n).map(|_| SecretKey::random()).collect();
+        let mut rng = thread_rng();
+        let sks: Vec<_> = (0..n)
+            .map(|_| SecretKey::random(&mut rng).unwrap())
+            .collect();
         let pks: Vec<_> = sks.iter().map(|sk| sk.public_key()).collect();
         let msg = "message";
 
@@ -384,11 +412,11 @@ mod tests {
     fn test_can_sign() {
         let secret_key_hex = "40094c5c6c378857eac09b8ec64c87182f58700c056a8b371ad0eb0a5b983d50";
         let secret_key_bytes = hex::decode(secret_key_hex).expect("is hex");
-        let secret_key = SecretKey::from_bytes(&secret_key_bytes);
+        let secret_key = SecretKey::from_bytes(&secret_key_bytes).unwrap();
 
         let signature_hex = "a01e49276730e4752eef31b0570c8707de501398dac70dd144438cd1bd05fb9b9bb3e1a9ceef0a68cc08904362cafa3f1005e5b699a41847fff6f5552260468846de5bdbf94a9aedeb29bc6cdb2c1d34922d9e9af4c0593a69ae978a90b5aba6";
         let signature_bytes = hex::decode(signature_hex).expect("can decode hex");
-        let expected_signature = Signature::from_bytes(&signature_bytes);
+        let expected_signature = Signature::from_bytes(&signature_bytes).unwrap();
 
         let message = b"blst is such a blast";
         let signature = secret_key.sign(message);
