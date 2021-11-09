@@ -76,7 +76,7 @@ impl SecretKey {
 
     pub fn key_gen(ikm: &[u8]) -> Result<Self, Error> {
         let sk = blst_core::SecretKey::key_gen(ikm, &[]).map_err(BLSTError::from)?;
-        Ok(SecretKey(sk))
+        Ok(Self(sk))
     }
 
     pub fn from_bytes(encoding: &[u8]) -> Result<Self, Error> {
