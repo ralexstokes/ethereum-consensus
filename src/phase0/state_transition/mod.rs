@@ -5,24 +5,27 @@ use crate::crypto::{fast_aggregate_verify, hash};
 use crate::domains::{DomainType, SigningData};
 use crate::phase0::beacon_block::SignedBeaconBlock;
 use crate::phase0::beacon_state::BeaconState;
-use crate::phase0::configs::mainnet::{GENESIS_FORK_VERSION, GENESIS_FORK_VERSION_BYTES};
+use crate::phase0::configs::mainnet::GENESIS_FORK_VERSION;
 use crate::phase0::fork::ForkData;
-use crate::phase0::mainnet::{MAX_SEED_LOOKAHEAD, SLOTS_PER_EPOCH};
+use crate::phase0::mainnet::{
+    MAX_EFFECTIVE_BALANCE, MAX_SEED_LOOKAHEAD, SHUFFLE_ROUND_COUNT, SLOTS_PER_EPOCH,
+};
 use crate::phase0::operations::{AttestationData, IndexedAttestation};
 use crate::phase0::validator::Validator;
 use crate::primitives::{
-    Bytes32, Domain, Epoch, ForkDigest, Gwei, Root, Slot, Version, FAR_FUTURE_EPOCH,
+    Bytes32, Domain, Epoch, ForkDigest, Gwei, Root, Slot, ValidatorIndex, Version, FAR_FUTURE_EPOCH,
 };
-use sha2::digest::generic_array::functional::FunctionalSequence;
 use ssz_rs::prelude::*;
+use std::cmp;
 use std::collections::HashSet;
-use std::io::Bytes;
 use thiserror::Error;
 
 #[derive(Debug, Error)]
 pub enum Error {
     #[error("Block Signature Error")]
     BlockSignatureError,
+    #[error("Fork Digest Error")]
+    ForkDigestError,
     #[error("Merkleization Error")]
     MerkleizationError(#[from] MerkleizationError),
     #[error("Deserializen Error")]
@@ -31,6 +34,10 @@ pub enum Error {
     InvalidOperation,
     #[error("invalid signature")]
     InvalidSignature,
+    #[error("unable to shuffle")]
+    ShuffleError,
+    #[error("insufficient validators")]
+    InsufficientValidators,
 }
 
 pub fn is_active_validator(validator: Validator, epoch: Epoch) -> bool {
@@ -132,26 +139,6 @@ pub fn is_valid_indexed_attestation<
     } else {
         Err(Error::InvalidSignature)
     }
-}
-
-pub fn is_valid_merkle_branch(
-    leaf: Bytes32,
-    branch: &[Bytes32],
-    depth: usize,
-    index: usize,
-    root: Root,
-) -> bool {
-    let mut value = leaf;
-    for i in 0..depth {
-        if (index / 2usize.pow(i as u32)) % 2 != 0 {
-            let x = branch[i].xor(value);
-            value = hash(x.0.as_slice());
-        } else {
-            let x = value.xor(branch[i].clone());
-            value = hash(x.0.as_slice())
-        }
-    }
-    value.as_bytes() == <ssz_rs::Root as AsRef<[u8]>>::as_ref(&root)
 }
 
 pub fn apply_block<
@@ -276,11 +263,7 @@ pub fn get_domain<
     domain_type: DomainType,
     epoch: Option<Epoch>,
 ) -> Result<Domain, Error> {
-    let epoch = if epoch.is_none() {
-        get_current_epoch(&state)
-    } else {
-        epoch.unwrap()
-    };
+    let epoch = epoch.unwrap_or_else(|| get_current_epoch(state));
     let fork_version = if epoch < state.fork.epoch {
         Some(state.fork.previous_version.clone())
     } else {
@@ -333,6 +316,112 @@ pub fn compute_signing_root<T: SimpleSerialize>(
         .map_err(Error::MerkleizationError)
 }
 
+pub fn bytes_to_int64(slice: &[u8]) -> u64 {
+    let mut bytes = [0; 8];
+    bytes.copy_from_slice(&slice[0..8]);
+    u64::from_le_bytes(bytes)
+}
+
+pub fn compute_shuffled_index(index: usize, index_count: usize, seed: &Bytes32) -> Option<usize> {
+    if index < index_count {
+        return None;
+    }
+
+    let mut index = index;
+
+    for current_round in 0..SHUFFLE_ROUND_COUNT {
+        let round_bytes: [u8; 1] = (current_round as u8).to_le_bytes();
+
+        let mut h: Vector<u8, 33> = Vector::default();
+        h[0..32].copy_from_slice(seed.as_ref());
+        h[32..33].copy_from_slice(&round_bytes);
+
+        let mut v: [u8; 8] = [0u8; 8];
+        &v.copy_from_slice(hash(h.as_slice()).as_ref());
+        let pivot = (bytes_to_int64(&v[..]) as usize) % index_count;
+
+        let flip = (pivot + index_count - index) % index_count;
+        let position = cmp::max(index, flip);
+        let position_bytes: [u8; 4] = ((position / 256) as u32).to_le_bytes();
+
+        let mut h: Vector<u8, 37> = Vector::default();
+        h[0..32].copy_from_slice(seed.as_ref());
+        h[32..33].copy_from_slice(&round_bytes);
+        h[33..37].copy_from_slice(&position_bytes);
+
+        let byte = (hash(h.as_slice()).as_ref()[(position % 256) / 8]) as u8;
+        let bit = (byte >> (position % 8)) % 2;
+        index = if bit != 0 { flip } else { index };
+    }
+
+    Some(index)
+}
+
+pub fn compute_proposer_index<
+    const SLOTS_PER_HISTORICAL_ROOT: usize,
+    const HISTORICAL_ROOTS_LIMIT: usize,
+    const ETH1_DATA_VOTES_BOUND: usize,
+    const VALIDATOR_REGISTRY_LIMIT: usize,
+    const EPOCHS_PER_HISTORICAL_VECTOR: usize,
+    const EPOCHS_PER_SLASHINGS_VECTOR: usize,
+    const MAX_VALIDATORS_PER_COMMITTEE: usize,
+    const PENDING_ATTESTATIONS_BOUND: usize,
+>(
+    state: &BeaconState<
+        SLOTS_PER_HISTORICAL_ROOT,
+        HISTORICAL_ROOTS_LIMIT,
+        ETH1_DATA_VOTES_BOUND,
+        VALIDATOR_REGISTRY_LIMIT,
+        EPOCHS_PER_HISTORICAL_VECTOR,
+        EPOCHS_PER_SLASHINGS_VECTOR,
+        MAX_VALIDATORS_PER_COMMITTEE,
+        PENDING_ATTESTATIONS_BOUND,
+    >,
+    indices: &[ValidatorIndex],
+    seed: &Bytes32,
+) -> Result<ValidatorIndex, Error> {
+    if indices.len() == 0 {
+        return Err(Error::InsufficientValidators);
+    }
+    let MAX_RANDOM_BYTE: usize = 255;
+    let mut i: usize = 0;
+    let total: usize = indices.len();
+
+    loop {
+        let shuffled_index =
+            compute_shuffled_index((i % total) as usize, total, seed).ok_or(Error::ShuffleError)?;
+        let candidate_index = indices[shuffled_index];
+
+        let mut h: Vector<u8, 40> = Vector::default();
+        let i_bytes: [u8; 8] = (i / 32).to_le_bytes();
+        h[0..32].copy_from_slice(seed.as_ref());
+        h[32..33].copy_from_slice(&i_bytes);
+        let random_byte = hash(h.as_slice()).as_ref()[(i % 32)];
+
+        let effective_balance = state.validators[candidate_index].effective_balance;
+        if effective_balance * MAX_RANDOM_BYTE >= MAX_EFFECTIVE_BALANCE * (random_byte as usize) {
+            return Ok(candidate_index);
+        }
+        i += 1
+    }
+}
+
+pub fn compute_committee(
+    indices: &[ValidatorIndex],
+    seed: Bytes32,
+    index: usize,
+    count: usize,
+) -> Result<&[ValidatorIndex], Error> {
+    let committee: &mut [ValidatorIndex] = &mut [];
+    let start = (indices.len() * index) / count;
+    let end = (indices.len()) * (index + 1) / count;
+    for i in start..end {
+        let index = compute_shuffled_index(i, indices.len(), &seed).ok_or(Error::ShuffleError)?;
+        committee[index] = indices[index];
+    }
+    Ok(committee)
+}
+
 pub fn compute_epoch_at_slot(slot: Slot) -> Epoch {
     slot / SLOTS_PER_EPOCH
 }
@@ -350,8 +439,8 @@ pub fn compute_fork_digest(
     genesis_validators_root: Root,
 ) -> Result<ForkDigest, Error> {
     let fork_data_root = compute_fork_data_root(current_version, genesis_validators_root)?;
-    let fork_digest: Vector<u8, 4> = ForkDigest::deserialize(fork_data_root.as_ref())?;
-    Ok(fork_digest)
+    let digest = &fork_data_root.as_ref()[..4];
+    Ok(digest.try_into().expect("should not fail"))
 }
 
 pub fn compute_domain(
@@ -359,17 +448,13 @@ pub fn compute_domain(
     fork_version: Option<Version>,
     genesis_validators_root: Option<Root>,
 ) -> Result<Domain, Error> {
-    let mut default_fork_version = Vector::<u8, 4>::default();
-    default_fork_version.copy_from_slice(&GENESIS_FORK_VERSION[..]);
-    let fork_version = fork_version.unwrap_or(default_fork_version);
-    let genesis_validators_root = genesis_validators_root.unwrap_or(Root::from_bytes([0u8; 32]));
+    let fork_version = fork_version.unwrap_or_else(|| GENESIS_FORK_VERSION.clone());
+    let genesis_validators_root = genesis_validators_root.unwrap_or_default();
     let fork_data_root = compute_fork_data_root(fork_version, genesis_validators_root)?;
-    let domain_constant = domain_type.get_domain_constant();
-    let fork_data_root_value: &[u8; 32] = fork_data_root.as_ref();
 
-    let mut domain: Domain = Vector::default();
-    domain[0..4].copy_from_slice(&domain_constant[..]);
-    domain[4..31].copy_from_slice(&fork_data_root_value[..]);
+    let mut domain = Domain::default();
+    domain[..4].copy_from_slice(&domain_type.as_bytes());
+    domain[4..].copy_from_slice(&fork_data_root.as_ref()[..28]);
     Ok(domain)
 }
 

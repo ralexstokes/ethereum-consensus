@@ -1,9 +1,7 @@
 use crate::crypto::{PublicKey as BLSPubkey, Signature as BLSSignature};
 use crate::phase0::beacon_block::SignedBeaconBlockHeader;
-use crate::primitives::{
-    Bytes32, CommitteeIndex, Epoch, Gwei, Hash32, Root, Slot, ValidatorIndex,
-    DEPOSIT_CONTRACT_TREE_DEPTH,
-};
+use crate::phase0::DEPOSIT_CONTRACT_TREE_DEPTH;
+use crate::primitives::{Bytes32, CommitteeIndex, Epoch, Gwei, Hash32, Root, Slot, ValidatorIndex};
 use ssz_rs::prelude::*;
 
 #[derive(Default, Debug, SimpleSerialize, PartialEq, Eq)]
