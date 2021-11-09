@@ -7,9 +7,13 @@ use crate::phase0::beacon_block::SignedBeaconBlock;
 use crate::phase0::beacon_state::BeaconState;
 use crate::phase0::configs::mainnet::GENESIS_FORK_VERSION;
 use crate::phase0::fork::ForkData;
-use crate::phase0::mainnet::{MAX_SEED_LOOKAHEAD, SHUFFLE_ROUND_COUNT, SLOTS_PER_EPOCH};
+use crate::phase0::mainnet::{
+    MAX_EFFECTIVE_BALANCE, MAX_SEED_LOOKAHEAD, SHUFFLE_ROUND_COUNT, SLOTS_PER_EPOCH,
+};
 use crate::phase0::operations::{AttestationData, IndexedAttestation};
-use crate::phase0::state_transition::Error::{BlockSignatureError, ForkDigestError, ShuffleError};
+use crate::phase0::state_transition::Error::{
+    BlockSignatureError, ForkDigestError, InsufficientValidators, ShuffleError,
+};
 use crate::phase0::validator::Validator;
 use crate::primitives::{
     Bytes32, Domain, Epoch, ForkDigest, Gwei, Root, Slot, ValidatorIndex, Version, FAR_FUTURE_EPOCH,
@@ -33,8 +37,10 @@ pub enum Error {
     InvalidOperation,
     #[error("invalid signature")]
     InvalidSignature,
-    #[error("unable ti shuffle")]
+    #[error("unable to shuffle")]
     ShuffleError,
+    #[error("insufficient validators")]
+    InsufficientValidators,
 }
 
 pub fn is_active_validator(validator: Validator, epoch: Epoch) -> bool {
@@ -395,9 +401,32 @@ pub fn compute_proposer_index<
         PENDING_ATTESTATIONS_BOUND,
     >,
     indices: &[ValidatorIndex],
-    seed: Bytes32,
-) -> ValidatorIndex {
-    todo!()
+    seed: &Bytes32,
+) -> Result<ValidatorIndex, Error> {
+    if indices.len() == 0 {
+        return Err(InsufficientValidators);
+    }
+    let MAX_RANDOM_BYTE: usize = 255;
+    let mut i: usize = 0;
+    let total: usize = indices.len();
+
+    loop {
+        let shuffled_index =
+            compute_shuffled_index((i % total) as usize, total, seed).ok_or(ShuffleError)?;
+        let candidate_index = indices[shuffled_index];
+
+        let mut h: Vector<u8, 40> = Vector::default();
+        let i_bytes: [u8; 8] = (i / 32).to_le_bytes();
+        h[0..32].copy_from_slice(seed.as_bytes());
+        h[32..33].copy_from_slice(&i_bytes);
+        let random_byte = hash(h.as_slice()).as_bytes()[(i % 32)];
+
+        let effective_balance = state.validators[candidate_index].effective_balance;
+        if effective_balance * MAX_RANDOM_BYTE >= MAX_EFFECTIVE_BALANCE * (random_byte as usize) {
+            return Ok(candidate_index);
+        }
+        i += 1
+    }
 }
 
 pub fn compute_committee(
