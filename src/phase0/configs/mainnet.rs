@@ -2,7 +2,6 @@ use crate::primitives::{Epoch, Gwei};
 
 pub const MIN_GENESIS_ACTIVE_VALIDATOR_COUNT: u64 = 16384;
 pub const MIN_GENESIS_TIME: u64 = 1606824000;
-pub const GENESIS_FORK_VERSION: [u8; 4] = [0u8; 4];
 pub const GENESIS_DELAY: u64 = 604800;
 pub const SECONDS_PER_SLOT: u64 = 12;
 pub const SECONDS_PER_ETH1_BLOCK: u64 = 14;

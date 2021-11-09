@@ -5,11 +5,7 @@ use crate::crypto::{fast_aggregate_verify, hash};
 use crate::domains::{DomainType, SigningData};
 use crate::phase0::beacon_block::SignedBeaconBlock;
 use crate::phase0::beacon_state::BeaconState;
-use crate::phase0::configs::mainnet::GENESIS_FORK_VERSION;
 use crate::phase0::fork::ForkData;
-use crate::phase0::mainnet::{
-    MAX_EFFECTIVE_BALANCE, MAX_SEED_LOOKAHEAD, SHUFFLE_ROUND_COUNT, SLOTS_PER_EPOCH,
-};
 use crate::phase0::operations::{AttestationData, IndexedAttestation};
 use crate::phase0::validator::Validator;
 use crate::primitives::{
@@ -99,6 +95,7 @@ pub fn is_valid_indexed_attestation<
     const EPOCHS_PER_SLASHINGS_VECTOR: usize,
     const MAX_VALIDATORS_PER_COMMITTEE: usize,
     const PENDING_ATTESTATIONS_BOUND: usize,
+    const SLOTS_PER_EPOCH: Slot,
 >(
     state: BeaconState<
         SLOTS_PER_HISTORICAL_ROOT,
@@ -128,7 +125,17 @@ pub fn is_valid_indexed_attestation<
         }
     });
 
-    let domain = get_domain(
+    let domain = get_domain::<
+        SLOTS_PER_HISTORICAL_ROOT,
+        HISTORICAL_ROOTS_LIMIT,
+        ETH1_DATA_VOTES_BOUND,
+        VALIDATOR_REGISTRY_LIMIT,
+        EPOCHS_PER_HISTORICAL_VECTOR,
+        EPOCHS_PER_SLASHINGS_VECTOR,
+        MAX_VALIDATORS_PER_COMMITTEE,
+        PENDING_ATTESTATIONS_BOUND,
+        SLOTS_PER_EPOCH,
+    >(
         &state,
         DomainType::BeaconAttester,
         Some(indexed_attestation.data.target.epoch),
@@ -201,6 +208,7 @@ pub fn verify_block_signature<
     const MAX_ATTESTATIONS: usize,
     const MAX_DEPOSITS: usize,
     const MAX_VOLUNTARY_EXITS: usize,
+    const SLOTS_PER_EPOCH: Slot,
 >(
     state: BeaconState<
         SLOTS_PER_HISTORICAL_ROOT,
@@ -226,7 +234,18 @@ pub fn verify_block_signature<
         .validators
         .get(proposer_index)
         .expect("failed to get validator");
-    let domain = match get_domain(&state, DomainType::BeaconProposer, None) {
+    let domain = match get_domain::<
+        SLOTS_PER_HISTORICAL_ROOT,
+        HISTORICAL_ROOTS_LIMIT,
+        ETH1_DATA_VOTES_BOUND,
+        VALIDATOR_REGISTRY_LIMIT,
+        EPOCHS_PER_HISTORICAL_VECTOR,
+        EPOCHS_PER_SLASHINGS_VECTOR,
+        MAX_VALIDATORS_PER_COMMITTEE,
+        PENDING_ATTESTATIONS_BOUND,
+        SLOTS_PER_EPOCH,
+    >(&state, DomainType::BeaconProposer, None)
+    {
         Ok(domain) => domain,
         Err(_) => return false,
     };
@@ -249,6 +268,7 @@ pub fn get_domain<
     const EPOCHS_PER_SLASHINGS_VECTOR: usize,
     const MAX_VALIDATORS_PER_COMMITTEE: usize,
     const PENDING_ATTESTATIONS_BOUND: usize,
+    const SLOTS_PER_EPOCH: Slot,
 >(
     state: &BeaconState<
         SLOTS_PER_HISTORICAL_ROOT,
@@ -263,7 +283,19 @@ pub fn get_domain<
     domain_type: DomainType,
     epoch: Option<Epoch>,
 ) -> Result<Domain, Error> {
-    let epoch = epoch.unwrap_or_else(|| get_current_epoch(state));
+    let epoch = epoch.unwrap_or_else(|| {
+        get_current_epoch::<
+            SLOTS_PER_HISTORICAL_ROOT,
+            HISTORICAL_ROOTS_LIMIT,
+            ETH1_DATA_VOTES_BOUND,
+            VALIDATOR_REGISTRY_LIMIT,
+            EPOCHS_PER_HISTORICAL_VECTOR,
+            EPOCHS_PER_SLASHINGS_VECTOR,
+            MAX_VALIDATORS_PER_COMMITTEE,
+            PENDING_ATTESTATIONS_BOUND,
+            SLOTS_PER_EPOCH,
+        >(state)
+    });
     let fork_version = if epoch < state.fork.epoch {
         state.fork.previous_version
     } else {
@@ -286,6 +318,7 @@ pub fn get_current_epoch<
     const EPOCHS_PER_SLASHINGS_VECTOR: usize,
     const MAX_VALIDATORS_PER_COMMITTEE: usize,
     const PENDING_ATTESTATIONS_BOUND: usize,
+    const SLOTS_PER_EPOCH: Slot,
 >(
     state: &BeaconState<
         SLOTS_PER_HISTORICAL_ROOT,
@@ -298,7 +331,7 @@ pub fn get_current_epoch<
         PENDING_ATTESTATIONS_BOUND,
     >,
 ) -> Epoch {
-    compute_epoch_at_slot(state.slot)
+    compute_epoch_at_slot::<SLOTS_PER_EPOCH>(state.slot)
 }
 
 pub fn compute_signing_root<T: SimpleSerialize>(
@@ -321,7 +354,11 @@ pub fn bytes_to_int64(slice: &[u8]) -> u64 {
     u64::from_le_bytes(bytes)
 }
 
-pub fn compute_shuffled_index(index: usize, index_count: usize, seed: &Bytes32) -> Option<usize> {
+pub fn compute_shuffled_index<const SHUFFLE_ROUND_COUNT: usize>(
+    index: usize,
+    index_count: usize,
+    seed: &Bytes32,
+) -> Option<usize> {
     if index < index_count {
         return None;
     }
@@ -366,6 +403,8 @@ pub fn compute_proposer_index<
     const EPOCHS_PER_SLASHINGS_VECTOR: usize,
     const MAX_VALIDATORS_PER_COMMITTEE: usize,
     const PENDING_ATTESTATIONS_BOUND: usize,
+    const MAX_EFFECTIVE_BALANCE: Gwei,
+    const SHUFFLE_ROUND_COUNT: usize,
 >(
     state: &BeaconState<
         SLOTS_PER_HISTORICAL_ROOT,
@@ -389,7 +428,8 @@ pub fn compute_proposer_index<
 
     loop {
         let shuffled_index =
-            compute_shuffled_index((i % total) as usize, total, seed).ok_or(Error::Shuffle)?;
+            compute_shuffled_index::<SHUFFLE_ROUND_COUNT>((i % total) as usize, total, seed)
+                .ok_or(Error::Shuffle)?;
         let candidate_index = indices[shuffled_index];
 
         let mut h: Vector<u8, 40> = Vector::default();
@@ -406,7 +446,7 @@ pub fn compute_proposer_index<
     }
 }
 
-pub fn compute_committee(
+pub fn compute_committee<const SHUFFLE_ROUND_COUNT: usize>(
     indices: &[ValidatorIndex],
     seed: Bytes32,
     index: usize,
@@ -416,21 +456,22 @@ pub fn compute_committee(
     let start = (indices.len() * index) / count;
     let end = (indices.len()) * (index + 1) / count;
     for i in start..end {
-        let index = compute_shuffled_index(i, indices.len(), &seed).ok_or(Error::Shuffle)?;
+        let index = compute_shuffled_index::<SHUFFLE_ROUND_COUNT>(i, indices.len(), &seed)
+            .ok_or(Error::Shuffle)?;
         committee[index] = indices[index];
     }
     Ok(committee)
 }
 
-pub fn compute_epoch_at_slot(slot: Slot) -> Epoch {
+pub fn compute_epoch_at_slot<const SLOTS_PER_EPOCH: Slot>(slot: Slot) -> Epoch {
     slot / SLOTS_PER_EPOCH
 }
 
-pub fn compute_start_slot_at_epoch(epoch: Epoch) -> Slot {
+pub fn compute_start_slot_at_epoch<const SLOTS_PER_EPOCH: Slot>(epoch: Epoch) -> Slot {
     epoch * SLOTS_PER_EPOCH
 }
 
-pub fn compute_activation_exit_epoch(epoch: Epoch) -> Epoch {
+pub fn compute_activation_exit_epoch<const MAX_SEED_LOOKAHEAD: Epoch>(epoch: Epoch) -> Epoch {
     epoch + 1 + MAX_SEED_LOOKAHEAD
 }
 
