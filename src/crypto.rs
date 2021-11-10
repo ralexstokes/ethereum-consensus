@@ -5,7 +5,9 @@ use ssz_rs::prelude::*;
 use std::fmt;
 use thiserror::Error;
 
-const BLS_DST: &[u8] = b"BLS_SIG_BLS12381G2_XMD:SHA-256_SSWU_RO_POP_";
+pub const BLS_DST: &[u8] = b"BLS_SIG_BLS12381G2_XMD:SHA-256_SSWU_RO_POP_";
+pub const BLS_PUBLIC_KEY_BYTES_LEN: usize = 48;
+pub const BLS_SECRET_KEY_BYTES_LEN: usize = 32;
 
 pub fn hash<D: AsRef<[u8]>>(data: D) -> Bytes32 {
     let mut result = Bytes32::default();
@@ -21,6 +23,8 @@ pub enum Error {
     ZeroSizedInput,
     #[error("randomness failure: {0}")]
     Randomness(#[from] rand::Error),
+    #[error("deserialize error")]
+    DeserializeError(#[from] DeserializeError),
     #[error("blst error: {0}")]
     BLST(#[from] BLSTError),
 }
@@ -69,7 +73,7 @@ impl fmt::LowerHex for SecretKey {
 impl SecretKey {
     // https://docs.rs/rand/latest/rand/trait.Rng.html#generic-usage
     pub fn random<R: rand::Rng>(rng: &mut R) -> Result<Self, Error> {
-        let mut ikm = [0u8; 32];
+        let mut ikm = [0u8; BLS_SECRET_KEY_BYTES_LEN];
         rng.try_fill_bytes(&mut ikm)?;
         Self::key_gen(&ikm)
     }
@@ -79,12 +83,11 @@ impl SecretKey {
         Ok(Self(sk))
     }
 
-    pub fn from_bytes(encoding: &[u8]) -> Result<Self, Error> {
-        let inner = blst_core::SecretKey::from_bytes(encoding).map_err(BLSTError::from)?;
-        Ok(Self(inner))
+    pub fn from_bytes(bytes: &[u8]) -> Result<Self, Error> {
+        SecretKey::deserialize(bytes).map_err(Error::DeserializeError)
     }
 
-    pub fn as_bytes(&self) -> [u8; 32] {
+    pub fn as_bytes(&self) -> [u8; BLS_SECRET_KEY_BYTES_LEN] {
         self.0.to_bytes()
     }
 
@@ -95,6 +98,40 @@ impl SecretKey {
 
     pub fn sign(&self, msg: &[u8]) -> Signature {
         Signature(self.0.sign(msg, BLS_DST, &[]))
+    }
+}
+
+impl Sized for SecretKey {
+    fn is_variable_size() -> bool {
+        false
+    }
+
+    fn size_hint() -> usize {
+        BLS_SECRET_KEY_BYTES_LEN
+    }
+}
+
+impl Serialize for SecretKey {
+    fn serialize(&self, buffer: &mut Vec<u8>) -> Result<usize, SerializeError> {
+        let start = buffer.len();
+        buffer.extend_from_slice(&self.as_bytes());
+        let encoded_length = buffer.len() - start;
+        debug_assert_eq!(encoded_length, Self::size_hint());
+        Ok(encoded_length)
+    }
+}
+
+impl Deserialize for SecretKey {
+    fn deserialize(encoding: &[u8]) -> Result<Self, DeserializeError>
+    where
+        Self: Sized,
+    {
+        if encoding.len() != BLS_SECRET_KEY_BYTES_LEN {
+            return Err(DeserializeError::InvalidInput);
+        }
+        let inner = blst_core::SecretKey::deserialize(encoding)
+            .map_err(|_| DeserializeError::InvalidInput)?;
+        Ok(Self(inner))
     }
 }
 
@@ -135,12 +172,11 @@ impl PublicKey {
         self.0.validate().is_ok()
     }
 
-    pub fn from_bytes(encoding: &[u8]) -> Result<Self, Error> {
-        let inner = blst_core::PublicKey::from_bytes(encoding).map_err(BLSTError::from)?;
-        Ok(Self(inner))
+    pub fn from_bytes(bytes: &[u8]) -> Result<Self, Error> {
+        PublicKey::deserialize(bytes).map_err(Error::DeserializeError)
     }
 
-    pub fn as_bytes(&self) -> [u8; 48] {
+    pub fn as_bytes(&self) -> [u8; BLS_PUBLIC_KEY_BYTES_LEN] {
         self.0.to_bytes()
     }
 }
@@ -151,7 +187,7 @@ impl Sized for PublicKey {
     }
 
     fn size_hint() -> usize {
-        48
+        BLS_PUBLIC_KEY_BYTES_LEN
     }
 }
 
@@ -170,7 +206,10 @@ impl Deserialize for PublicKey {
     where
         Self: Sized,
     {
-        let inner = blst_core::PublicKey::deserialize(encoding)
+        if encoding.len() != BLS_PUBLIC_KEY_BYTES_LEN {
+            return Err(DeserializeError::InvalidInput);
+        }
+        let inner = blst_core::PublicKey::key_validate(encoding)
             .map_err(|_| DeserializeError::InvalidInput)?;
         Ok(Self(inner))
     }
@@ -350,25 +389,83 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "bad encoding")]
-    fn secret_key_is_null() {
+    #[should_panic(expected = "null secret key")]
+    fn null_secret_key() {
         let ikm = [0u8; 0];
-        SecretKey::key_gen(&ikm).expect("can make a secret key");
+        SecretKey::from_bytes(&ikm).expect("can make a null secret key");
     }
 
     #[test]
-    #[should_panic(expected = "bad encoding")]
-    fn secret_key_len_31() {
-        let ikm = [1u8; 31];
-        SecretKey::key_gen(&ikm).expect("can make a secret key");
+    #[should_panic(expected = "short secret key")]
+    fn short_secret_key() {
+        let bytes = [1u8; BLS_SECRET_KEY_BYTES_LEN - 1];
+        SecretKey::from_bytes(&bytes).expect("can make a short secret key");
     }
 
     #[test]
-    fn valid_public_key() {
+    #[should_panic(expected = "long secret key")]
+    fn long_secret_key() {
+        let bytes = [1u8; BLS_SECRET_KEY_BYTES_LEN + 1];
+        SecretKey::from_bytes(&bytes).expect("can make a long secret key");
+    }
+
+    #[test]
+    #[should_panic(expected = "bad secret key")]
+    fn bad_secret_key() {
+        let bytes: [u8; BLS_SECRET_KEY_BYTES_LEN] = [
+            0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+            0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+            0xff, 0xff, 0xff, 0xff,
+        ];
+        SecretKey::from_bytes(&bytes).expect("can make a bad secret key");
+    }
+
+    #[test]
+    fn random_secret_key() {
+        let mut rng = thread_rng();
+        let sk = SecretKey::random(&mut rng).unwrap();
+        let valid = sk.as_bytes();
+        assert_eq!(valid.len(), BLS_SECRET_KEY_BYTES_LEN)
+    }
+
+    #[test]
+    fn random_public_key() {
         let mut rng = thread_rng();
         let pk = SecretKey::random(&mut rng).unwrap().public_key();
         let valid = pk.validate();
         assert!(valid)
+    }
+    #[test]
+    fn good_public_key() {
+        let bytes: [u8; 48] = [
+            0xa9, 0x9a, 0x76, 0xed, 0x77, 0x96, 0xf7, 0xbe, 0x22, 0xd5, 0xb7, 0xe8, 0x5d, 0xee,
+            0xb7, 0xc5, 0x67, 0x7e, 0x88, 0xe5, 0x11, 0xe0, 0xb3, 0x37, 0x61, 0x8f, 0x8c, 0x4e,
+            0xb6, 0x13, 0x49, 0xb4, 0xbf, 0x2d, 0x15, 0x3f, 0x64, 0x9f, 0x7b, 0x53, 0x35, 0x9f,
+            0xe8, 0xb9, 0x4a, 0x38, 0xe4, 0x4c,
+        ];
+        let pk = PublicKey::from_bytes(&bytes).expect("can't make a good public key");
+        assert!(pk.validate());
+    }
+
+    #[test]
+    #[should_panic(expected = "zero public key")]
+    fn zero_public_key() {
+        let z = [0u8; BLS_PUBLIC_KEY_BYTES_LEN];
+        PublicKey::from_bytes(&z).expect("can make a zero public key");
+    }
+
+    #[test]
+    #[should_panic(expected = "short public key")]
+    fn short_public_key() {
+        let z = [0u8; BLS_PUBLIC_KEY_BYTES_LEN - 1];
+        PublicKey::from_bytes(&z).expect("can make a short public key");
+    }
+
+    #[test]
+    #[should_panic(expected = "long public key")]
+    fn long_public_key() {
+        let z = [0u8; BLS_PUBLIC_KEY_BYTES_LEN + 1];
+        PublicKey::from_bytes(&z).expect("can make a long public key");
     }
 
     #[test]
