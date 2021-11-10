@@ -11,6 +11,7 @@ pub use crate::phase0::operations::{
 };
 use crate::phase0::presets::Preset;
 pub use crate::phase0::state_transition::apply_block;
+use crate::phase0::state_transition::Context;
 pub use crate::phase0::validator::Validator;
 use crate::primitives::{Epoch, Gwei, Slot};
 
@@ -81,6 +82,10 @@ pub const PRESET: Preset = Preset {
     max_deposits: MAX_DEPOSITS,
     max_voluntary_exits: MAX_VOLUNTARY_EXITS,
 };
+
+pub fn context() -> Context {
+    Context::with_preset(&PRESET)
+}
 
 pub type IndexedAttestation = operations::IndexedAttestation<MAX_VALIDATORS_PER_COMMITTEE>;
 pub type PendingAttestation = operations::PendingAttestation<MAX_VALIDATORS_PER_COMMITTEE>;
