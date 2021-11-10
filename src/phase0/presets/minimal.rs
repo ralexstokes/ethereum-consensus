@@ -1,15 +1,3 @@
-pub use crate::domains::{DomainType, SigningData};
-use crate::phase0::beacon_block;
-pub use crate::phase0::beacon_block::{BeaconBlockHeader, SignedBeaconBlockHeader};
-use crate::phase0::beacon_state;
-use crate::phase0::beacon_state::{get_eth1_data_votes_bound, get_pending_attestations_bound};
-pub use crate::phase0::fork::{Fork, ForkData};
-use crate::phase0::operations;
-pub use crate::phase0::operations::{
-    AttestationData, Checkpoint, Deposit, DepositData, DepositMessage, Eth1Data, ProposerSlashing,
-    SignedVoluntaryExit, VoluntaryExit,
-};
-pub use crate::phase0::validator::Validator;
 use crate::primitives::{Epoch, Gwei, Slot};
 
 pub const MAX_COMMITTEES_PER_SLOT: u64 = 4;
@@ -45,51 +33,4 @@ pub const MAX_ATTESTATIONS: usize = 128;
 pub const MAX_DEPOSITS: usize = 16;
 pub const MAX_VOLUNTARY_EXITS: usize = 16;
 
-pub type IndexedAttestation = operations::IndexedAttestation<MAX_VALIDATORS_PER_COMMITTEE>;
-pub type PendingAttestation = operations::PendingAttestation<MAX_VALIDATORS_PER_COMMITTEE>;
-pub type HistoricalBatch = beacon_state::HistoricalBatch<SLOTS_PER_HISTORICAL_ROOT>;
-pub type AttesterSlashing = operations::AttesterSlashing<MAX_VALIDATORS_PER_COMMITTEE>;
-pub type Attestation = operations::Attestation<MAX_VALIDATORS_PER_COMMITTEE>;
-
-const ETH1_DATA_VOTES_BOUND: usize =
-    get_eth1_data_votes_bound(EPOCHS_PER_ETH1_VOTING_PERIOD, SLOTS_PER_EPOCH as usize);
-const PENDING_ATTESTATIONS_BOUND: usize =
-    get_pending_attestations_bound(MAX_ATTESTATIONS, SLOTS_PER_EPOCH as usize);
-
-pub type BeaconState = beacon_state::BeaconState<
-    SLOTS_PER_HISTORICAL_ROOT,
-    HISTORICAL_ROOTS_LIMIT,
-    ETH1_DATA_VOTES_BOUND,
-    VALIDATOR_REGISTRY_LIMIT,
-    EPOCHS_PER_HISTORICAL_VECTOR,
-    EPOCHS_PER_SLASHINGS_VECTOR,
-    MAX_VALIDATORS_PER_COMMITTEE,
-    PENDING_ATTESTATIONS_BOUND,
->;
-
-pub type BeaconBlockBody = beacon_block::BeaconBlockBody<
-    MAX_PROPOSER_SLASHINGS,
-    MAX_VALIDATORS_PER_COMMITTEE,
-    MAX_ATTESTER_SLASHINGS,
-    MAX_ATTESTATIONS,
-    MAX_DEPOSITS,
-    MAX_VOLUNTARY_EXITS,
->;
-
-pub type BeaconBlock = beacon_block::BeaconBlock<
-    MAX_PROPOSER_SLASHINGS,
-    MAX_VALIDATORS_PER_COMMITTEE,
-    MAX_ATTESTER_SLASHINGS,
-    MAX_ATTESTATIONS,
-    MAX_DEPOSITS,
-    MAX_VOLUNTARY_EXITS,
->;
-
-pub type SignedBeaconBlock = beacon_block::SignedBeaconBlock<
-    MAX_PROPOSER_SLASHINGS,
-    MAX_VALIDATORS_PER_COMMITTEE,
-    MAX_ATTESTER_SLASHINGS,
-    MAX_ATTESTATIONS,
-    MAX_DEPOSITS,
-    MAX_VOLUNTARY_EXITS,
->;
+// TODO: specialize once `mainnet` has stabilized
