@@ -5,9 +5,9 @@ use ssz_rs::prelude::*;
 use std::fmt;
 use thiserror::Error;
 
-pub const BLS_DST: &[u8] = b"BLS_SIG_BLS12381G2_XMD:SHA-256_SSWU_RO_POP_";
-pub const BLS_PUBLIC_KEY_BYTES_LEN: usize = 48;
-pub const BLS_SECRET_KEY_BYTES_LEN: usize = 32;
+const BLS_DST: &[u8] = b"BLS_SIG_BLS12381G2_XMD:SHA-256_SSWU_RO_POP_";
+const BLS_PUBLIC_KEY_BYTES_LEN: usize = 48;
+const BLS_SECRET_KEY_BYTES_LEN: usize = 32;
 
 pub fn hash<D: AsRef<[u8]>>(data: D) -> Bytes32 {
     let mut result = Bytes32::default();
@@ -22,9 +22,7 @@ pub enum Error {
     #[error("Zero sized input")]
     ZeroSizedInput,
     #[error("randomness failure: {0}")]
-    Randomness(#[from] rand::Error),
-    #[error("deserialize error")]
-    DeserializeError(#[from] DeserializeError),
+    Randomness1(#[from] rand::Error),
     #[error("blst error: {0}")]
     BLST(#[from] BLSTError),
 }
@@ -83,8 +81,9 @@ impl SecretKey {
         Ok(Self(sk))
     }
 
-    pub fn from_bytes(bytes: &[u8]) -> Result<Self, Error> {
-        SecretKey::deserialize(bytes).map_err(Error::DeserializeError)
+    pub fn from_bytes(secret_bytes: &[u8]) -> Result<Self, Error> {
+        let sk = blst_core::SecretKey::from_bytes(secret_bytes).map_err(BLSTError::from)?;
+        Ok(Self(sk))
     }
 
     pub fn as_bytes(&self) -> [u8; BLS_SECRET_KEY_BYTES_LEN] {
@@ -98,40 +97,6 @@ impl SecretKey {
 
     pub fn sign(&self, msg: &[u8]) -> Signature {
         Signature(self.0.sign(msg, BLS_DST, &[]))
-    }
-}
-
-impl Sized for SecretKey {
-    fn is_variable_size() -> bool {
-        false
-    }
-
-    fn size_hint() -> usize {
-        BLS_SECRET_KEY_BYTES_LEN
-    }
-}
-
-impl Serialize for SecretKey {
-    fn serialize(&self, buffer: &mut Vec<u8>) -> Result<usize, SerializeError> {
-        let start = buffer.len();
-        buffer.extend_from_slice(&self.as_bytes());
-        let encoded_length = buffer.len() - start;
-        debug_assert_eq!(encoded_length, Self::size_hint());
-        Ok(encoded_length)
-    }
-}
-
-impl Deserialize for SecretKey {
-    fn deserialize(encoding: &[u8]) -> Result<Self, DeserializeError>
-    where
-        Self: Sized,
-    {
-        if encoding.len() != BLS_SECRET_KEY_BYTES_LEN {
-            return Err(DeserializeError::InvalidInput);
-        }
-        let inner = blst_core::SecretKey::deserialize(encoding)
-            .map_err(|_| DeserializeError::InvalidInput)?;
-        Ok(Self(inner))
     }
 }
 
@@ -173,7 +138,8 @@ impl PublicKey {
     }
 
     pub fn from_bytes(bytes: &[u8]) -> Result<Self, Error> {
-        PublicKey::deserialize(bytes).map_err(Error::DeserializeError)
+        let inner = blst_core::PublicKey::key_validate(bytes).map_err(BLSTError::from)?;
+        Ok(Self(inner))
     }
 
     pub fn as_bytes(&self) -> [u8; BLS_PUBLIC_KEY_BYTES_LEN] {
@@ -206,10 +172,7 @@ impl Deserialize for PublicKey {
     where
         Self: Sized,
     {
-        if encoding.len() != BLS_PUBLIC_KEY_BYTES_LEN {
-            return Err(DeserializeError::InvalidInput);
-        }
-        let inner = blst_core::PublicKey::key_validate(encoding)
+        let inner = blst_core::PublicKey::deserialize(encoding)
             .map_err(|_| DeserializeError::InvalidInput)?;
         Ok(Self(inner))
     }
@@ -353,6 +316,11 @@ mod tests {
     use crate::crypto::{aggregate, aggregate_verify, fast_aggregate_verify};
     use rand::prelude::*;
 
+    const INFINITY_COMPRESSED_PUBLIC_KEY: [u8; BLS_PUBLIC_KEY_BYTES_LEN] = [
+        0xc0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    ];
+
     #[test]
     fn signature() {
         let mut rng = thread_rng();
@@ -462,10 +430,10 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "long public key")]
-    fn long_public_key() {
-        let z = [0u8; BLS_PUBLIC_KEY_BYTES_LEN + 1];
-        PublicKey::from_bytes(&z).expect("can make a long public key");
+    #[should_panic(expected = "infinity-based public key")]
+    fn infinity_as_public_key() {
+        PublicKey::from_bytes(&INFINITY_COMPRESSED_PUBLIC_KEY)
+            .expect(" can make an infinity-based public key");
     }
 
     #[test]
@@ -506,7 +474,7 @@ mod tests {
 
         let signatures: Vec<_> = sks.iter().map(|sk| sk.sign(msg)).collect();
 
-        let pks = pks.iter().map(|pk| pk).collect::<Vec<_>>();
+        let pks = pks.iter().collect::<Vec<_>>();
         let sig = aggregate(signatures.as_slice()).unwrap();
         let v = fast_aggregate_verify(&pks, msg, &sig);
 
