@@ -10,8 +10,15 @@ pub use crate::phase0::operations::{
     SignedVoluntaryExit, VoluntaryExit,
 };
 use crate::phase0::presets::Preset;
-pub use crate::phase0::state_transition::apply_block;
 use crate::phase0::state_transition::Context;
+pub use crate::phase0::state_transition::{
+    apply_block, compute_activation_exit_epoch, compute_committee, compute_domain,
+    compute_epoch_at_slot, compute_fork_data_root, compute_fork_digest, compute_proposer_index,
+    compute_shuffled_index, compute_signing_root, compute_start_slot_at_epoch, get_current_epoch,
+    get_domain, is_active_validator, is_eligible_for_activation, is_eligible_for_activation_queue,
+    is_slashable_attestation_data, is_slashable_validator, is_valid_indexed_attestation,
+    verify_block_signature, Error,
+};
 pub use crate::phase0::validator::Validator;
 use crate::primitives::{Epoch, Gwei, Slot};
 
