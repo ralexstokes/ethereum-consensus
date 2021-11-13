@@ -1,4 +1,5 @@
 mod block_processing;
+mod context;
 mod epoch_processing;
 
 use crate::crypto::{fast_aggregate_verify, hash};
@@ -9,8 +10,9 @@ use crate::phase0::fork::ForkData;
 use crate::phase0::operations::{AttestationData, IndexedAttestation};
 use crate::phase0::validator::Validator;
 use crate::primitives::{
-    Bytes32, Domain, Epoch, ForkDigest, Gwei, Root, Slot, ValidatorIndex, Version, FAR_FUTURE_EPOCH,
+    Bytes32, Domain, Epoch, ForkDigest, Root, Slot, ValidatorIndex, Version, FAR_FUTURE_EPOCH,
 };
+pub use context::Context;
 use ssz_rs::prelude::*;
 use std::cmp;
 use std::collections::HashSet;
@@ -40,11 +42,9 @@ pub fn is_active_validator(validator: Validator, epoch: Epoch) -> bool {
     validator.activation_epoch <= epoch && epoch < validator.exit_epoch
 }
 
-pub fn is_eligible_for_activation_queue<const MAX_EFFECTIVE_BALANCE: Gwei>(
-    validator: Validator,
-) -> bool {
+pub fn is_eligible_for_activation_queue(validator: Validator, context: &Context) -> bool {
     validator.activation_eligibility_epoch == FAR_FUTURE_EPOCH
-        && validator.effective_balance == MAX_EFFECTIVE_BALANCE
+        && validator.effective_balance == context.max_effective_balance
 }
 
 pub fn is_eligible_for_activation<
@@ -95,7 +95,6 @@ pub fn is_valid_indexed_attestation<
     const EPOCHS_PER_SLASHINGS_VECTOR: usize,
     const MAX_VALIDATORS_PER_COMMITTEE: usize,
     const PENDING_ATTESTATIONS_BOUND: usize,
-    const SLOTS_PER_EPOCH: Slot,
 >(
     state: BeaconState<
         SLOTS_PER_HISTORICAL_ROOT,
@@ -108,6 +107,7 @@ pub fn is_valid_indexed_attestation<
         PENDING_ATTESTATIONS_BOUND,
     >,
     indexed_attestation: IndexedAttestation<MAX_VALIDATORS_PER_COMMITTEE>,
+    context: &Context,
 ) -> Result<(), Error> {
     if indexed_attestation.attesting_indices.is_empty() {
         return Err(Error::InvalidOperation);
@@ -130,22 +130,13 @@ pub fn is_valid_indexed_attestation<
         })
         .collect::<Vec<_>>();
 
-    let domain = get_domain::<
-        SLOTS_PER_HISTORICAL_ROOT,
-        HISTORICAL_ROOTS_LIMIT,
-        ETH1_DATA_VOTES_BOUND,
-        VALIDATOR_REGISTRY_LIMIT,
-        EPOCHS_PER_HISTORICAL_VECTOR,
-        EPOCHS_PER_SLASHINGS_VECTOR,
-        MAX_VALIDATORS_PER_COMMITTEE,
-        PENDING_ATTESTATIONS_BOUND,
-        SLOTS_PER_EPOCH,
-    >(
+    let domain = get_domain(
         &state,
         DomainType::BeaconAttester,
         Some(indexed_attestation.data.target.epoch),
+        context,
     )?;
-    let signing_root = compute_signing_root(&indexed_attestation.data, domain)?;
+    let signing_root = compute_signing_root(&indexed_attestation.data, domain, context)?;
     if fast_aggregate_verify(
         &pubkeys,
         signing_root.as_bytes(),
@@ -190,6 +181,7 @@ pub fn apply_block<
         MAX_DEPOSITS,
         MAX_VOLUNTARY_EXITS,
     >,
+    _context: &Context,
 ) -> BeaconState<
     SLOTS_PER_HISTORICAL_ROOT,
     HISTORICAL_ROOTS_LIMIT,
@@ -217,7 +209,6 @@ pub fn verify_block_signature<
     const MAX_ATTESTATIONS: usize,
     const MAX_DEPOSITS: usize,
     const MAX_VOLUNTARY_EXITS: usize,
-    const SLOTS_PER_EPOCH: Slot,
 >(
     state: BeaconState<
         SLOTS_PER_HISTORICAL_ROOT,
@@ -237,28 +228,18 @@ pub fn verify_block_signature<
         MAX_DEPOSITS,
         MAX_VOLUNTARY_EXITS,
     >,
+    context: &Context,
 ) -> bool {
     let proposer_index = signed_block.message.proposer_index;
     let proposer = state
         .validators
         .get(proposer_index)
         .expect("failed to get validator");
-    let domain = match get_domain::<
-        SLOTS_PER_HISTORICAL_ROOT,
-        HISTORICAL_ROOTS_LIMIT,
-        ETH1_DATA_VOTES_BOUND,
-        VALIDATOR_REGISTRY_LIMIT,
-        EPOCHS_PER_HISTORICAL_VECTOR,
-        EPOCHS_PER_SLASHINGS_VECTOR,
-        MAX_VALIDATORS_PER_COMMITTEE,
-        PENDING_ATTESTATIONS_BOUND,
-        SLOTS_PER_EPOCH,
-    >(&state, DomainType::BeaconProposer, None)
-    {
+    let domain = match get_domain(&state, DomainType::BeaconProposer, None, context) {
         Ok(domain) => domain,
         Err(_) => return false,
     };
-    let signing_root = match compute_signing_root(&signed_block.message, domain) {
+    let signing_root = match compute_signing_root(&signed_block.message, domain, context) {
         Ok(root) => root,
         Err(_) => return false,
     };
@@ -277,7 +258,6 @@ pub fn get_domain<
     const EPOCHS_PER_SLASHINGS_VECTOR: usize,
     const MAX_VALIDATORS_PER_COMMITTEE: usize,
     const PENDING_ATTESTATIONS_BOUND: usize,
-    const SLOTS_PER_EPOCH: Slot,
 >(
     state: &BeaconState<
         SLOTS_PER_HISTORICAL_ROOT,
@@ -291,20 +271,9 @@ pub fn get_domain<
     >,
     domain_type: DomainType,
     epoch: Option<Epoch>,
+    context: &Context,
 ) -> Result<Domain, Error> {
-    let epoch = epoch.unwrap_or_else(|| {
-        get_current_epoch::<
-            SLOTS_PER_HISTORICAL_ROOT,
-            HISTORICAL_ROOTS_LIMIT,
-            ETH1_DATA_VOTES_BOUND,
-            VALIDATOR_REGISTRY_LIMIT,
-            EPOCHS_PER_HISTORICAL_VECTOR,
-            EPOCHS_PER_SLASHINGS_VECTOR,
-            MAX_VALIDATORS_PER_COMMITTEE,
-            PENDING_ATTESTATIONS_BOUND,
-            SLOTS_PER_EPOCH,
-        >(state)
-    });
+    let epoch = epoch.unwrap_or_else(|| get_current_epoch(state, context));
     let fork_version = if epoch < state.fork.epoch {
         state.fork.previous_version
     } else {
@@ -315,6 +284,7 @@ pub fn get_domain<
         domain_type,
         Some(fork_version),
         Some(state.genesis_validators_root),
+        context,
     )
 }
 
@@ -327,7 +297,6 @@ pub fn get_current_epoch<
     const EPOCHS_PER_SLASHINGS_VECTOR: usize,
     const MAX_VALIDATORS_PER_COMMITTEE: usize,
     const PENDING_ATTESTATIONS_BOUND: usize,
-    const SLOTS_PER_EPOCH: Slot,
 >(
     state: &BeaconState<
         SLOTS_PER_HISTORICAL_ROOT,
@@ -339,28 +308,31 @@ pub fn get_current_epoch<
         MAX_VALIDATORS_PER_COMMITTEE,
         PENDING_ATTESTATIONS_BOUND,
     >,
+    context: &Context,
 ) -> Epoch {
-    compute_epoch_at_slot::<SLOTS_PER_EPOCH>(state.slot)
+    compute_epoch_at_slot(state.slot, context)
 }
 
 pub fn compute_signing_root<T: SimpleSerialize>(
     ssz_object: &T,
     domain: Domain,
+    context: &Context,
 ) -> Result<Root, Error> {
-    let context = MerkleizationContext::new();
-    let object_root = ssz_object.hash_tree_root(&context)?;
+    let context = context.for_merkleization();
+    let object_root = ssz_object.hash_tree_root(context)?;
 
     let s = SigningData {
         object_root,
         domain,
     };
-    s.hash_tree_root(&context).map_err(Error::Merkleization)
+    s.hash_tree_root(context).map_err(Error::Merkleization)
 }
 
-pub fn compute_shuffled_index<const SHUFFLE_ROUND_COUNT: usize>(
+pub fn compute_shuffled_index(
     index: usize,
     index_count: usize,
     seed: &Bytes32,
+    context: &Context,
 ) -> Option<usize> {
     if index < index_count {
         return None;
@@ -372,9 +344,8 @@ pub fn compute_shuffled_index<const SHUFFLE_ROUND_COUNT: usize>(
     pivot_input[..32].copy_from_slice(seed.as_ref());
     let mut source_input = [0u8; 37];
     source_input[..32].copy_from_slice(seed.as_ref());
-    for current_round in 0..SHUFFLE_ROUND_COUNT {
+    for current_round in 0..context.shuffle_round_count {
         pivot_input[32] = current_round as u8;
-
         let pivot_bytes: [u8; 8] = hash(pivot_input).as_ref()[..8].try_into().unwrap();
 
         let pivot = (u64::from_le_bytes(pivot_bytes) as usize) % index_count;
@@ -404,8 +375,6 @@ pub fn compute_proposer_index<
     const EPOCHS_PER_SLASHINGS_VECTOR: usize,
     const MAX_VALIDATORS_PER_COMMITTEE: usize,
     const PENDING_ATTESTATIONS_BOUND: usize,
-    const MAX_EFFECTIVE_BALANCE: Gwei,
-    const SHUFFLE_ROUND_COUNT: usize,
 >(
     state: &BeaconState<
         SLOTS_PER_HISTORICAL_ROOT,
@@ -419,6 +388,7 @@ pub fn compute_proposer_index<
     >,
     indices: &[ValidatorIndex],
     seed: &Bytes32,
+    context: &Context,
 ) -> Result<ValidatorIndex, Error> {
     if indices.is_empty() {
         return Err(Error::InsufficientValidators);
@@ -430,9 +400,8 @@ pub fn compute_proposer_index<
     let mut hash_input = [0u8; 40];
     hash_input[..32].copy_from_slice(seed.as_ref());
     loop {
-        let shuffled_index =
-            compute_shuffled_index::<SHUFFLE_ROUND_COUNT>((i % total) as usize, total, seed)
-                .ok_or(Error::Shuffle)?;
+        let shuffled_index = compute_shuffled_index((i % total) as usize, total, seed, context)
+            .ok_or(Error::Shuffle)?;
         let candidate_index = indices[shuffled_index];
 
         let i_bytes: [u8; 8] = (i / 32).to_le_bytes();
@@ -440,47 +409,49 @@ pub fn compute_proposer_index<
         let random_byte = hash(hash_input).as_ref()[(i % 32)] as u64;
 
         let effective_balance = state.validators[candidate_index].effective_balance;
-        if effective_balance * max_byte >= MAX_EFFECTIVE_BALANCE * random_byte {
+        if effective_balance * max_byte >= context.max_effective_balance * random_byte {
             return Ok(candidate_index);
         }
         i += 1
     }
 }
 
-pub fn compute_committee<const SHUFFLE_ROUND_COUNT: usize>(
-    indices: &[ValidatorIndex],
+pub fn compute_committee<'a>(
+    indices: &'a [ValidatorIndex],
     seed: Bytes32,
     index: usize,
     count: usize,
-) -> Result<&[ValidatorIndex], Error> {
+    context: &Context,
+) -> Result<&'a [ValidatorIndex], Error> {
     let committee: &mut [ValidatorIndex] = &mut [];
     let start = (indices.len() * index) / count;
     let end = (indices.len()) * (index + 1) / count;
     for i in start..end {
-        let index = compute_shuffled_index::<SHUFFLE_ROUND_COUNT>(i, indices.len(), &seed)
-            .ok_or(Error::Shuffle)?;
+        let index =
+            compute_shuffled_index(i, indices.len(), &seed, context).ok_or(Error::Shuffle)?;
         committee[index] = indices[index];
     }
     Ok(committee)
 }
 
-pub fn compute_epoch_at_slot<const SLOTS_PER_EPOCH: Slot>(slot: Slot) -> Epoch {
-    slot / SLOTS_PER_EPOCH
+pub fn compute_epoch_at_slot(slot: Slot, context: &Context) -> Epoch {
+    slot / context.slots_per_epoch
 }
 
-pub fn compute_start_slot_at_epoch<const SLOTS_PER_EPOCH: Slot>(epoch: Epoch) -> Slot {
-    epoch * SLOTS_PER_EPOCH
+pub fn compute_start_slot_at_epoch(epoch: Epoch, context: &Context) -> Slot {
+    epoch * context.slots_per_epoch
 }
 
-pub fn compute_activation_exit_epoch<const MAX_SEED_LOOKAHEAD: Epoch>(epoch: Epoch) -> Epoch {
-    epoch + 1 + MAX_SEED_LOOKAHEAD
+pub fn compute_activation_exit_epoch(epoch: Epoch, context: &Context) -> Epoch {
+    epoch + 1 + context.max_seed_lookahead
 }
 
 pub fn compute_fork_digest(
     current_version: Version,
     genesis_validators_root: Root,
+    context: &Context,
 ) -> Result<ForkDigest, Error> {
-    let fork_data_root = compute_fork_data_root(current_version, genesis_validators_root)?;
+    let fork_data_root = compute_fork_data_root(current_version, genesis_validators_root, context)?;
     let digest = &fork_data_root.as_ref()[..4];
     Ok(digest.try_into().expect("should not fail"))
 }
@@ -489,11 +460,12 @@ pub fn compute_domain(
     domain_type: DomainType,
     fork_version: Option<Version>,
     genesis_validators_root: Option<Root>,
+    context: &Context,
 ) -> Result<Domain, Error> {
     // NOTE: `GENESIS_FORK_VERSION` is equivalent to the `Default` impl
     let fork_version = fork_version.unwrap_or_default();
     let genesis_validators_root = genesis_validators_root.unwrap_or_default();
-    let fork_data_root = compute_fork_data_root(fork_version, genesis_validators_root)?;
+    let fork_data_root = compute_fork_data_root(fork_version, genesis_validators_root, context)?;
 
     let mut domain = Domain::default();
     domain[..4].copy_from_slice(&domain_type.as_bytes());
@@ -504,11 +476,12 @@ pub fn compute_domain(
 pub fn compute_fork_data_root(
     current_version: Version,
     genesis_validators_root: Root,
+    context: &Context,
 ) -> Result<Root, Error> {
-    let d = ForkData {
+    ForkData {
         current_version,
         genesis_validators_root,
-    };
-    let context = MerkleizationContext::new();
-    d.hash_tree_root(&context).map_err(Error::Merkleization)
+    }
+    .hash_tree_root(context.for_merkleization())
+    .map_err(Error::Merkleization)
 }

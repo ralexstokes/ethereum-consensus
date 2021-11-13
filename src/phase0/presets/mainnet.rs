@@ -9,7 +9,16 @@ pub use crate::phase0::operations::{
     AttestationData, Checkpoint, Deposit, DepositData, DepositMessage, Eth1Data, ProposerSlashing,
     SignedVoluntaryExit, VoluntaryExit,
 };
-pub use crate::phase0::state_transition::apply_block;
+use crate::phase0::presets::Preset;
+use crate::phase0::state_transition::Context;
+pub use crate::phase0::state_transition::{
+    apply_block, compute_activation_exit_epoch, compute_committee, compute_domain,
+    compute_epoch_at_slot, compute_fork_data_root, compute_fork_digest, compute_proposer_index,
+    compute_shuffled_index, compute_signing_root, compute_start_slot_at_epoch, get_current_epoch,
+    get_domain, is_active_validator, is_eligible_for_activation, is_eligible_for_activation_queue,
+    is_slashable_attestation_data, is_slashable_validator, is_valid_indexed_attestation,
+    verify_block_signature, Error,
+};
 pub use crate::phase0::validator::Validator;
 use crate::primitives::{Epoch, Gwei, Slot};
 
@@ -45,6 +54,45 @@ pub const MAX_ATTESTER_SLASHINGS: usize = 2;
 pub const MAX_ATTESTATIONS: usize = 128;
 pub const MAX_DEPOSITS: usize = 16;
 pub const MAX_VOLUNTARY_EXITS: usize = 16;
+
+pub const PRESET: Preset = Preset {
+    max_committees_per_slot: MAX_COMMITTEES_PER_SLOT,
+    target_committee_size: TARGET_COMMITTEE_SIZE,
+    max_validators_per_committee: MAX_VALIDATORS_PER_COMMITTEE,
+    shuffle_round_count: SHUFFLE_ROUND_COUNT,
+    hysteresis_quotient: HYSTERESIS_QUOTIENT,
+    hysteresis_downward_multiplier: HYSTERESIS_DOWNWARD_MULTIPLIER,
+    hysteresis_upward_multiplier: HYSTERESIS_UPWARD_MULTIPLIER,
+    min_deposit_amount: MIN_DEPOSIT_AMOUNT,
+    max_effective_balance: MAX_EFFECTIVE_BALANCE,
+    effective_balance_increment: EFFECTIVE_BALANCE_INCREMENT,
+    min_attestation_inclusion_delay: MIN_ATTESTATION_INCLUSION_DELAY,
+    slots_per_epoch: SLOTS_PER_EPOCH,
+    min_seed_lookahead: MIN_SEED_LOOKAHEAD,
+    max_seed_lookahead: MAX_SEED_LOOKAHEAD,
+    min_epochs_to_inactivity_penalty: MIN_EPOCHS_TO_INACTIVITY_PENALTY,
+    epochs_per_eth1_voting_period: EPOCHS_PER_ETH1_VOTING_PERIOD,
+    slots_per_historical_root: SLOTS_PER_HISTORICAL_ROOT,
+    epochs_per_historical_vector: EPOCHS_PER_HISTORICAL_VECTOR,
+    epochs_per_slashings_vector: EPOCHS_PER_SLASHINGS_VECTOR,
+    historical_roots_limit: HISTORICAL_ROOTS_LIMIT,
+    validator_registry_limit: VALIDATOR_REGISTRY_LIMIT,
+    base_reward_factor: BASE_REWARD_FACTOR,
+    whistleblower_reward_quotient: WHISTLEBLOWER_REWARD_QUOTIENT,
+    proposer_reward_quotient: PROPOSER_REWARD_QUOTIENT,
+    inactivity_penalty_quotient: INACTIVITY_PENALTY_QUOTIENT,
+    min_slashing_penalty_quotient: MIN_SLASHING_PENALTY_QUOTIENT,
+    proportional_slashing_multiplier: PROPORTIONAL_SLASHING_MULTIPLIER,
+    max_proposer_slashings: MAX_PROPOSER_SLASHINGS,
+    max_attester_slashings: MAX_ATTESTER_SLASHINGS,
+    max_attestations: MAX_ATTESTATIONS,
+    max_deposits: MAX_DEPOSITS,
+    max_voluntary_exits: MAX_VOLUNTARY_EXITS,
+};
+
+pub fn context() -> Context {
+    Context::with_preset(&PRESET)
+}
 
 pub type IndexedAttestation = operations::IndexedAttestation<MAX_VALIDATORS_PER_COMMITTEE>;
 pub type PendingAttestation = operations::PendingAttestation<MAX_VALIDATORS_PER_COMMITTEE>;
