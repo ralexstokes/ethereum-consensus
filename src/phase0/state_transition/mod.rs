@@ -357,12 +357,6 @@ pub fn compute_signing_root<T: SimpleSerialize>(
     s.hash_tree_root(&context).map_err(Error::Merkleization)
 }
 
-pub fn bytes_to_int64(slice: &[u8]) -> u64 {
-    let mut bytes = [0; 8];
-    bytes.copy_from_slice(&slice[0..8]);
-    u64::from_le_bytes(bytes)
-}
-
 pub fn compute_shuffled_index<const SHUFFLE_ROUND_COUNT: usize>(
     index: usize,
     index_count: usize,
@@ -374,28 +368,26 @@ pub fn compute_shuffled_index<const SHUFFLE_ROUND_COUNT: usize>(
 
     let mut index = index;
 
+    let mut pivot_input = [0u8; 33];
+    pivot_input[..32].copy_from_slice(seed.as_ref());
+    let mut source_input = [0u8; 37];
+    source_input[..32].copy_from_slice(seed.as_ref());
     for current_round in 0..SHUFFLE_ROUND_COUNT {
-        let round_bytes: [u8; 1] = (current_round as u8).to_le_bytes();
+        pivot_input[32] = current_round as u8;
 
-        let mut h: Vector<u8, 33> = Vector::default();
-        h[0..32].copy_from_slice(seed.as_ref());
-        h[32..33].copy_from_slice(&round_bytes);
+        let pivot_bytes: [u8; 8] = hash(pivot_input).as_ref()[..8].try_into().unwrap();
 
-        let mut v: [u8; 8] = [0u8; 8];
-        v.copy_from_slice(hash(h.as_slice()).as_ref());
-
-        let pivot = (bytes_to_int64(&v[..]) as usize) % index_count;
-
+        let pivot = (u64::from_le_bytes(pivot_bytes) as usize) % index_count;
         let flip = (pivot + index_count - index) % index_count;
         let position = cmp::max(index, flip);
         let position_bytes: [u8; 4] = ((position / 256) as u32).to_le_bytes();
 
-        let mut h: Vector<u8, 37> = Vector::default();
-        h[0..32].copy_from_slice(seed.as_ref());
-        h[32..33].copy_from_slice(&round_bytes);
-        h[33..37].copy_from_slice(&position_bytes);
+        source_input[32] = current_round as u8;
+        source_input[33..].copy_from_slice(&position_bytes);
 
-        let byte = (hash(h.as_slice()).as_ref()[(position % 256) / 8]) as u8;
+        let source = hash(source_input);
+
+        let byte = source.as_ref()[(position % 256) / 8];
         let bit = (byte >> (position % 8)) % 2;
         index = if bit != 0 { flip } else { index };
     }
@@ -435,17 +427,17 @@ pub fn compute_proposer_index<
     let mut i: usize = 0;
     let total: usize = indices.len();
 
+    let mut hash_input = [0u8; 40];
+    hash_input[..32].copy_from_slice(seed.as_ref());
     loop {
         let shuffled_index =
             compute_shuffled_index::<SHUFFLE_ROUND_COUNT>((i % total) as usize, total, seed)
                 .ok_or(Error::Shuffle)?;
         let candidate_index = indices[shuffled_index];
 
-        let mut h: Vector<u8, 40> = Vector::default();
         let i_bytes: [u8; 8] = (i / 32).to_le_bytes();
-        h[0..32].copy_from_slice(seed.as_ref());
-        h[32..33].copy_from_slice(&i_bytes);
-        let random_byte = hash(h.as_slice()).as_ref()[(i % 32)] as u64;
+        hash_input[32..].copy_from_slice(&i_bytes);
+        let random_byte = hash(hash_input).as_ref()[(i % 32)] as u64;
 
         let effective_balance = state.validators[candidate_index].effective_balance;
         if effective_balance * max_byte >= MAX_EFFECTIVE_BALANCE * random_byte {
