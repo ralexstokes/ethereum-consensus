@@ -22,7 +22,7 @@ pub enum Error {
     #[error("Zero sized input")]
     ZeroSizedInput,
     #[error("randomness failure: {0}")]
-    Randomness1(#[from] rand::Error),
+    Randomness(#[from] rand::Error),
     #[error("blst error: {0}")]
     BLST(#[from] BLSTError),
 }
