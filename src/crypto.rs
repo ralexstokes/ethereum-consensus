@@ -172,9 +172,7 @@ impl Deserialize for PublicKey {
     where
         Self: Sized,
     {
-        let inner = blst_core::PublicKey::deserialize(encoding)
-            .map_err(|_| DeserializeError::InvalidInput)?;
-        Ok(Self(inner))
+        Self::from_bytes(encoding).map_err(|_| DeserializeError::InvalidInput)
     }
 }
 
