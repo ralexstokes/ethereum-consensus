@@ -11,3 +11,7 @@ mod state_transition;
 mod validator;
 
 pub use presets::{mainnet, minimal};
+
+pub const BASE_REWARDS_PER_EPOCH: usize = 4;
+pub const DEPOSIT_CONTRACT_TREE_DEPTH: usize = 2usize.pow(5);
+pub const JUSTIFICATION_BITS_LENGTH: usize = 4;
