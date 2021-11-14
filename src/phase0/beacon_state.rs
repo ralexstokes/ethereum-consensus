@@ -2,7 +2,8 @@ use crate::phase0::beacon_block::BeaconBlockHeader;
 use crate::phase0::fork::Fork;
 use crate::phase0::operations::{Checkpoint, Eth1Data, PendingAttestation};
 use crate::phase0::validator::Validator;
-use crate::primitives::{Bytes32, Gwei, Root, Slot, JUSTIFICATION_BITS_LENGTH};
+use crate::phase0::JUSTIFICATION_BITS_LENGTH;
+use crate::primitives::{Bytes32, Gwei, Root, Slot};
 use ssz_rs::prelude::*;
 
 pub(super) const fn get_eth1_data_votes_bound(
