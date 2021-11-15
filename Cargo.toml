@@ -19,3 +19,6 @@ thiserror = "1.0.30"
 sha2 = "0.9.8"
 hex = "0.4.3"
 integer-sqrt = "0.1.5"
+serde = { version = "1.0", features = ["derive"] }
+serde_yaml = "0.8"
+glob = "0.3.0"
