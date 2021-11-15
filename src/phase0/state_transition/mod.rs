@@ -11,6 +11,7 @@ use crate::phase0::operations::{AttestationData, IndexedAttestation};
 use crate::phase0::validator::Validator;
 use crate::primitives::{
     Bytes32, Domain, Epoch, ForkDigest, Root, Slot, ValidatorIndex, Version, FAR_FUTURE_EPOCH,
+    GENESIS_EPOCH,
 };
 pub use context::Context;
 use ssz_rs::prelude::*;
@@ -36,6 +37,8 @@ pub enum Error {
     Shuffle,
     #[error("insufficient validators")]
     InsufficientValidators,
+    #[error("Beacon State Error")]
+    BeaconStateError,
 }
 
 pub fn is_active_validator(validator: &Validator, epoch: Epoch) -> bool {
@@ -484,4 +487,147 @@ pub fn compute_fork_data_root(
     }
     .hash_tree_root(context.for_merkleization())
     .map_err(Error::Merkleization)
+}
+
+pub fn get_previous_epoch<
+    const SLOTS_PER_HISTORICAL_ROOT: usize,
+    const HISTORICAL_ROOTS_LIMIT: usize,
+    const ETH1_DATA_VOTES_BOUND: usize,
+    const VALIDATOR_REGISTRY_LIMIT: usize,
+    const EPOCHS_PER_HISTORICAL_VECTOR: usize,
+    const EPOCHS_PER_SLASHINGS_VECTOR: usize,
+    const MAX_VALIDATORS_PER_COMMITTEE: usize,
+    const PENDING_ATTESTATIONS_BOUND: usize,
+>(
+    state: BeaconState<
+        SLOTS_PER_HISTORICAL_ROOT,
+        HISTORICAL_ROOTS_LIMIT,
+        ETH1_DATA_VOTES_BOUND,
+        VALIDATOR_REGISTRY_LIMIT,
+        EPOCHS_PER_HISTORICAL_VECTOR,
+        EPOCHS_PER_SLASHINGS_VECTOR,
+        MAX_VALIDATORS_PER_COMMITTEE,
+        PENDING_ATTESTATIONS_BOUND,
+    >,
+    context: &Context,
+) -> Epoch {
+    let current_epoch = get_current_epoch(&state, context);
+    if current_epoch == GENESIS_EPOCH {
+        GENESIS_EPOCH
+    } else {
+        current_epoch - 1
+    }
+}
+
+pub fn get_block_root<
+    const SLOTS_PER_HISTORICAL_ROOT: usize,
+    const HISTORICAL_ROOTS_LIMIT: usize,
+    const ETH1_DATA_VOTES_BOUND: usize,
+    const VALIDATOR_REGISTRY_LIMIT: usize,
+    const EPOCHS_PER_HISTORICAL_VECTOR: usize,
+    const EPOCHS_PER_SLASHINGS_VECTOR: usize,
+    const MAX_VALIDATORS_PER_COMMITTEE: usize,
+    const PENDING_ATTESTATIONS_BOUND: usize,
+>(
+    state: BeaconState<
+        SLOTS_PER_HISTORICAL_ROOT,
+        HISTORICAL_ROOTS_LIMIT,
+        ETH1_DATA_VOTES_BOUND,
+        VALIDATOR_REGISTRY_LIMIT,
+        EPOCHS_PER_HISTORICAL_VECTOR,
+        EPOCHS_PER_SLASHINGS_VECTOR,
+        MAX_VALIDATORS_PER_COMMITTEE,
+        PENDING_ATTESTATIONS_BOUND,
+    >,
+    epoch: Epoch,
+    context: &Context,
+) -> Result<Root, Error> {
+    get_block_root_at_slot(state, compute_start_slot_at_epoch(epoch, context))
+}
+
+pub fn get_block_root_at_slot<
+    const SLOTS_PER_HISTORICAL_ROOT: usize,
+    const HISTORICAL_ROOTS_LIMIT: usize,
+    const ETH1_DATA_VOTES_BOUND: usize,
+    const VALIDATOR_REGISTRY_LIMIT: usize,
+    const EPOCHS_PER_HISTORICAL_VECTOR: usize,
+    const EPOCHS_PER_SLASHINGS_VECTOR: usize,
+    const MAX_VALIDATORS_PER_COMMITTEE: usize,
+    const PENDING_ATTESTATIONS_BOUND: usize,
+>(
+    state: BeaconState<
+        SLOTS_PER_HISTORICAL_ROOT,
+        HISTORICAL_ROOTS_LIMIT,
+        ETH1_DATA_VOTES_BOUND,
+        VALIDATOR_REGISTRY_LIMIT,
+        EPOCHS_PER_HISTORICAL_VECTOR,
+        EPOCHS_PER_SLASHINGS_VECTOR,
+        MAX_VALIDATORS_PER_COMMITTEE,
+        PENDING_ATTESTATIONS_BOUND,
+    >,
+    slot: Slot,
+) -> Result<Root, Error> {
+    if slot < state.slot || state.slot <= (slot + SLOTS_PER_HISTORICAL_ROOT as u64) {
+        return Err(Error::BeaconStateError);
+    }
+    Ok(state.block_roots[(slot as usize % SLOTS_PER_HISTORICAL_ROOT)])
+}
+
+pub fn get_randao_mix<
+    'a,
+    const SLOTS_PER_HISTORICAL_ROOT: usize,
+    const HISTORICAL_ROOTS_LIMIT: usize,
+    const ETH1_DATA_VOTES_BOUND: usize,
+    const VALIDATOR_REGISTRY_LIMIT: usize,
+    const EPOCHS_PER_HISTORICAL_VECTOR: usize,
+    const EPOCHS_PER_SLASHINGS_VECTOR: usize,
+    const MAX_VALIDATORS_PER_COMMITTEE: usize,
+    const PENDING_ATTESTATIONS_BOUND: usize,
+>(
+    state: &'a BeaconState<
+        SLOTS_PER_HISTORICAL_ROOT,
+        HISTORICAL_ROOTS_LIMIT,
+        ETH1_DATA_VOTES_BOUND,
+        VALIDATOR_REGISTRY_LIMIT,
+        EPOCHS_PER_HISTORICAL_VECTOR,
+        EPOCHS_PER_SLASHINGS_VECTOR,
+        MAX_VALIDATORS_PER_COMMITTEE,
+        PENDING_ATTESTATIONS_BOUND,
+    >,
+    epoch: Epoch,
+) -> &'a Bytes32 {
+    let epoch = epoch as usize % EPOCHS_PER_HISTORICAL_VECTOR;
+    &state.randao_mixes[epoch]
+}
+
+pub fn get_active_validator_indices<
+    const SLOTS_PER_HISTORICAL_ROOT: usize,
+    const HISTORICAL_ROOTS_LIMIT: usize,
+    const ETH1_DATA_VOTES_BOUND: usize,
+    const VALIDATOR_REGISTRY_LIMIT: usize,
+    const EPOCHS_PER_HISTORICAL_VECTOR: usize,
+    const EPOCHS_PER_SLASHINGS_VECTOR: usize,
+    const MAX_VALIDATORS_PER_COMMITTEE: usize,
+    const PENDING_ATTESTATIONS_BOUND: usize,
+>(
+    state: BeaconState<
+        SLOTS_PER_HISTORICAL_ROOT,
+        HISTORICAL_ROOTS_LIMIT,
+        ETH1_DATA_VOTES_BOUND,
+        VALIDATOR_REGISTRY_LIMIT,
+        EPOCHS_PER_HISTORICAL_VECTOR,
+        EPOCHS_PER_SLASHINGS_VECTOR,
+        MAX_VALIDATORS_PER_COMMITTEE,
+        PENDING_ATTESTATIONS_BOUND,
+    >,
+    epoch: Epoch,
+) -> Vec<ValidatorIndex> {
+    let mut active: Vec<ValidatorIndex> = Vec::with_capacity(state.validators.len());
+
+    for (i, v) in state.validators.iter().enumerate() {
+        if is_active_validator(&v, epoch) {
+            active.push(i)
+        }
+    }
+    active
 }
