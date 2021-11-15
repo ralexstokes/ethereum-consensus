@@ -38,7 +38,7 @@ pub enum Error {
     InsufficientValidators,
 }
 
-pub fn is_active_validator(validator: Validator, epoch: Epoch) -> bool {
+pub fn is_active_validator(validator: &Validator, epoch: Epoch) -> bool {
     validator.activation_epoch <= epoch && epoch < validator.exit_epoch
 }
 
