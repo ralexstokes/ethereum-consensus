@@ -207,7 +207,6 @@ pub fn get_randao_mix<
 }
 
 pub fn get_active_validator_indices<
-    'a,
     const SLOTS_PER_HISTORICAL_ROOT: usize,
     const HISTORICAL_ROOTS_LIMIT: usize,
     const ETH1_DATA_VOTES_BOUND: usize,
@@ -217,7 +216,7 @@ pub fn get_active_validator_indices<
     const MAX_VALIDATORS_PER_COMMITTEE: usize,
     const PENDING_ATTESTATIONS_BOUND: usize,
 >(
-    state: &'a BeaconState<
+    state: BeaconState<
         SLOTS_PER_HISTORICAL_ROOT,
         HISTORICAL_ROOTS_LIMIT,
         ETH1_DATA_VOTES_BOUND,
@@ -228,13 +227,13 @@ pub fn get_active_validator_indices<
         PENDING_ATTESTATIONS_BOUND,
     >,
     epoch: Epoch,
-) -> &'a [ValidatorIndex] {
-    let mut active = Vec::with_capacity(state.validators.len());
+) -> Vec<ValidatorIndex> {
+    let mut active: Vec<ValidatorIndex> = Vec::with_capacity(state.validators.len());
 
     for (i, v) in state.validators.iter().enumerate() {
         if is_active_validator(&v, epoch) {
             active.push(i)
         }
     }
-    active.as_slice()
+    active
 }
