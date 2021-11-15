@@ -10,11 +10,11 @@ use std::fs::File;
 
 fn decode_hex_with_prefix<T: AsRef<[u8]> + Debug>(data: T) -> Vec<u8> {
     // a small check for empty strings
-    if data.as_ref().len() >=2 {
-    hex::decode(&data.as_ref()[2..]).expect("is well-formed hex")
+    if data.as_ref().len() >= 2 {
+        hex::decode(&data.as_ref()[2..]).expect("is well-formed hex")
     } else {
-        hex::decode(&data.as_ref()).expect("is well-formed hex")}
-
+        hex::decode(&data.as_ref()).expect("is well-formed hex")
+    }
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -70,16 +70,16 @@ impl AggregatingTestIO {
             .iter()
             .map(|x| Signature::from_bytes(&decode_hex_with_prefix(&x)).unwrap())
             .collect();
-        let aggregate = match aggregate(&input_signatures){
+        let aggregate = match aggregate(&input_signatures) {
             Ok(agg) => agg,
             // handling for zero sized input and output
             Err(_) => {
                 if self.output == String::from("~") {
-                    return true
+                    return true;
                 } else {
-                    return false
+                    return false;
                 }
-            },
+            }
         };
         let expected_aggregate_raw = decode_hex_with_prefix(&self.output);
         let expected_aggregate = Signature::from_bytes(&expected_aggregate_raw).unwrap();
@@ -104,12 +104,23 @@ struct AggVerifyTestIO {
 
 impl AggVerifyTestIO {
     fn aggregate_verify(&self) -> bool {
-        let pubkeys: Vec<PublicKey> = self
+        let pubkeys_result: Result<Vec<PublicKey>, _> = self
             .input
             .pubkeys
             .iter()
-            .map(|x| PublicKey::from_bytes(&decode_hex_with_prefix(&x)).unwrap())
+            .map(|x| PublicKey::from_bytes(&decode_hex_with_prefix(&x)))
             .collect();
+        let pubkeys = match pubkeys_result {
+            Ok(pk) => pk,
+            // error handling for infinity pub key
+            Err(_) => {
+                if self.output == false {
+                    return true;
+                } else {
+                    return false;
+                }
+            }
+        };
         let messages_vec: Vec<_> = self
             .input
             .messages
@@ -118,16 +129,16 @@ impl AggVerifyTestIO {
             .collect();
         let messages_slice: Vec<&[u8]> = messages_vec.iter().map(|x| x.as_slice()).collect();
         let signature: Signature =
-            match Signature::from_bytes(&decode_hex_with_prefix(&self.input.signature)){
+            match Signature::from_bytes(&decode_hex_with_prefix(&self.input.signature)) {
                 Ok(sign) => sign,
                 Err(_) => {
                     // handling for the zero signature case which raises a blst bad encoding error
                     if self.output == false {
-                        return true
+                        return true;
                     } else {
-                        return false
+                        return false;
                     }
-                },
+                }
             };
         let verify_result = aggregate_verify(&pubkeys, messages_slice.as_ref(), signature);
         verify_result == self.output
@@ -148,18 +159,39 @@ struct FastAggVerifyTestIO {
 }
 impl FastAggVerifyTestIO {
     fn fast_aggregate_verify(&self) -> bool {
-        let pubkeys: Vec<PublicKey> = self
+        let pubkeys_result: Result<Vec<PublicKey>, _> = self
             .input
             .pubkeys
             .iter()
-            .map(|x| PublicKey::from_bytes(&decode_hex_with_prefix(&x)).unwrap())
+            .map(|x| PublicKey::from_bytes(&decode_hex_with_prefix(&x)))
             .collect();
-        // println!("{:?}",pubkeys);
+        let pubkeys: Vec<PublicKey> = match pubkeys_result {
+            Ok(pk) => pk,
+            // error handling for infinity pub key
+            Err(_) => {
+                if self.output == false {
+                    return true;
+                } else {
+                    return false;
+                }
+            }
+        };
+        let pubkeys_ref: Vec<&PublicKey> = pubkeys.iter().map(|x| x).collect();
         let message_slice: &[u8] = &decode_hex_with_prefix(&self.input.message);
         let signature: Signature =
-            Signature::from_bytes(&decode_hex_with_prefix(&self.input.signature)).unwrap();
-        let verify_result = fast_aggregate_verify(&pubkeys, message_slice, signature);
-        // println!("{}",verify_result);
+            match Signature::from_bytes(&decode_hex_with_prefix(&self.input.signature)) {
+                Ok(sk) => sk,
+                Err(_) => {
+                    // error handling for zero signature
+                    if self.output == false {
+                        return true;
+                    } else {
+                        return false;
+                    }
+                }
+            };
+        let verify_result =
+            fast_aggregate_verify(pubkeys_ref.as_slice(), message_slice, &signature);
         verify_result == self.output
     }
 }
@@ -181,7 +213,17 @@ struct VerifyTestIO {
 impl VerifyTestIO {
     fn verify(&self) -> bool {
         let pubkey: PublicKey =
-            PublicKey::from_bytes(&decode_hex_with_prefix(&self.input.pubkey)).unwrap();
+            match PublicKey::from_bytes(&decode_hex_with_prefix(&self.input.pubkey)) {
+                Ok(pk) => pk,
+                Err(_) => {
+                    // error handling for infinity pub key
+                    if self.output == false {
+                        return true;
+                    } else {
+                        return false;
+                    }
+                }
+            };
         let message_vec: Vec<u8> = decode_hex_with_prefix(&self.input.message);
         let message: &[u8] = message_vec.as_ref();
         let signature: Signature =
@@ -222,7 +264,6 @@ fn test_fast_aggregate_verify() {
 }
 
 #[test]
-#[ignore]
 #[cfg(feature = "ef_spec_tests")]
 fn test_verify() {
     for entry in glob("consensus-spec-tests/tests/general/phase0/bls/verify/small/**/*.yaml")
@@ -241,7 +282,6 @@ fn test_verify() {
     }
 }
 #[test]
-#[ignore]
 #[cfg(feature = "ef_spec_tests")]
 fn test_aggregate_verify() {
     for entry in
@@ -262,7 +302,6 @@ fn test_aggregate_verify() {
 }
 
 #[test]
-#[ignore]
 #[cfg(feature = "ef_spec_tests")]
 
 fn test_aggregate() {
@@ -282,7 +321,6 @@ fn test_aggregate() {
     }
 }
 #[test]
-#[ignore]
 #[cfg(feature = "ef_spec_tests")]
 
 fn test_sign() {
