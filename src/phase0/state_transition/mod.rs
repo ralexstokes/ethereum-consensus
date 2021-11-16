@@ -485,8 +485,8 @@ pub fn compute_fork_data_root(
         current_version,
         genesis_validators_root,
     }
-    .hash_tree_root(context.for_merkleization())
-    .map_err(Error::Merkleization)
+        .hash_tree_root(context.for_merkleization())
+        .map_err(Error::Merkleization)
 }
 
 pub fn get_previous_epoch<
@@ -610,7 +610,7 @@ pub fn get_active_validator_indices<
     const MAX_VALIDATORS_PER_COMMITTEE: usize,
     const PENDING_ATTESTATIONS_BOUND: usize,
 >(
-    state: BeaconState<
+    state: &BeaconState<
         SLOTS_PER_HISTORICAL_ROOT,
         HISTORICAL_ROOTS_LIMIT,
         ETH1_DATA_VOTES_BOUND,
@@ -630,4 +630,70 @@ pub fn get_active_validator_indices<
         }
     }
     active
+}
+
+pub fn get_validator_churn_limit<
+    const SLOTS_PER_HISTORICAL_ROOT: usize,
+    const HISTORICAL_ROOTS_LIMIT: usize,
+    const ETH1_DATA_VOTES_BOUND: usize,
+    const VALIDATOR_REGISTRY_LIMIT: usize,
+    const EPOCHS_PER_HISTORICAL_VECTOR: usize,
+    const EPOCHS_PER_SLASHINGS_VECTOR: usize,
+    const MAX_VALIDATORS_PER_COMMITTEE: usize,
+    const PENDING_ATTESTATIONS_BOUND: usize,
+    const CHURN_LIMIT_QUOTIENT: usize,
+    const MIN_PER_EPOCH_CHURN_LIMIT: usize,
+>(
+    state: &BeaconState<
+        SLOTS_PER_HISTORICAL_ROOT,
+        HISTORICAL_ROOTS_LIMIT,
+        ETH1_DATA_VOTES_BOUND,
+        VALIDATOR_REGISTRY_LIMIT,
+        EPOCHS_PER_HISTORICAL_VECTOR,
+        EPOCHS_PER_SLASHINGS_VECTOR,
+        MAX_VALIDATORS_PER_COMMITTEE,
+        PENDING_ATTESTATIONS_BOUND,
+    >,
+    context: &Context,
+) -> u64 {
+    let active_validator_indices =
+        get_active_validator_indices(state, get_current_epoch(state, context));
+    u64::max(
+        MIN_PER_EPOCH_CHURN_LIMIT as u64,
+        active_validator_indices.len() as u64 / CHURN_LIMIT_QUOTIENT as u64,
+    )
+}
+
+pub fn get_seed<
+    const SLOTS_PER_HISTORICAL_ROOT: usize,
+    const HISTORICAL_ROOTS_LIMIT: usize,
+    const ETH1_DATA_VOTES_BOUND: usize,
+    const VALIDATOR_REGISTRY_LIMIT: usize,
+    const EPOCHS_PER_HISTORICAL_VECTOR: usize,
+    const EPOCHS_PER_SLASHINGS_VECTOR: usize,
+    const MAX_VALIDATORS_PER_COMMITTEE: usize,
+    const PENDING_ATTESTATIONS_BOUND: usize,
+    const MIN_SEED_LOOKAHEAD: usize,
+>(
+    state: &BeaconState<
+        SLOTS_PER_HISTORICAL_ROOT,
+        HISTORICAL_ROOTS_LIMIT,
+        ETH1_DATA_VOTES_BOUND,
+        VALIDATOR_REGISTRY_LIMIT,
+        EPOCHS_PER_HISTORICAL_VECTOR,
+        EPOCHS_PER_SLASHINGS_VECTOR,
+        MAX_VALIDATORS_PER_COMMITTEE,
+        PENDING_ATTESTATIONS_BOUND,
+    >,
+    epoch: Epoch,
+    domain_type: DomainType,
+    context: &Context,
+) -> Bytes32 {
+    let epoch = epoch + (EPOCHS_PER_HISTORICAL_VECTOR as u64 - MIN_SEED_LOOKAHEAD as u64) - 1;
+    let mix = get_randao_mix(state, epoch);
+    let mut input = [0u8; 44];
+    input[..4].copy_from_slice(&domain_type.as_bytes());
+    input[4..].copy_from_slice(&epoch.to_le_bytes());
+    input[12..].copy_from_slice(mix.as_ref());
+    hash(input)
 }
