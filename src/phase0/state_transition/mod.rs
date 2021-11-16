@@ -485,8 +485,8 @@ pub fn compute_fork_data_root(
         current_version,
         genesis_validators_root,
     }
-        .hash_tree_root(context.for_merkleization())
-        .map_err(Error::Merkleization)
+    .hash_tree_root(context.for_merkleization())
+    .map_err(Error::Merkleization)
 }
 
 pub fn get_previous_epoch<
@@ -673,7 +673,7 @@ pub fn get_seed<
     const EPOCHS_PER_SLASHINGS_VECTOR: usize,
     const MAX_VALIDATORS_PER_COMMITTEE: usize,
     const PENDING_ATTESTATIONS_BOUND: usize,
-    const MIN_SEED_LOOKAHEAD: usize,
+    const MIN_SEED_LOOKAHEAD: u64,
 >(
     state: &BeaconState<
         SLOTS_PER_HISTORICAL_ROOT,
@@ -687,13 +687,48 @@ pub fn get_seed<
     >,
     epoch: Epoch,
     domain_type: DomainType,
-    context: &Context,
 ) -> Bytes32 {
-    let epoch = epoch + (EPOCHS_PER_HISTORICAL_VECTOR as u64 - MIN_SEED_LOOKAHEAD as u64) - 1;
+    let epoch = epoch + (EPOCHS_PER_HISTORICAL_VECTOR as u64 - MIN_SEED_LOOKAHEAD) - 1;
     let mix = get_randao_mix(state, epoch);
     let mut input = [0u8; 44];
     input[..4].copy_from_slice(&domain_type.as_bytes());
     input[4..].copy_from_slice(&epoch.to_le_bytes());
     input[12..].copy_from_slice(mix.as_ref());
     hash(input)
+}
+
+pub fn get_committee_count_per_slot<
+    const SLOTS_PER_HISTORICAL_ROOT: usize,
+    const HISTORICAL_ROOTS_LIMIT: usize,
+    const ETH1_DATA_VOTES_BOUND: usize,
+    const VALIDATOR_REGISTRY_LIMIT: usize,
+    const EPOCHS_PER_HISTORICAL_VECTOR: usize,
+    const EPOCHS_PER_SLASHINGS_VECTOR: usize,
+    const MAX_VALIDATORS_PER_COMMITTEE: usize,
+    const PENDING_ATTESTATIONS_BOUND: usize,
+    const MAX_COMMITTEES_PER_SLOT: u64,
+    const SLOTS_PER_EPOCH: u64,
+    const TARGET_COMMITTEE_SIZE: u64,
+>(
+    state: BeaconState<
+        SLOTS_PER_HISTORICAL_ROOT,
+        HISTORICAL_ROOTS_LIMIT,
+        ETH1_DATA_VOTES_BOUND,
+        VALIDATOR_REGISTRY_LIMIT,
+        EPOCHS_PER_HISTORICAL_VECTOR,
+        EPOCHS_PER_SLASHINGS_VECTOR,
+        MAX_VALIDATORS_PER_COMMITTEE,
+        PENDING_ATTESTATIONS_BOUND,
+    >,
+    epoch: Epoch,
+) -> u64 {
+    u64::max(
+        1,
+        u64::min(
+            MAX_COMMITTEES_PER_SLOT,
+            get_active_validator_indices(&state, epoch).len() as u64
+                / SLOTS_PER_EPOCH
+                / TARGET_COMMITTEE_SIZE,
+        ),
+    )
 }
