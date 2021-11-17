@@ -7,11 +7,12 @@ use crate::domains::{DomainType, SigningData};
 use crate::phase0::beacon_block::SignedBeaconBlock;
 use crate::phase0::beacon_state::BeaconState;
 use crate::phase0::fork::ForkData;
+use crate::phase0::mainnet::{EFFECTIVE_BALANCE_INCREMENT, MAX_COMMITTEES_PER_SLOT};
 use crate::phase0::operations::{AttestationData, IndexedAttestation};
 use crate::phase0::validator::Validator;
 use crate::primitives::{
-    Bytes32, Domain, Epoch, ForkDigest, Root, Slot, ValidatorIndex, Version, FAR_FUTURE_EPOCH,
-    GENESIS_EPOCH,
+    Bytes32, CommitteeIndex, Domain, Epoch, ForkDigest, Gwei, Root, Slot, ValidatorIndex, Version,
+    FAR_FUTURE_EPOCH, GENESIS_EPOCH,
 };
 pub use context::Context;
 use ssz_rs::prelude::*;
@@ -39,6 +40,8 @@ pub enum Error {
     InsufficientValidators,
     #[error("Beacon State Error")]
     BeaconStateError,
+    #[error("Get Total Balance Error")]
+    GetTotalBalance,
 }
 
 pub fn is_active_validator(validator: &Validator, epoch: Epoch) -> bool {
@@ -692,7 +695,7 @@ pub fn get_seed<
     let mix = get_randao_mix(state, epoch);
     let mut input = [0u8; 44];
     input[..4].copy_from_slice(&domain_type.as_bytes());
-    input[4..].copy_from_slice(&epoch.to_le_bytes());
+    input[4..12].copy_from_slice(&epoch.to_le_bytes());
     input[12..].copy_from_slice(mix.as_ref());
     hash(input)
 }
@@ -731,4 +734,115 @@ pub fn get_committee_count_per_slot<
                 / TARGET_COMMITTEE_SIZE,
         ),
     )
+}
+
+pub fn get_beacon_committee<
+    const SLOTS_PER_HISTORICAL_ROOT: usize,
+    const HISTORICAL_ROOTS_LIMIT: usize,
+    const ETH1_DATA_VOTES_BOUND: usize,
+    const VALIDATOR_REGISTRY_LIMIT: usize,
+    const EPOCHS_PER_HISTORICAL_VECTOR: usize,
+    const EPOCHS_PER_SLASHINGS_VECTOR: usize,
+    const MAX_VALIDATORS_PER_COMMITTEE: usize,
+    const PENDING_ATTESTATIONS_BOUND: usize,
+    const MAX_COMMITTEES_PER_SLOT: usize,
+    const SLOTS_PER_EPOCH: u64,
+>(
+    state: BeaconState<
+        SLOTS_PER_HISTORICAL_ROOT,
+        HISTORICAL_ROOTS_LIMIT,
+        ETH1_DATA_VOTES_BOUND,
+        VALIDATOR_REGISTRY_LIMIT,
+        EPOCHS_PER_HISTORICAL_VECTOR,
+        EPOCHS_PER_SLASHINGS_VECTOR,
+        MAX_VALIDATORS_PER_COMMITTEE,
+        PENDING_ATTESTATIONS_BOUND,
+    >,
+    slot: Slot,
+    index: CommitteeIndex,
+    context: &Context,
+) -> Result<&[ValidatorIndex], Error> {
+    let epoch = compute_epoch_at_slot(slot, context);
+    let committees_per_slot = get_committee_count_per_slot(state, epoch);
+    let indices = get_active_validator_indices(&state, epoch);
+    let seed = get_seed(&state, epoch, DomainType::BeaconAttester);
+    let index = (slot % SLOTS_PER_EPOCH) * committees_per_slot + index as u64;
+    let count = committees_per_slot * SLOTS_PER_EPOCH;
+    compute_committee(
+        indices.as_slice(),
+        seed,
+        index as usize,
+        count as usize,
+        context,
+    )
+}
+
+pub fn get_beacon_proposer_index<
+    const SLOTS_PER_HISTORICAL_ROOT: usize,
+    const HISTORICAL_ROOTS_LIMIT: usize,
+    const ETH1_DATA_VOTES_BOUND: usize,
+    const VALIDATOR_REGISTRY_LIMIT: usize,
+    const EPOCHS_PER_HISTORICAL_VECTOR: usize,
+    const EPOCHS_PER_SLASHINGS_VECTOR: usize,
+    const MAX_VALIDATORS_PER_COMMITTEE: usize,
+    const PENDING_ATTESTATIONS_BOUND: usize,
+    const MAX_COMMITTEES_PER_SLOT: u64,
+    const SLOTS_PER_EPOCH: u64,
+    const TARGET_COMMITTEE_SIZE: u64,
+>(
+    state: &BeaconState<
+        SLOTS_PER_HISTORICAL_ROOT,
+        HISTORICAL_ROOTS_LIMIT,
+        ETH1_DATA_VOTES_BOUND,
+        VALIDATOR_REGISTRY_LIMIT,
+        EPOCHS_PER_HISTORICAL_VECTOR,
+        EPOCHS_PER_SLASHINGS_VECTOR,
+        MAX_VALIDATORS_PER_COMMITTEE,
+        PENDING_ATTESTATIONS_BOUND,
+    >,
+    context: &Context,
+) -> Result<ValidatorIndex, Error> {
+    let epoch = get_current_epoch(state, context);
+    let mut input = [0u8; 40];
+    input[..32].copy_from_slice(get_seed(state, epoch, DomainType::BeaconProposer).as_ref());
+    input[32..40].copy_from_slice(&state.slot.to_le_bytes());
+    let seed = hash(input);
+    let indices = get_active_validator_indices(state, epoch);
+    compute_proposer_index(state, indices.as_slice(), &seed, context)
+}
+
+pub fn get_total_balance<
+    const SLOTS_PER_HISTORICAL_ROOT: usize,
+    const HISTORICAL_ROOTS_LIMIT: usize,
+    const ETH1_DATA_VOTES_BOUND: usize,
+    const VALIDATOR_REGISTRY_LIMIT: usize,
+    const EPOCHS_PER_HISTORICAL_VECTOR: usize,
+    const EPOCHS_PER_SLASHINGS_VECTOR: usize,
+    const MAX_VALIDATORS_PER_COMMITTEE: usize,
+    const PENDING_ATTESTATIONS_BOUND: usize,
+    const MAX_COMMITTEES_PER_SLOT: u64,
+    const SLOTS_PER_EPOCH: u64,
+    const TARGET_COMMITTEE_SIZE: u64,
+    const EFFECTIVE_BALANCE_INCREMENT: u64,
+>(
+    state: &BeaconState<
+        SLOTS_PER_HISTORICAL_ROOT,
+        HISTORICAL_ROOTS_LIMIT,
+        ETH1_DATA_VOTES_BOUND,
+        VALIDATOR_REGISTRY_LIMIT,
+        EPOCHS_PER_HISTORICAL_VECTOR,
+        EPOCHS_PER_SLASHINGS_VECTOR,
+        MAX_VALIDATORS_PER_COMMITTEE,
+        PENDING_ATTESTATIONS_BOUND,
+    >,
+    indices: Vec<ValidatorIndex>,
+    context: &Context,
+) -> Result<Gwei, Error> {
+    let total_balance = indices
+        .into_iter()
+        .try_fold(0usize, |acc, i| {
+            acc.checked_add(state.validators[i].effective_balance as usize)
+        })
+        .ok_or(Error::GetTotalBalance)?;
+    Ok(u64::max(total_balance as u64, EFFECTIVE_BALANCE_INCREMENT))
 }
