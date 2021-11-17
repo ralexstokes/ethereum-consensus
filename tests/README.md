@@ -9,7 +9,7 @@ git lfs install
 git lfs pull
 ``` 
 
-The tests are currently behind a feature `ef_spec_tests` which is enabled by default in `Cargo.toml`. If you don't want to run these tests, just turn it off there.
+The tests are currently behind a feature `spec_tests` which is enabled by default in `Cargo.toml`. If you don't want to run these tests, you can run `cargo` with the default features disabled.
 
 ## Existing tests
 * **bls_tests.rs for tests/general/phase0/bls**

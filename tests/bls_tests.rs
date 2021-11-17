@@ -1,3 +1,4 @@
+#![cfg(feature = "spec_tests")]
 use ethereum_consensus::crypto::{
     aggregate, aggregate_verify, fast_aggregate_verify, PublicKey, SecretKey, Signature,
 };
@@ -9,62 +10,47 @@ use std::fmt::Debug;
 use std::fs::File;
 
 fn decode_hex_with_prefix<T: AsRef<[u8]> + Debug>(data: T) -> Vec<u8> {
-    // a small check for empty strings
-    if data.as_ref().len() >= 2 {
-        hex::decode(&data.as_ref()[2..]).expect("is well-formed hex")
+    let data = data.as_ref();
+    let data = if data.starts_with(b"0x") {
+        &data[2..]
     } else {
-        hex::decode(&data.as_ref()).expect("is well-formed hex")
-    }
+        data
+    };
+    hex::decode(data).expect("is not well-formed hex")
 }
-
 #[derive(Debug, Serialize, Deserialize)]
 struct SigningInput {
     privkey: String,
     message: String,
 }
-
 #[derive(Debug, Serialize, Deserialize)]
 struct SigningTestIO {
     input: SigningInput,
     output: String,
 }
-
 impl SigningTestIO {
-    fn verify_signature(&self) -> bool {
-        let input = &self.input;
-
-        let secret_key_bytes = decode_hex_with_prefix(&input.privkey);
+    fn verify(&self) -> () {
+        // let input = &self.input;
+        let secret_key_bytes = decode_hex_with_prefix(&self.input.privkey);
         let secret_key = match SecretKey::from_bytes(&secret_key_bytes) {
             Ok(sk) => sk,
-            Err(_) => {
-                // this is the case empty secret key case
-                if self.output == String::from("~") {
-                    return true;
-                } else {
-                    return false;
-                }
-            }
+            // this is the empty secret key case
+            Err(_) => return assert_eq!(self.output, "~"),
         };
-
-        let message_bytes = decode_hex_with_prefix(&input.message);
+        let message_bytes = decode_hex_with_prefix(&self.input.message);
         let signature = secret_key.sign(&message_bytes);
-
         let signature_bytes = decode_hex_with_prefix(&self.output);
         let expected_signature = Signature::from_bytes(&signature_bytes).unwrap();
-
-        signature == expected_signature
+        assert_eq!(signature, expected_signature)
     }
 }
-
 #[derive(Debug, Serialize, Deserialize)]
-
 struct AggregatingTestIO {
     input: Vec<String>,
     output: String,
 }
-
 impl AggregatingTestIO {
-    fn verify_aggregate(&self) -> bool {
+    fn verify(&self) -> () {
         let input_signatures: Vec<Signature> = self
             .input
             .iter()
@@ -73,37 +59,26 @@ impl AggregatingTestIO {
         let aggregate = match aggregate(&input_signatures) {
             Ok(agg) => agg,
             // handling for zero sized input and output
-            Err(_) => {
-                if self.output == String::from("~") {
-                    return true;
-                } else {
-                    return false;
-                }
-            }
+            Err(_) => return assert_eq!(self.output, "~"),
         };
         let expected_aggregate_raw = decode_hex_with_prefix(&self.output);
         let expected_aggregate = Signature::from_bytes(&expected_aggregate_raw).unwrap();
-        aggregate == expected_aggregate
+        assert_eq!(aggregate, expected_aggregate)
     }
 }
-
 #[derive(Debug, Serialize, Deserialize)]
-
 struct AggVerifyInput {
     pubkeys: Vec<String>,
     messages: Vec<String>,
     signature: String,
 }
-
 #[derive(Debug, Serialize, Deserialize)]
-
 struct AggVerifyTestIO {
     input: AggVerifyInput,
     output: bool,
 }
-
 impl AggVerifyTestIO {
-    fn aggregate_verify(&self) -> bool {
+    fn verify(&self) -> () {
         let pubkeys_result: Result<Vec<PublicKey>, _> = self
             .input
             .pubkeys
@@ -113,13 +88,7 @@ impl AggVerifyTestIO {
         let pubkeys = match pubkeys_result {
             Ok(pk) => pk,
             // error handling for infinity pub key
-            Err(_) => {
-                if self.output == false {
-                    return true;
-                } else {
-                    return false;
-                }
-            }
+            Err(_) => return assert_eq!(self.output, false),
         };
         let messages_vec: Vec<_> = self
             .input
@@ -131,34 +100,26 @@ impl AggVerifyTestIO {
         let signature: Signature =
             match Signature::from_bytes(&decode_hex_with_prefix(&self.input.signature)) {
                 Ok(sign) => sign,
-                Err(_) => {
-                    // handling for the zero signature case which raises a blst bad encoding error
-                    if self.output == false {
-                        return true;
-                    } else {
-                        return false;
-                    }
-                }
+                // handling for the zero signature case which raises a blst bad encoding error
+                Err(_) => return assert_eq!(self.output, false),
             };
-        let verify_result = aggregate_verify(&pubkeys, messages_slice.as_ref(), signature);
-        verify_result == self.output
+        let verify_result = aggregate_verify(&pubkeys, &messages_slice, signature);
+        assert_eq!(verify_result, self.output)
     }
 }
 #[derive(Debug, Serialize, Deserialize)]
-
 struct FastAggVerifyInput {
     pubkeys: Vec<String>,
     message: String,
     signature: String,
 }
-
 #[derive(Debug, Serialize, Deserialize)]
 struct FastAggVerifyTestIO {
     input: FastAggVerifyInput,
     output: bool,
 }
 impl FastAggVerifyTestIO {
-    fn fast_aggregate_verify(&self) -> bool {
+    fn verify(&self) -> () {
         let pubkeys_result: Result<Vec<PublicKey>, _> = self
             .input
             .pubkeys
@@ -168,174 +129,111 @@ impl FastAggVerifyTestIO {
         let pubkeys: Vec<PublicKey> = match pubkeys_result {
             Ok(pk) => pk,
             // error handling for infinity pub key
-            Err(_) => {
-                if self.output == false {
-                    return true;
-                } else {
-                    return false;
-                }
-            }
+            Err(_) => return assert_eq!(self.output, false),
         };
         let pubkeys_ref: Vec<&PublicKey> = pubkeys.iter().map(|x| x).collect();
         let message_slice: &[u8] = &decode_hex_with_prefix(&self.input.message);
         let signature: Signature =
             match Signature::from_bytes(&decode_hex_with_prefix(&self.input.signature)) {
                 Ok(sk) => sk,
-                Err(_) => {
-                    // error handling for zero signature
-                    if self.output == false {
-                        return true;
-                    } else {
-                        return false;
-                    }
-                }
+                // error handling for zero signature
+                Err(_) => return assert_eq!(self.output, false),
             };
         let verify_result =
             fast_aggregate_verify(pubkeys_ref.as_slice(), message_slice, &signature);
-        verify_result == self.output
+        assert_eq!(verify_result, self.output)
     }
 }
 #[derive(Debug, Serialize, Deserialize)]
-
 struct VerifyInput {
     pubkey: String,
     message: String,
     signature: String,
 }
-
 #[derive(Debug, Serialize, Deserialize)]
-
 struct VerifyTestIO {
     input: VerifyInput,
     output: bool,
 }
-
 impl VerifyTestIO {
-    fn verify(&self) -> bool {
+    fn verify(&self) -> () {
         let pubkey: PublicKey =
             match PublicKey::from_bytes(&decode_hex_with_prefix(&self.input.pubkey)) {
                 Ok(pk) => pk,
-                Err(_) => {
-                    // error handling for infinity pub key
-                    if self.output == false {
-                        return true;
-                    } else {
-                        return false;
-                    }
-                }
+                // error handling for infinity pub key
+                Err(_) => return assert_eq!(self.output, false),
             };
         let message_vec: Vec<u8> = decode_hex_with_prefix(&self.input.message);
-        let message: &[u8] = message_vec.as_ref();
+        let message: &[u8] = &message_vec;
         let signature: Signature =
             match Signature::from_bytes(&decode_hex_with_prefix(&self.input.signature)) {
                 Ok(sk) => sk,
-                Err(_) => {
-                    // this is the case where the tampered signature cannot be read in as real signature
-                    if self.output == false {
-                        return true;
-                    } else {
-                        return false;
-                    }
-                }
+                // this is the case where the tampered signature cannot be read in as real signature
+                Err(_) => return assert_eq!(self.output, false),
             };
         let verify_result = signature.verify(&pubkey, message);
-        verify_result == self.output
+        assert_eq!(verify_result, self.output)
     }
 }
-
 #[test]
-#[cfg(feature = "ef_spec_tests")]
 fn test_fast_aggregate_verify() {
-    for entry in
+    let entries =
         glob("consensus-spec-tests/tests/general/phase0/bls/fast_aggregate_verify/small/**/*.yaml")
-            .expect("Failed to read glob pattern")
-    {
-        match entry {
-            Ok(path) => {
-                println!("{:?}", path.display());
-                let file = File::open(path).expect("file exists");
-                let test_case: FastAggVerifyTestIO =
-                    serde_yaml::from_reader(file).expect("is well-formatted yaml");
-                assert!(test_case.fast_aggregate_verify())
-            }
-            Err(e) => println!("{:?}", e),
-        }
+            .expect("Failed to read glob pattern");
+    for entry in entries {
+        let path = entry.unwrap();
+        let file = File::open(path).expect("File does not exist");
+        let test_case: FastAggVerifyTestIO =
+            serde_yaml::from_reader(file).expect("Is not well-formatted yaml");
+        test_case.verify()
     }
 }
-
 #[test]
-#[cfg(feature = "ef_spec_tests")]
 fn test_verify() {
-    for entry in glob("consensus-spec-tests/tests/general/phase0/bls/verify/small/**/*.yaml")
-        .expect("Failed to read glob pattern")
-    {
-        match entry {
-            Ok(path) => {
-                println!("{:?}", path.display());
-                let file = File::open(path).expect("file exists");
-                let test_case: VerifyTestIO =
-                    serde_yaml::from_reader(file).expect("is well-formatted yaml");
-                assert!(test_case.verify())
-            }
-            Err(e) => println!("{:?}", e),
-        }
+    let entries = glob("consensus-spec-tests/tests/general/phase0/bls/verify/small/**/*.yaml")
+        .expect("Failed to read glob pattern");
+    for entry in entries {
+        let path = entry.unwrap();
+        let file = File::open(path).expect("File does not exist");
+        let test_case: VerifyTestIO =
+            serde_yaml::from_reader(file).expect("Is not well-formatted yaml");
+        test_case.verify()
     }
 }
 #[test]
-#[cfg(feature = "ef_spec_tests")]
 fn test_aggregate_verify() {
-    for entry in
+    let entries =
         glob("consensus-spec-tests/tests/general/phase0/bls/aggregate_verify/small/**/*.yaml")
-            .expect("Failed to read glob pattern")
-    {
-        match entry {
-            Ok(path) => {
-                println!("{:?}", path.display());
-                let file = File::open(path).expect("file exists");
-                let test_case: AggVerifyTestIO =
-                    serde_yaml::from_reader(file).expect("is well-formatted yaml");
-                assert!(test_case.aggregate_verify())
-            }
-            Err(e) => println!("{:?}", e),
-        }
+            .expect("Failed to read glob pattern");
+    for entry in entries {
+        let path = entry.unwrap();
+        let file = File::open(path).expect("File does not exist");
+        let test_case: AggVerifyTestIO =
+            serde_yaml::from_reader(file).expect("Is not well-formatted yaml");
+        test_case.verify()
     }
 }
-
 #[test]
-#[cfg(feature = "ef_spec_tests")]
-
 fn test_aggregate() {
-    for entry in glob("consensus-spec-tests/tests/general/phase0/bls/aggregate/small/**/*.yaml")
-        .expect("Failed to read glob pattern")
-    {
-        match entry {
-            Ok(path) => {
-                println!("{:?}", path.display());
-                let file = File::open(path).expect("file exists");
-                let test_case: AggregatingTestIO =
-                    serde_yaml::from_reader(file).expect("is well-formatted yaml");
-                assert!(test_case.verify_aggregate())
-            }
-            Err(e) => println!("{:?}", e),
-        }
+    let entries = glob("consensus-spec-tests/tests/general/phase0/bls/aggregate/small/**/*.yaml")
+        .expect("Failed to read glob pattern");
+    for entry in entries {
+        let path = entry.unwrap();
+        let file = File::open(path).expect("File does not exist");
+        let test_case: AggregatingTestIO =
+            serde_yaml::from_reader(file).expect("Is not well-formatted yaml");
+        test_case.verify()
     }
 }
 #[test]
-#[cfg(feature = "ef_spec_tests")]
-
 fn test_sign() {
-    for entry in glob("consensus-spec-tests/tests/general/phase0/bls/sign/small/**/*.yaml")
-        .expect("Failed to read glob pattern")
-    {
-        match entry {
-            Ok(path) => {
-                println!("{:?}", path.display());
-                let file = File::open(path).expect("file exists");
-                let test_case: SigningTestIO =
-                    serde_yaml::from_reader(file).expect("is well-formatted yaml");
-                assert!(test_case.verify_signature())
-            }
-            Err(e) => println!("{:?}", e),
-        }
+    let entries = glob("consensus-spec-tests/tests/general/phase0/bls/sign/small/**/*.yaml")
+        .expect("Failed to read glob pattern");
+    for entry in entries {
+        let path = entry.unwrap();
+        let file = File::open(path).expect("File does not exist");
+        let test_case: SigningTestIO =
+            serde_yaml::from_reader(file).expect("Is not well-formatted yaml");
+        test_case.verify()
     }
 }
