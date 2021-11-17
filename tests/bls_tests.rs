@@ -8,7 +8,6 @@ use serde::{Deserialize, Serialize};
 use serde_yaml;
 use std::fmt::Debug;
 use std::fs::File;
-
 fn decode_hex_with_prefix<T: AsRef<[u8]> + Debug>(data: T) -> Vec<u8> {
     let data = data.as_ref();
     let data = if data.starts_with(b"0x") {
@@ -29,13 +28,16 @@ struct SigningTestIO {
     output: String,
 }
 impl SigningTestIO {
-    fn verify(&self) -> () {
+    fn verify(&self) {
         // let input = &self.input;
         let secret_key_bytes = decode_hex_with_prefix(&self.input.privkey);
         let secret_key = match SecretKey::from_bytes(&secret_key_bytes) {
             Ok(sk) => sk,
             // this is the empty secret key case
-            Err(_) => return assert_eq!(self.output, "~"),
+            Err(_) => {
+                assert_eq!(self.output, "~");
+                return;
+            }
         };
         let message_bytes = decode_hex_with_prefix(&self.input.message);
         let signature = secret_key.sign(&message_bytes);
@@ -50,7 +52,7 @@ struct AggregatingTestIO {
     output: String,
 }
 impl AggregatingTestIO {
-    fn verify(&self) -> () {
+    fn verify(&self) {
         let input_signatures: Vec<Signature> = self
             .input
             .iter()
@@ -59,7 +61,10 @@ impl AggregatingTestIO {
         let aggregate = match aggregate(&input_signatures) {
             Ok(agg) => agg,
             // handling for zero sized input and output
-            Err(_) => return assert_eq!(self.output, "~"),
+            Err(_) => {
+                assert_eq!(self.output, "~");
+                return;
+            }
         };
         let expected_aggregate_raw = decode_hex_with_prefix(&self.output);
         let expected_aggregate = Signature::from_bytes(&expected_aggregate_raw).unwrap();
@@ -78,7 +83,7 @@ struct AggVerifyTestIO {
     output: bool,
 }
 impl AggVerifyTestIO {
-    fn verify(&self) -> () {
+    fn verify(&self) {
         let pubkeys_result: Result<Vec<PublicKey>, _> = self
             .input
             .pubkeys
@@ -88,7 +93,10 @@ impl AggVerifyTestIO {
         let pubkeys = match pubkeys_result {
             Ok(pk) => pk,
             // error handling for infinity pub key
-            Err(_) => return assert_eq!(self.output, false),
+            Err(_) => {
+                assert!(!self.output);
+                return;
+            }
         };
         let messages_vec: Vec<_> = self
             .input
@@ -101,7 +109,10 @@ impl AggVerifyTestIO {
             match Signature::from_bytes(&decode_hex_with_prefix(&self.input.signature)) {
                 Ok(sign) => sign,
                 // handling for the zero signature case which raises a blst bad encoding error
-                Err(_) => return assert_eq!(self.output, false),
+                Err(_) => {
+                    assert!(!self.output);
+                    return;
+                }
             };
         let verify_result = aggregate_verify(&pubkeys, &messages_slice, signature);
         assert_eq!(verify_result, self.output)
@@ -119,7 +130,7 @@ struct FastAggVerifyTestIO {
     output: bool,
 }
 impl FastAggVerifyTestIO {
-    fn verify(&self) -> () {
+    fn verify(&self) {
         let pubkeys_result: Result<Vec<PublicKey>, _> = self
             .input
             .pubkeys
@@ -129,7 +140,10 @@ impl FastAggVerifyTestIO {
         let pubkeys: Vec<PublicKey> = match pubkeys_result {
             Ok(pk) => pk,
             // error handling for infinity pub key
-            Err(_) => return assert_eq!(self.output, false),
+            Err(_) => {
+                assert!(!self.output);
+                return;
+            }
         };
         let pubkeys_ref: Vec<&PublicKey> = pubkeys.iter().map(|x| x).collect();
         let message_slice: &[u8] = &decode_hex_with_prefix(&self.input.message);
@@ -137,7 +151,10 @@ impl FastAggVerifyTestIO {
             match Signature::from_bytes(&decode_hex_with_prefix(&self.input.signature)) {
                 Ok(sk) => sk,
                 // error handling for zero signature
-                Err(_) => return assert_eq!(self.output, false),
+                Err(_) => {
+                    assert!(!self.output);
+                    return;
+                }
             };
         let verify_result =
             fast_aggregate_verify(pubkeys_ref.as_slice(), message_slice, &signature);
@@ -156,12 +173,15 @@ struct VerifyTestIO {
     output: bool,
 }
 impl VerifyTestIO {
-    fn verify(&self) -> () {
+    fn verify(&self) {
         let pubkey: PublicKey =
             match PublicKey::from_bytes(&decode_hex_with_prefix(&self.input.pubkey)) {
                 Ok(pk) => pk,
                 // error handling for infinity pub key
-                Err(_) => return assert_eq!(self.output, false),
+                Err(_) => {
+                    assert!(!self.output);
+                    return;
+                }
             };
         let message_vec: Vec<u8> = decode_hex_with_prefix(&self.input.message);
         let message: &[u8] = &message_vec;
@@ -169,7 +189,10 @@ impl VerifyTestIO {
             match Signature::from_bytes(&decode_hex_with_prefix(&self.input.signature)) {
                 Ok(sk) => sk,
                 // this is the case where the tampered signature cannot be read in as real signature
-                Err(_) => return assert_eq!(self.output, false),
+                Err(_) => {
+                    assert!(!self.output);
+                    return;
+                }
             };
         let verify_result = signature.verify(&pubkey, message);
         assert_eq!(verify_result, self.output)
