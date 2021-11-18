@@ -2,13 +2,11 @@ mod block_processing;
 mod context;
 mod epoch_processing;
 
-use std::borrow::Borrow;
 use crate::crypto::{fast_aggregate_verify, hash};
 use crate::domains::{DomainType, SigningData};
 use crate::phase0::beacon_block::SignedBeaconBlock;
 use crate::phase0::beacon_state::BeaconState;
 use crate::phase0::fork::ForkData;
-use crate::phase0::mainnet::{EFFECTIVE_BALANCE_INCREMENT, MAX_COMMITTEES_PER_SLOT};
 use crate::phase0::operations::{Attestation, AttestationData, IndexedAttestation};
 use crate::phase0::validator::Validator;
 use crate::primitives::{
@@ -19,7 +17,6 @@ pub use context::Context;
 use ssz_rs::prelude::*;
 use std::cmp;
 use std::collections::HashSet;
-use std::ops::DerefMut;
 use thiserror::Error;
 
 #[derive(Debug, Error)]
@@ -45,7 +42,7 @@ pub enum Error {
     #[error("Get Total Balance Error")]
     GetTotalBalance,
     #[error("Invalid Bit Field")]
-    InvalidBitfield
+    InvalidBitfield,
 }
 
 pub fn is_active_validator(validator: &Validator, epoch: Epoch) -> bool {
@@ -693,9 +690,10 @@ pub fn get_seed<
     >,
     epoch: Epoch,
     domain_type: DomainType,
-    context: &Context
+    context: &Context,
 ) -> Bytes32 {
-    let epoch = epoch + (context.epochs_per_historical_vector as u64 - context.min_seed_lookahead) - 1;
+    let epoch =
+        epoch + (context.epochs_per_historical_vector as u64 - context.min_seed_lookahead) - 1;
     let mix = get_randao_mix(state, epoch);
     let mut input = [0u8; 44];
     input[..4].copy_from_slice(&domain_type.as_bytes());
@@ -725,7 +723,7 @@ pub fn get_committee_count_per_slot<
         PENDING_ATTESTATIONS_BOUND,
     >,
     epoch: Epoch,
-    context: &Context
+    context: &Context,
 ) -> u64 {
     u64::max(
         1,
@@ -748,7 +746,7 @@ pub fn get_beacon_committee<
     const MAX_VALIDATORS_PER_COMMITTEE: usize,
     const PENDING_ATTESTATIONS_BOUND: usize,
 >(
-    state: BeaconState<
+    state: &BeaconState<
         SLOTS_PER_HISTORICAL_ROOT,
         HISTORICAL_ROOTS_LIMIT,
         ETH1_DATA_VOTES_BOUND,
@@ -763,8 +761,8 @@ pub fn get_beacon_committee<
     context: &Context,
 ) -> Result<Vec<ValidatorIndex>, Error> {
     let epoch = compute_epoch_at_slot(slot, context);
-    let committees_per_slot = get_committee_count_per_slot(&state, epoch, context);
-    let indices = get_active_validator_indices(&state, epoch);
+    let committees_per_slot = get_committee_count_per_slot(state, epoch, context);
+    let indices = get_active_validator_indices(state, epoch);
     let seed = get_seed(&state, epoch, DomainType::BeaconAttester, context);
     let index = (slot % context.slots_per_epoch) * committees_per_slot + index as u64;
     let count = committees_per_slot * context.slots_per_epoch;
@@ -805,7 +803,8 @@ pub fn get_beacon_proposer_index<
 ) -> Result<ValidatorIndex, Error> {
     let epoch = get_current_epoch(state, context);
     let mut input = [0u8; 40];
-    input[..32].copy_from_slice(get_seed(state, epoch, DomainType::BeaconProposer, context).as_ref());
+    input[..32]
+        .copy_from_slice(get_seed(state, epoch, DomainType::BeaconProposer, context).as_ref());
     input[32..40].copy_from_slice(&state.slot.to_le_bytes());
     let seed = hash(input);
     let indices = get_active_validator_indices(state, epoch);
@@ -833,7 +832,7 @@ pub fn get_total_balance<
         PENDING_ATTESTATIONS_BOUND,
     >,
     indices: Vec<ValidatorIndex>,
-    context: &Context
+    context: &Context,
 ) -> Result<Gwei, Error> {
     let total_balance = indices
         .into_iter()
@@ -841,7 +840,10 @@ pub fn get_total_balance<
             acc.checked_add(state.validators[i].effective_balance)
         })
         .ok_or(Error::GetTotalBalance)?;
-    Ok(u64::max(total_balance as u64, context.effective_balance_increment))
+    Ok(u64::max(
+        total_balance as u64,
+        context.effective_balance_increment,
+    ))
 }
 
 pub fn get_total_active_balance<
@@ -866,7 +868,11 @@ pub fn get_total_active_balance<
     >,
     context: &Context,
 ) -> Result<Gwei, Error> {
-    get_total_balance(state, get_active_validator_indices(state, get_current_epoch(state, context)), context)
+    get_total_balance(
+        state,
+        get_active_validator_indices(state, get_current_epoch(state, context)),
+        context,
+    )
 }
 
 pub fn get_indexed_attestation<
@@ -879,7 +885,7 @@ pub fn get_indexed_attestation<
     const MAX_VALIDATORS_PER_COMMITTEE: usize,
     const PENDING_ATTESTATIONS_BOUND: usize,
 >(
-    state: BeaconState<
+    state: &BeaconState<
         SLOTS_PER_HISTORICAL_ROOT,
         HISTORICAL_ROOTS_LIMIT,
         ETH1_DATA_VOTES_BOUND,
@@ -889,16 +895,14 @@ pub fn get_indexed_attestation<
         MAX_VALIDATORS_PER_COMMITTEE,
         PENDING_ATTESTATIONS_BOUND,
     >,
-    attestation: &mut Attestation<MAX_VALIDATORS_PER_COMMITTEE>,
+    attestation: &Attestation<MAX_VALIDATORS_PER_COMMITTEE>,
     context: &Context,
 ) -> Result<IndexedAttestation<MAX_VALIDATORS_PER_COMMITTEE>, Error> {
-    let bits = &mut attestation.aggregation_bits;
+    let bits = &attestation.aggregation_bits;
     let attesting_indices = get_attesting_indices(state, &attestation.data, bits, context)?;
-    attesting_indices.to_vec().sort();
-    let sorted= List::from_iter(attesting_indices);
 
     Ok(IndexedAttestation {
-        attesting_indices: sorted,
+        attesting_indices: List::from_iter(attesting_indices),
         data: attestation.data.clone(),
         signature: attestation.signature.clone(),
     })
@@ -914,7 +918,7 @@ pub fn get_attesting_indices<
     const MAX_VALIDATORS_PER_COMMITTEE: usize,
     const PENDING_ATTESTATIONS_BOUND: usize,
 >(
-    state: BeaconState<
+    state: &BeaconState<
         SLOTS_PER_HISTORICAL_ROOT,
         HISTORICAL_ROOTS_LIMIT,
         ETH1_DATA_VOTES_BOUND,
@@ -925,7 +929,7 @@ pub fn get_attesting_indices<
         PENDING_ATTESTATIONS_BOUND,
     >,
     data: &AttestationData,
-    bits: &mut Bitlist<MAX_VALIDATORS_PER_COMMITTEE>,
+    bits: &Bitlist<MAX_VALIDATORS_PER_COMMITTEE>,
     context: &Context,
 ) -> Result<Vec<ValidatorIndex>, Error> {
     let committee = get_beacon_committee(state, data.slot, data.index, context)?;
@@ -937,7 +941,7 @@ pub fn get_attesting_indices<
     let mut indices = Vec::with_capacity(bits.capacity());
 
     for (i, validator_index) in committee.iter().enumerate() {
-        if let Some(true) = bits.get(i) {
+        if bits[i] {
             indices.push(*validator_index)
         }
     }
@@ -945,5 +949,3 @@ pub fn get_attesting_indices<
     indices.sort_unstable();
     Ok(indices)
 }
-
-
