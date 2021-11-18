@@ -578,7 +578,6 @@ pub fn get_block_root_at_slot<
 }
 
 pub fn get_randao_mix<
-    'a,
     const SLOTS_PER_HISTORICAL_ROOT: usize,
     const HISTORICAL_ROOTS_LIMIT: usize,
     const ETH1_DATA_VOTES_BOUND: usize,
@@ -588,7 +587,7 @@ pub fn get_randao_mix<
     const MAX_VALIDATORS_PER_COMMITTEE: usize,
     const PENDING_ATTESTATIONS_BOUND: usize,
 >(
-    state: &'a BeaconState<
+    state: &BeaconState<
         SLOTS_PER_HISTORICAL_ROOT,
         HISTORICAL_ROOTS_LIMIT,
         ETH1_DATA_VOTES_BOUND,
@@ -599,7 +598,7 @@ pub fn get_randao_mix<
         PENDING_ATTESTATIONS_BOUND,
     >,
     epoch: Epoch,
-) -> &'a Bytes32 {
+) -> &Bytes32 {
     let epoch = epoch as usize % EPOCHS_PER_HISTORICAL_VECTOR;
     &state.randao_mixes[epoch]
 }
@@ -629,7 +628,7 @@ pub fn get_active_validator_indices<
     let mut active: Vec<ValidatorIndex> = Vec::with_capacity(state.validators.len());
 
     for (i, v) in state.validators.iter().enumerate() {
-        if is_active_validator(&v, epoch) {
+        if is_active_validator(v, epoch) {
             active.push(i)
         }
     }
@@ -729,7 +728,7 @@ pub fn get_committee_count_per_slot<
         1,
         u64::min(
             context.max_committees_per_slot,
-            get_active_validator_indices(&state, epoch).len() as u64
+            get_active_validator_indices(state, epoch).len() as u64
                 / context.slots_per_epoch
                 / context.target_committee_size,
         ),
@@ -763,7 +762,7 @@ pub fn get_beacon_committee<
     let epoch = compute_epoch_at_slot(slot, context);
     let committees_per_slot = get_committee_count_per_slot(state, epoch, context);
     let indices = get_active_validator_indices(state, epoch);
-    let seed = get_seed(&state, epoch, DomainType::BeaconAttester, context);
+    let seed = get_seed(state, epoch, DomainType::BeaconAttester, context);
     let index = (slot % context.slots_per_epoch) * committees_per_slot + index as u64;
     let count = committees_per_slot * context.slots_per_epoch;
     let committee = compute_committee(
