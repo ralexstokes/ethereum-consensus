@@ -4,13 +4,13 @@ use crate::phase0::DEPOSIT_CONTRACT_TREE_DEPTH;
 use crate::primitives::{Bytes32, CommitteeIndex, Epoch, Gwei, Hash32, Root, Slot, ValidatorIndex};
 use ssz_rs::prelude::*;
 
-#[derive(Default, Debug, SimpleSerialize, PartialEq, Eq)]
+#[derive(Default, Clone, Debug, SimpleSerialize, PartialEq, Eq)]
 pub struct Checkpoint {
     pub epoch: Epoch,
     pub root: Root,
 }
 
-#[derive(Default, Debug, SimpleSerialize, PartialEq, Eq)]
+#[derive(Default, Clone, Debug, SimpleSerialize, PartialEq, Eq)]
 pub struct AttestationData {
     pub slot: Slot,
     pub index: CommitteeIndex,
