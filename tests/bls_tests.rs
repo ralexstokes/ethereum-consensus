@@ -35,7 +35,7 @@ where
     println!("{:?}", data);
     if data.is_empty() {
         println!("empty");
-        return Ok(vec![])
+        return Ok(vec![]);
     }
     let data: Vec<Vec<u8>> = data
         .iter()
@@ -147,8 +147,7 @@ impl TestDriver<AggVerifyTestIO> for AggVerifyTestIO {
             }
         };
         let messages: Vec<&[u8]> = self.input.messages.iter().map(|x| x.as_slice()).collect();
-        let signature = match Signature::from_bytes(&self.input.signature)
-        {
+        let signature = match Signature::from_bytes(&self.input.signature) {
             Ok(sign) => sign,
             // handling for the zero signature case which raises a blst bad encoding error
             Err(_) => {
@@ -194,8 +193,7 @@ impl TestDriver<FastAggVerifyTestIO> for FastAggVerifyTestIO {
             }
         };
         let pubkeys_ref: Vec<&PublicKey> = pubkeys.iter().map(|x| x).collect();
-        let signature = match Signature::from_bytes(&self.input.signature)
-        {
+        let signature = match Signature::from_bytes(&self.input.signature) {
             Ok(sk) => sk,
             // error handling for zero signature
             Err(_) => {
@@ -227,17 +225,15 @@ struct VerifyTestIO {
 
 impl TestDriver<VerifyTestIO> for VerifyTestIO {
     fn verify(&self) {
-        let pubkey: PublicKey =
-            match PublicKey::from_bytes(&self.input.pubkey) {
-                Ok(pk) => pk,
-                // error handling for infinity pub key
-                Err(_) => {
-                    assert!(!self.output);
-                    return;
-                }
-            };
-        let signature = match Signature::from_bytes(&self.input.signature)
-        {
+        let pubkey: PublicKey = match PublicKey::from_bytes(&self.input.pubkey) {
+            Ok(pk) => pk,
+            // error handling for infinity pub key
+            Err(_) => {
+                assert!(!self.output);
+                return;
+            }
+        };
+        let signature = match Signature::from_bytes(&self.input.signature) {
             Ok(sk) => sk,
             // this is the case where the tampered signature cannot be read in as real signature
             Err(_) => {
