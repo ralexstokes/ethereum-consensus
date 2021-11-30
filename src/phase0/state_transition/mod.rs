@@ -21,28 +21,53 @@ use thiserror::Error;
 
 #[derive(Debug, Error)]
 pub enum Error {
-    #[error("Block Signature Error")]
-    BlockSignature,
-    #[error("Fork Digest Error")]
-    ForkDigest,
-    #[error("Merkleization Error")]
+    #[error("{0}")]
     Merkleization(#[from] MerkleizationError),
-    #[error("Deserializen Error")]
+    #[error("{0}")]
     Deserialize(#[from] DeserializeError),
-    #[error("invalid operation")]
-    InvalidOperation,
+    #[error("requested element {requested} but collection only has {bound} elements")]
+    OutOfBounds { requested: usize, bound: usize },
     #[error("invalid signature")]
     InvalidSignature,
+    #[error("collection cannot be empty")]
+    CollectionCannotBeEmpty,
     #[error("unable to shuffle")]
     Shuffle,
-    #[error("insufficient validators")]
-    InsufficientValidators,
-    #[error("Beacon State Error")]
-    BeaconStateError,
-    #[error("Get Total Balance Error")]
-    GetTotalBalance,
-    #[error("Invalid Bit Field")]
-    InvalidBitfield,
+    #[error("slot {requested} is outside of allowed range ({lower_bound}, {upper_bound})")]
+    SlotOutOfRange {
+        requested: Slot,
+        lower_bound: Slot,
+        upper_bound: Slot,
+    },
+    #[error("overflow")]
+    Overflow,
+    #[error("{0}")]
+    InvalidOperation(InvalidOperation),
+}
+
+#[derive(Debug, Error)]
+pub enum InvalidOperation {
+    #[error("invalid attestation: {0}")]
+    Attestation(InvalidAttestation),
+    #[error("invalid indexed attestation: {0}")]
+    IndexedAttestation(InvalidIndexedAttestation),
+}
+
+#[derive(Debug, Error)]
+pub enum InvalidAttestation {
+    #[error("expected length of {expected_length} in bitfield but had length {length}")]
+    Bitfield {
+        expected_length: usize,
+        length: usize,
+    },
+}
+
+#[derive(Debug, Error)]
+pub enum InvalidIndexedAttestation {
+    #[error("attesting indices are empty")]
+    AttestingIndicesEmpty,
+    #[error("attesting indices are duplicated")]
+    DuplicateIndices(Vec<ValidatorIndex>),
 }
 
 pub fn is_active_validator(validator: &Validator, epoch: Epoch) -> bool {
@@ -116,13 +141,28 @@ pub fn is_valid_indexed_attestation<
     indexed_attestation: &IndexedAttestation<MAX_VALIDATORS_PER_COMMITTEE>,
     context: &Context,
 ) -> Result<(), Error> {
-    if indexed_attestation.attesting_indices.is_empty() {
-        return Err(Error::InvalidOperation);
+    let attesting_indices = &indexed_attestation.attesting_indices;
+    if attesting_indices.is_empty() {
+        return Err(Error::InvalidOperation(
+            InvalidOperation::IndexedAttestation(InvalidIndexedAttestation::AttestingIndicesEmpty),
+        ));
     }
-    let indices: HashSet<usize> =
-        HashSet::from_iter(indexed_attestation.attesting_indices.iter().cloned());
+    let indices: HashSet<usize> = HashSet::from_iter(attesting_indices.iter().cloned());
     if indices.len() != indexed_attestation.attesting_indices.len() {
-        return Err(Error::InvalidOperation);
+        let mut seen = HashSet::new();
+        let mut duplicates = vec![];
+        for i in indices.iter() {
+            if seen.contains(i) {
+                duplicates.push(*i);
+            } else {
+                seen.insert(i);
+            }
+        }
+        return Err(Error::InvalidOperation(
+            InvalidOperation::IndexedAttestation(InvalidIndexedAttestation::DuplicateIndices(
+                duplicates,
+            )),
+        ));
     }
     let pubkeys = state
         .validators
@@ -236,24 +276,26 @@ pub fn verify_block_signature<
         MAX_VOLUNTARY_EXITS,
     >,
     context: &Context,
-) -> bool {
+) -> Result<(), Error> {
     let proposer_index = signed_block.message.proposer_index;
     let proposer = state
         .validators
         .get(proposer_index)
-        .expect("failed to get validator");
-    let domain = match get_domain(state, DomainType::BeaconProposer, None, context) {
-        Ok(domain) => domain,
-        Err(_) => return false,
-    };
-    let signing_root = match compute_signing_root(&signed_block.message, domain, context) {
-        Ok(root) => root,
-        Err(_) => return false,
-    };
+        .ok_or_else(|| Error::OutOfBounds {
+            requested: proposer_index,
+            bound: state.validators.len(),
+        })?;
+    let domain = get_domain(state, DomainType::BeaconProposer, None, context)?;
+    let signing_root = compute_signing_root(&signed_block.message, domain, context)?;
 
-    proposer
+    if proposer
         .pubkey
         .verify_signature(signing_root.as_bytes(), &signed_block.signature)
+    {
+        Ok(())
+    } else {
+        Err(Error::InvalidSignature)
+    }
 }
 
 pub fn get_domain<
@@ -398,7 +440,7 @@ pub fn compute_proposer_index<
     context: &Context,
 ) -> Result<ValidatorIndex, Error> {
     if indices.is_empty() {
-        return Err(Error::InsufficientValidators);
+        return Err(Error::CollectionCannotBeEmpty);
     }
     let max_byte = u8::MAX as u64;
     let mut i: usize = 0;
@@ -572,8 +614,12 @@ pub fn get_block_root_at_slot<
     >,
     slot: Slot,
 ) -> Result<&Root, Error> {
-    if slot < state.slot || state.slot <= (slot + SLOTS_PER_HISTORICAL_ROOT as u64) {
-        return Err(Error::BeaconStateError);
+    if slot < state.slot || state.slot <= (slot + SLOTS_PER_HISTORICAL_ROOT as Slot) {
+        return Err(Error::SlotOutOfRange {
+            requested: slot,
+            lower_bound: state.slot - 1,
+            upper_bound: state.slot + SLOTS_PER_HISTORICAL_ROOT as Slot,
+        });
     }
     Ok(&state.block_roots[(slot as usize % SLOTS_PER_HISTORICAL_ROOT)])
 }
@@ -839,7 +885,7 @@ pub fn get_total_balance<
         .try_fold(Gwei::default(), |acc, i| {
             acc.checked_add(state.validators[*i].effective_balance)
         })
-        .ok_or(Error::GetTotalBalance)?;
+        .ok_or(Error::Overflow)?;
     Ok(u64::max(total_balance, context.effective_balance_increment))
 }
 
@@ -933,7 +979,12 @@ pub fn get_attesting_indices<
     let committee = get_beacon_committee(state, data.slot, data.index, context)?;
 
     if bits.len() != committee.len() {
-        return Err(Error::InvalidBitfield);
+        return Err(Error::InvalidOperation(InvalidOperation::Attestation(
+            InvalidAttestation::Bitfield {
+                expected_length: committee.len(),
+                length: bits.len(),
+            },
+        )));
     }
 
     let mut indices = Vec::with_capacity(bits.capacity());
