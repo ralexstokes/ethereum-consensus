@@ -49,7 +49,7 @@ pub fn is_active_validator(validator: &Validator, epoch: Epoch) -> bool {
     validator.activation_epoch <= epoch && epoch < validator.exit_epoch
 }
 
-pub fn is_eligible_for_activation_queue(validator: Validator, context: &Context) -> bool {
+pub fn is_eligible_for_activation_queue(validator: &Validator, context: &Context) -> bool {
     validator.activation_eligibility_epoch == FAR_FUTURE_EPOCH
         && validator.effective_balance == context.max_effective_balance
 }
@@ -64,7 +64,7 @@ pub fn is_eligible_for_activation<
     const MAX_VALIDATORS_PER_COMMITTEE: usize,
     const PENDING_ATTESTATIONS_BOUND: usize,
 >(
-    state: BeaconState<
+    state: &BeaconState<
         SLOTS_PER_HISTORICAL_ROOT,
         HISTORICAL_ROOTS_LIMIT,
         ETH1_DATA_VOTES_BOUND,
@@ -74,19 +74,19 @@ pub fn is_eligible_for_activation<
         MAX_VALIDATORS_PER_COMMITTEE,
         PENDING_ATTESTATIONS_BOUND,
     >,
-    validator: Validator,
+    validator: &Validator,
 ) -> bool {
     validator.activation_eligibility_epoch <= state.finalized_checkpoint.epoch
         && validator.activation_epoch == FAR_FUTURE_EPOCH
 }
 
-pub fn is_slashable_validator(validator: Validator, epoch: Epoch) -> bool {
+pub fn is_slashable_validator(validator: &Validator, epoch: Epoch) -> bool {
     !validator.slashed
         && validator.activation_epoch <= epoch
         && epoch < validator.withdrawable_epoch
 }
 
-pub fn is_slashable_attestation_data(data_1: AttestationData, data_2: AttestationData) -> bool {
+pub fn is_slashable_attestation_data(data_1: &AttestationData, data_2: &AttestationData) -> bool {
     let double_vote = data_1 != data_2 && data_1.target.epoch == data_2.target.epoch;
     let surround_vote =
         data_1.source.epoch < data_2.source.epoch && data_2.target.epoch < data_1.target.epoch;
@@ -103,7 +103,7 @@ pub fn is_valid_indexed_attestation<
     const MAX_VALIDATORS_PER_COMMITTEE: usize,
     const PENDING_ATTESTATIONS_BOUND: usize,
 >(
-    state: BeaconState<
+    state: &BeaconState<
         SLOTS_PER_HISTORICAL_ROOT,
         HISTORICAL_ROOTS_LIMIT,
         ETH1_DATA_VOTES_BOUND,
@@ -113,7 +113,7 @@ pub fn is_valid_indexed_attestation<
         MAX_VALIDATORS_PER_COMMITTEE,
         PENDING_ATTESTATIONS_BOUND,
     >,
-    indexed_attestation: IndexedAttestation<MAX_VALIDATORS_PER_COMMITTEE>,
+    indexed_attestation: &IndexedAttestation<MAX_VALIDATORS_PER_COMMITTEE>,
     context: &Context,
 ) -> Result<(), Error> {
     if indexed_attestation.attesting_indices.is_empty() {
@@ -138,7 +138,7 @@ pub fn is_valid_indexed_attestation<
         .collect::<Vec<_>>();
 
     let domain = get_domain(
-        &state,
+        state,
         DomainType::BeaconAttester,
         Some(indexed_attestation.data.target.epoch),
         context,
@@ -170,7 +170,7 @@ pub fn apply_block<
     const MAX_DEPOSITS: usize,
     const MAX_VOLUNTARY_EXITS: usize,
 >(
-    state: BeaconState<
+    state: &BeaconState<
         SLOTS_PER_HISTORICAL_ROOT,
         HISTORICAL_ROOTS_LIMIT,
         ETH1_DATA_VOTES_BOUND,
@@ -180,7 +180,7 @@ pub fn apply_block<
         MAX_VALIDATORS_PER_COMMITTEE,
         PENDING_ATTESTATIONS_BOUND,
     >,
-    _signed_block: SignedBeaconBlock<
+    _signed_block: &SignedBeaconBlock<
         MAX_PROPOSER_SLASHINGS,
         MAX_VALIDATORS_PER_COMMITTEE,
         MAX_ATTESTER_SLASHINGS,
@@ -199,7 +199,7 @@ pub fn apply_block<
     MAX_VALIDATORS_PER_COMMITTEE,
     PENDING_ATTESTATIONS_BOUND,
 > {
-    state
+    state.clone()
 }
 
 pub fn verify_block_signature<
@@ -217,7 +217,7 @@ pub fn verify_block_signature<
     const MAX_DEPOSITS: usize,
     const MAX_VOLUNTARY_EXITS: usize,
 >(
-    state: BeaconState<
+    state: &BeaconState<
         SLOTS_PER_HISTORICAL_ROOT,
         HISTORICAL_ROOTS_LIMIT,
         ETH1_DATA_VOTES_BOUND,
@@ -227,7 +227,7 @@ pub fn verify_block_signature<
         MAX_VALIDATORS_PER_COMMITTEE,
         PENDING_ATTESTATIONS_BOUND,
     >,
-    signed_block: SignedBeaconBlock<
+    signed_block: &SignedBeaconBlock<
         MAX_PROPOSER_SLASHINGS,
         MAX_VALIDATORS_PER_COMMITTEE,
         MAX_ATTESTER_SLASHINGS,
@@ -242,7 +242,7 @@ pub fn verify_block_signature<
         .validators
         .get(proposer_index)
         .expect("failed to get validator");
-    let domain = match get_domain(&state, DomainType::BeaconProposer, None, context) {
+    let domain = match get_domain(state, DomainType::BeaconProposer, None, context) {
         Ok(domain) => domain,
         Err(_) => return false,
     };
@@ -425,7 +425,7 @@ pub fn compute_proposer_index<
 
 pub fn compute_committee<'a>(
     indices: &'a [ValidatorIndex],
-    seed: Bytes32,
+    seed: &Bytes32,
     index: usize,
     count: usize,
     context: &Context,
@@ -435,7 +435,7 @@ pub fn compute_committee<'a>(
     let end = (indices.len()) * (index + 1) / count;
     for i in start..end {
         let index =
-            compute_shuffled_index(i, indices.len(), &seed, context).ok_or(Error::Shuffle)?;
+            compute_shuffled_index(i, indices.len(), seed, context).ok_or(Error::Shuffle)?;
         committee[index] = indices[index];
     }
     Ok(committee)
@@ -503,7 +503,7 @@ pub fn get_previous_epoch<
     const MAX_VALIDATORS_PER_COMMITTEE: usize,
     const PENDING_ATTESTATIONS_BOUND: usize,
 >(
-    state: BeaconState<
+    state: &BeaconState<
         SLOTS_PER_HISTORICAL_ROOT,
         HISTORICAL_ROOTS_LIMIT,
         ETH1_DATA_VOTES_BOUND,
@@ -515,7 +515,7 @@ pub fn get_previous_epoch<
     >,
     context: &Context,
 ) -> Epoch {
-    let current_epoch = get_current_epoch(&state, context);
+    let current_epoch = get_current_epoch(state, context);
     if current_epoch == GENESIS_EPOCH {
         GENESIS_EPOCH
     } else {
@@ -524,6 +524,7 @@ pub fn get_previous_epoch<
 }
 
 pub fn get_block_root<
+    'a,
     const SLOTS_PER_HISTORICAL_ROOT: usize,
     const HISTORICAL_ROOTS_LIMIT: usize,
     const ETH1_DATA_VOTES_BOUND: usize,
@@ -533,7 +534,7 @@ pub fn get_block_root<
     const MAX_VALIDATORS_PER_COMMITTEE: usize,
     const PENDING_ATTESTATIONS_BOUND: usize,
 >(
-    state: BeaconState<
+    state: &'a BeaconState<
         SLOTS_PER_HISTORICAL_ROOT,
         HISTORICAL_ROOTS_LIMIT,
         ETH1_DATA_VOTES_BOUND,
@@ -545,7 +546,7 @@ pub fn get_block_root<
     >,
     epoch: Epoch,
     context: &Context,
-) -> Result<Root, Error> {
+) -> Result<&'a Root, Error> {
     get_block_root_at_slot(state, compute_start_slot_at_epoch(epoch, context))
 }
 
@@ -559,7 +560,7 @@ pub fn get_block_root_at_slot<
     const MAX_VALIDATORS_PER_COMMITTEE: usize,
     const PENDING_ATTESTATIONS_BOUND: usize,
 >(
-    state: BeaconState<
+    state: &BeaconState<
         SLOTS_PER_HISTORICAL_ROOT,
         HISTORICAL_ROOTS_LIMIT,
         ETH1_DATA_VOTES_BOUND,
@@ -570,11 +571,11 @@ pub fn get_block_root_at_slot<
         PENDING_ATTESTATIONS_BOUND,
     >,
     slot: Slot,
-) -> Result<Root, Error> {
+) -> Result<&Root, Error> {
     if slot < state.slot || state.slot <= (slot + SLOTS_PER_HISTORICAL_ROOT as u64) {
         return Err(Error::BeaconStateError);
     }
-    Ok(state.block_roots[(slot as usize % SLOTS_PER_HISTORICAL_ROOT)])
+    Ok(&state.block_roots[(slot as usize % SLOTS_PER_HISTORICAL_ROOT)])
 }
 
 pub fn get_randao_mix<
@@ -767,7 +768,7 @@ pub fn get_beacon_committee<
     let count = committees_per_slot * context.slots_per_epoch;
     let committee = compute_committee(
         indices.as_slice(),
-        seed,
+        &seed,
         index as usize,
         count as usize,
         context,
@@ -830,19 +831,16 @@ pub fn get_total_balance<
         MAX_VALIDATORS_PER_COMMITTEE,
         PENDING_ATTESTATIONS_BOUND,
     >,
-    indices: Vec<ValidatorIndex>,
+    indices: &[ValidatorIndex],
     context: &Context,
 ) -> Result<Gwei, Error> {
     let total_balance = indices
-        .into_iter()
-        .try_fold(0u64, |acc, i| {
-            acc.checked_add(state.validators[i].effective_balance)
+        .iter()
+        .try_fold(Gwei::default(), |acc, i| {
+            acc.checked_add(state.validators[*i].effective_balance)
         })
         .ok_or(Error::GetTotalBalance)?;
-    Ok(u64::max(
-        total_balance as u64,
-        context.effective_balance_increment,
-    ))
+    Ok(u64::max(total_balance, context.effective_balance_increment))
 }
 
 pub fn get_total_active_balance<
@@ -869,7 +867,7 @@ pub fn get_total_active_balance<
 ) -> Result<Gwei, Error> {
     get_total_balance(
         state,
-        get_active_validator_indices(state, get_current_epoch(state, context)),
+        &get_active_validator_indices(state, get_current_epoch(state, context)),
         context,
     )
 }
@@ -901,6 +899,7 @@ pub fn get_indexed_attestation<
     let attesting_indices = get_attesting_indices(state, &attestation.data, bits, context)?;
 
     Ok(IndexedAttestation {
+        // TODO: move to `try_into` once it lands in `ssz_rs`
         attesting_indices: List::from_iter(attesting_indices),
         data: attestation.data.clone(),
         signature: attestation.signature.clone(),

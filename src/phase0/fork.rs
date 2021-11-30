@@ -1,7 +1,7 @@
 use crate::primitives::{Epoch, Root, Version};
 use ssz_rs::prelude::*;
 
-#[derive(Default, Debug, SimpleSerialize)]
+#[derive(Default, Debug, SimpleSerialize, Clone)]
 pub struct Fork {
     pub previous_version: Version,
     pub current_version: Version,
