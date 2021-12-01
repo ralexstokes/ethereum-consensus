@@ -2,6 +2,7 @@ mod block_processing;
 mod context;
 mod epoch_processing;
 
+use itertools::Itertools;
 use crate::crypto::{fast_aggregate_verify, hash};
 use crate::domains::{DomainType, SigningData};
 use crate::phase0::beacon_block::SignedBeaconBlock;
@@ -68,6 +69,8 @@ pub enum InvalidIndexedAttestation {
     AttestingIndicesEmpty,
     #[error("attesting indices are duplicated")]
     DuplicateIndices(Vec<ValidatorIndex>),
+    #[error("attesting indices are not sorted")]
+    AttestingIndicesNotSorted,
 }
 
 pub fn is_active_validator(validator: &Validator, epoch: Epoch) -> bool {
@@ -147,6 +150,23 @@ pub fn is_valid_indexed_attestation<
             InvalidOperation::IndexedAttestation(InvalidIndexedAttestation::AttestingIndicesEmpty),
         ));
     }
+    let check_sorted = |list: &[ValidatorIndex]| -> Result<(), Error> {
+        list.iter()
+            .tuple_windows()
+            .enumerate()
+            .try_for_each(|(_, (x, y))| {
+                if x < y {
+                    Ok(())
+                } else {
+                    Err(Error::InvalidOperation(
+                        InvalidOperation::IndexedAttestation(InvalidIndexedAttestation::AttestingIndicesNotSorted),
+                    ))
+                }
+            })?;
+        Ok(())
+    };
+    check_sorted(attesting_indices.as_slice())?;
+
     let indices: HashSet<usize> = HashSet::from_iter(attesting_indices.iter().cloned());
     if indices.len() != indexed_attestation.attesting_indices.len() {
         let mut seen = HashSet::new();
@@ -942,7 +962,8 @@ pub fn get_indexed_attestation<
     context: &Context,
 ) -> Result<IndexedAttestation<MAX_VALIDATORS_PER_COMMITTEE>, Error> {
     let bits = &attestation.aggregation_bits;
-    let attesting_indices = get_attesting_indices(state, &attestation.data, bits, context)?;
+    let mut attesting_indices = get_attesting_indices(state, &attestation.data, bits, context)?;
+    attesting_indices.sort_unstable();
 
     Ok(IndexedAttestation {
         // TODO: move to `try_into` once it lands in `ssz_rs`
@@ -995,6 +1016,5 @@ pub fn get_attesting_indices<
         }
     }
 
-    indices.sort_unstable();
-    Ok(indices)
+    Ok(indices.into_iter().unique().collect())
 }
