@@ -1000,7 +1000,6 @@ pub fn get_attesting_indices<
         )));
     }
 
-    //let mut indices = Vec::with_capacity(bits.capacity());
     let mut indices = HashSet::with_capacity(bits.capacity());
 
     for (i, validator_index) in committee.iter().enumerate() {
