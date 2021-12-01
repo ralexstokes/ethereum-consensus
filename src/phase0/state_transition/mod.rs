@@ -167,7 +167,7 @@ pub fn is_valid_indexed_attestation<
             })?;
         Ok(())
     };
-    check_sorted(attesting_indices.as_slice())?;
+    check_sorted(attesting_indices)?;
 
     let indices: HashSet<usize> = HashSet::from_iter(attesting_indices.iter().cloned());
     if indices.len() != indexed_attestation.attesting_indices.len() {
@@ -834,13 +834,7 @@ pub fn get_beacon_committee<
     let seed = get_seed(state, epoch, DomainType::BeaconAttester, context);
     let index = (slot % context.slots_per_epoch) * committees_per_slot + index as u64;
     let count = committees_per_slot * context.slots_per_epoch;
-    let committee = compute_committee(
-        indices.as_slice(),
-        &seed,
-        index as usize,
-        count as usize,
-        context,
-    )?;
+    let committee = compute_committee(&indices, &seed, index as usize, count as usize, context)?;
     Ok(committee.to_vec())
 }
 
@@ -876,7 +870,7 @@ pub fn get_beacon_proposer_index<
     input[32..40].copy_from_slice(&state.slot.to_le_bytes());
     let seed = hash(input);
     let indices = get_active_validator_indices(state, epoch);
-    compute_proposer_index(state, indices.as_slice(), &seed, context)
+    compute_proposer_index(state, &indices, &seed, context)
 }
 
 pub fn get_total_balance<
