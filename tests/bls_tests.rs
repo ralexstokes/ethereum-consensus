@@ -15,7 +15,7 @@ where
     D: Deserializer<'a>,
 {
     let data: String = Deserialize::deserialize(input)?;
-    let data: &[u8] = &data.as_bytes();
+    let data = data.as_bytes();
     let data = if data.starts_with(b"0x") {
         &data[2..]
     } else {
@@ -32,12 +32,10 @@ where
     D: Deserializer<'a>,
 {
     let data: Vec<String> = Deserialize::deserialize(input)?;
-    println!("{:?}", data);
     if data.is_empty() {
-        println!("empty");
         return Ok(vec![]);
     }
-    let data: Vec<Vec<u8>> = data
+    let data = data
         .iter()
         .map(|x| {
             let x = x.as_bytes();
@@ -70,7 +68,7 @@ struct SigningTestIO {
     output: Vec<u8>,
 }
 
-impl TestDriver<SigningTestIO> for SigningTestIO {
+impl TestDriver for SigningTestIO {
     fn verify(&self) {
         let secret_key = match SecretKey::from_bytes(&self.input.privkey) {
             Ok(sk) => sk,
@@ -94,7 +92,7 @@ struct AggregatingTestIO {
     output: Vec<u8>,
 }
 
-impl TestDriver<AggregatingTestIO> for AggregatingTestIO {
+impl TestDriver for AggregatingTestIO {
     fn verify(&self) {
         let input_signatures: Vec<Signature> = self
             .input
@@ -130,7 +128,7 @@ struct AggVerifyTestIO {
     output: bool,
 }
 
-impl TestDriver<AggVerifyTestIO> for AggVerifyTestIO {
+impl TestDriver for AggVerifyTestIO {
     fn verify(&self) {
         let pubkeys_result: Result<Vec<PublicKey>, _> = self
             .input
@@ -176,13 +174,13 @@ struct FastAggVerifyTestIO {
     output: bool,
 }
 
-impl TestDriver<FastAggVerifyTestIO> for FastAggVerifyTestIO {
+impl TestDriver for FastAggVerifyTestIO {
     fn verify(&self) {
         let pubkeys_result: Result<Vec<PublicKey>, _> = self
             .input
             .pubkeys
             .iter()
-            .map(|x| PublicKey::from_bytes(&x))
+            .map(|x| PublicKey::from_bytes(x))
             .collect();
         let pubkeys = match pubkeys_result {
             Ok(pk) => pk,
@@ -192,7 +190,7 @@ impl TestDriver<FastAggVerifyTestIO> for FastAggVerifyTestIO {
                 return;
             }
         };
-        let pubkeys_ref: Vec<&PublicKey> = pubkeys.iter().map(|x| x).collect();
+        let pubkeys: Vec<&PublicKey> = pubkeys.iter().collect();
         let signature = match Signature::from_bytes(&self.input.signature) {
             Ok(sk) => sk,
             // error handling for zero signature
@@ -201,8 +199,7 @@ impl TestDriver<FastAggVerifyTestIO> for FastAggVerifyTestIO {
                 return;
             }
         };
-        let verify_result =
-            fast_aggregate_verify(pubkeys_ref.as_slice(), &self.input.message, &signature);
+        let verify_result = fast_aggregate_verify(&pubkeys, &self.input.message, &signature);
         assert_eq!(verify_result, self.output)
     }
 }
@@ -223,7 +220,7 @@ struct VerifyTestIO {
     output: bool,
 }
 
-impl TestDriver<VerifyTestIO> for VerifyTestIO {
+impl TestDriver for VerifyTestIO {
     fn verify(&self) {
         let pubkey: PublicKey = match PublicKey::from_bytes(&self.input.pubkey) {
             Ok(pk) => pk,
@@ -246,10 +243,11 @@ impl TestDriver<VerifyTestIO> for VerifyTestIO {
     }
 }
 
-trait TestDriver<T: TestDriver<T> + for<'de> serde::Deserialize<'de>> {
-    fn verify(&self) {
-        ()
-    }
+trait TestDriver
+where
+    Self: for<'de> serde::Deserialize<'de>,
+{
+    fn verify(&self);
 
     fn execute_test_cases(path_glob: &str) {
         let entries = glob(path_glob).expect("Failed to read glob pattern");
@@ -257,7 +255,8 @@ trait TestDriver<T: TestDriver<T> + for<'de> serde::Deserialize<'de>> {
             let path = entry.unwrap();
             println!("{:?}", path);
             let file = File::open(path).expect("File does not exist");
-            let test_case: T = serde_yaml::from_reader(file).expect("Is not well-formatted yaml");
+            let test_case: Self =
+                serde_yaml::from_reader(file).expect("Is not well-formatted yaml");
             test_case.verify()
         }
     }
