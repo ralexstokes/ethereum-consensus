@@ -891,7 +891,7 @@ pub fn get_total_balance<
         MAX_VALIDATORS_PER_COMMITTEE,
         PENDING_ATTESTATIONS_BOUND,
     >,
-    indices: &[ValidatorIndex],
+    indices: HashSet<ValidatorIndex>,
     context: &Context,
 ) -> Result<Gwei, Error> {
     let total_balance = indices
@@ -925,11 +925,8 @@ pub fn get_total_active_balance<
     >,
     context: &Context,
 ) -> Result<Gwei, Error> {
-    get_total_balance(
-        state,
-        &get_active_validator_indices(state, get_current_epoch(state, context)),
-        context,
-    )
+    let indices = get_active_validator_indices(state, get_current_epoch(state, context));
+    get_total_balance(state, HashSet::from_iter(indices), context)
 }
 
 pub fn get_indexed_attestation<
@@ -957,12 +954,12 @@ pub fn get_indexed_attestation<
 ) -> Result<IndexedAttestation<MAX_VALIDATORS_PER_COMMITTEE>, Error> {
     let bits = &attestation.aggregation_bits;
     let attesting_indices = get_attesting_indices(state, &attestation.data, bits, context)?;
-    let mut indices =Vec::from_iter(attesting_indices);
-    indices.sort_unstable();
+    let mut indices = List::from_iter(attesting_indices);
+    indices.sort();
 
     Ok(IndexedAttestation {
         // TODO: move to `try_into` once it lands in `ssz_rs`
-        attesting_indices: List::from_iter(indices),
+        attesting_indices: indices,
         data: attestation.data.clone(),
         signature: attestation.signature.clone(),
     })
