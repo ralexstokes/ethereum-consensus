@@ -398,7 +398,7 @@ pub fn compute_signing_root<T: SimpleSerialize>(
 }
 
 pub fn compute_shuffled_index(
-    index: usize,
+    mut index: usize,
     index_count: usize,
     seed: &Bytes32,
     context: &Context,
@@ -406,8 +406,6 @@ pub fn compute_shuffled_index(
     if index < index_count {
         return None;
     }
-
-    let mut index = index;
 
     let mut pivot_input = [0u8; 33];
     pivot_input[..32].copy_from_slice(seed.as_ref());
@@ -463,8 +461,8 @@ pub fn compute_proposer_index<
         return Err(Error::CollectionCannotBeEmpty);
     }
     let max_byte = u8::MAX as u64;
-    let mut i: usize = 0;
-    let total: usize = indices.len();
+    let mut i = 0;
+    let total = indices.len();
 
     let mut hash_input = [0u8; 40];
     hash_input[..32].copy_from_slice(seed.as_ref());
@@ -485,14 +483,14 @@ pub fn compute_proposer_index<
     }
 }
 
-pub fn compute_committee<'a>(
-    indices: &'a [ValidatorIndex],
+pub fn compute_committee(
+    indices: &[ValidatorIndex],
     seed: &Bytes32,
     index: usize,
     count: usize,
     context: &Context,
-) -> Result<&'a [ValidatorIndex], Error> {
-    let committee: &mut [ValidatorIndex] = &mut [];
+) -> Result<Vec<ValidatorIndex>, Error> {
+    let mut committee = vec![0usize; count];
     let start = (indices.len() * index) / count;
     let end = (indices.len()) * (index + 1) / count;
     for i in start..end {
@@ -832,8 +830,7 @@ pub fn get_beacon_committee<
     let seed = get_seed(state, epoch, DomainType::BeaconAttester, context);
     let index = (slot % context.slots_per_epoch) * committees_per_slot + index as u64;
     let count = committees_per_slot * context.slots_per_epoch;
-    let committee = compute_committee(&indices, &seed, index as usize, count as usize, context)?;
-    Ok(committee.to_vec())
+    compute_committee(&indices, &seed, index as usize, count as usize, context)
 }
 
 pub fn get_beacon_proposer_index<
