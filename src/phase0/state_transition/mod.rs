@@ -14,7 +14,6 @@ use crate::primitives::{
     FAR_FUTURE_EPOCH, GENESIS_EPOCH,
 };
 pub use context::Context;
-use itertools::Itertools;
 use ssz_rs::prelude::*;
 use std::cmp;
 use std::collections::HashSet;
@@ -145,29 +144,28 @@ pub fn is_valid_indexed_attestation<
     context: &Context,
 ) -> Result<(), Error> {
     let attesting_indices = &indexed_attestation.attesting_indices;
+
     if attesting_indices.is_empty() {
         return Err(Error::InvalidOperation(
             InvalidOperation::IndexedAttestation(InvalidIndexedAttestation::AttestingIndicesEmpty),
         ));
     }
-    let check_sorted = |list: &[ValidatorIndex]| -> Result<(), Error> {
-        list.iter()
-            .tuple_windows()
-            .enumerate()
-            .try_for_each(|(_, (x, y))| {
-                if x < y {
-                    Ok(())
-                } else {
-                    Err(Error::InvalidOperation(
-                        InvalidOperation::IndexedAttestation(
-                            InvalidIndexedAttestation::AttestingIndicesNotSorted,
-                        ),
-                    ))
-                }
-            })?;
-        Ok(())
-    };
-    check_sorted(attesting_indices)?;
+
+    let is_sorted = attesting_indices
+        .windows(2)
+        .map(|pair| {
+            let a = &pair[0];
+            let b = &pair[1];
+            a < b
+        })
+        .all(|x| x);
+    if !is_sorted {
+        return Err(Error::InvalidOperation(
+            InvalidOperation::IndexedAttestation(
+                InvalidIndexedAttestation::AttestingIndicesNotSorted,
+            ),
+        ));
+    }
 
     let indices: HashSet<usize> = HashSet::from_iter(attesting_indices.iter().cloned());
     if indices.len() != indexed_attestation.attesting_indices.len() {
@@ -958,12 +956,13 @@ pub fn get_indexed_attestation<
     context: &Context,
 ) -> Result<IndexedAttestation<MAX_VALIDATORS_PER_COMMITTEE>, Error> {
     let bits = &attestation.aggregation_bits;
-    let mut attesting_indices = get_attesting_indices(state, &attestation.data, bits, context)?;
-    attesting_indices.sort_unstable();
+    let attesting_indices = get_attesting_indices(state, &attestation.data, bits, context)?;
+    let mut indices =Vec::from_iter(attesting_indices);
+    indices.sort_unstable();
 
     Ok(IndexedAttestation {
         // TODO: move to `try_into` once it lands in `ssz_rs`
-        attesting_indices: List::from_iter(attesting_indices),
+        attesting_indices: List::from_iter(indices),
         data: attestation.data.clone(),
         signature: attestation.signature.clone(),
     })
@@ -992,7 +991,7 @@ pub fn get_attesting_indices<
     data: &AttestationData,
     bits: &Bitlist<MAX_VALIDATORS_PER_COMMITTEE>,
     context: &Context,
-) -> Result<Vec<ValidatorIndex>, Error> {
+) -> Result<HashSet<ValidatorIndex>, Error> {
     let committee = get_beacon_committee(state, data.slot, data.index, context)?;
 
     if bits.len() != committee.len() {
@@ -1004,13 +1003,14 @@ pub fn get_attesting_indices<
         )));
     }
 
-    let mut indices = Vec::with_capacity(bits.capacity());
+    //let mut indices = Vec::with_capacity(bits.capacity());
+    let mut indices = HashSet::with_capacity(bits.capacity());
 
     for (i, validator_index) in committee.iter().enumerate() {
         if bits[i] {
-            indices.push(*validator_index)
+            indices.insert(*validator_index);
         }
     }
 
-    Ok(indices.into_iter().unique().collect())
+    Ok(indices)
 }
