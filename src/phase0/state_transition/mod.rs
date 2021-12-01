@@ -2,7 +2,6 @@ mod block_processing;
 mod context;
 mod epoch_processing;
 
-use itertools::Itertools;
 use crate::crypto::{fast_aggregate_verify, hash};
 use crate::domains::{DomainType, SigningData};
 use crate::phase0::beacon_block::SignedBeaconBlock;
@@ -15,6 +14,7 @@ use crate::primitives::{
     FAR_FUTURE_EPOCH, GENESIS_EPOCH,
 };
 pub use context::Context;
+use itertools::Itertools;
 use ssz_rs::prelude::*;
 use std::cmp;
 use std::collections::HashSet;
@@ -159,7 +159,9 @@ pub fn is_valid_indexed_attestation<
                     Ok(())
                 } else {
                     Err(Error::InvalidOperation(
-                        InvalidOperation::IndexedAttestation(InvalidIndexedAttestation::AttestingIndicesNotSorted),
+                        InvalidOperation::IndexedAttestation(
+                            InvalidIndexedAttestation::AttestingIndicesNotSorted,
+                        ),
                     ))
                 }
             })?;
