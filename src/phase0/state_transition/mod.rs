@@ -952,7 +952,9 @@ pub fn get_indexed_attestation<
     let bits = &attestation.aggregation_bits;
     let attesting_indices = get_attesting_indices(state, &attestation.data, bits, context)?;
     let mut indices = List::from_iter(attesting_indices);
-    indices.sort();
+    // NOTE: the spec uses a "stable" sort; however, we cannot discriminate
+    // a stable from unstable sort on the primitive `ValidatorIndex` type here.
+    indices.sort_unstable();
 
     Ok(IndexedAttestation {
         // TODO: move to `try_into` once it lands in `ssz_rs`
