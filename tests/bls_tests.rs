@@ -255,7 +255,6 @@ trait TestDriver<T: TestDriver<T> + for<'de> serde::Deserialize<'de>> {
         let entries = glob(path_glob).expect("Failed to read glob pattern");
         for entry in entries {
             let path = entry.unwrap();
-            println!("{:?}", path);
             let file = File::open(path).expect("File does not exist");
             let test_case: T = serde_yaml::from_reader(file).expect("Is not well-formatted yaml");
             test_case.verify()
