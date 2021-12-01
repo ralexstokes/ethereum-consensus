@@ -26,7 +26,7 @@ pub struct HistoricalBatch<const SLOTS_PER_HISTORICAL_ROOT: usize> {
     pub state_roots: Vector<Root, SLOTS_PER_HISTORICAL_ROOT>,
 }
 
-#[derive(Default, Debug, SimpleSerialize)]
+#[derive(Default, Debug, SimpleSerialize, Clone)]
 pub struct BeaconState<
     const SLOTS_PER_HISTORICAL_ROOT: usize,
     const HISTORICAL_ROOTS_LIMIT: usize,

@@ -14,10 +14,14 @@ use crate::phase0::state_transition::Context;
 pub use crate::phase0::state_transition::{
     apply_block, compute_activation_exit_epoch, compute_committee, compute_domain,
     compute_epoch_at_slot, compute_fork_data_root, compute_fork_digest, compute_proposer_index,
-    compute_shuffled_index, compute_signing_root, compute_start_slot_at_epoch, get_current_epoch,
-    get_domain, is_active_validator, is_eligible_for_activation, is_eligible_for_activation_queue,
-    is_slashable_attestation_data, is_slashable_validator, is_valid_indexed_attestation,
-    verify_block_signature, Error,
+    compute_shuffled_index, compute_signing_root, compute_start_slot_at_epoch,
+    get_active_validator_indices, get_attesting_indices, get_beacon_committee,
+    get_beacon_proposer_index, get_block_root, get_block_root_at_slot,
+    get_committee_count_per_slot, get_current_epoch, get_domain, get_indexed_attestation,
+    get_previous_epoch, get_randao_mix, get_seed, get_total_active_balance, get_total_balance,
+    get_validator_churn_limit, is_active_validator, is_eligible_for_activation,
+    is_eligible_for_activation_queue, is_slashable_attestation_data, is_slashable_validator,
+    is_valid_indexed_attestation, verify_block_signature, Error,
 };
 pub use crate::phase0::validator::Validator;
 use crate::primitives::{Epoch, Gwei, Slot};

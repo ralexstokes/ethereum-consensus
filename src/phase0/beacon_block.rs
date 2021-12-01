@@ -68,7 +68,7 @@ pub struct SignedBeaconBlock<
     pub signature: BLSSignature,
 }
 
-#[derive(Default, Debug, SimpleSerialize)]
+#[derive(Default, Debug, SimpleSerialize, Clone)]
 pub struct BeaconBlockHeader {
     pub slot: Slot,
     pub proposer_index: ValidatorIndex,
