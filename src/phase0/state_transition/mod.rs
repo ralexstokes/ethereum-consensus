@@ -692,7 +692,7 @@ pub fn get_active_validator_indices<
     >,
     epoch: Epoch,
 ) -> Vec<ValidatorIndex> {
-    let mut active: Vec<ValidatorIndex> = Vec::with_capacity(state.validators.len());
+    let mut active = Vec::with_capacity(state.validators.len());
 
     for (i, v) in state.validators.iter().enumerate() {
         if is_active_validator(v, epoch) {
