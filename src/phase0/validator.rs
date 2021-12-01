@@ -2,7 +2,7 @@ use crate::crypto::PublicKey as BLSPubkey;
 use crate::primitives::{Bytes32, Epoch, Gwei};
 use ssz_rs::prelude::*;
 
-#[derive(Default, Debug, SimpleSerialize)]
+#[derive(Default, Debug, SimpleSerialize, Clone)]
 pub struct Validator {
     pub pubkey: BLSPubkey,
     pub withdrawal_credentials: Bytes32,

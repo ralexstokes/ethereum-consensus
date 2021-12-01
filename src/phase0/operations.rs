@@ -4,13 +4,13 @@ use crate::phase0::DEPOSIT_CONTRACT_TREE_DEPTH;
 use crate::primitives::{Bytes32, CommitteeIndex, Epoch, Gwei, Hash32, Root, Slot, ValidatorIndex};
 use ssz_rs::prelude::*;
 
-#[derive(Default, Debug, SimpleSerialize, PartialEq, Eq)]
+#[derive(Default, Clone, Debug, SimpleSerialize, PartialEq, Eq)]
 pub struct Checkpoint {
     pub epoch: Epoch,
     pub root: Root,
 }
 
-#[derive(Default, Debug, SimpleSerialize, PartialEq, Eq)]
+#[derive(Default, Clone, Debug, SimpleSerialize, PartialEq, Eq)]
 pub struct AttestationData {
     pub slot: Slot,
     pub index: CommitteeIndex,
@@ -26,7 +26,7 @@ pub struct IndexedAttestation<const MAX_VALIDATORS_PER_COMMITTEE: usize> {
     pub signature: BLSSignature,
 }
 
-#[derive(Default, Debug, SimpleSerialize)]
+#[derive(Default, Debug, SimpleSerialize, Clone)]
 pub struct PendingAttestation<const MAX_VALIDATORS_PER_COMMITTEE: usize> {
     pub aggregation_bits: Bitlist<MAX_VALIDATORS_PER_COMMITTEE>,
     pub data: AttestationData,
@@ -41,7 +41,7 @@ pub struct Attestation<const MAX_VALIDATORS_PER_COMMITTEE: usize> {
     pub signature: BLSSignature,
 }
 
-#[derive(Default, Debug, SimpleSerialize)]
+#[derive(Default, Debug, SimpleSerialize, Clone)]
 pub struct Eth1Data {
     pub deposit_root: Root,
     pub deposit_count: u64,

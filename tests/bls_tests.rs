@@ -15,7 +15,11 @@ where
     D: Deserializer<'a>,
 {
     let data: String = Deserialize::deserialize(input)?;
+<<<<<<< HEAD
     let data: &[u8] = &data.as_bytes();
+=======
+    let data = data.as_bytes();
+>>>>>>> c6eb296ee581596da57e3e691f37150a84b7cc51
     let data = if data.starts_with(b"0x") {
         &data[2..]
     } else {
@@ -32,12 +36,19 @@ where
     D: Deserializer<'a>,
 {
     let data: Vec<String> = Deserialize::deserialize(input)?;
+<<<<<<< HEAD
     println!("{:?}", data);
     if data.is_empty() {
         println!("empty");
         return Ok(vec![]);
     }
     let data: Vec<Vec<u8>> = data
+=======
+    if data.is_empty() {
+        return Ok(vec![]);
+    }
+    let data = data
+>>>>>>> c6eb296ee581596da57e3e691f37150a84b7cc51
         .iter()
         .map(|x| {
             let x = x.as_bytes();
@@ -70,7 +81,11 @@ struct SigningTestIO {
     output: Vec<u8>,
 }
 
+<<<<<<< HEAD
 impl TestDriver<SigningTestIO> for SigningTestIO {
+=======
+impl TestDriver for SigningTestIO {
+>>>>>>> c6eb296ee581596da57e3e691f37150a84b7cc51
     fn verify(&self) {
         let secret_key = match SecretKey::from_bytes(&self.input.privkey) {
             Ok(sk) => sk,
@@ -94,7 +109,11 @@ struct AggregatingTestIO {
     output: Vec<u8>,
 }
 
+<<<<<<< HEAD
 impl TestDriver<AggregatingTestIO> for AggregatingTestIO {
+=======
+impl TestDriver for AggregatingTestIO {
+>>>>>>> c6eb296ee581596da57e3e691f37150a84b7cc51
     fn verify(&self) {
         let input_signatures: Vec<Signature> = self
             .input
@@ -130,7 +149,11 @@ struct AggVerifyTestIO {
     output: bool,
 }
 
+<<<<<<< HEAD
 impl TestDriver<AggVerifyTestIO> for AggVerifyTestIO {
+=======
+impl TestDriver for AggVerifyTestIO {
+>>>>>>> c6eb296ee581596da57e3e691f37150a84b7cc51
     fn verify(&self) {
         let pubkeys_result: Result<Vec<PublicKey>, _> = self
             .input
@@ -176,13 +199,21 @@ struct FastAggVerifyTestIO {
     output: bool,
 }
 
+<<<<<<< HEAD
 impl TestDriver<FastAggVerifyTestIO> for FastAggVerifyTestIO {
+=======
+impl TestDriver for FastAggVerifyTestIO {
+>>>>>>> c6eb296ee581596da57e3e691f37150a84b7cc51
     fn verify(&self) {
         let pubkeys_result: Result<Vec<PublicKey>, _> = self
             .input
             .pubkeys
             .iter()
+<<<<<<< HEAD
             .map(|x| PublicKey::from_bytes(&x))
+=======
+            .map(|x| PublicKey::from_bytes(x))
+>>>>>>> c6eb296ee581596da57e3e691f37150a84b7cc51
             .collect();
         let pubkeys = match pubkeys_result {
             Ok(pk) => pk,
@@ -192,7 +223,11 @@ impl TestDriver<FastAggVerifyTestIO> for FastAggVerifyTestIO {
                 return;
             }
         };
+<<<<<<< HEAD
         let pubkeys_ref: Vec<&PublicKey> = pubkeys.iter().map(|x| x).collect();
+=======
+        let pubkeys: Vec<&PublicKey> = pubkeys.iter().collect();
+>>>>>>> c6eb296ee581596da57e3e691f37150a84b7cc51
         let signature = match Signature::from_bytes(&self.input.signature) {
             Ok(sk) => sk,
             // error handling for zero signature
@@ -201,8 +236,12 @@ impl TestDriver<FastAggVerifyTestIO> for FastAggVerifyTestIO {
                 return;
             }
         };
+<<<<<<< HEAD
         let verify_result =
             fast_aggregate_verify(pubkeys_ref.as_slice(), &self.input.message, &signature);
+=======
+        let verify_result = fast_aggregate_verify(&pubkeys, &self.input.message, &signature);
+>>>>>>> c6eb296ee581596da57e3e691f37150a84b7cc51
         assert_eq!(verify_result, self.output)
     }
 }
@@ -223,7 +262,11 @@ struct VerifyTestIO {
     output: bool,
 }
 
+<<<<<<< HEAD
 impl TestDriver<VerifyTestIO> for VerifyTestIO {
+=======
+impl TestDriver for VerifyTestIO {
+>>>>>>> c6eb296ee581596da57e3e691f37150a84b7cc51
     fn verify(&self) {
         let pubkey: PublicKey = match PublicKey::from_bytes(&self.input.pubkey) {
             Ok(pk) => pk,
@@ -246,18 +289,32 @@ impl TestDriver<VerifyTestIO> for VerifyTestIO {
     }
 }
 
+<<<<<<< HEAD
 trait TestDriver<T: TestDriver<T> + for<'de> serde::Deserialize<'de>> {
     fn verify(&self) {
         ()
     }
+=======
+trait TestDriver
+where
+    Self: for<'de> serde::Deserialize<'de>,
+{
+    fn verify(&self);
+>>>>>>> c6eb296ee581596da57e3e691f37150a84b7cc51
 
     fn execute_test_cases(path_glob: &str) {
         let entries = glob(path_glob).expect("Failed to read glob pattern");
         for entry in entries {
             let path = entry.unwrap();
+<<<<<<< HEAD
             println!("{:?}", path);
             let file = File::open(path).expect("File does not exist");
             let test_case: T = serde_yaml::from_reader(file).expect("Is not well-formatted yaml");
+=======
+            let file = File::open(path).expect("File does not exist");
+            let test_case: Self =
+                serde_yaml::from_reader(file).expect("Is not well-formatted yaml");
+>>>>>>> c6eb296ee581596da57e3e691f37150a84b7cc51
             test_case.verify()
         }
     }
