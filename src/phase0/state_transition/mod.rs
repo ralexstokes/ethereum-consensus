@@ -1091,7 +1091,7 @@ pub fn initiate_validator_exit<
     let mut exit_epochs: Vec<Epoch> = state
         .validators
         .as_slice()
-        .into_iter()
+        .iter()
         .filter(|v| v.exit_epoch != FAR_FUTURE_EPOCH)
         .map(|v| v.exit_epoch)
         .collect();
@@ -1103,13 +1103,12 @@ pub fn initiate_validator_exit<
 
     let mut exit_queue_epoch = *exit_epochs.iter().max().unwrap();
 
-    let exit_queue_churn = (state
+    let exit_queue_churn = state
         .validators
         .as_slice()
-        .into_iter()
+        .iter()
         .filter(|v| v.exit_epoch == exit_queue_epoch)
-        .collect::<Vec<&Validator>>())
-    .len();
+        .count();
 
     if exit_queue_churn >= get_validator_churn_limit(state, context) as usize {
         exit_queue_epoch += 1
@@ -1129,7 +1128,6 @@ pub fn slash_validator<
     const EPOCHS_PER_SLASHINGS_VECTOR: usize,
     const MAX_VALIDATORS_PER_COMMITTEE: usize,
     const PENDING_ATTESTATIONS_BOUND: usize,
-    const MIN_SLASHING_PENALTY_QUOTIENT: usize,
 >(
     state: &mut BeaconState<
         SLOTS_PER_HISTORICAL_ROOT,
