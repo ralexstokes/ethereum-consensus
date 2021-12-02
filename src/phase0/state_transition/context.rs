@@ -37,6 +37,9 @@ pub struct Context {
     pub max_attestations: usize,
     pub max_deposits: usize,
     pub max_voluntary_exits: usize,
+    pub min_validator_withdrawability_delay: Epoch,
+    pub churn_limit_quatient: u64,
+    pub min_per_epoch_churn_limit: u64,
 }
 
 impl Context {
@@ -74,6 +77,9 @@ impl Context {
             max_attestations: preset.max_attestations,
             max_deposits: preset.max_deposits,
             max_voluntary_exits: preset.max_voluntary_exits,
+            churn_limit_quatient: preset.churn_limit_quatient,
+            min_validator_withdrawability_delay: preset.min_validator_withdrawability_delay,
+            min_per_epoch_churn_limit: preset.min_per_epoch_churn_limit,
             ..Default::default()
         }
     }

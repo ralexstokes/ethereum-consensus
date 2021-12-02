@@ -709,8 +709,6 @@ pub fn get_validator_churn_limit<
     const EPOCHS_PER_SLASHINGS_VECTOR: usize,
     const MAX_VALIDATORS_PER_COMMITTEE: usize,
     const PENDING_ATTESTATIONS_BOUND: usize,
-    const CHURN_LIMIT_QUOTIENT: usize,
-    const MIN_PER_EPOCH_CHURN_LIMIT: usize,
 >(
     state: &BeaconState<
         SLOTS_PER_HISTORICAL_ROOT,
@@ -727,8 +725,8 @@ pub fn get_validator_churn_limit<
     let active_validator_indices =
         get_active_validator_indices(state, get_current_epoch(state, context));
     u64::max(
-        MIN_PER_EPOCH_CHURN_LIMIT as u64,
-        active_validator_indices.len() as u64 / CHURN_LIMIT_QUOTIENT as u64,
+        context.min_per_epoch_churn_limit as u64,
+        active_validator_indices.len() as u64 / context.churn_limit_quatient as u64,
     )
 }
 
@@ -842,9 +840,6 @@ pub fn get_beacon_proposer_index<
     const EPOCHS_PER_SLASHINGS_VECTOR: usize,
     const MAX_VALIDATORS_PER_COMMITTEE: usize,
     const PENDING_ATTESTATIONS_BOUND: usize,
-    const MAX_COMMITTEES_PER_SLOT: u64,
-    const SLOTS_PER_EPOCH: u64,
-    const TARGET_COMMITTEE_SIZE: u64,
 >(
     state: &BeaconState<
         SLOTS_PER_HISTORICAL_ROOT,
@@ -1008,4 +1003,175 @@ pub fn get_attesting_indices<
     }
 
     Ok(indices)
+}
+
+pub fn increase_balance<
+    const SLOTS_PER_HISTORICAL_ROOT: usize,
+    const HISTORICAL_ROOTS_LIMIT: usize,
+    const ETH1_DATA_VOTES_BOUND: usize,
+    const VALIDATOR_REGISTRY_LIMIT: usize,
+    const EPOCHS_PER_HISTORICAL_VECTOR: usize,
+    const EPOCHS_PER_SLASHINGS_VECTOR: usize,
+    const MAX_VALIDATORS_PER_COMMITTEE: usize,
+    const PENDING_ATTESTATIONS_BOUND: usize,
+>(
+    state: &mut BeaconState<
+        SLOTS_PER_HISTORICAL_ROOT,
+        HISTORICAL_ROOTS_LIMIT,
+        ETH1_DATA_VOTES_BOUND,
+        VALIDATOR_REGISTRY_LIMIT,
+        EPOCHS_PER_HISTORICAL_VECTOR,
+        EPOCHS_PER_SLASHINGS_VECTOR,
+        MAX_VALIDATORS_PER_COMMITTEE,
+        PENDING_ATTESTATIONS_BOUND,
+    >,
+    index: ValidatorIndex,
+    delta: Gwei,
+) {
+    state.balances[index] += delta
+}
+
+pub fn decrease_balance<
+    const SLOTS_PER_HISTORICAL_ROOT: usize,
+    const HISTORICAL_ROOTS_LIMIT: usize,
+    const ETH1_DATA_VOTES_BOUND: usize,
+    const VALIDATOR_REGISTRY_LIMIT: usize,
+    const EPOCHS_PER_HISTORICAL_VECTOR: usize,
+    const EPOCHS_PER_SLASHINGS_VECTOR: usize,
+    const MAX_VALIDATORS_PER_COMMITTEE: usize,
+    const PENDING_ATTESTATIONS_BOUND: usize,
+>(
+    state: &mut BeaconState<
+        SLOTS_PER_HISTORICAL_ROOT,
+        HISTORICAL_ROOTS_LIMIT,
+        ETH1_DATA_VOTES_BOUND,
+        VALIDATOR_REGISTRY_LIMIT,
+        EPOCHS_PER_HISTORICAL_VECTOR,
+        EPOCHS_PER_SLASHINGS_VECTOR,
+        MAX_VALIDATORS_PER_COMMITTEE,
+        PENDING_ATTESTATIONS_BOUND,
+    >,
+    index: ValidatorIndex,
+    delta: Gwei,
+) {
+    if delta > state.balances[index] {
+        state.balances[index] = 0
+    } else {
+        state.balances[index] -= delta
+    }
+}
+
+pub fn initiate_validator_exit<
+    const SLOTS_PER_HISTORICAL_ROOT: usize,
+    const HISTORICAL_ROOTS_LIMIT: usize,
+    const ETH1_DATA_VOTES_BOUND: usize,
+    const VALIDATOR_REGISTRY_LIMIT: usize,
+    const EPOCHS_PER_HISTORICAL_VECTOR: usize,
+    const EPOCHS_PER_SLASHINGS_VECTOR: usize,
+    const MAX_VALIDATORS_PER_COMMITTEE: usize,
+    const PENDING_ATTESTATIONS_BOUND: usize,
+>(
+    state: &mut BeaconState<
+        SLOTS_PER_HISTORICAL_ROOT,
+        HISTORICAL_ROOTS_LIMIT,
+        ETH1_DATA_VOTES_BOUND,
+        VALIDATOR_REGISTRY_LIMIT,
+        EPOCHS_PER_HISTORICAL_VECTOR,
+        EPOCHS_PER_SLASHINGS_VECTOR,
+        MAX_VALIDATORS_PER_COMMITTEE,
+        PENDING_ATTESTATIONS_BOUND,
+    >,
+    index: ValidatorIndex,
+    context: &Context,
+) {
+    if state.validators[index].exit_epoch != FAR_FUTURE_EPOCH {
+        return;
+    }
+
+    let mut exit_epochs: Vec<Epoch> = state
+        .validators
+        .as_slice()
+        .into_iter()
+        .filter(|v| v.exit_epoch != FAR_FUTURE_EPOCH)
+        .map(|v| v.exit_epoch)
+        .collect();
+
+    exit_epochs.push(compute_activation_exit_epoch(
+        get_current_epoch(state, context),
+        context,
+    ));
+
+    let mut exit_queue_epoch = *exit_epochs.iter().max().unwrap();
+
+    let exit_queue_churn = (state
+        .validators
+        .as_slice()
+        .into_iter()
+        .filter(|v| v.exit_epoch == exit_queue_epoch)
+        .collect::<Vec<&Validator>>())
+    .len();
+
+    if exit_queue_churn >= get_validator_churn_limit(state, context) as usize {
+        exit_queue_epoch += 1
+    }
+
+    state.validators[index].exit_epoch = exit_queue_epoch;
+    state.validators[index].withdrawable_epoch =
+        state.validators[index].exit_epoch + context.min_validator_withdrawability_delay as u64;
+}
+
+pub fn slash_validator<
+    const SLOTS_PER_HISTORICAL_ROOT: usize,
+    const HISTORICAL_ROOTS_LIMIT: usize,
+    const ETH1_DATA_VOTES_BOUND: usize,
+    const VALIDATOR_REGISTRY_LIMIT: usize,
+    const EPOCHS_PER_HISTORICAL_VECTOR: usize,
+    const EPOCHS_PER_SLASHINGS_VECTOR: usize,
+    const MAX_VALIDATORS_PER_COMMITTEE: usize,
+    const PENDING_ATTESTATIONS_BOUND: usize,
+    const MIN_SLASHING_PENALTY_QUOTIENT: usize,
+>(
+    state: &mut BeaconState<
+        SLOTS_PER_HISTORICAL_ROOT,
+        HISTORICAL_ROOTS_LIMIT,
+        ETH1_DATA_VOTES_BOUND,
+        VALIDATOR_REGISTRY_LIMIT,
+        EPOCHS_PER_HISTORICAL_VECTOR,
+        EPOCHS_PER_SLASHINGS_VECTOR,
+        MAX_VALIDATORS_PER_COMMITTEE,
+        PENDING_ATTESTATIONS_BOUND,
+    >,
+    slashed_index: ValidatorIndex,
+    whistleblower_index: Option<ValidatorIndex>,
+    context: &Context,
+) -> Result<(), Error> {
+    let epoch = get_current_epoch(state, context);
+    initiate_validator_exit(state, slashed_index, context);
+    state.validators[slashed_index].slashed = true;
+    state.validators[slashed_index].withdrawable_epoch = u64::max(
+        state.validators[slashed_index].withdrawable_epoch,
+        epoch + context.epochs_per_slashings_vector as u64,
+    );
+    state.slashings[epoch as usize % EPOCHS_PER_SLASHINGS_VECTOR as usize] +=
+        state.validators[slashed_index].effective_balance;
+    decrease_balance(
+        state,
+        slashed_index,
+        state.validators[slashed_index].effective_balance / context.min_slashing_penalty_quotient,
+    );
+
+    let proposer_index = get_beacon_proposer_index(state, context)?;
+
+    let whistleblower_index = whistleblower_index.unwrap_or(proposer_index);
+
+    let whistleblower_reward =
+        state.validators[slashed_index].effective_balance / context.whistleblower_reward_quotient;
+    let proposer_reward = whistleblower_reward / context.proposer_reward_quotient;
+    increase_balance(state, proposer_index, proposer_reward);
+    increase_balance(
+        state,
+        whistleblower_index,
+        whistleblower_reward - proposer_reward,
+    );
+    Ok(())
 }
