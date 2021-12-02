@@ -96,7 +96,7 @@ pub const PRESET: Preset = Preset {
     max_deposits: MAX_DEPOSITS,
     max_voluntary_exits: MAX_VOLUNTARY_EXITS,
     min_validator_withdrawability_delay: MIN_VALIDATOR_WITHDRAWABILITY_DELAY,
-    churn_limit_quatient: CHURN_LIMIT_QUOTIENT,
+    churn_limit_quotient: CHURN_LIMIT_QUOTIENT,
     min_per_epoch_churn_limit: MIN_PER_EPOCH_CHURN_LIMIT,
 };
 

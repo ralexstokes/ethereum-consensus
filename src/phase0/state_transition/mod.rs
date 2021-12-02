@@ -725,8 +725,8 @@ pub fn get_validator_churn_limit<
     let active_validator_indices =
         get_active_validator_indices(state, get_current_epoch(state, context));
     u64::max(
-        context.min_per_epoch_churn_limit as u64,
-        active_validator_indices.len() as u64 / context.churn_limit_quatient as u64,
+        context.min_per_epoch_churn_limit,
+        active_validator_indices.len() as u64 / context.churn_limit_quotient,
     )
 }
 
@@ -1090,7 +1090,6 @@ pub fn initiate_validator_exit<
 
     let mut exit_epochs: Vec<Epoch> = state
         .validators
-        .as_slice()
         .iter()
         .filter(|v| v.exit_epoch != FAR_FUTURE_EPOCH)
         .map(|v| v.exit_epoch)
@@ -1105,7 +1104,6 @@ pub fn initiate_validator_exit<
 
     let exit_queue_churn = state
         .validators
-        .as_slice()
         .iter()
         .filter(|v| v.exit_epoch == exit_queue_epoch)
         .count();
@@ -1116,7 +1114,7 @@ pub fn initiate_validator_exit<
 
     state.validators[index].exit_epoch = exit_queue_epoch;
     state.validators[index].withdrawable_epoch =
-        state.validators[index].exit_epoch + context.min_validator_withdrawability_delay as u64;
+        state.validators[index].exit_epoch + context.min_validator_withdrawability_delay;
 }
 
 pub fn slash_validator<
@@ -1150,8 +1148,8 @@ pub fn slash_validator<
         state.validators[slashed_index].withdrawable_epoch,
         epoch + context.epochs_per_slashings_vector as u64,
     );
-    state.slashings[epoch as usize % EPOCHS_PER_SLASHINGS_VECTOR as usize] +=
-        state.validators[slashed_index].effective_balance;
+    let slashing_index = epoch as usize % EPOCHS_PER_SLASHINGS_VECTOR;
+    state.slashings[slashing_index] += state.validators[slashed_index].effective_balance;
     decrease_balance(
         state,
         slashed_index,
