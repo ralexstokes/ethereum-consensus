@@ -1,3 +1,4 @@
+use crate::phase0::configs::mainnet;
 use crate::phase0::presets::Preset;
 use crate::primitives::{Epoch, Gwei, Slot};
 use ssz_rs::prelude::MerkleizationContext;
@@ -37,9 +38,18 @@ pub struct Context {
     pub max_attestations: usize,
     pub max_deposits: usize,
     pub max_voluntary_exits: usize,
+
+    pub min_genesis_active_validator_counts: u64,
+    pub min_genesis_time: u64,
+    pub genesis_delay: u64,
+    pub seconds_per_slot: u64,
+    pub seconds_per_eth1_block: u64,
     pub min_validator_withdrawability_delay: Epoch,
-    pub churn_limit_quotient: u64,
+    pub shard_committee_period: Epoch,
+    pub eth1_follow_distance: Epoch,
+    pub ejection_balance: Gwei,
     pub min_per_epoch_churn_limit: u64,
+    pub churn_limit_quotient: u64,
 }
 
 impl Context {
@@ -77,9 +87,19 @@ impl Context {
             max_attestations: preset.max_attestations,
             max_deposits: preset.max_deposits,
             max_voluntary_exits: preset.max_voluntary_exits,
-            churn_limit_quotient: preset.churn_limit_quotient,
-            min_validator_withdrawability_delay: preset.min_validator_withdrawability_delay,
-            min_per_epoch_churn_limit: preset.min_per_epoch_churn_limit,
+
+            min_genesis_active_validator_counts: mainnet::MIN_GENESIS_ACTIVE_VALIDATOR_COUNT,
+            min_genesis_time: mainnet::MIN_GENESIS_TIME,
+            genesis_delay: mainnet::GENESIS_DELAY,
+            seconds_per_slot: mainnet::SECONDS_PER_SLOT,
+            seconds_per_eth1_block: mainnet::SECONDS_PER_ETH1_BLOCK,
+            min_validator_withdrawability_delay: mainnet::MIN_VALIDATOR_WITHDRAWABILITY_DELAY,
+            shard_committee_period: mainnet::SHARD_COMMITTEE_PERIOD,
+            eth1_follow_distance: mainnet::ETH1_FOLLOW_DISTANCE,
+            ejection_balance: mainnet::EJECTION_BALANCE,
+            churn_limit_quotient: mainnet::CHURN_LIMIT_QUOTIENT,
+            min_per_epoch_churn_limit: mainnet::MIN_PER_EPOCH_CHURN_LIMIT,
+
             ..Default::default()
         }
     }

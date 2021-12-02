@@ -36,7 +36,4 @@ pub struct Preset {
     pub max_attestations: usize,
     pub max_deposits: usize,
     pub max_voluntary_exits: usize,
-    pub min_validator_withdrawability_delay: Epoch,
-    pub churn_limit_quotient: u64,
-    pub min_per_epoch_churn_limit: u64,
 }

@@ -3,9 +3,7 @@ use crate::phase0::beacon_block;
 pub use crate::phase0::beacon_block::{BeaconBlockHeader, SignedBeaconBlockHeader};
 use crate::phase0::beacon_state;
 use crate::phase0::beacon_state::{get_eth1_data_votes_bound, get_pending_attestations_bound};
-use crate::phase0::configs::mainnet::{
-    CHURN_LIMIT_QUOTIENT, MIN_PER_EPOCH_CHURN_LIMIT, MIN_VALIDATOR_WITHDRAWABILITY_DELAY,
-};
+use crate::phase0::configs::mainnet::MIN_VALIDATOR_WITHDRAWABILITY_DELAY;
 pub use crate::phase0::fork::{Fork, ForkData};
 use crate::phase0::operations;
 pub use crate::phase0::operations::{
@@ -95,9 +93,6 @@ pub const PRESET: Preset = Preset {
     max_attestations: MAX_ATTESTATIONS,
     max_deposits: MAX_DEPOSITS,
     max_voluntary_exits: MAX_VOLUNTARY_EXITS,
-    min_validator_withdrawability_delay: MIN_VALIDATOR_WITHDRAWABILITY_DELAY,
-    churn_limit_quotient: CHURN_LIMIT_QUOTIENT,
-    min_per_epoch_churn_limit: MIN_PER_EPOCH_CHURN_LIMIT,
 };
 
 pub fn context() -> Context {
