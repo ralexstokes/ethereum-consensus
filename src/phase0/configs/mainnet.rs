@@ -1,3 +1,4 @@
+use crate::phase0::configs::Config;
 use crate::primitives::{Epoch, Gwei};
 
 pub const MIN_GENESIS_ACTIVE_VALIDATOR_COUNT: u64 = 16384;
@@ -11,3 +12,17 @@ pub const ETH1_FOLLOW_DISTANCE: u64 = 2048;
 pub const EJECTION_BALANCE: Gwei = 16 * 10u64.pow(9);
 pub const MIN_PER_EPOCH_CHURN_LIMIT: u64 = 4;
 pub const CHURN_LIMIT_QUOTIENT: u64 = 65536;
+
+pub const CONFIG: Config = Config {
+    min_genesis_active_validator_counts: MIN_GENESIS_ACTIVE_VALIDATOR_COUNT,
+    min_genesis_time: MIN_GENESIS_TIME,
+    genesis_delay: GENESIS_DELAY,
+    seconds_per_slot: SECONDS_PER_SLOT,
+    seconds_per_eth1_block: SECONDS_PER_ETH1_BLOCK,
+    min_validator_withdrawability_delay: MIN_VALIDATOR_WITHDRAWABILITY_DELAY,
+    shard_committee_period: SHARD_COMMITTEE_PERIOD,
+    eth1_follow_distance: ETH1_FOLLOW_DISTANCE,
+    ejection_balance: EJECTION_BALANCE,
+    churn_limit_quotient: CHURN_LIMIT_QUOTIENT,
+    min_per_epoch_churn_limit: MIN_PER_EPOCH_CHURN_LIMIT,
+};

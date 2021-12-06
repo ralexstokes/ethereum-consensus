@@ -3,6 +3,7 @@ use crate::phase0::beacon_block;
 pub use crate::phase0::beacon_block::{BeaconBlockHeader, SignedBeaconBlockHeader};
 use crate::phase0::beacon_state;
 use crate::phase0::beacon_state::{get_eth1_data_votes_bound, get_pending_attestations_bound};
+use crate::phase0::configs::mainnet::CONFIG;
 pub use crate::phase0::fork::{Fork, ForkData};
 use crate::phase0::operations;
 pub use crate::phase0::operations::{
@@ -96,7 +97,7 @@ pub const PRESET: Preset = Preset {
 };
 
 pub fn context() -> Context {
-    Context::with_preset(&PRESET)
+    Context::from(&PRESET, &CONFIG)
 }
 
 pub type IndexedAttestation = operations::IndexedAttestation<MAX_VALIDATORS_PER_COMMITTEE>;

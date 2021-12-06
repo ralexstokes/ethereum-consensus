@@ -1,4 +1,4 @@
-use crate::phase0::configs::mainnet;
+use crate::phase0::configs::Config;
 use crate::phase0::presets::Preset;
 use crate::primitives::{Epoch, Gwei, Slot};
 use ssz_rs::prelude::MerkleizationContext;
@@ -52,7 +52,7 @@ pub struct Context {
 }
 
 impl Context {
-    pub fn with_preset(preset: &Preset) -> Self {
+    pub fn from(preset: &Preset, config: &Config) -> Self {
         Context {
             max_committees_per_slot: preset.max_committees_per_slot,
             target_committee_size: preset.target_committee_size,
@@ -86,17 +86,17 @@ impl Context {
             max_attestations: preset.max_attestations,
             max_deposits: preset.max_deposits,
             max_voluntary_exits: preset.max_voluntary_exits,
-            min_genesis_active_validator_counts: mainnet::MIN_GENESIS_ACTIVE_VALIDATOR_COUNT,
-            min_genesis_time: mainnet::MIN_GENESIS_TIME,
-            genesis_delay: mainnet::GENESIS_DELAY,
-            seconds_per_slot: mainnet::SECONDS_PER_SLOT,
-            seconds_per_eth1_block: mainnet::SECONDS_PER_ETH1_BLOCK,
-            min_validator_withdrawability_delay: mainnet::MIN_VALIDATOR_WITHDRAWABILITY_DELAY,
-            shard_committee_period: mainnet::SHARD_COMMITTEE_PERIOD,
-            eth1_follow_distance: mainnet::ETH1_FOLLOW_DISTANCE,
-            ejection_balance: mainnet::EJECTION_BALANCE,
-            churn_limit_quotient: mainnet::CHURN_LIMIT_QUOTIENT,
-            min_per_epoch_churn_limit: mainnet::MIN_PER_EPOCH_CHURN_LIMIT,
+            min_genesis_active_validator_counts: config.min_genesis_active_validator_counts,
+            min_genesis_time: config.min_genesis_time,
+            genesis_delay: config.genesis_delay,
+            seconds_per_slot: config.seconds_per_slot,
+            seconds_per_eth1_block: config.seconds_per_eth1_block,
+            min_validator_withdrawability_delay: config.min_validator_withdrawability_delay,
+            shard_committee_period: config.shard_committee_period,
+            eth1_follow_distance: config.eth1_follow_distance,
+            ejection_balance: config.ejection_balance,
+            churn_limit_quotient: config.churn_limit_quotient,
+            min_per_epoch_churn_limit: config.min_per_epoch_churn_limit,
 
             ..Default::default()
         }
