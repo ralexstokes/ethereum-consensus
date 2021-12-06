@@ -1148,8 +1148,8 @@ pub fn slash_validator<
         state.validators[slashed_index].withdrawable_epoch,
         epoch + context.epochs_per_slashings_vector as u64,
     );
-    let slashing_index = epoch as usize % EPOCHS_PER_SLASHINGS_VECTOR;
-    state.slashings[slashing_index] += state.validators[slashed_index].effective_balance;
+    let slashings_index = epoch as usize % EPOCHS_PER_SLASHINGS_VECTOR;
+    state.slashings[slashings_index] += state.validators[slashed_index].effective_balance;
     decrease_balance(
         state,
         slashed_index,

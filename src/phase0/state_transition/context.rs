@@ -38,7 +38,6 @@ pub struct Context {
     pub max_attestations: usize,
     pub max_deposits: usize,
     pub max_voluntary_exits: usize,
-
     pub min_genesis_active_validator_counts: u64,
     pub min_genesis_time: u64,
     pub genesis_delay: u64,
@@ -87,7 +86,6 @@ impl Context {
             max_attestations: preset.max_attestations,
             max_deposits: preset.max_deposits,
             max_voluntary_exits: preset.max_voluntary_exits,
-
             min_genesis_active_validator_counts: mainnet::MIN_GENESIS_ACTIVE_VALIDATOR_COUNT,
             min_genesis_time: mainnet::MIN_GENESIS_TIME,
             genesis_delay: mainnet::GENESIS_DELAY,
