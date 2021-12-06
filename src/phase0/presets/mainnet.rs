@@ -3,7 +3,6 @@ use crate::phase0::beacon_block;
 pub use crate::phase0::beacon_block::{BeaconBlockHeader, SignedBeaconBlockHeader};
 use crate::phase0::beacon_state;
 use crate::phase0::beacon_state::{get_eth1_data_votes_bound, get_pending_attestations_bound};
-use crate::phase0::configs::mainnet::CONFIG;
 pub use crate::phase0::fork::{Fork, ForkData};
 use crate::phase0::operations;
 pub use crate::phase0::operations::{
@@ -11,7 +10,6 @@ pub use crate::phase0::operations::{
     SignedVoluntaryExit, VoluntaryExit,
 };
 use crate::phase0::presets::Preset;
-use crate::phase0::state_transition::Context;
 pub use crate::phase0::state_transition::{
     apply_block, compute_activation_exit_epoch, compute_committee, compute_domain,
     compute_epoch_at_slot, compute_fork_data_root, compute_fork_digest, compute_proposer_index,
@@ -95,10 +93,6 @@ pub const PRESET: Preset = Preset {
     max_deposits: MAX_DEPOSITS,
     max_voluntary_exits: MAX_VOLUNTARY_EXITS,
 };
-
-pub fn context() -> Context {
-    Context::from(&PRESET, &CONFIG)
-}
 
 pub type IndexedAttestation = operations::IndexedAttestation<MAX_VALIDATORS_PER_COMMITTEE>;
 pub type PendingAttestation = operations::PendingAttestation<MAX_VALIDATORS_PER_COMMITTEE>;

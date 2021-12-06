@@ -3,14 +3,21 @@
 //! the "presets" like `mainnet` or `minimal`.
 mod beacon_block;
 mod beacon_state;
-pub mod configs;
+mod configs;
 mod fork;
 mod operations;
 mod presets;
 mod state_transition;
 mod validator;
 
-pub use presets::{mainnet, minimal};
+pub mod mainnet {
+    use super::*;
+
+    pub use presets::mainnet::*;
+    pub use state_transition::{apply_block, Context};
+}
+
+pub mod minimal {}
 
 pub const BASE_REWARDS_PER_EPOCH: usize = 4;
 pub const DEPOSIT_CONTRACT_TREE_DEPTH: usize = 2usize.pow(5);
