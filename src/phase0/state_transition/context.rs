@@ -97,7 +97,6 @@ impl Context {
             ejection_balance: config.ejection_balance,
             churn_limit_quotient: config.churn_limit_quotient,
             min_per_epoch_churn_limit: config.min_per_epoch_churn_limit,
-
             ..Default::default()
         }
     }
