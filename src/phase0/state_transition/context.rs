@@ -1,5 +1,5 @@
-use crate::phase0::configs::Config;
-use crate::phase0::presets::Preset;
+use crate::phase0::configs::{mainnet::CONFIG as MAINNET_CONFIG, Config};
+use crate::phase0::presets::{mainnet::PRESET as MAINNET_PRESET, Preset};
 use crate::primitives::{Epoch, Gwei, Slot};
 use ssz_rs::prelude::MerkleizationContext;
 
@@ -99,6 +99,14 @@ impl Context {
             min_per_epoch_churn_limit: config.min_per_epoch_churn_limit,
             ..Default::default()
         }
+    }
+
+    pub fn for_mainnet() -> Self {
+        Self::from(&MAINNET_PRESET, &MAINNET_CONFIG)
+    }
+
+    pub fn for_minimal() -> Self {
+        unimplemented!()
     }
 
     pub fn for_merkleization(&self) -> &MerkleizationContext {
