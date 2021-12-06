@@ -1,3 +1,4 @@
+use crate::phase0::configs::Config;
 use crate::phase0::presets::Preset;
 use crate::primitives::{Epoch, Gwei, Slot};
 use ssz_rs::prelude::MerkleizationContext;
@@ -37,10 +38,21 @@ pub struct Context {
     pub max_attestations: usize,
     pub max_deposits: usize,
     pub max_voluntary_exits: usize,
+    pub min_genesis_active_validator_counts: u64,
+    pub min_genesis_time: u64,
+    pub genesis_delay: u64,
+    pub seconds_per_slot: u64,
+    pub seconds_per_eth1_block: u64,
+    pub min_validator_withdrawability_delay: Epoch,
+    pub shard_committee_period: Epoch,
+    pub eth1_follow_distance: Epoch,
+    pub ejection_balance: Gwei,
+    pub min_per_epoch_churn_limit: u64,
+    pub churn_limit_quotient: u64,
 }
 
 impl Context {
-    pub fn with_preset(preset: &Preset) -> Self {
+    pub fn from(preset: &Preset, config: &Config) -> Self {
         Context {
             max_committees_per_slot: preset.max_committees_per_slot,
             target_committee_size: preset.target_committee_size,
@@ -74,6 +86,17 @@ impl Context {
             max_attestations: preset.max_attestations,
             max_deposits: preset.max_deposits,
             max_voluntary_exits: preset.max_voluntary_exits,
+            min_genesis_active_validator_counts: config.min_genesis_active_validator_counts,
+            min_genesis_time: config.min_genesis_time,
+            genesis_delay: config.genesis_delay,
+            seconds_per_slot: config.seconds_per_slot,
+            seconds_per_eth1_block: config.seconds_per_eth1_block,
+            min_validator_withdrawability_delay: config.min_validator_withdrawability_delay,
+            shard_committee_period: config.shard_committee_period,
+            eth1_follow_distance: config.eth1_follow_distance,
+            ejection_balance: config.ejection_balance,
+            churn_limit_quotient: config.churn_limit_quotient,
+            min_per_epoch_churn_limit: config.min_per_epoch_churn_limit,
             ..Default::default()
         }
     }
