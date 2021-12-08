@@ -4,7 +4,7 @@ pub mod minimal;
 use crate::primitives::{Epoch, Gwei, Version};
 
 pub struct Config {
-    pub min_genesis_active_validator_counts: u64,
+    pub min_genesis_active_validator_count: usize,
     pub min_genesis_time: u64,
     pub genesis_fork_version: Version,
     pub genesis_delay: u64,
