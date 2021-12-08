@@ -12,7 +12,7 @@ pub fn process_deposit<
     const MAX_VALIDATORS_PER_COMMITTEE: usize,
     const PENDING_ATTESTATIONS_BOUND: usize,
 >(
-    state: &mut BeaconState<
+    _state: &mut BeaconState<
         SLOTS_PER_HISTORICAL_ROOT,
         HISTORICAL_ROOTS_LIMIT,
         ETH1_DATA_VOTES_BOUND,
@@ -22,8 +22,8 @@ pub fn process_deposit<
         MAX_VALIDATORS_PER_COMMITTEE,
         PENDING_ATTESTATIONS_BOUND,
     >,
-    deposit: &Deposit,
-    context: &Context,
+    _deposit: &Deposit,
+    _context: &Context,
 ) -> Result<(), Error> {
     Ok(())
 }

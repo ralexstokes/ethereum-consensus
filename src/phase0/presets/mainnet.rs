@@ -10,6 +10,7 @@ pub use crate::phase0::operations::{
     SignedVoluntaryExit, VoluntaryExit,
 };
 use crate::phase0::presets::Preset;
+pub use crate::phase0::state_transition::genesis::*;
 pub use crate::phase0::state_transition::{
     apply_block, compute_activation_exit_epoch, compute_committee, compute_domain,
     compute_epoch_at_slot, compute_fork_data_root, compute_fork_digest, compute_proposer_index,

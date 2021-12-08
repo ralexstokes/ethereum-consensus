@@ -1,6 +1,7 @@
 mod block_processing;
 mod context;
 mod epoch_processing;
+pub mod genesis;
 
 use crate::crypto::{fast_aggregate_verify, hash};
 use crate::domains::{DomainType, SigningData};
