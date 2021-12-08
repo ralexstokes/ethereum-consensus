@@ -1,8 +1,9 @@
 use crate::phase0::configs::Config;
-use crate::primitives::{Epoch, Gwei};
+use crate::primitives::{Epoch, Gwei, Version};
 
 pub const MIN_GENESIS_ACTIVE_VALIDATOR_COUNT: u64 = 16384;
 pub const MIN_GENESIS_TIME: u64 = 1606824000;
+pub const GENESIS_FORK_VERSION: Version = [0u8; 4];
 pub const GENESIS_DELAY: u64 = 604800;
 pub const SECONDS_PER_SLOT: u64 = 12;
 pub const SECONDS_PER_ETH1_BLOCK: u64 = 14;
@@ -16,6 +17,7 @@ pub const CHURN_LIMIT_QUOTIENT: u64 = 65536;
 pub const CONFIG: Config = Config {
     min_genesis_active_validator_counts: MIN_GENESIS_ACTIVE_VALIDATOR_COUNT,
     min_genesis_time: MIN_GENESIS_TIME,
+    genesis_fork_version: GENESIS_FORK_VERSION,
     genesis_delay: GENESIS_DELAY,
     seconds_per_slot: SECONDS_PER_SLOT,
     seconds_per_eth1_block: SECONDS_PER_ETH1_BLOCK,
