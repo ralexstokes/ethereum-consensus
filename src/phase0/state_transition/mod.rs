@@ -1,4 +1,5 @@
 mod block_processing;
+mod slot_processing;
 mod context;
 mod epoch_processing;
 pub mod genesis;
@@ -44,6 +45,8 @@ pub enum Error {
     Overflow,
     #[error("{0}")]
     InvalidOperation(InvalidOperation),
+    #[error("overflow")]
+    InvalidSlot
 }
 
 #[derive(Debug, Error)]
@@ -1169,3 +1172,4 @@ pub fn slash_validator<
     );
     Ok(())
 }
+
