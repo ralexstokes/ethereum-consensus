@@ -1,6 +1,6 @@
 use crate::phase0::configs::{mainnet::CONFIG as MAINNET_CONFIG, Config};
 use crate::phase0::presets::{mainnet::PRESET as MAINNET_PRESET, Preset};
-use crate::primitives::{Epoch, Gwei, Slot};
+use crate::primitives::{Epoch, Gwei, Slot, Version};
 use ssz_rs::prelude::MerkleizationContext;
 
 #[derive(Debug, Default)]
@@ -38,8 +38,9 @@ pub struct Context {
     pub max_attestations: usize,
     pub max_deposits: usize,
     pub max_voluntary_exits: usize,
-    pub min_genesis_active_validator_counts: u64,
+    pub min_genesis_active_validator_count: usize,
     pub min_genesis_time: u64,
+    pub genesis_fork_version: Version,
     pub genesis_delay: u64,
     pub seconds_per_slot: u64,
     pub seconds_per_eth1_block: u64,
@@ -86,8 +87,9 @@ impl Context {
             max_attestations: preset.max_attestations,
             max_deposits: preset.max_deposits,
             max_voluntary_exits: preset.max_voluntary_exits,
-            min_genesis_active_validator_counts: config.min_genesis_active_validator_counts,
+            min_genesis_active_validator_count: config.min_genesis_active_validator_count,
             min_genesis_time: config.min_genesis_time,
+            genesis_fork_version: config.genesis_fork_version,
             genesis_delay: config.genesis_delay,
             seconds_per_slot: config.seconds_per_slot,
             seconds_per_eth1_block: config.seconds_per_eth1_block,

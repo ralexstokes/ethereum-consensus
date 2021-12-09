@@ -1,6 +1,7 @@
 mod block_processing;
 mod context;
 mod epoch_processing;
+pub mod genesis;
 
 use crate::crypto::{fast_aggregate_verify, hash};
 use crate::domains::{DomainType, SigningData};
@@ -529,8 +530,7 @@ pub fn compute_domain(
     genesis_validators_root: Option<Root>,
     context: &Context,
 ) -> Result<Domain, Error> {
-    // NOTE: `GENESIS_FORK_VERSION` is equivalent to the `Default` impl
-    let fork_version = fork_version.unwrap_or_default();
+    let fork_version = fork_version.unwrap_or(context.genesis_fork_version);
     let genesis_validators_root = genesis_validators_root.unwrap_or_default();
     let fork_data_root = compute_fork_data_root(fork_version, genesis_validators_root, context)?;
 

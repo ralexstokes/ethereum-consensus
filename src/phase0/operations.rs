@@ -55,7 +55,7 @@ pub struct DepositMessage {
     pub amount: Gwei,
 }
 
-#[derive(Default, Debug, SimpleSerialize)]
+#[derive(Default, Debug, Clone, SimpleSerialize)]
 pub struct DepositData {
     pub pubkey: BLSPubkey,
     pub withdrawal_credentials: Bytes32,
