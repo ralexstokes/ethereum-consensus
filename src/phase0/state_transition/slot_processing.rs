@@ -1,8 +1,8 @@
 use crate::phase0::beacon_state::BeaconState;
-use crate::phase0::mainnet::Error::InvalidSlot;
-use crate::phase0::state_transition::{Context, Error};
+use crate::phase0::mainnet::Error::TransitionToPreviousSlot;
 use crate::phase0::state_transition::epoch_processing::process_epoch;
-use crate::primitives::{Slot, Bytes32};
+use crate::phase0::state_transition::{Context, Error};
+use crate::primitives::{Bytes32, Slot};
 use ssz_rs::prelude::*;
 
 pub fn process_slots<
@@ -25,13 +25,16 @@ pub fn process_slots<
         MAX_VALIDATORS_PER_COMMITTEE,
         PENDING_ATTESTATIONS_BOUND,
     >,
-    slot: &Slot,
+    slot: Slot,
     context: &Context,
 ) -> Result<(), Error> {
-    if state.slot < *slot {
-        return Err(InvalidSlot)
+    if state.slot >= slot {
+        return Err(TransitionToPreviousSlot {
+            requested: slot,
+            current: state.slot,
+        });
     }
-    while state.slot < *slot {
+    while state.slot < slot {
         process_slot(state, context)?;
         if (state.slot + 1) % context.slots_per_epoch == 0 {
             process_epoch(state, context)?;
@@ -67,11 +70,15 @@ pub fn process_slot<
 
     let previous_state_root = state.hash_tree_root(merkleization_context)?;
 
-    state.state_roots[(state.slot % context.slots_per_historical_root as u64) as usize] = previous_state_root;
+    state.state_roots[(state.slot % context.slots_per_historical_root as u64) as usize] =
+        previous_state_root;
     if state.latest_block_header.state_root.as_ref() == Bytes32::default().as_ref() {
         state.latest_block_header.state_root = previous_state_root;
     }
-    let previous_block_root = state.latest_block_header.hash_tree_root(merkleization_context)?;
-    state.block_roots[(state.slot % context.slots_per_historical_root as u64) as usize] = previous_block_root;
+    let previous_block_root = state
+        .latest_block_header
+        .hash_tree_root(merkleization_context)?;
+    state.block_roots[(state.slot % context.slots_per_historical_root as u64) as usize] =
+        previous_block_root;
     Ok(())
 }

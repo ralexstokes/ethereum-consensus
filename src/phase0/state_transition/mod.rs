@@ -1,8 +1,8 @@
 mod block_processing;
-mod slot_processing;
 mod context;
 mod epoch_processing;
 pub mod genesis;
+mod slot_processing;
 
 use crate::crypto::{fast_aggregate_verify, hash};
 use crate::domains::{DomainType, SigningData};
@@ -45,8 +45,8 @@ pub enum Error {
     Overflow,
     #[error("{0}")]
     InvalidOperation(InvalidOperation),
-    #[error("overflow")]
-    InvalidSlot
+    #[error("an invalid transition to a past slot {requested} from slot {current}")]
+    TransitionToPreviousSlot { current: Slot, requested: Slot },
 }
 
 #[derive(Debug, Error)]
@@ -1172,4 +1172,3 @@ pub fn slash_validator<
     );
     Ok(())
 }
-
