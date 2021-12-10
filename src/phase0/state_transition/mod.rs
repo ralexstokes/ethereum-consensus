@@ -47,6 +47,8 @@ pub enum Error {
     InvalidOperation(InvalidOperation),
     #[error("an invalid transition to a past slot {requested} from slot {current}")]
     TransitionToPreviousSlot { current: Slot, requested: Slot },
+    #[error("invalid state root")]
+    InvalidStateRoot,
 }
 
 #[derive(Debug, Error)]
