@@ -58,3 +58,9 @@ impl AsRef<[u8]> for Bytes32 {
         &self.0
     }
 }
+
+impl PartialEq<Root> for Bytes32 {
+    fn eq(&self, other: &Root) -> bool {
+        self.as_ref() == other.as_ref()
+    }
+}
