@@ -50,9 +50,13 @@ pub enum Error {
     #[error("invalid state root")]
     InvalidStateRoot,
     #[error(
-        "an invalid epoch is not matching to previous epoch {previous} and current epoch {current}"
+        "an invalid epoch {requested} is not matching to previous epoch {previous} and current epoch {current}"
     )]
-    InvalidEpoch { previous: Epoch, current: Epoch },
+    InvalidEpoch {
+        requested: Epoch,
+        previous: Epoch,
+        current: Epoch,
+    },
 }
 
 #[derive(Debug, Error)]
