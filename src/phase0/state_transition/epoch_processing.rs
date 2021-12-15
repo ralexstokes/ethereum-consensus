@@ -98,6 +98,6 @@ pub fn get_matching_target_attestations<
     let block_root = get_block_root(state, epoch, context)?;
     Ok(source_attestations
         .into_iter()
-        .filter(|a| a.data.target.root.as_ref() == block_root.as_ref())
+        .filter(|a| &a.data.target.root == block_root)
         .collect())
 }

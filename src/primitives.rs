@@ -64,3 +64,9 @@ impl PartialEq<Root> for Bytes32 {
         self.as_ref() == other.as_ref()
     }
 }
+
+impl PartialEq<Bytes32> for Root {
+    fn eq(&self, other: &Bytes32) -> bool {
+        self.as_ref() == other.as_ref()
+    }
+}

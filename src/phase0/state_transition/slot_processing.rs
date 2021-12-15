@@ -72,7 +72,7 @@ pub fn process_slot<
 
     state.state_roots[(state.slot % context.slots_per_historical_root as u64) as usize] =
         previous_state_root;
-    if state.latest_block_header.state_root.as_ref() == Bytes32::default().as_ref() {
+    if state.latest_block_header.state_root == Bytes32::default() {
         state.latest_block_header.state_root = previous_state_root;
     }
     let previous_block_root = state
