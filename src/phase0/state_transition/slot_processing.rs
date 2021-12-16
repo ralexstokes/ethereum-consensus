@@ -1,7 +1,6 @@
 use crate::phase0::beacon_state::BeaconState;
-use crate::phase0::state_transition::block_processing::process_block;
 use crate::phase0::state_transition::epoch_processing::process_epoch;
-use crate::phase0::state_transition::{verify_block_signature, Context, Error, SignedBeaconBlock};
+use crate::phase0::state_transition::{Context, Error};
 use crate::primitives::{Bytes32, Slot};
 use ssz_rs::prelude::*;
 

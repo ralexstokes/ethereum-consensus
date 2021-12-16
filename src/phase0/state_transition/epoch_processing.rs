@@ -32,6 +32,7 @@ pub fn process_epoch<
 }
 
 pub fn get_matching_source_attestations<
+    'a,
     const SLOTS_PER_HISTORICAL_ROOT: usize,
     const HISTORICAL_ROOTS_LIMIT: usize,
     const ETH1_DATA_VOTES_BOUND: usize,
@@ -41,7 +42,7 @@ pub fn get_matching_source_attestations<
     const MAX_VALIDATORS_PER_COMMITTEE: usize,
     const PENDING_ATTESTATIONS_BOUND: usize,
 >(
-    state: &BeaconState<
+    state: &'a BeaconState<
         SLOTS_PER_HISTORICAL_ROOT,
         HISTORICAL_ROOTS_LIMIT,
         ETH1_DATA_VOTES_BOUND,
@@ -53,7 +54,10 @@ pub fn get_matching_source_attestations<
     >,
     epoch: Epoch,
     context: &Context,
-) -> Result<Vec<PendingAttestation<MAX_VALIDATORS_PER_COMMITTEE>>, Error> {
+) -> Result<
+    &'a List<PendingAttestation<MAX_VALIDATORS_PER_COMMITTEE>, PENDING_ATTESTATIONS_BOUND>,
+    Error,
+> {
     let previous_epoch = get_previous_epoch(state, context);
     let current_epoch = get_current_epoch(state, context);
 
@@ -66,12 +70,13 @@ pub fn get_matching_source_attestations<
     }
 
     if epoch == current_epoch {
-        return Ok(state.current_epoch_attestations.to_vec());
+        return Ok(&state.current_epoch_attestations);
     }
-    Ok(state.previous_epoch_attestations.to_vec())
+    Ok(&state.previous_epoch_attestations)
 }
 
 pub fn get_matching_target_attestations<
+    'a,
     const SLOTS_PER_HISTORICAL_ROOT: usize,
     const HISTORICAL_ROOTS_LIMIT: usize,
     const ETH1_DATA_VOTES_BOUND: usize,
@@ -81,7 +86,7 @@ pub fn get_matching_target_attestations<
     const MAX_VALIDATORS_PER_COMMITTEE: usize,
     const PENDING_ATTESTATIONS_BOUND: usize,
 >(
-    state: &BeaconState<
+    state: &'a BeaconState<
         SLOTS_PER_HISTORICAL_ROOT,
         HISTORICAL_ROOTS_LIMIT,
         ETH1_DATA_VOTES_BOUND,
@@ -93,11 +98,10 @@ pub fn get_matching_target_attestations<
     >,
     epoch: Epoch,
     context: &Context,
-) -> Result<Vec<PendingAttestation<MAX_VALIDATORS_PER_COMMITTEE>>, Error> {
+) -> Result<impl Iterator<Item = &'a PendingAttestation<MAX_VALIDATORS_PER_COMMITTEE>>, Error> {
     let source_attestations = get_matching_source_attestations(state, epoch, context)?;
     let block_root = get_block_root(state, epoch, context)?;
     Ok(source_attestations
         .into_iter()
-        .filter(|a| &a.data.target.root == block_root)
-        .collect())
+        .filter(|a| a.data.target.root.as_ref() == block_root.as_ref()))
 }
