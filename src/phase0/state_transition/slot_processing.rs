@@ -65,19 +65,17 @@ pub fn process_slot<
     >,
     context: &Context,
 ) -> Result<(), Error> {
-    let merkleization_context = context.for_merkleization();
+    let previous_state_root = state.hash_tree_root()?;
+    let root_index = state.slot % context.slots_per_historical_root as u64;
+    state.state_roots[root_index as usize] = previous_state_root;
 
-    let previous_state_root = state.hash_tree_root(merkleization_context)?;
-
-    state.state_roots[(state.slot % context.slots_per_historical_root as u64) as usize] =
-        previous_state_root;
     if state.latest_block_header.state_root == Bytes32::default() {
         state.latest_block_header.state_root = previous_state_root;
     }
-    let previous_block_root = state
-        .latest_block_header
-        .hash_tree_root(merkleization_context)?;
-    state.block_roots[(state.slot % context.slots_per_historical_root as u64) as usize] =
-        previous_block_root;
+
+    let previous_block_root = state.latest_block_header.hash_tree_root()?;
+    let root_index = state.slot % context.slots_per_historical_root as u64;
+    state.block_roots[root_index as usize] = previous_block_root;
+
     Ok(())
 }

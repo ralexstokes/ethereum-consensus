@@ -1210,7 +1210,7 @@ pub fn state_transition<
         MAX_VALIDATORS_PER_COMMITTEE,
         PENDING_ATTESTATIONS_BOUND,
     >,
-    signed_block: &SignedBeaconBlock<
+    signed_block: &mut SignedBeaconBlock<
         MAX_PROPOSER_SLASHINGS,
         MAX_VALIDATORS_PER_COMMITTEE,
         MAX_ATTESTER_SLASHINGS,
@@ -1221,16 +1221,16 @@ pub fn state_transition<
     validate_result: Option<bool>,
     context: &Context,
 ) -> Result<(), Error> {
-    let merkleization_context = context.for_merkleization();
     let validate_result = validate_result.unwrap_or(true);
-    let block = &signed_block.message;
+    let slot = signed_block.message.slot;
 
-    process_slots(state, block.slot, context)?;
+    process_slots(state, slot, context)?;
     if validate_result {
         verify_block_signature(state, signed_block, context)?;
     }
+    let block = &mut signed_block.message;
     process_block(state, block, context)?;
-    if validate_result && block.state_root != state.hash_tree_root(merkleization_context)? {
+    if validate_result && block.state_root != state.hash_tree_root()? {
         return Err(Error::InvalidStateRoot);
     }
 
