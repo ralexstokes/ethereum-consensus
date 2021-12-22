@@ -70,9 +70,10 @@ pub fn get_matching_source_attestations<
     }
 
     if epoch == current_epoch {
-        return Ok(&state.current_epoch_attestations);
+        Ok(&state.current_epoch_attestations)
+    } else {
+        Ok(&state.previous_epoch_attestations)
     }
-    Ok(&state.previous_epoch_attestations)
 }
 
 pub fn get_matching_target_attestations<
