@@ -14,7 +14,15 @@ pub mod mainnet {
     use super::*;
 
     pub use presets::mainnet::*;
-    pub use state_transition::{apply_block, Context};
+    pub use state_transition::Context;
+
+    pub fn apply_block(
+        state: &mut BeaconState,
+        signed_block: &mut SignedBeaconBlock,
+        context: &Context,
+    ) -> Result<(), Error> {
+        state_transition::state_transition(state, signed_block, Some(true), context)
+    }
 }
 
 pub mod minimal {}

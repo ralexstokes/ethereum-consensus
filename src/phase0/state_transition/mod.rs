@@ -1,6 +1,7 @@
 mod block_processing;
 mod context;
-mod epoch_processing;
+// TODO make mod private once the helpers here have been integated
+pub mod epoch_processing;
 pub mod genesis;
 mod slot_processing;
 
@@ -229,53 +230,6 @@ pub fn is_valid_indexed_attestation<
     } else {
         Err(Error::InvalidSignature)
     }
-}
-
-pub fn apply_block<
-    const SLOTS_PER_HISTORICAL_ROOT: usize,
-    const HISTORICAL_ROOTS_LIMIT: usize,
-    const ETH1_DATA_VOTES_BOUND: usize,
-    const VALIDATOR_REGISTRY_LIMIT: usize,
-    const EPOCHS_PER_HISTORICAL_VECTOR: usize,
-    const EPOCHS_PER_SLASHINGS_VECTOR: usize,
-    const MAX_VALIDATORS_PER_COMMITTEE: usize,
-    const PENDING_ATTESTATIONS_BOUND: usize,
-    const MAX_PROPOSER_SLASHINGS: usize,
-    const MAX_ATTESTER_SLASHINGS: usize,
-    const MAX_ATTESTATIONS: usize,
-    const MAX_DEPOSITS: usize,
-    const MAX_VOLUNTARY_EXITS: usize,
->(
-    state: &BeaconState<
-        SLOTS_PER_HISTORICAL_ROOT,
-        HISTORICAL_ROOTS_LIMIT,
-        ETH1_DATA_VOTES_BOUND,
-        VALIDATOR_REGISTRY_LIMIT,
-        EPOCHS_PER_HISTORICAL_VECTOR,
-        EPOCHS_PER_SLASHINGS_VECTOR,
-        MAX_VALIDATORS_PER_COMMITTEE,
-        PENDING_ATTESTATIONS_BOUND,
-    >,
-    _signed_block: &SignedBeaconBlock<
-        MAX_PROPOSER_SLASHINGS,
-        MAX_VALIDATORS_PER_COMMITTEE,
-        MAX_ATTESTER_SLASHINGS,
-        MAX_ATTESTATIONS,
-        MAX_DEPOSITS,
-        MAX_VOLUNTARY_EXITS,
-    >,
-    _context: &Context,
-) -> BeaconState<
-    SLOTS_PER_HISTORICAL_ROOT,
-    HISTORICAL_ROOTS_LIMIT,
-    ETH1_DATA_VOTES_BOUND,
-    VALIDATOR_REGISTRY_LIMIT,
-    EPOCHS_PER_HISTORICAL_VECTOR,
-    EPOCHS_PER_SLASHINGS_VECTOR,
-    MAX_VALIDATORS_PER_COMMITTEE,
-    PENDING_ATTESTATIONS_BOUND,
-> {
-    state.clone()
 }
 
 pub fn verify_block_signature<
