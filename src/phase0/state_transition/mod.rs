@@ -68,6 +68,8 @@ pub enum InvalidOperation {
     Attestation(InvalidAttestation),
     #[error("invalid indexed attestation: {0}")]
     IndexedAttestation(InvalidIndexedAttestation),
+    #[error("invalid deposit: {0}")]
+    Deposit(InvalidDeposit),
 }
 
 #[derive(Debug, Error)]
@@ -87,6 +89,12 @@ pub enum InvalidIndexedAttestation {
     DuplicateIndices(Vec<ValidatorIndex>),
     #[error("attesting indices are not sorted")]
     AttestingIndicesNotSorted,
+}
+
+#[derive(Debug, Error)]
+pub enum InvalidDeposit {
+    #[error("expected {expected} deposits but only had {count} deposits")]
+    IncorrectCount { expected: usize, count: usize },
 }
 
 pub fn is_active_validator(validator: &Validator, epoch: Epoch) -> bool {
