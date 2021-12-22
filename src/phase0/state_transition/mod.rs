@@ -25,7 +25,7 @@ pub enum Error {
     #[error("{0}")]
     Merkleization(#[from] MerkleizationError),
     #[error("{0}")]
-    Deserialize(#[from] DeserializeError),
+    SimpleSerialize(#[from] SimpleSerializeError),
     #[error("requested element {requested} but collection only has {bound} elements")]
     OutOfBounds { requested: usize, bound: usize },
     #[error("invalid signature")]
@@ -141,7 +141,7 @@ pub fn is_valid_indexed_attestation<
         MAX_VALIDATORS_PER_COMMITTEE,
         PENDING_ATTESTATIONS_BOUND,
     >,
-    indexed_attestation: &IndexedAttestation<MAX_VALIDATORS_PER_COMMITTEE>,
+    indexed_attestation: &mut IndexedAttestation<MAX_VALIDATORS_PER_COMMITTEE>,
     context: &Context,
 ) -> Result<(), Error> {
     let attesting_indices = &indexed_attestation.attesting_indices;
@@ -204,7 +204,7 @@ pub fn is_valid_indexed_attestation<
         Some(indexed_attestation.data.target.epoch),
         context,
     )?;
-    let signing_root = compute_signing_root(&indexed_attestation.data, domain, context)?;
+    let signing_root = compute_signing_root(&mut indexed_attestation.data, domain)?;
     if fast_aggregate_verify(
         &pubkeys,
         signing_root.as_bytes(),
@@ -288,7 +288,7 @@ pub fn verify_block_signature<
         MAX_VALIDATORS_PER_COMMITTEE,
         PENDING_ATTESTATIONS_BOUND,
     >,
-    signed_block: &SignedBeaconBlock<
+    signed_block: &mut SignedBeaconBlock<
         MAX_PROPOSER_SLASHINGS,
         MAX_VALIDATORS_PER_COMMITTEE,
         MAX_ATTESTER_SLASHINGS,
@@ -307,7 +307,7 @@ pub fn verify_block_signature<
             bound: state.validators.len(),
         })?;
     let domain = get_domain(state, DomainType::BeaconProposer, None, context)?;
-    let signing_root = compute_signing_root(&signed_block.message, domain, context)?;
+    let signing_root = compute_signing_root(&mut signed_block.message, domain)?;
 
     if proposer
         .pubkey
@@ -384,18 +384,16 @@ pub fn get_current_epoch<
 }
 
 pub fn compute_signing_root<T: SimpleSerialize>(
-    ssz_object: &T,
+    ssz_object: &mut T,
     domain: Domain,
-    context: &Context,
 ) -> Result<Root, Error> {
-    let context = context.for_merkleization();
-    let object_root = ssz_object.hash_tree_root(context)?;
+    let object_root = ssz_object.hash_tree_root()?;
 
-    let s = SigningData {
+    let mut s = SigningData {
         object_root,
         domain,
     };
-    s.hash_tree_root(context).map_err(Error::Merkleization)
+    s.hash_tree_root().map_err(Error::Merkleization)
 }
 
 pub fn compute_shuffled_index(
@@ -517,9 +515,8 @@ pub fn compute_activation_exit_epoch(epoch: Epoch, context: &Context) -> Epoch {
 pub fn compute_fork_digest(
     current_version: Version,
     genesis_validators_root: Root,
-    context: &Context,
 ) -> Result<ForkDigest, Error> {
-    let fork_data_root = compute_fork_data_root(current_version, genesis_validators_root, context)?;
+    let fork_data_root = compute_fork_data_root(current_version, genesis_validators_root)?;
     let digest = &fork_data_root.as_ref()[..4];
     Ok(digest.try_into().expect("should not fail"))
 }
@@ -532,7 +529,7 @@ pub fn compute_domain(
 ) -> Result<Domain, Error> {
     let fork_version = fork_version.unwrap_or(context.genesis_fork_version);
     let genesis_validators_root = genesis_validators_root.unwrap_or_default();
-    let fork_data_root = compute_fork_data_root(fork_version, genesis_validators_root, context)?;
+    let fork_data_root = compute_fork_data_root(fork_version, genesis_validators_root)?;
 
     let mut domain = Domain::default();
     domain[..4].copy_from_slice(&domain_type.as_bytes());
@@ -543,13 +540,12 @@ pub fn compute_domain(
 pub fn compute_fork_data_root(
     current_version: Version,
     genesis_validators_root: Root,
-    context: &Context,
 ) -> Result<Root, Error> {
     ForkData {
         current_version,
         genesis_validators_root,
     }
-    .hash_tree_root(context.for_merkleization())
+    .hash_tree_root()
     .map_err(Error::Merkleization)
 }
 
@@ -945,15 +941,17 @@ pub fn get_indexed_attestation<
     context: &Context,
 ) -> Result<IndexedAttestation<MAX_VALIDATORS_PER_COMMITTEE>, Error> {
     let bits = &attestation.aggregation_bits;
-    let attesting_indices = get_attesting_indices(state, &attestation.data, bits, context)?;
-    let mut indices = List::from_iter(attesting_indices);
+    let mut attesting_indices = get_attesting_indices(state, &attestation.data, bits, context)?
+        .into_iter()
+        .collect::<Vec<_>>();
     // NOTE: the spec uses a "stable" sort; however, we cannot discriminate
     // a stable from unstable sort on the primitive `ValidatorIndex` type here.
-    indices.sort_unstable();
+    attesting_indices.sort_unstable();
+
+    let attesting_indices = attesting_indices.try_into()?;
 
     Ok(IndexedAttestation {
-        // TODO: move to `try_into` once it lands in `ssz_rs`
-        attesting_indices: indices,
+        attesting_indices,
         data: attestation.data.clone(),
         signature: attestation.signature.clone(),
     })
