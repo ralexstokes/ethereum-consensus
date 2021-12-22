@@ -10,11 +10,13 @@ pub use crate::phase0::operations::{
     SignedVoluntaryExit, VoluntaryExit,
 };
 use crate::phase0::presets::Preset;
+// TODO: remove once the helpers here have been integrated
+pub use crate::phase0::state_transition::epoch_processing::*;
 pub use crate::phase0::state_transition::genesis::*;
 pub use crate::phase0::state_transition::{
-    apply_block, compute_activation_exit_epoch, compute_committee, compute_domain,
-    compute_epoch_at_slot, compute_fork_data_root, compute_fork_digest, compute_proposer_index,
-    compute_shuffled_index, compute_signing_root, compute_start_slot_at_epoch, decrease_balance,
+    compute_activation_exit_epoch, compute_committee, compute_domain, compute_epoch_at_slot,
+    compute_fork_data_root, compute_fork_digest, compute_proposer_index, compute_shuffled_index,
+    compute_signing_root, compute_start_slot_at_epoch, decrease_balance,
     get_active_validator_indices, get_attesting_indices, get_beacon_committee,
     get_beacon_proposer_index, get_block_root, get_block_root_at_slot,
     get_committee_count_per_slot, get_current_epoch, get_domain, get_indexed_attestation,

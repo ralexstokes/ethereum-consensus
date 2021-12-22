@@ -1,7 +1,9 @@
 mod block_processing;
 mod context;
-mod epoch_processing;
+// TODO make mod private once the helpers here have been integated
+pub mod epoch_processing;
 pub mod genesis;
+mod slot_processing;
 
 use crate::crypto::{fast_aggregate_verify, hash};
 use crate::domains::{DomainType, SigningData};
@@ -9,6 +11,8 @@ use crate::phase0::beacon_block::SignedBeaconBlock;
 use crate::phase0::beacon_state::BeaconState;
 use crate::phase0::fork::ForkData;
 use crate::phase0::operations::{Attestation, AttestationData, IndexedAttestation};
+use crate::phase0::state_transition::block_processing::process_block;
+use crate::phase0::state_transition::slot_processing::process_slots;
 use crate::phase0::validator::Validator;
 use crate::primitives::{
     Bytes32, CommitteeIndex, Domain, Epoch, ForkDigest, Gwei, Root, Slot, ValidatorIndex, Version,
@@ -44,6 +48,18 @@ pub enum Error {
     Overflow,
     #[error("{0}")]
     InvalidOperation(InvalidOperation),
+    #[error("an invalid transition to a past slot {requested} from slot {current}")]
+    TransitionToPreviousSlot { current: Slot, requested: Slot },
+    #[error("invalid state root")]
+    InvalidStateRoot,
+    #[error(
+    "the requested epoch {requested} is not in the required current epoch {current} or previous epoch {previous}"
+    )]
+    InvalidEpoch {
+        requested: Epoch,
+        previous: Epoch,
+        current: Epoch,
+    },
 }
 
 #[derive(Debug, Error)]
@@ -214,53 +230,6 @@ pub fn is_valid_indexed_attestation<
     } else {
         Err(Error::InvalidSignature)
     }
-}
-
-pub fn apply_block<
-    const SLOTS_PER_HISTORICAL_ROOT: usize,
-    const HISTORICAL_ROOTS_LIMIT: usize,
-    const ETH1_DATA_VOTES_BOUND: usize,
-    const VALIDATOR_REGISTRY_LIMIT: usize,
-    const EPOCHS_PER_HISTORICAL_VECTOR: usize,
-    const EPOCHS_PER_SLASHINGS_VECTOR: usize,
-    const MAX_VALIDATORS_PER_COMMITTEE: usize,
-    const PENDING_ATTESTATIONS_BOUND: usize,
-    const MAX_PROPOSER_SLASHINGS: usize,
-    const MAX_ATTESTER_SLASHINGS: usize,
-    const MAX_ATTESTATIONS: usize,
-    const MAX_DEPOSITS: usize,
-    const MAX_VOLUNTARY_EXITS: usize,
->(
-    state: &BeaconState<
-        SLOTS_PER_HISTORICAL_ROOT,
-        HISTORICAL_ROOTS_LIMIT,
-        ETH1_DATA_VOTES_BOUND,
-        VALIDATOR_REGISTRY_LIMIT,
-        EPOCHS_PER_HISTORICAL_VECTOR,
-        EPOCHS_PER_SLASHINGS_VECTOR,
-        MAX_VALIDATORS_PER_COMMITTEE,
-        PENDING_ATTESTATIONS_BOUND,
-    >,
-    _signed_block: &SignedBeaconBlock<
-        MAX_PROPOSER_SLASHINGS,
-        MAX_VALIDATORS_PER_COMMITTEE,
-        MAX_ATTESTER_SLASHINGS,
-        MAX_ATTESTATIONS,
-        MAX_DEPOSITS,
-        MAX_VOLUNTARY_EXITS,
-    >,
-    _context: &Context,
-) -> BeaconState<
-    SLOTS_PER_HISTORICAL_ROOT,
-    HISTORICAL_ROOTS_LIMIT,
-    ETH1_DATA_VOTES_BOUND,
-    VALIDATOR_REGISTRY_LIMIT,
-    EPOCHS_PER_HISTORICAL_VECTOR,
-    EPOCHS_PER_SLASHINGS_VECTOR,
-    MAX_VALIDATORS_PER_COMMITTEE,
-    PENDING_ATTESTATIONS_BOUND,
-> {
-    state.clone()
 }
 
 pub fn verify_block_signature<
@@ -1167,5 +1136,57 @@ pub fn slash_validator<
         whistleblower_index,
         whistleblower_reward - proposer_reward,
     );
+    Ok(())
+}
+
+pub fn state_transition<
+    const SLOTS_PER_HISTORICAL_ROOT: usize,
+    const HISTORICAL_ROOTS_LIMIT: usize,
+    const ETH1_DATA_VOTES_BOUND: usize,
+    const VALIDATOR_REGISTRY_LIMIT: usize,
+    const EPOCHS_PER_HISTORICAL_VECTOR: usize,
+    const EPOCHS_PER_SLASHINGS_VECTOR: usize,
+    const MAX_VALIDATORS_PER_COMMITTEE: usize,
+    const PENDING_ATTESTATIONS_BOUND: usize,
+    const MAX_PROPOSER_SLASHINGS: usize,
+    const MAX_ATTESTER_SLASHINGS: usize,
+    const MAX_ATTESTATIONS: usize,
+    const MAX_DEPOSITS: usize,
+    const MAX_VOLUNTARY_EXITS: usize,
+>(
+    state: &mut BeaconState<
+        SLOTS_PER_HISTORICAL_ROOT,
+        HISTORICAL_ROOTS_LIMIT,
+        ETH1_DATA_VOTES_BOUND,
+        VALIDATOR_REGISTRY_LIMIT,
+        EPOCHS_PER_HISTORICAL_VECTOR,
+        EPOCHS_PER_SLASHINGS_VECTOR,
+        MAX_VALIDATORS_PER_COMMITTEE,
+        PENDING_ATTESTATIONS_BOUND,
+    >,
+    signed_block: &mut SignedBeaconBlock<
+        MAX_PROPOSER_SLASHINGS,
+        MAX_VALIDATORS_PER_COMMITTEE,
+        MAX_ATTESTER_SLASHINGS,
+        MAX_ATTESTATIONS,
+        MAX_DEPOSITS,
+        MAX_VOLUNTARY_EXITS,
+    >,
+    validate_result: Option<bool>,
+    context: &Context,
+) -> Result<(), Error> {
+    let validate_result = validate_result.unwrap_or(true);
+    let slot = signed_block.message.slot;
+
+    process_slots(state, slot, context)?;
+    if validate_result {
+        verify_block_signature(state, signed_block, context)?;
+    }
+    let block = &mut signed_block.message;
+    process_block(state, block, context)?;
+    if validate_result && block.state_root != state.hash_tree_root()? {
+        return Err(Error::InvalidStateRoot);
+    }
+
     Ok(())
 }
