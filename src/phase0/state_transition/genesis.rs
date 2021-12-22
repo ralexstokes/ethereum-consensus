@@ -42,7 +42,6 @@ pub fn initialize_beacon_state_from_eth1<
     >,
     Error,
 > {
-    let merkleization_context = context.for_merkleization();
     let fork = Fork {
         previous_version: context.genesis_fork_version,
         current_version: context.genesis_fork_version,
@@ -53,7 +52,7 @@ pub fn initialize_beacon_state_from_eth1<
         deposit_count: deposits.len() as u64,
         ..Default::default()
     };
-    let latest_block_body = BeaconBlockBody::<
+    let mut latest_block_body = BeaconBlockBody::<
         MAX_PROPOSER_SLASHINGS,
         MAX_VALIDATORS_PER_COMMITTEE,
         MAX_ATTESTER_SLASHINGS,
@@ -61,7 +60,7 @@ pub fn initialize_beacon_state_from_eth1<
         MAX_DEPOSITS,
         MAX_VOLUNTARY_EXITS,
     >::default();
-    let body_root = latest_block_body.hash_tree_root(merkleization_context)?;
+    let body_root = latest_block_body.hash_tree_root()?;
     let latest_block_header = BeaconBlockHeader {
         body_root,
         ..Default::default()
@@ -81,11 +80,12 @@ pub fn initialize_beacon_state_from_eth1<
     let mut leaves = List::<DepositData, DEPOSIT_DATA_LIST_BOUND>::default();
     for deposit in deposits.iter() {
         leaves.push(deposit.data.clone());
-        state.eth1_data.deposit_root = leaves.hash_tree_root(merkleization_context)?;
+        state.eth1_data.deposit_root = leaves.hash_tree_root()?;
         process_deposit(&mut state, deposit, context)?;
     }
 
-    for (i, validator) in state.validators.iter_mut().enumerate() {
+    for i in 0..state.validators.len() {
+        let validator = &mut state.validators[i];
         let balance = state.balances[i];
         let effective_balance = Gwei::min(
             balance - balance % context.effective_balance_increment,
@@ -98,7 +98,7 @@ pub fn initialize_beacon_state_from_eth1<
         }
     }
 
-    state.genesis_validators_root = state.validators.hash_tree_root(merkleization_context)?;
+    state.genesis_validators_root = state.validators.hash_tree_root()?;
 
     Ok(state)
 }
@@ -158,7 +158,7 @@ pub fn get_genesis_block<
     const MAX_DEPOSITS: usize,
     const MAX_VOLUNTARY_EXITS: usize,
 >(
-    genesis_state: &BeaconState<
+    genesis_state: &mut BeaconState<
         SLOTS_PER_HISTORICAL_ROOT,
         HISTORICAL_ROOTS_LIMIT,
         ETH1_DATA_VOTES_BOUND,
@@ -168,7 +168,6 @@ pub fn get_genesis_block<
         MAX_VALIDATORS_PER_COMMITTEE,
         PENDING_ATTESTATIONS_BOUND,
     >,
-    context: &Context,
 ) -> Result<
     BeaconBlock<
         MAX_PROPOSER_SLASHINGS,
@@ -181,7 +180,7 @@ pub fn get_genesis_block<
     Error,
 > {
     Ok(BeaconBlock {
-        state_root: genesis_state.hash_tree_root(context.for_merkleization())?,
+        state_root: genesis_state.hash_tree_root()?,
         ..Default::default()
     })
 }

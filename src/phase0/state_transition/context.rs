@@ -1,11 +1,9 @@
 use crate::phase0::configs::{mainnet::CONFIG as MAINNET_CONFIG, Config};
 use crate::phase0::presets::{mainnet::PRESET as MAINNET_PRESET, Preset};
 use crate::primitives::{Epoch, Gwei, Slot, Version};
-use ssz_rs::prelude::MerkleizationContext;
 
 #[derive(Debug, Default)]
 pub struct Context {
-    merkleization_context: MerkleizationContext,
     pub max_committees_per_slot: u64,
     pub target_committee_size: u64,
     pub max_validators_per_committee: usize,
@@ -99,7 +97,6 @@ impl Context {
             ejection_balance: config.ejection_balance,
             churn_limit_quotient: config.churn_limit_quotient,
             min_per_epoch_churn_limit: config.min_per_epoch_churn_limit,
-            ..Default::default()
         }
     }
 
@@ -109,9 +106,5 @@ impl Context {
 
     pub fn for_minimal() -> Self {
         unimplemented!()
-    }
-
-    pub fn for_merkleization(&self) -> &MerkleizationContext {
-        &self.merkleization_context
     }
 }
