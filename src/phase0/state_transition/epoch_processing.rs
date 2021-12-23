@@ -3,7 +3,7 @@ use crate::phase0::operations::PendingAttestation;
 use crate::phase0::state_transition::{
     get_block_root, get_current_epoch, get_previous_epoch, Context, Error,
 };
-use crate::primitives::Epoch;
+use crate::primitives::{Epoch, Gwei};
 use ssz_rs::prelude::*;
 
 pub fn get_matching_source_attestations<
@@ -247,7 +247,7 @@ pub fn process_slashings_reset<
     const MAX_VALIDATORS_PER_COMMITTEE: usize,
     const PENDING_ATTESTATIONS_BOUND: usize,
 >(
-    _state: &mut BeaconState<
+    state: &mut BeaconState<
         SLOTS_PER_HISTORICAL_ROOT,
         HISTORICAL_ROOTS_LIMIT,
         ETH1_DATA_VOTES_BOUND,
@@ -257,8 +257,11 @@ pub fn process_slashings_reset<
         MAX_VALIDATORS_PER_COMMITTEE,
         PENDING_ATTESTATIONS_BOUND,
     >,
-    _context: &Context,
+    context: &Context,
 ) -> Result<(), Error> {
+    let next_epoch = get_current_epoch(state, context) + 1;
+    
+    state.slashings[next_epoch as usize % context.epochs_per_slashings_vector] = Gwei::MIN;
     Ok(())
 }
 
