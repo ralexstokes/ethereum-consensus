@@ -288,7 +288,7 @@ pub fn process_randao_mixes_reset<
     context: &Context,
 ) -> Result<(), Error> {
     let current_epoch = get_current_epoch(state, context);
-    let next_epoch = get_current_epoch(state, context) + 1;
+    let next_epoch = current_epoch + 1;
 
     state.randao_mixes[next_epoch as usize % context.epochs_per_historical_vector] =
         get_randao_mix(state, current_epoch).clone();
