@@ -192,7 +192,7 @@ pub fn process_eth1_data_reset<
     const MAX_VALIDATORS_PER_COMMITTEE: usize,
     const PENDING_ATTESTATIONS_BOUND: usize,
 >(
-    _state: &mut BeaconState<
+    state: &mut BeaconState<
         SLOTS_PER_HISTORICAL_ROOT,
         HISTORICAL_ROOTS_LIMIT,
         ETH1_DATA_VOTES_BOUND,
@@ -202,8 +202,13 @@ pub fn process_eth1_data_reset<
         MAX_VALIDATORS_PER_COMMITTEE,
         PENDING_ATTESTATIONS_BOUND,
     >,
-    _context: &Context,
+    context: &Context,
 ) -> Result<(), Error> {
+    let next_epoch = get_current_epoch(state, context) + 1;
+
+    if next_epoch % context.epochs_per_eth1_voting_period == 0 {
+        state.eth1_data_votes.clear();
+    }
     Ok(())
 }
 

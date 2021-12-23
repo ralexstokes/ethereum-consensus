@@ -3,14 +3,14 @@ use crate::phase0::fork::Fork;
 use crate::phase0::operations::{Checkpoint, Eth1Data, PendingAttestation};
 use crate::phase0::validator::Validator;
 use crate::phase0::JUSTIFICATION_BITS_LENGTH;
-use crate::primitives::{Bytes32, Gwei, Root, Slot};
+use crate::primitives::{Bytes32, Epoch, Gwei, Root, Slot};
 use ssz_rs::prelude::*;
 
 pub(super) const fn get_eth1_data_votes_bound(
-    epochs_per_eth1_voting_period: usize,
+    epochs_per_eth1_voting_period: Epoch,
     slots_per_epoch: usize,
 ) -> usize {
-    epochs_per_eth1_voting_period * slots_per_epoch
+    epochs_per_eth1_voting_period as usize * slots_per_epoch
 }
 
 pub(super) const fn get_pending_attestations_bound(
