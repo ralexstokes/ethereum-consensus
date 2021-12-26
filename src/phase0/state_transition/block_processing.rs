@@ -3,7 +3,10 @@ use crate::phase0::beacon_state::BeaconState;
 use crate::phase0::operations::{
     Attestation, AttesterSlashing, Deposit, ProposerSlashing, SignedVoluntaryExit,
 };
-use crate::phase0::state_transition::{Context, Error, InvalidDeposit, InvalidOperation};
+use crate::phase0::state_transition::{
+    get_beacon_proposer_index, Context, Error, InvalidDeposit, InvalidHeader, InvalidOperation,
+};
+use ssz_rs::prelude::*;
 
 pub fn process_proposer_slashing<
     const SLOTS_PER_HISTORICAL_ROOT: usize,
@@ -150,7 +153,7 @@ fn process_block_header<
     const MAX_DEPOSITS: usize,
     const MAX_VOLUNTARY_EXITS: usize,
 >(
-    _state: &mut BeaconState<
+    state: &mut BeaconState<
         SLOTS_PER_HISTORICAL_ROOT,
         HISTORICAL_ROOTS_LIMIT,
         ETH1_DATA_VOTES_BOUND,
@@ -160,7 +163,7 @@ fn process_block_header<
         MAX_VALIDATORS_PER_COMMITTEE,
         PENDING_ATTESTATIONS_BOUND,
     >,
-    _block: &BeaconBlock<
+    block: &BeaconBlock<
         MAX_PROPOSER_SLASHINGS,
         MAX_VALIDATORS_PER_COMMITTEE,
         MAX_ATTESTER_SLASHINGS,
@@ -168,8 +171,30 @@ fn process_block_header<
         MAX_DEPOSITS,
         MAX_VOLUNTARY_EXITS,
     >,
-    _context: &Context,
+    context: &Context,
 ) -> Result<(), Error> {
+    if block.slot != state.slot {
+        return Err(Error::InvalidHeader(InvalidHeader::StateSlotMismatch));
+    }
+
+    let expected_block_root = state.latest_block_header.hash_tree_root()?;
+    if block.parent_root != expected_block_root {
+        return Err(Error::InvalidHeader(InvalidHeader::ParentBlockRootMismatch));
+    }
+
+    state.latest_block_header = crate::phase0::beacon_block::BeaconBlockHeader {
+        slot: block.slot,
+        parent_root: block.parent_root,
+        body_root: block.body.hash_tree_root()?,
+        ..Default::default()
+    };
+
+    let proposer_index = get_beacon_proposer_index(state, context)?;
+    let proposer = &state.validators[proposer_index];
+    if proposer.slashed {
+        return Err(Error::InvalidHeader(InvalidHeader::ProposerSlashed));
+    }
+
     Ok(())
 }
 

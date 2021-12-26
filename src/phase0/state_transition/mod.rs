@@ -60,6 +60,18 @@ pub enum Error {
         previous: Epoch,
         current: Epoch,
     },
+    #[error("invalid block header: {0}")]
+    InvalidHeader(InvalidHeader),
+}
+
+#[derive(Debug, Error)]
+pub enum InvalidHeader {
+    #[error("slots mismatch")]
+    StateSlotMismatch,
+    #[error("roots mismatch")]
+    ParentBlockRootMismatch,
+    #[error("proposer is slahed")]
+    ProposerSlashed,
 }
 
 #[derive(Debug, Error)]
