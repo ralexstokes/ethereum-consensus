@@ -70,7 +70,7 @@ pub enum InvalidHeader {
     StateSlotMismatch,
     #[error("roots mismatch")]
     ParentBlockRootMismatch,
-    #[error("proposer is slahed")]
+    #[error("proposer is slashed")]
     ProposerSlashed,
 }
 
