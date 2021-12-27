@@ -344,7 +344,7 @@ pub fn process_participation_record_updates<
 ) -> Result<(), Error> {
     state.previous_epoch_attestations = state.current_epoch_attestations.clone();
     state.current_epoch_attestations.clear();
-    
+
     Ok(())
 }
 
