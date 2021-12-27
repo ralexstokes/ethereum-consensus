@@ -1,4 +1,4 @@
-use crate::phase0::beacon_state::BeaconState;
+use crate::phase0::beacon_state::{BeaconState, HistoricalBatch};
 use crate::phase0::operations::PendingAttestation;
 use crate::phase0::state_transition::{
     get_block_root, get_current_epoch, get_previous_epoch, get_randao_mix, Context, Error,
@@ -305,7 +305,7 @@ pub fn process_historical_roots_update<
     const MAX_VALIDATORS_PER_COMMITTEE: usize,
     const PENDING_ATTESTATIONS_BOUND: usize,
 >(
-    _state: &mut BeaconState<
+    state: &mut BeaconState<
         SLOTS_PER_HISTORICAL_ROOT,
         HISTORICAL_ROOTS_LIMIT,
         ETH1_DATA_VOTES_BOUND,
@@ -315,8 +315,18 @@ pub fn process_historical_roots_update<
         MAX_VALIDATORS_PER_COMMITTEE,
         PENDING_ATTESTATIONS_BOUND,
     >,
-    _context: &Context,
+    context: &Context,
 ) -> Result<(), Error> {
+    let next_epoch = get_current_epoch(state, context) + 1;
+    if (next_epoch % (SLOTS_PER_HISTORICAL_ROOT as u64 / context.slots_per_epoch)) == 0 {
+        let mut historical_batch = HistoricalBatch {
+            block_roots: state.block_roots.clone(),
+            state_roots: state.state_roots.clone(),
+        };
+        state
+            .historical_roots
+            .push(historical_batch.hash_tree_root()?)
+    }
     Ok(())
 }
 
