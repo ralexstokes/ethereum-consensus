@@ -261,7 +261,7 @@ pub fn process_slashings_reset<
 ) -> Result<(), Error> {
     let next_epoch = get_current_epoch(state, context) + 1;
 
-    state.slashings[next_epoch as usize % context.epochs_per_slashings_vector] = Gwei::MIN;
+    state.slashings[next_epoch as usize % context.epochs_per_slashings_vector] = 0;
     Ok(())
 }
 
