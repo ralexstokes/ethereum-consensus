@@ -330,7 +330,7 @@ pub fn process_participation_record_updates<
     const MAX_VALIDATORS_PER_COMMITTEE: usize,
     const PENDING_ATTESTATIONS_BOUND: usize,
 >(
-    _state: &mut BeaconState<
+    state: &mut BeaconState<
         SLOTS_PER_HISTORICAL_ROOT,
         HISTORICAL_ROOTS_LIMIT,
         ETH1_DATA_VOTES_BOUND,
@@ -342,6 +342,9 @@ pub fn process_participation_record_updates<
     >,
     _context: &Context,
 ) -> Result<(), Error> {
+    state.previous_epoch_attestations = state.current_epoch_attestations.clone();
+    state.current_epoch_attestations.clear();
+    
     Ok(())
 }
 
