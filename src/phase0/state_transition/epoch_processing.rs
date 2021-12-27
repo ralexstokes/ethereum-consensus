@@ -1,7 +1,7 @@
 use crate::phase0::beacon_state::BeaconState;
 use crate::phase0::operations::PendingAttestation;
 use crate::phase0::state_transition::{
-    get_block_root, get_current_epoch, get_previous_epoch, Context, Error,
+    get_block_root, get_current_epoch, get_previous_epoch, get_randao_mix, Context, Error,
 };
 use crate::primitives::Epoch;
 use ssz_rs::prelude::*;
@@ -275,7 +275,7 @@ pub fn process_randao_mixes_reset<
     const MAX_VALIDATORS_PER_COMMITTEE: usize,
     const PENDING_ATTESTATIONS_BOUND: usize,
 >(
-    _state: &mut BeaconState<
+    state: &mut BeaconState<
         SLOTS_PER_HISTORICAL_ROOT,
         HISTORICAL_ROOTS_LIMIT,
         ETH1_DATA_VOTES_BOUND,
@@ -285,8 +285,13 @@ pub fn process_randao_mixes_reset<
         MAX_VALIDATORS_PER_COMMITTEE,
         PENDING_ATTESTATIONS_BOUND,
     >,
-    _context: &Context,
+    context: &Context,
 ) -> Result<(), Error> {
+    let current_epoch = get_current_epoch(state, context);
+    let next_epoch = current_epoch + 1;
+
+    state.randao_mixes[next_epoch as usize % context.epochs_per_historical_vector] =
+        get_randao_mix(state, current_epoch).clone();
     Ok(())
 }
 
