@@ -3,7 +3,7 @@ use crate::phase0::operations::PendingAttestation;
 use crate::phase0::state_transition::{
     get_block_root, get_current_epoch, get_previous_epoch, Context, Error,
 };
-use crate::primitives::{Epoch, Gwei};
+use crate::primitives::Epoch;
 use ssz_rs::prelude::*;
 
 pub fn get_matching_source_attestations<
