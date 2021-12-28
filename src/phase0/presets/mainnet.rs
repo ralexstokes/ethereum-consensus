@@ -99,7 +99,7 @@ pub const PRESET: Preset = Preset {
 
 pub type IndexedAttestation = operations::IndexedAttestation<MAX_VALIDATORS_PER_COMMITTEE>;
 pub type PendingAttestation = operations::PendingAttestation<MAX_VALIDATORS_PER_COMMITTEE>;
-pub type HistoricalBatch = beacon_state::HistoricalBatch<SLOTS_PER_HISTORICAL_ROOT>;
+pub type HistoricalBatchAccumulator = beacon_state::HistoricalBatchAccumulator;
 pub type AttesterSlashing = operations::AttesterSlashing<MAX_VALIDATORS_PER_COMMITTEE>;
 pub type Attestation = operations::Attestation<MAX_VALIDATORS_PER_COMMITTEE>;
 
