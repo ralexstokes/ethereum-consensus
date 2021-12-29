@@ -1,10 +1,12 @@
+use crate::phase0::beacon_block::BeaconBlockHeader;
 use crate::phase0::beacon_block::{BeaconBlock, BeaconBlockBody};
 use crate::phase0::beacon_state::BeaconState;
 use crate::phase0::operations::{
     Attestation, AttesterSlashing, Deposit, ProposerSlashing, SignedVoluntaryExit,
 };
 use crate::phase0::state_transition::{
-    get_beacon_proposer_index, Context, Error, InvalidDeposit, InvalidHeader, InvalidOperation,
+    get_beacon_proposer_index, Context, Error, InvalidBeaconBlockHeader, InvalidDeposit,
+    InvalidOperation,
 };
 use ssz_rs::prelude::*;
 
@@ -174,25 +176,56 @@ fn process_block_header<
     context: &Context,
 ) -> Result<(), Error> {
     if block.slot != state.slot {
-        return Err(Error::InvalidHeader(InvalidHeader::StateSlotMismatch));
+        return Err(Error::InvalidOperation(InvalidOperation::HeaderValidation(
+            InvalidBeaconBlockHeader::StateSlotMismatch {
+                state_slot: state.slot,
+                block_slot: block.slot,
+            },
+        )));
     }
 
-    let expected_block_root = state.latest_block_header.hash_tree_root()?;
-    if block.parent_root != expected_block_root {
-        return Err(Error::InvalidHeader(InvalidHeader::ParentBlockRootMismatch));
+    if block.slot <= state.latest_block_header.slot {
+        return Err(Error::InvalidOperation(InvalidOperation::HeaderValidation(
+            InvalidBeaconBlockHeader::OlderThanLatestBlockHeader {
+                block_slot: block.slot,
+                latest_block_header_slot: state.latest_block_header.slot,
+            },
+        )));
     }
 
-    state.latest_block_header = crate::phase0::beacon_block::BeaconBlockHeader {
+    let state_proposer_index = get_beacon_proposer_index(state, context)?;
+    if block.proposer_index != state_proposer_index {
+        return Err(Error::InvalidOperation(InvalidOperation::HeaderValidation(
+            InvalidBeaconBlockHeader::ProposerIndexMismatch {
+                block_proposer_index: block.proposer_index,
+                state_proposer_index: state_proposer_index,
+            },
+        )));
+    }
+
+    let expected_parent_root = state.latest_block_header.hash_tree_root()?;
+    if block.parent_root != expected_parent_root {
+        return Err(Error::InvalidOperation(InvalidOperation::HeaderValidation(
+            InvalidBeaconBlockHeader::ParentBlockRootMismatch {
+                expected: expected_parent_root,
+                provided: block.parent_root,
+            },
+        )));
+    }
+
+    state.latest_block_header = BeaconBlockHeader {
         slot: block.slot,
+        proposer_index: block.proposer_index,
         parent_root: block.parent_root,
         body_root: block.body.hash_tree_root()?,
         ..Default::default()
     };
 
-    let proposer_index = get_beacon_proposer_index(state, context)?;
-    let proposer = &state.validators[proposer_index];
+    let proposer = &state.validators[block.proposer_index];
     if proposer.slashed {
-        return Err(Error::InvalidHeader(InvalidHeader::ProposerSlashed));
+        return Err(Error::InvalidOperation(InvalidOperation::HeaderValidation(
+            InvalidBeaconBlockHeader::ProposerSlashed(state_proposer_index),
+        )));
     }
 
     Ok(())

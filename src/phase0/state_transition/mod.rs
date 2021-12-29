@@ -82,6 +82,28 @@ pub enum InvalidOperation {
     IndexedAttestation(InvalidIndexedAttestation),
     #[error("invalid deposit: {0}")]
     Deposit(InvalidDeposit),
+    #[error("invalid block header: {0}")]
+    HeaderValidation(InvalidBeaconBlockHeader),
+}
+
+#[derive(Debug, Error)]
+pub enum InvalidBeaconBlockHeader {
+    #[error("mismatch between state slot {state_slot} and block slot {block_slot}")]
+    StateSlotMismatch { state_slot: Slot, block_slot: Slot },
+    #[error("mismatch between the block's parent root {expected} and the expected parent root {provided}")]
+    ParentBlockRootMismatch { expected: Root, provided: Root },
+    #[error("proposer with index {0} is slashed")]
+    ProposerSlashed(ValidatorIndex),
+    #[error("block slot {block_slot} is older than the latest block header slot {latest_block_header_slot}")]
+    OlderThanLatestBlockHeader {
+        block_slot: Slot,
+        latest_block_header_slot: Slot,
+    },
+    #[error("mismatch between the block proposer index {block_proposer_index} and the state proposer index {state_proposer_index}")]
+    ProposerIndexMismatch {
+        block_proposer_index: usize,
+        state_proposer_index: usize,
+    },
 }
 
 #[derive(Debug, Error)]
