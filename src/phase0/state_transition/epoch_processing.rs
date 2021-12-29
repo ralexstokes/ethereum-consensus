@@ -5,6 +5,7 @@ use crate::phase0::state_transition::{
 };
 use crate::primitives::Epoch;
 use ssz_rs::prelude::*;
+use std::mem;
 
 pub fn get_matching_source_attestations<
     'a,
@@ -330,7 +331,7 @@ pub fn process_participation_record_updates<
     const MAX_VALIDATORS_PER_COMMITTEE: usize,
     const PENDING_ATTESTATIONS_BOUND: usize,
 >(
-    _state: &mut BeaconState<
+    state: &mut BeaconState<
         SLOTS_PER_HISTORICAL_ROOT,
         HISTORICAL_ROOTS_LIMIT,
         ETH1_DATA_VOTES_BOUND,
@@ -340,8 +341,10 @@ pub fn process_participation_record_updates<
         MAX_VALIDATORS_PER_COMMITTEE,
         PENDING_ATTESTATIONS_BOUND,
     >,
-    _context: &Context,
 ) -> Result<(), Error> {
+    let current_attestations = mem::take(&mut state.current_epoch_attestations);
+    state.previous_epoch_attestations = current_attestations;
+
     Ok(())
 }
 
@@ -376,6 +379,6 @@ pub fn process_epoch<
     process_slashings_reset(state, context)?;
     process_randao_mixes_reset(state, context)?;
     process_historical_roots_update(state, context)?;
-    process_participation_record_updates(state, context)?;
+    process_participation_record_updates(state)?;
     Ok(())
 }
