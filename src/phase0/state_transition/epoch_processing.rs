@@ -186,9 +186,9 @@ pub fn process_slashings<
         state.slashings.iter().sum::<Gwei>() * context.proportional_slashing_multiplier,
         total_balance,
     );
-    let validators = state.validators.clone();
 
-    for (index, validator) in validators.iter().enumerate() {
+    for i in 0..state.validators.len() {
+        let validator = &state.validators[i];
         if validator.slashed
             && (epoch + context.epochs_per_slashings_vector as u64 / 2)
                 == validator.withdrawable_epoch
@@ -197,7 +197,7 @@ pub fn process_slashings<
             let penalty_numerator =
                 validator.effective_balance / increment * adjusted_total_slashing_balance;
             let penalty = penalty_numerator / total_balance * increment;
-            decrease_balance(state, index, penalty);
+            decrease_balance(state, i, penalty);
         }
     }
 
