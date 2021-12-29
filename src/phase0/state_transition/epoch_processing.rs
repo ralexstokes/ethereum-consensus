@@ -186,12 +186,9 @@ pub fn process_slashings<
         state.slashings.iter().sum::<Gwei>() * context.proportional_slashing_multiplier,
         total_balance,
     );
-    // TODO: refactor expensive copy
-    // Used due to issue with borrowing & immutable / mutable references
-    let s = state.clone();
-    let validators = s.validators.iter().enumerate();
+    let validators = state.validators.clone();
 
-    for (index, validator) in validators {
+    for (index, validator) in validators.iter().enumerate() {
         if validator.slashed
             && (epoch + context.epochs_per_slashings_vector as u64 / 2)
                 == validator.withdrawable_epoch
