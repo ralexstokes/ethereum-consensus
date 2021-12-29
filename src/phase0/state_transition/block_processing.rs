@@ -1,9 +1,13 @@
+pub use crate::domains::DomainType;
 use crate::phase0::beacon_block::{BeaconBlock, BeaconBlockBody};
 use crate::phase0::beacon_state::BeaconState;
 use crate::phase0::operations::{
     Attestation, AttesterSlashing, Deposit, ProposerSlashing, SignedVoluntaryExit,
 };
-use crate::phase0::state_transition::{Context, Error, InvalidDeposit, InvalidOperation};
+use crate::phase0::state_transition::{
+    compute_signing_root, get_beacon_proposer_index, get_current_epoch, get_domain, get_randao_mix,
+    hash, Context, Error, InvalidBlock, InvalidDeposit, InvalidOperation,
+};
 
 pub fn process_proposer_slashing<
     const SLOTS_PER_HISTORICAL_ROOT: usize,
@@ -188,7 +192,7 @@ fn process_randao<
     const MAX_DEPOSITS: usize,
     const MAX_VOLUNTARY_EXITS: usize,
 >(
-    _state: &mut BeaconState<
+    state: &mut BeaconState<
         SLOTS_PER_HISTORICAL_ROOT,
         HISTORICAL_ROOTS_LIMIT,
         ETH1_DATA_VOTES_BOUND,
@@ -198,7 +202,7 @@ fn process_randao<
         MAX_VALIDATORS_PER_COMMITTEE,
         PENDING_ATTESTATIONS_BOUND,
     >,
-    _body: &BeaconBlockBody<
+    body: &BeaconBlockBody<
         MAX_PROPOSER_SLASHINGS,
         MAX_VALIDATORS_PER_COMMITTEE,
         MAX_ATTESTER_SLASHINGS,
@@ -206,8 +210,28 @@ fn process_randao<
         MAX_DEPOSITS,
         MAX_VOLUNTARY_EXITS,
     >,
-    _context: &Context,
+    context: &Context,
 ) -> Result<(), Error> {
+    let mut epoch = get_current_epoch(state, context);
+
+    let proposer_index = get_beacon_proposer_index(state, context)?;
+    let proposer = &state.validators[proposer_index];
+
+    let domain = get_domain(state, DomainType::Randao, Some(epoch), context)?;
+    let signing_root = compute_signing_root(&mut epoch, domain)?;
+
+    if !body
+        .randao_reveal
+        .verify(&proposer.pubkey, signing_root.as_ref())
+    {
+        return Err(Error::InvalidOperation(InvalidOperation::BlockProcessing(
+            InvalidBlock::RandaoSignatureInvalid,
+        )));
+    }
+
+    let mix = get_randao_mix(state, epoch).xor(hash(body.randao_reveal.as_bytes()));
+    state.randao_mixes[epoch as usize % EPOCHS_PER_HISTORICAL_VECTOR] = mix;
+
     Ok(())
 }
 

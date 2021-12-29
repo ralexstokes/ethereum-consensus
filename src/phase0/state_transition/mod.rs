@@ -70,6 +70,14 @@ pub enum InvalidOperation {
     IndexedAttestation(InvalidIndexedAttestation),
     #[error("invalid deposit: {0}")]
     Deposit(InvalidDeposit),
+    #[error("invalid block: {0}")]
+    BlockProcessing(InvalidBlock),
+}
+
+#[derive(Debug, Error)]
+pub enum InvalidBlock {
+    #[error("invalid randao signature")]
+    RandaoSignatureInvalid,
 }
 
 #[derive(Debug, Error)]
