@@ -69,7 +69,7 @@ impl Context {
             max_seed_lookahead: preset.max_seed_lookahead,
             min_epochs_to_inactivity_penalty: preset.min_epochs_to_inactivity_penalty,
             epochs_per_eth1_voting_period: preset.epochs_per_eth1_voting_period,
-            slots_per_historical_root: preset.slots_per_historical_root as Slot,
+            slots_per_historical_root: preset.slots_per_historical_root,
             epochs_per_historical_vector: preset.epochs_per_historical_vector,
             epochs_per_slashings_vector: preset.epochs_per_slashings_vector,
             historical_roots_limit: preset.historical_roots_limit,

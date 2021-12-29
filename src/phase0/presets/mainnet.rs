@@ -79,7 +79,7 @@ pub const PRESET: Preset = Preset {
     max_seed_lookahead: MAX_SEED_LOOKAHEAD,
     min_epochs_to_inactivity_penalty: MIN_EPOCHS_TO_INACTIVITY_PENALTY,
     epochs_per_eth1_voting_period: EPOCHS_PER_ETH1_VOTING_PERIOD,
-    slots_per_historical_root: SLOTS_PER_HISTORICAL_ROOT,
+    slots_per_historical_root: SLOTS_PER_HISTORICAL_ROOT as Slot,
     epochs_per_historical_vector: EPOCHS_PER_HISTORICAL_VECTOR,
     epochs_per_slashings_vector: EPOCHS_PER_SLASHINGS_VECTOR,
     historical_roots_limit: HISTORICAL_ROOTS_LIMIT,
@@ -99,7 +99,6 @@ pub const PRESET: Preset = Preset {
 
 pub type IndexedAttestation = operations::IndexedAttestation<MAX_VALIDATORS_PER_COMMITTEE>;
 pub type PendingAttestation = operations::PendingAttestation<MAX_VALIDATORS_PER_COMMITTEE>;
-pub type HistoricalBatchAccumulator = beacon_state::HistoricalBatchAccumulator;
 pub type AttesterSlashing = operations::AttesterSlashing<MAX_VALIDATORS_PER_COMMITTEE>;
 pub type Attestation = operations::Attestation<MAX_VALIDATORS_PER_COMMITTEE>;
 
