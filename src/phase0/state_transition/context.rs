@@ -20,7 +20,7 @@ pub struct Context {
     pub max_seed_lookahead: Epoch,
     pub min_epochs_to_inactivity_penalty: Epoch,
     pub epochs_per_eth1_voting_period: Epoch,
-    pub slots_per_historical_root: usize,
+    pub slots_per_historical_root: Slot,
     pub epochs_per_historical_vector: usize,
     pub epochs_per_slashings_vector: usize,
     pub historical_roots_limit: usize,

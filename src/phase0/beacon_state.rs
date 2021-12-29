@@ -20,10 +20,23 @@ pub(super) const fn get_pending_attestations_bound(
     max_attestations * slots_per_epoch
 }
 
+/// Note: a slight deviation from the specification's definition of `HistoricalBatch`
+///
+/// `HistoricalBatch` is to be used as a "summary" Merkleized container and is simply a wrapper around
+/// `block_roots` & `state_roots` (and their respective Merkle roots). Instead of the `_roots`
+/// being of type `Vector<Root, N>`, a single `Root` is pulled out to allow Merkleization of each root to be
+/// performed manually (using the `ssz_rs` crate). Thus, the container is redefined as `HistoricalBatchAccumulator`
+/// with `block_roots_root` & `state_roots_root`.
+///
+/// This design decision was chosen for memory optimization purposes, for example, in the
+/// `state_transition` crate's `process_historical_roots_update` function. Also note that the
+/// `HistoricalBatch` container has no need for serialization, otherwise, this design would pose an issue.
+///
+/// For more information, see the comment here: https://github.com/ralexstokes/ethereum_consensus/pull/37#discussion_r775995594
 #[derive(Default, Debug, SimpleSerialize)]
-pub struct HistoricalBatch<const SLOTS_PER_HISTORICAL_ROOT: usize> {
-    pub block_roots: Vector<Root, SLOTS_PER_HISTORICAL_ROOT>,
-    pub state_roots: Vector<Root, SLOTS_PER_HISTORICAL_ROOT>,
+pub struct HistoricalBatchAccumulator {
+    pub block_roots_root: Root,
+    pub state_roots_root: Root,
 }
 
 #[derive(Default, Debug, SimpleSerialize, Clone)]
