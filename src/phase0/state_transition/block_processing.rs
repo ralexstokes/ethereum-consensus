@@ -6,7 +6,7 @@ use crate::phase0::operations::{
 };
 use crate::phase0::state_transition::{
     compute_signing_root, get_beacon_proposer_index, get_current_epoch, get_domain, get_randao_mix,
-    hash, Context, Error, InvalidBlock, InvalidDeposit, InvalidOperation,
+    hash, BLSSignature, Context, Error, InvalidDeposit, InvalidOperation,
 };
 
 pub fn process_proposer_slashing<
@@ -224,8 +224,8 @@ fn process_randao<
         .randao_reveal
         .verify(&proposer.pubkey, signing_root.as_ref())
     {
-        return Err(Error::InvalidOperation(InvalidOperation::BlockProcessing(
-            InvalidBlock::RandaoSignatureInvalid,
+        return Err(Error::InvalidOperation(InvalidOperation::Randao(
+            BLSSignature::InvalidSignature,
         )));
     }
 
