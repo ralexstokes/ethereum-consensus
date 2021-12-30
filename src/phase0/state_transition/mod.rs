@@ -78,7 +78,7 @@ pub enum InvalidOperation {
 pub enum InvalidBeaconBlockHeader {
     #[error("mismatch between state slot {state_slot} and block slot {block_slot}")]
     StateSlotMismatch { state_slot: Slot, block_slot: Slot },
-    #[error("mismatch between the block's parent root {expected} and the expected parent root {provided}")]
+    #[error("mismatch between the block's parent root {expected:?} and the expected parent root {provided:?}")]
     ParentBlockRootMismatch { expected: Root, provided: Root },
     #[error("proposer with index {0} is slashed")]
     ProposerSlashed(ValidatorIndex),
