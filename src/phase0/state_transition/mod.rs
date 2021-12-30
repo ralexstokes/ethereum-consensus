@@ -71,7 +71,7 @@ pub enum InvalidOperation {
     #[error("invalid deposit: {0}")]
     Deposit(InvalidDeposit),
     #[error("invalid block header: {0}")]
-    HeaderValidation(InvalidBeaconBlockHeader),
+    Header(InvalidBeaconBlockHeader),
 }
 
 #[derive(Debug, Error)]
