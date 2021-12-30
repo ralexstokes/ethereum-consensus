@@ -165,7 +165,7 @@ fn process_block_header<
         MAX_VALIDATORS_PER_COMMITTEE,
         PENDING_ATTESTATIONS_BOUND,
     >,
-    block: &BeaconBlock<
+    block: &mut BeaconBlock<
         MAX_PROPOSER_SLASHINGS,
         MAX_VALIDATORS_PER_COMMITTEE,
         MAX_ATTESTER_SLASHINGS,
@@ -399,7 +399,7 @@ pub fn process_block<
         MAX_VALIDATORS_PER_COMMITTEE,
         PENDING_ATTESTATIONS_BOUND,
     >,
-    block: &BeaconBlock<
+    block: &mut BeaconBlock<
         MAX_PROPOSER_SLASHINGS,
         MAX_VALIDATORS_PER_COMMITTEE,
         MAX_ATTESTER_SLASHINGS,
