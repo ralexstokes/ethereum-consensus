@@ -222,7 +222,7 @@ fn process_randao<
 
     if !body
         .randao_reveal
-        .verify(&proposer.pubkey, signing_root.as_ref())
+        .verify(&proposer.pubkey, signing_root.as_bytes())
     {
         return Err(Error::InvalidOperation(InvalidOperation::Randao(
             BLSSignature::InvalidSignature,
@@ -230,8 +230,7 @@ fn process_randao<
     }
 
     let mix = get_randao_mix(state, epoch).xor(hash(body.randao_reveal.as_bytes()));
-    state.randao_mixes[epoch as usize % EPOCHS_PER_HISTORICAL_VECTOR] = mix;
-
+    state.randao_mixes[epoch as usize % context.epochs_per_historical_vector] = mix;
     Ok(())
 }
 
