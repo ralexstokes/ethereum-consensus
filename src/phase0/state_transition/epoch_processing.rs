@@ -1,9 +1,10 @@
 use crate::phase0::beacon_state::{BeaconState, HistoricalBatchAccumulator};
 use crate::phase0::operations::PendingAttestation;
 use crate::phase0::state_transition::{
-    get_block_root, get_current_epoch, get_previous_epoch, get_randao_mix, Context, Error,
+    decrease_balance, get_block_root, get_current_epoch, get_previous_epoch, get_randao_mix,
+    get_total_active_balance, Context, Error,
 };
-use crate::primitives::Epoch;
+use crate::primitives::{Epoch, Gwei};
 use ssz_rs::prelude::*;
 use std::mem;
 
@@ -168,7 +169,7 @@ pub fn process_slashings<
     const MAX_VALIDATORS_PER_COMMITTEE: usize,
     const PENDING_ATTESTATIONS_BOUND: usize,
 >(
-    _state: &mut BeaconState<
+    state: &mut BeaconState<
         SLOTS_PER_HISTORICAL_ROOT,
         HISTORICAL_ROOTS_LIMIT,
         ETH1_DATA_VOTES_BOUND,
@@ -178,8 +179,29 @@ pub fn process_slashings<
         MAX_VALIDATORS_PER_COMMITTEE,
         PENDING_ATTESTATIONS_BOUND,
     >,
-    _context: &Context,
+    context: &Context,
 ) -> Result<(), Error> {
+    let epoch = get_current_epoch(state, context);
+    let total_balance = get_total_active_balance(state, context)?;
+    let adjusted_total_slashing_balance = Gwei::min(
+        state.slashings.iter().sum::<Gwei>() * context.proportional_slashing_multiplier,
+        total_balance,
+    );
+
+    for i in 0..state.validators.len() {
+        let validator = &state.validators[i];
+        if validator.slashed
+            && (epoch + context.epochs_per_slashings_vector as u64 / 2)
+                == validator.withdrawable_epoch
+        {
+            let increment = context.effective_balance_increment;
+            let penalty_numerator =
+                validator.effective_balance / increment * adjusted_total_slashing_balance;
+            let penalty = penalty_numerator / total_balance * increment;
+            decrease_balance(state, i, penalty);
+        }
+    }
+
     Ok(())
 }
 
