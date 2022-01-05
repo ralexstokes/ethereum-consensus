@@ -5,7 +5,7 @@ use crate::phase0::operations::{
     Attestation, AttesterSlashing, Deposit, ProposerSlashing, SignedVoluntaryExit,
 };
 use crate::phase0::state_transition::{
-    get_beacon_proposer_index, invalid_header_error, invalid_opearation_error, Context, Error,
+    get_beacon_proposer_index, invalid_header_error, invalid_operation_error, Context, Error,
     InvalidBeaconBlockHeader, InvalidDeposit, InvalidOperation,
 };
 use ssz_rs::prelude::*;
@@ -348,7 +348,7 @@ fn process_operations<
     );
 
     if body.deposits.len() != expected_deposit_count {
-        return Err(invalid_opearation_error(InvalidOperation::Deposit(
+        return Err(invalid_operation_error(InvalidOperation::Deposit(
             InvalidDeposit::IncorrectCount {
                 expected: expected_deposit_count,
                 count: body.deposits.len(),

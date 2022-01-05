@@ -129,7 +129,7 @@ pub fn invalid_header_error(error: InvalidBeaconBlockHeader) -> Error {
     Error::InvalidBlock(InvalidBlock::Header(error))
 }
 
-pub fn invalid_opearation_error(error: InvalidOperation) -> Error {
+pub fn invalid_operation_error(error: InvalidOperation) -> Error {
     Error::InvalidBlock(InvalidBlock::InvalidOperation(error))
 }
 
@@ -207,7 +207,7 @@ pub fn is_valid_indexed_attestation<
     let attesting_indices = &indexed_attestation.attesting_indices;
 
     if attesting_indices.is_empty() {
-        return Err(invalid_opearation_error(
+        return Err(invalid_operation_error(
             InvalidOperation::IndexedAttestation(InvalidIndexedAttestation::AttestingIndicesEmpty),
         ));
     }
@@ -221,7 +221,7 @@ pub fn is_valid_indexed_attestation<
         })
         .all(|x| x);
     if !is_sorted {
-        return Err(invalid_opearation_error(
+        return Err(invalid_operation_error(
             InvalidOperation::IndexedAttestation(
                 InvalidIndexedAttestation::AttestingIndicesNotSorted,
             ),
@@ -239,7 +239,7 @@ pub fn is_valid_indexed_attestation<
                 seen.insert(i);
             }
         }
-        return Err(invalid_opearation_error(
+        return Err(invalid_operation_error(
             InvalidOperation::IndexedAttestation(InvalidIndexedAttestation::DuplicateIndices(
                 duplicates,
             )),
@@ -997,7 +997,7 @@ pub fn get_attesting_indices<
     let committee = get_beacon_committee(state, data.slot, data.index, context)?;
 
     if bits.len() != committee.len() {
-        return Err(invalid_opearation_error(InvalidOperation::Attestation(
+        return Err(invalid_operation_error(InvalidOperation::Attestation(
             InvalidAttestation::Bitfield {
                 expected_length: committee.len(),
                 length: bits.len(),
