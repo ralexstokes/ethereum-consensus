@@ -226,7 +226,7 @@ fn process_eth1_data<
     const MAX_DEPOSITS: usize,
     const MAX_VOLUNTARY_EXITS: usize,
 >(
-    _state: &mut BeaconState<
+    state: &mut BeaconState<
         SLOTS_PER_HISTORICAL_ROOT,
         HISTORICAL_ROOTS_LIMIT,
         ETH1_DATA_VOTES_BOUND,
@@ -236,7 +236,7 @@ fn process_eth1_data<
         MAX_VALIDATORS_PER_COMMITTEE,
         PENDING_ATTESTATIONS_BOUND,
     >,
-    _body: &BeaconBlockBody<
+    body: &BeaconBlockBody<
         MAX_PROPOSER_SLASHINGS,
         MAX_VALIDATORS_PER_COMMITTEE,
         MAX_ATTESTER_SLASHINGS,
@@ -244,8 +244,20 @@ fn process_eth1_data<
         MAX_DEPOSITS,
         MAX_VOLUNTARY_EXITS,
     >,
-    _context: &Context,
+    context: &Context,
 ) -> Result<(), Error> {
+    state.eth1_data_votes.push(body.eth1_data.clone());
+
+    let votes_count = state
+        .eth1_data_votes
+        .iter()
+        .filter(|&vote| *vote == body.eth1_data)
+        .count() as u64;
+
+    if votes_count * 2 > context.epochs_per_eth1_voting_period * context.slots_per_epoch {
+        state.eth1_data = body.eth1_data.clone();
+    }
+
     Ok(())
 }
 
