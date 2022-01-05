@@ -47,7 +47,7 @@ pub enum Error {
     #[error("overflow")]
     Overflow,
     #[error("{0}")]
-    InvalidOperation(InvalidOperation),
+    InvalidBlock(InvalidBlock),
     #[error("an invalid transition to a past slot {requested} from slot {current}")]
     TransitionToPreviousSlot { current: Slot, requested: Slot },
     #[error("invalid state root")]
@@ -63,6 +63,14 @@ pub enum Error {
 }
 
 #[derive(Debug, Error)]
+pub enum InvalidBlock {
+    #[error("invalid beacon block header: {0}")]
+    Header(InvalidBeaconBlockHeader),
+    #[error("invalid operation: {0}")]
+    InvalidOperation(InvalidOperation),
+}
+
+#[derive(Debug, Error)]
 pub enum InvalidOperation {
     #[error("invalid attestation: {0}")]
     Attestation(InvalidAttestation),
@@ -70,8 +78,6 @@ pub enum InvalidOperation {
     IndexedAttestation(InvalidIndexedAttestation),
     #[error("invalid deposit: {0}")]
     Deposit(InvalidDeposit),
-    #[error("invalid block header: {0}")]
-    Header(InvalidBeaconBlockHeader),
 }
 
 #[derive(Debug, Error)]
@@ -117,6 +123,14 @@ pub enum InvalidIndexedAttestation {
 pub enum InvalidDeposit {
     #[error("expected {expected} deposits but only had {count} deposits")]
     IncorrectCount { expected: usize, count: usize },
+}
+
+pub fn invalid_header_error(error: InvalidBeaconBlockHeader) -> Error {
+    Error::InvalidBlock(InvalidBlock::Header(error))
+}
+
+pub fn invalid_opearation_error(error: InvalidOperation) -> Error {
+    Error::InvalidBlock(InvalidBlock::InvalidOperation(error))
 }
 
 pub fn is_active_validator(validator: &Validator, epoch: Epoch) -> bool {
@@ -193,7 +207,7 @@ pub fn is_valid_indexed_attestation<
     let attesting_indices = &indexed_attestation.attesting_indices;
 
     if attesting_indices.is_empty() {
-        return Err(Error::InvalidOperation(
+        return Err(invalid_opearation_error(
             InvalidOperation::IndexedAttestation(InvalidIndexedAttestation::AttestingIndicesEmpty),
         ));
     }
@@ -207,7 +221,7 @@ pub fn is_valid_indexed_attestation<
         })
         .all(|x| x);
     if !is_sorted {
-        return Err(Error::InvalidOperation(
+        return Err(invalid_opearation_error(
             InvalidOperation::IndexedAttestation(
                 InvalidIndexedAttestation::AttestingIndicesNotSorted,
             ),
@@ -225,7 +239,7 @@ pub fn is_valid_indexed_attestation<
                 seen.insert(i);
             }
         }
-        return Err(Error::InvalidOperation(
+        return Err(invalid_opearation_error(
             InvalidOperation::IndexedAttestation(InvalidIndexedAttestation::DuplicateIndices(
                 duplicates,
             )),
@@ -983,7 +997,7 @@ pub fn get_attesting_indices<
     let committee = get_beacon_committee(state, data.slot, data.index, context)?;
 
     if bits.len() != committee.len() {
-        return Err(Error::InvalidOperation(InvalidOperation::Attestation(
+        return Err(invalid_opearation_error(InvalidOperation::Attestation(
             InvalidAttestation::Bitfield {
                 expected_length: committee.len(),
                 length: bits.len(),
