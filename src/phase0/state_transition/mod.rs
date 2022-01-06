@@ -5,7 +5,7 @@ pub mod epoch_processing;
 pub mod genesis;
 mod slot_processing;
 
-use crate::crypto::{fast_aggregate_verify, hash};
+use crate::crypto::{fast_aggregate_verify, hash, Signature as BLSSignature};
 use crate::domains::{DomainType, SigningData};
 use crate::phase0::beacon_block::SignedBeaconBlock;
 use crate::phase0::beacon_state::BeaconState;
@@ -70,6 +70,8 @@ pub enum InvalidOperation {
     IndexedAttestation(InvalidIndexedAttestation),
     #[error("invalid deposit: {0}")]
     Deposit(InvalidDeposit),
+    #[error("invalid randao (BLS signature): {0:?}")]
+    Randao(BLSSignature),
 }
 
 #[derive(Debug, Error)]
