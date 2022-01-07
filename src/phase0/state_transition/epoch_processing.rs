@@ -1,14 +1,14 @@
 use crate::phase0::beacon_state::{BeaconState, HistoricalBatchAccumulator};
 use crate::phase0::operations::PendingAttestation;
 use crate::phase0::state_transition::{
-    decrease_balance, get_block_root, get_current_epoch, get_previous_epoch, get_randao_mix,
-    get_total_active_balance, initiate_validator_exit, is_active_validator,
-    is_eligible_for_activation, is_eligible_for_activation_queue, Context, Error,
+    compute_activation_exit_epoch, decrease_balance, get_block_root, get_current_epoch,
+    get_previous_epoch, get_randao_mix, get_total_active_balance, get_validator_churn_limit,
+    initiate_validator_exit, is_active_validator, is_eligible_for_activation,
+    is_eligible_for_activation_queue, Context, Error,
 };
-use crate::phase0::validator::Validator;
 use crate::primitives::{Epoch, Gwei, ValidatorIndex};
 use ssz_rs::prelude::*;
-use std::{cmp, mem};
+use std::mem;
 
 pub fn get_matching_source_attestations<
     'a,
@@ -175,43 +175,28 @@ pub fn process_registry_updates<
     }
 
     // Queue validators eligible for activation and not yet dequeued for activation
-    let _activation_queue = state
+    let mut activation_queue = state
         .validators
         .iter()
         .enumerate()
         .filter(|&(_, validator)| is_eligible_for_activation(state, validator))
-        .collect::<Vec<(ValidatorIndex, &Validator)>>()
-        // Order by the sequence of activation_eligibility_epoch setting and then index
-        .sort_by(|a, b| {
-            let a_activation_eligibility_epoch = a.1.activation_eligibility_epoch;
-            let a_index = a.0;
-            let b_activation_eligibility_epoch = b.1.activation_eligibility_epoch;
-            let b_index = b.0;
-            match a_activation_eligibility_epoch.cmp(&b_activation_eligibility_epoch) {
-                cmp::Ordering::Less => cmp::Ordering::Less,
-                cmp::Ordering::Greater => cmp::Ordering::Greater,
-                cmp::Ordering::Equal => match a_index.cmp(&b_index) {
-                    cmp::Ordering::Less => cmp::Ordering::Less,
-                    cmp::Ordering::Greater => cmp::Ordering::Greater,
-                    // TODO: throw some error if the valators' indices are equal -- should not be possible
-                    cmp::Ordering::Equal => cmp::Ordering::Equal,
-                },
-            }
-        });
-    // TODO: map sorted vec from (ValidatorIndex, &Validator) to just the ValidatorIndex
-    // .map(|(index, _)| index);
-    // Having issue where `activation_queue` is defined as `()` instead of a vector, so no operations can be performed
+        .map(|(i, _)| i)
+        .collect::<Vec<ValidatorIndex>>();
+    // Order by the sequence of activation_eligibility_epoch setting and then index
+    activation_queue.sort_by(|i, j| {
+        let a = &state.validators[*i];
+        let b = &state.validators[*j];
+        (a.activation_eligibility_epoch, i).cmp(&(b.activation_eligibility_epoch, j))
+    });
 
-    // TODO: WIP on below code; must finish `activation_queue` issues first
-    // Reminder: import `compute_activation_exit_epoch`, `get_validator_churn_limit` from `state_transition`
     // Dequeued validators for activation up to churn limit
-    // for i in activation_queue
-    //     .iter()
-    //     .take(get_validator_churn_limit(state, context) as usize)
-    // {
-    //     let validator = &mut state.validators[i.clone()];
-    //     validator.activation_epoch = compute_activation_exit_epoch(current_epoch, context);
-    // }
+    for i in activation_queue
+        .iter()
+        .take(get_validator_churn_limit(state, context) as usize)
+    {
+        let validator = &mut state.validators[*i];
+        validator.activation_epoch = compute_activation_exit_epoch(current_epoch, context);
+    }
 
     Ok(())
 }
