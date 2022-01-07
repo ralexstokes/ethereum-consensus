@@ -5,8 +5,9 @@ use crate::phase0::operations::{
     Attestation, AttesterSlashing, Deposit, ProposerSlashing, SignedVoluntaryExit,
 };
 use crate::phase0::state_transition::{
-    compute_signing_root, get_beacon_proposer_index, get_current_epoch, get_domain, get_randao_mix,
-    hash, Context, Error, InvalidDeposit, InvalidOperation,
+    compute_epoch_at_slot, compute_signing_root, get_beacon_proposer_index, get_current_epoch,
+    get_domain, get_randao_mix, hash, is_slashable_validator, slash_validator, Context, Error,
+    InvalidDeposit, InvalidOperation, InvalidProposerSlashing,
 };
 
 pub fn process_proposer_slashing<
@@ -19,7 +20,7 @@ pub fn process_proposer_slashing<
     const MAX_VALIDATORS_PER_COMMITTEE: usize,
     const PENDING_ATTESTATIONS_BOUND: usize,
 >(
-    _state: &mut BeaconState<
+    state: &mut BeaconState<
         SLOTS_PER_HISTORICAL_ROOT,
         HISTORICAL_ROOTS_LIMIT,
         ETH1_DATA_VOTES_BOUND,
@@ -29,10 +30,63 @@ pub fn process_proposer_slashing<
         MAX_VALIDATORS_PER_COMMITTEE,
         PENDING_ATTESTATIONS_BOUND,
     >,
-    _proposer_slashing: &ProposerSlashing,
-    _context: &Context,
+    proposer_slashing: &mut ProposerSlashing,
+    context: &Context,
 ) -> Result<(), Error> {
-    Ok(())
+    let header_1 = &proposer_slashing.signed_header_1.message;
+    let header_2 = &proposer_slashing.signed_header_2.message;
+
+    if header_1.slot != header_2.slot {
+        return Err(Error::InvalidOperation(InvalidOperation::ProposerSlashing(
+            InvalidProposerSlashing::SlotMismatch {
+                one: header_1.slot,
+                two: header_2.slot,
+            },
+        )));
+    }
+
+    if header_1.proposer_index != header_2.proposer_index {
+        return Err(Error::InvalidOperation(InvalidOperation::ProposerSlashing(
+            InvalidProposerSlashing::ProposerMismatch {
+                one: header_1.proposer_index,
+                two: header_2.proposer_index,
+            },
+        )));
+    }
+
+    if header_1 == header_2 {
+        return Err(Error::InvalidOperation(InvalidOperation::ProposerSlashing(
+            InvalidProposerSlashing::HeadersAreEqual(header_1.clone()),
+        )));
+    }
+
+    let proposer_index = header_1.proposer_index;
+    let proposer = &state.validators[proposer_index];
+    if !is_slashable_validator(proposer, get_current_epoch(state, context)) {
+        return Err(Error::InvalidOperation(InvalidOperation::ProposerSlashing(
+            InvalidProposerSlashing::ProposerIsNotSlashable(header_1.proposer_index),
+        )));
+    }
+
+    let epoch = compute_epoch_at_slot(header_1.slot, context);
+    let domain = get_domain(state, DomainType::BeaconProposer, Some(epoch), context)?;
+    for signed_header in [
+        &mut proposer_slashing.signed_header_1,
+        &mut proposer_slashing.signed_header_2,
+    ] {
+        let signing_root = compute_signing_root(&mut signed_header.message, domain)?;
+        let valid_signature = proposer
+            .pubkey
+            .verify_signature(signing_root.as_bytes(), &signed_header.signature);
+
+        if !valid_signature {
+            return Err(Error::InvalidOperation(InvalidOperation::ProposerSlashing(
+                InvalidProposerSlashing::InvalidSignature(signed_header.signature.clone()),
+            )));
+        }
+    }
+
+    slash_validator(state, proposer_index, None, context)
 }
 
 pub fn process_attester_slashing<
@@ -298,7 +352,7 @@ fn process_operations<
         MAX_VALIDATORS_PER_COMMITTEE,
         PENDING_ATTESTATIONS_BOUND,
     >,
-    body: &BeaconBlockBody<
+    body: &mut BeaconBlockBody<
         MAX_PROPOSER_SLASHINGS,
         MAX_VALIDATORS_PER_COMMITTEE,
         MAX_ATTESTER_SLASHINGS,
@@ -323,7 +377,7 @@ fn process_operations<
     }
 
     body.proposer_slashings
-        .iter()
+        .iter_mut()
         .try_for_each(|op| process_proposer_slashing(state, op, context))?;
     body.attester_slashings
         .iter()
@@ -365,7 +419,7 @@ pub fn process_block<
         MAX_VALIDATORS_PER_COMMITTEE,
         PENDING_ATTESTATIONS_BOUND,
     >,
-    block: &BeaconBlock<
+    block: &mut BeaconBlock<
         MAX_PROPOSER_SLASHINGS,
         MAX_VALIDATORS_PER_COMMITTEE,
         MAX_ATTESTER_SLASHINGS,
@@ -378,6 +432,6 @@ pub fn process_block<
     process_block_header(state, block, context)?;
     process_randao(state, &block.body, context)?;
     process_eth1_data(state, &block.body, context)?;
-    process_operations(state, &block.body, context)?;
+    process_operations(state, &mut block.body, context)?;
     Ok(())
 }
