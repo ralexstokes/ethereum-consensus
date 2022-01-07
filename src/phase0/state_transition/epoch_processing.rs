@@ -191,8 +191,7 @@ pub fn process_slashings<
     for i in 0..state.validators.len() {
         let validator = &state.validators[i];
         if validator.slashed
-            && (epoch + context.epochs_per_slashings_vector as u64 / 2)
-                == validator.withdrawable_epoch
+            && (epoch + context.epochs_per_slashings_vector / 2) == validator.withdrawable_epoch
         {
             let increment = context.effective_balance_increment;
             let penalty_numerator =
@@ -284,7 +283,8 @@ pub fn process_slashings_reset<
 ) -> Result<(), Error> {
     let next_epoch = get_current_epoch(state, context) + 1;
 
-    state.slashings[next_epoch as usize % context.epochs_per_slashings_vector] = 0;
+    let slashings_index = next_epoch % context.epochs_per_slashings_vector;
+    state.slashings[slashings_index as usize] = 0;
     Ok(())
 }
 
@@ -312,9 +312,8 @@ pub fn process_randao_mixes_reset<
 ) -> Result<(), Error> {
     let current_epoch = get_current_epoch(state, context);
     let next_epoch = current_epoch + 1;
-
-    state.randao_mixes[next_epoch as usize % context.epochs_per_historical_vector] =
-        get_randao_mix(state, current_epoch).clone();
+    let mix_index = next_epoch % context.epochs_per_historical_vector;
+    state.randao_mixes[mix_index as usize] = get_randao_mix(state, current_epoch).clone();
     Ok(())
 }
 

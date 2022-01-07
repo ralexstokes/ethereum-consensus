@@ -230,7 +230,8 @@ fn process_randao<
     }
 
     let mix = get_randao_mix(state, epoch).xor(hash(body.randao_reveal.as_bytes()));
-    state.randao_mixes[epoch as usize % context.epochs_per_historical_vector] = mix;
+    let mix_index = epoch % context.epochs_per_historical_vector;
+    state.randao_mixes[mix_index as usize] = mix;
     Ok(())
 }
 
