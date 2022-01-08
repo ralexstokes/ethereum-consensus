@@ -4,14 +4,16 @@ pub use crate::domains::DomainType;
 use crate::phase0::beacon_block::{BeaconBlock, BeaconBlockBody, BeaconBlockHeader};
 use crate::phase0::beacon_state::BeaconState;
 use crate::phase0::operations::{
-    Attestation, AttesterSlashing, Deposit, ProposerSlashing, SignedVoluntaryExit,
+    Attestation, AttesterSlashing, Deposit, PendingAttestation, ProposerSlashing,
+    SignedVoluntaryExit,
 };
 use crate::phase0::state_transition::{
-    compute_epoch_at_slot, compute_signing_root, get_beacon_proposer_index, get_current_epoch,
-    get_domain, get_randao_mix, hash, invalid_header_error, invalid_operation_error,
+    compute_epoch_at_slot, compute_signing_root, get_beacon_committee, get_beacon_proposer_index,
+    get_committee_count_per_slot, get_current_epoch, get_domain, get_indexed_attestation,
+    get_previous_epoch, get_randao_mix, hash, invalid_header_error, invalid_operation_error,
     is_slashable_attestation_data, is_slashable_validator, is_valid_indexed_attestation,
-    slash_validator, Context, Error, InvalidAttesterSlashing, InvalidBeaconBlockHeader,
-    InvalidDeposit, InvalidOperation, InvalidProposerSlashing,
+    slash_validator, Context, Error, InvalidAttestation, InvalidAttesterSlashing,
+    InvalidBeaconBlockHeader, InvalidDeposit, InvalidOperation, InvalidProposerSlashing,
 };
 use crate::primitives::ValidatorIndex;
 use ssz_rs::prelude::*;
@@ -168,7 +170,7 @@ pub fn process_attestation<
     const MAX_VALIDATORS_PER_COMMITTEE: usize,
     const PENDING_ATTESTATIONS_BOUND: usize,
 >(
-    _state: &mut BeaconState<
+    state: &mut BeaconState<
         SLOTS_PER_HISTORICAL_ROOT,
         HISTORICAL_ROOTS_LIMIT,
         ETH1_DATA_VOTES_BOUND,
@@ -178,9 +180,108 @@ pub fn process_attestation<
         MAX_VALIDATORS_PER_COMMITTEE,
         PENDING_ATTESTATIONS_BOUND,
     >,
-    _attestation: &Attestation<MAX_VALIDATORS_PER_COMMITTEE>,
-    _context: &Context,
+    attestation: &Attestation<MAX_VALIDATORS_PER_COMMITTEE>,
+    context: &Context,
 ) -> Result<(), Error> {
+    let data = &attestation.data;
+
+    let is_previous = data.target.epoch == get_previous_epoch(state, context);
+    let current_epoch = get_current_epoch(state, context);
+    let is_current = data.target.epoch == current_epoch;
+    let valid_target_epoch = is_previous || is_current;
+    if !valid_target_epoch {
+        return Err(invalid_operation_error(InvalidOperation::Attestation(
+            InvalidAttestation::InvalidTargetEpoch {
+                target: data.target.epoch,
+                current: current_epoch,
+            },
+        )));
+    }
+
+    let attestation_epoch = compute_epoch_at_slot(data.slot, context);
+    if data.target.epoch != attestation_epoch {
+        return Err(invalid_operation_error(InvalidOperation::Attestation(
+            InvalidAttestation::InvalidSlot {
+                slot: data.slot,
+                epoch: attestation_epoch,
+                target: data.target.epoch,
+            },
+        )));
+    }
+
+    let attestation_has_delay = data.slot + context.min_attestation_inclusion_delay <= state.slot;
+    let attestation_is_recent = state.slot <= data.slot + context.slots_per_epoch;
+    let attestation_is_timely = attestation_has_delay && attestation_is_recent;
+    if !attestation_is_timely {
+        return Err(invalid_operation_error(InvalidOperation::Attestation(
+            InvalidAttestation::NotTimely {
+                state_slot: state.slot,
+                attestation_slot: data.slot,
+                lower_bound: data.slot + context.slots_per_epoch,
+                upper_bound: data.slot + context.min_attestation_inclusion_delay,
+            },
+        )));
+    }
+
+    let committee_count = get_committee_count_per_slot(state, data.target.epoch, context);
+    if data.index >= committee_count {
+        return Err(invalid_operation_error(InvalidOperation::Attestation(
+            InvalidAttestation::InvalidIndex {
+                index: data.index,
+                upper_bound: committee_count,
+            },
+        )));
+    }
+
+    let committee = get_beacon_committee(state, data.slot, data.index, context)?;
+
+    if attestation.aggregation_bits.len() != committee.len() {
+        return Err(invalid_operation_error(InvalidOperation::Attestation(
+            InvalidAttestation::Bitfield {
+                expected_length: committee.len(),
+                length: attestation.aggregation_bits.len(),
+            },
+        )));
+    }
+
+    // NOTE: swap order of these wrt the spec to avoid mutation
+    // to the state that would need to be undone
+    let _ = is_valid_indexed_attestation(
+        state,
+        &mut get_indexed_attestation(state, attestation, context)?,
+        context,
+    )?;
+
+    let pending_attestation = PendingAttestation {
+        aggregation_bits: attestation.aggregation_bits.clone(),
+        data: data.clone(),
+        inclusion_delay: state.slot - data.slot,
+        proposer_index: get_beacon_proposer_index(state, context)?,
+    };
+    if is_current {
+        if data.source != state.current_justified_checkpoint {
+            return Err(invalid_operation_error(InvalidOperation::Attestation(
+                InvalidAttestation::InvalidSource {
+                    expected: state.current_justified_checkpoint.clone(),
+                    source_checkpoint: data.source.clone(),
+                    current: current_epoch,
+                },
+            )));
+        }
+        state.current_epoch_attestations.push(pending_attestation);
+    } else {
+        if data.source != state.previous_justified_checkpoint {
+            return Err(invalid_operation_error(InvalidOperation::Attestation(
+                InvalidAttestation::InvalidSource {
+                    expected: state.previous_justified_checkpoint.clone(),
+                    source_checkpoint: data.source.clone(),
+                    current: current_epoch,
+                },
+            )));
+        }
+        state.previous_epoch_attestations.push(pending_attestation);
+    }
+
     Ok(())
 }
 

@@ -10,7 +10,7 @@ use crate::domains::{DomainType, SigningData};
 use crate::phase0::beacon_block::{BeaconBlockHeader, SignedBeaconBlock};
 use crate::phase0::beacon_state::BeaconState;
 use crate::phase0::fork::ForkData;
-use crate::phase0::operations::{Attestation, AttestationData, IndexedAttestation};
+use crate::phase0::operations::{Attestation, AttestationData, Checkpoint, IndexedAttestation};
 use crate::phase0::state_transition::block_processing::process_block;
 use crate::phase0::state_transition::slot_processing::process_slots;
 use crate::phase0::validator::Validator;
@@ -112,6 +112,29 @@ pub enum InvalidAttestation {
     Bitfield {
         expected_length: usize,
         length: usize,
+    },
+    #[error("invalid target epoch {target}, not current ({current}) or previous epochs")]
+    InvalidTargetEpoch { target: Epoch, current: Epoch },
+    #[error("invalid slot {slot} (in epoch {epoch}) based on target epoch {target}")]
+    InvalidSlot {
+        slot: Slot,
+        epoch: Epoch,
+        target: Epoch,
+    },
+    #[error("attestation at slot {attestation_slot} is not timely for state slot {state_slot}, outside of range [{lower_bound}, {upper_bound}]")]
+    NotTimely {
+        state_slot: Slot,
+        attestation_slot: Slot,
+        lower_bound: Slot,
+        upper_bound: Slot,
+    },
+    #[error("attestation's index {index} exceeds the current committee count {upper_bound}")]
+    InvalidIndex { index: usize, upper_bound: usize },
+    #[error("attestation's source checkpoint {source_checkpoint:?} does not match the expected checkpoint {expected:?} (in epoch {current})")]
+    InvalidSource {
+        expected: Checkpoint,
+        source_checkpoint: Checkpoint,
+        current: Epoch,
     },
 }
 
@@ -823,7 +846,7 @@ pub fn get_committee_count_per_slot<
     >,
     epoch: Epoch,
     context: &Context,
-) -> u64 {
+) -> usize {
     u64::max(
         1,
         u64::min(
@@ -832,7 +855,7 @@ pub fn get_committee_count_per_slot<
                 / context.slots_per_epoch
                 / context.target_committee_size,
         ),
-    )
+    ) as usize
 }
 
 pub fn get_beacon_committee<
@@ -863,8 +886,8 @@ pub fn get_beacon_committee<
     let committees_per_slot = get_committee_count_per_slot(state, epoch, context);
     let indices = get_active_validator_indices(state, epoch);
     let seed = get_seed(state, epoch, DomainType::BeaconAttester, context);
-    let index = (slot % context.slots_per_epoch) * committees_per_slot + index as u64;
-    let count = committees_per_slot * context.slots_per_epoch;
+    let index = (slot % context.slots_per_epoch) * committees_per_slot as u64 + index as u64;
+    let count = committees_per_slot as u64 * context.slots_per_epoch;
     compute_committee(&indices, &seed, index as usize, count as usize, context)
 }
 
