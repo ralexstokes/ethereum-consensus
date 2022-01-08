@@ -257,15 +257,14 @@ pub fn process_effective_balance_updates<
     context: &Context,
 ) -> Result<(), Error> {
     // Update effective balances with hysteresis
+    let hysteresis_increment = context.effective_balance_increment / context.hysteresis_quotient;
+    let downward_threshold = hysteresis_increment * context.hysteresis_downward_multiplier;
+    let upward_threshold = hysteresis_increment * context.hysteresis_upward_multiplier;
     for i in 0..state.validators.len() {
         let validator = &mut state.validators[i];
-        let balance = &state.balances[i];
-        let hysteresis_increment =
-            context.effective_balance_increment / context.hysteresis_quotient;
-        let downward_threshold = hysteresis_increment * context.hysteresis_downward_multiplier;
-        let upward_threshold = hysteresis_increment * context.hysteresis_upward_multiplier;
+        let balance = state.balances[i];
         if balance + downward_threshold < validator.effective_balance
-            || validator.effective_balance + upward_threshold < *balance
+            || validator.effective_balance + upward_threshold < balance
         {
             validator.effective_balance = Gwei::min(
                 balance - balance % context.effective_balance_increment,
