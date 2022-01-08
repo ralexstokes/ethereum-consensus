@@ -187,7 +187,6 @@ pub fn process_registry_updates<
             }
         })
         .collect::<Vec<ValidatorIndex>>();
-        
     // Order by the sequence of activation_eligibility_epoch setting and then index
     activation_queue.sort_by(|&i, &j| {
         let a = &state.validators[i];
