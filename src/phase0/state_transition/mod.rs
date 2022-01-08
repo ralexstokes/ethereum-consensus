@@ -715,13 +715,13 @@ pub fn get_validator_churn_limit<
         PENDING_ATTESTATIONS_BOUND,
     >,
     context: &Context,
-) -> u64 {
+) -> usize {
     let active_validator_indices =
         get_active_validator_indices(state, get_current_epoch(state, context));
     u64::max(
         context.min_per_epoch_churn_limit,
         active_validator_indices.len() as u64 / context.churn_limit_quotient,
-    )
+    ) as usize
 }
 
 pub fn get_seed<

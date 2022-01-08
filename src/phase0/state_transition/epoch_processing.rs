@@ -1,10 +1,12 @@
 use crate::phase0::beacon_state::{BeaconState, HistoricalBatchAccumulator};
 use crate::phase0::operations::PendingAttestation;
 use crate::phase0::state_transition::{
-    decrease_balance, get_block_root, get_current_epoch, get_previous_epoch, get_randao_mix,
-    get_total_active_balance, Context, Error,
+    compute_activation_exit_epoch, decrease_balance, get_block_root, get_current_epoch,
+    get_previous_epoch, get_randao_mix, get_total_active_balance, get_validator_churn_limit,
+    initiate_validator_exit, is_active_validator, is_eligible_for_activation,
+    is_eligible_for_activation_queue, Context, Error,
 };
-use crate::primitives::{Epoch, Gwei};
+use crate::primitives::{Epoch, Gwei, ValidatorIndex};
 use ssz_rs::prelude::*;
 use std::mem;
 
@@ -144,7 +146,7 @@ pub fn process_registry_updates<
     const MAX_VALIDATORS_PER_COMMITTEE: usize,
     const PENDING_ATTESTATIONS_BOUND: usize,
 >(
-    _state: &mut BeaconState<
+    state: &mut BeaconState<
         SLOTS_PER_HISTORICAL_ROOT,
         HISTORICAL_ROOTS_LIMIT,
         ETH1_DATA_VOTES_BOUND,
@@ -154,8 +156,54 @@ pub fn process_registry_updates<
         MAX_VALIDATORS_PER_COMMITTEE,
         PENDING_ATTESTATIONS_BOUND,
     >,
-    _context: &Context,
+    context: &Context,
 ) -> Result<(), Error> {
+    // Process activation eligibility and ejections
+    let current_epoch = get_current_epoch(state, context);
+
+    for i in 0..state.validators.len() {
+        let validator = &mut state.validators[i];
+        if is_eligible_for_activation_queue(validator, context) {
+            validator.activation_eligibility_epoch = current_epoch + 1;
+        }
+
+        if is_active_validator(validator, current_epoch)
+            && validator.effective_balance <= context.ejection_balance
+        {
+            initiate_validator_exit(state, i, context);
+        }
+    }
+
+    // Queue validators eligible for activation and not yet dequeued for activation
+    let mut activation_queue = state
+        .validators
+        .iter()
+        .enumerate()
+        .filter_map(|(index, validator)| {
+            if is_eligible_for_activation(state, validator) {
+                Some(index)
+            } else {
+                None
+            }
+        })
+        .collect::<Vec<ValidatorIndex>>();
+    // Order by the sequence of activation_eligibility_epoch setting and then index
+    activation_queue.sort_by(|&i, &j| {
+        let a = &state.validators[i];
+        let b = &state.validators[j];
+        (a.activation_eligibility_epoch, i).cmp(&(b.activation_eligibility_epoch, j))
+    });
+
+    // Dequeued validators for activation up to churn limit
+    let activation_exit_epoch = compute_activation_exit_epoch(current_epoch, context);
+    for i in activation_queue
+        .into_iter()
+        .take(get_validator_churn_limit(state, context))
+    {
+        let validator = &mut state.validators[i];
+        validator.activation_epoch = activation_exit_epoch;
+    }
+
     Ok(())
 }
 
