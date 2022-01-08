@@ -152,6 +152,16 @@ pub enum InvalidIndexedAttestation {
 pub enum InvalidDeposit {
     #[error("expected {expected} deposits but only had {count} deposits")]
     IncorrectCount { expected: usize, count: usize },
+    #[error("merkle validation failed for tree with depth {depth} and root {root:?} at index {index} for leaf {leaf:?} and branch {branch:?}")]
+    InvalidProof {
+        leaf: Node,
+        branch: Vec<Node>,
+        depth: usize,
+        index: usize,
+        root: Root,
+    },
+    #[error("invalid signature for deposit: {0:?}")]
+    InvalidSignature(BLSSignature),
 }
 
 #[derive(Debug, Error)]
