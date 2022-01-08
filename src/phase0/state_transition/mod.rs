@@ -84,6 +84,8 @@ pub enum InvalidOperation {
     ProposerSlashing(InvalidProposerSlashing),
     #[error("invalid attester slashing: {0}")]
     AttesterSlashing(InvalidAttesterSlashing),
+    #[error("invalid voluntary exit: {0}")]
+    VoluntaryExit(InvalidVoluntaryExit),
 }
 
 #[derive(Debug, Error)]
@@ -184,6 +186,26 @@ pub enum InvalidAttesterSlashing {
     NotSlashable(Box<AttestationData>, Box<AttestationData>),
     #[error("no validator was slashed across indices: {0:?}")]
     NoSlashings(Vec<ValidatorIndex>),
+}
+
+#[derive(Debug, Error)]
+pub enum InvalidVoluntaryExit {
+    #[error("validator is not active in the current epoch {0}")]
+    InactiveValidator(Epoch),
+    #[error("validator {index} already exited in {epoch}")]
+    ValidatorAlreadyExited { index: ValidatorIndex, epoch: Epoch },
+    #[error("exit in epoch {exit_epoch} is not eligible for processing in current epoch {current_epoch}")]
+    EarlyExit {
+        current_epoch: Epoch,
+        exit_epoch: Epoch,
+    },
+    #[error("validator needs to be active for a minimum period of time (from epoch {minimum_time_active}, currently in {current_epoch})")]
+    ValidatoIsNotActiveForLongEnough {
+        current_epoch: Epoch,
+        minimum_time_active: Epoch,
+    },
+    #[error("voluntary exit has invalid signature: {0:?}")]
+    InvalidSignature(BLSSignature),
 }
 
 pub(crate) fn invalid_header_error(error: InvalidBeaconBlockHeader) -> Error {
