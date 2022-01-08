@@ -179,23 +179,29 @@ pub fn process_registry_updates<
         .validators
         .iter()
         .enumerate()
-        .filter(|&(_, validator)| is_eligible_for_activation(state, validator))
-        .map(|(i, _)| i)
+        .filter_map(|(index, validator)| {
+            if is_eligible_for_activation(state, validator) {
+                Some(index)
+            } else {
+                None
+            }
+        })
         .collect::<Vec<ValidatorIndex>>();
     // Order by the sequence of activation_eligibility_epoch setting and then index
-    activation_queue.sort_by(|i, j| {
-        let a = &state.validators[*i];
-        let b = &state.validators[*j];
+    activation_queue.sort_by(|&i, &j| {
+        let a = &state.validators[i];
+        let b = &state.validators[j];
         (a.activation_eligibility_epoch, i).cmp(&(b.activation_eligibility_epoch, j))
     });
 
     // Dequeued validators for activation up to churn limit
+    let activation_exit_epoch = compute_activation_exit_epoch(current_epoch, context);
     for i in activation_queue
-        .iter()
-        .take(get_validator_churn_limit(state, context) as usize)
+        .into_iter()
+        .take(get_validator_churn_limit(state, context))
     {
-        let validator = &mut state.validators[*i];
-        validator.activation_epoch = compute_activation_exit_epoch(current_epoch, context);
+        let validator = &mut state.validators[i];
+        validator.activation_epoch = activation_exit_epoch;
     }
 
     Ok(())
