@@ -38,19 +38,16 @@ pub fn process_proposer_slashing<
 
     if header_1.slot != header_2.slot {
         return Err(Error::InvalidOperation(InvalidOperation::ProposerSlashing(
-            InvalidProposerSlashing::SlotMismatch {
-                one: header_1.slot,
-                two: header_2.slot,
-            },
+            InvalidProposerSlashing::SlotMismatch(header_1.slot, header_2.slot),
         )));
     }
 
     if header_1.proposer_index != header_2.proposer_index {
         return Err(Error::InvalidOperation(InvalidOperation::ProposerSlashing(
-            InvalidProposerSlashing::ProposerMismatch {
-                one: header_1.proposer_index,
-                two: header_2.proposer_index,
-            },
+            InvalidProposerSlashing::ProposerMismatch(
+                header_1.proposer_index,
+                header_2.proposer_index,
+            ),
         )));
     }
 

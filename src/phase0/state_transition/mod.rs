@@ -103,13 +103,10 @@ pub enum InvalidDeposit {
 
 #[derive(Debug, Error)]
 pub enum InvalidProposerSlashing {
-    #[error("different slots: (1) {one} vs. (2) {two}")]
-    SlotMismatch { one: Slot, two: Slot },
-    #[error("different proposers: (1) {one} vs. (2) {two}")]
-    ProposerMismatch {
-        one: ValidatorIndex,
-        two: ValidatorIndex,
-    },
+    #[error("different slots: {0} vs. {1}")]
+    SlotMismatch(Slot, Slot),
+    #[error("different proposers: {0} vs. {1}")]
+    ProposerMismatch(ValidatorIndex, ValidatorIndex),
     #[error("headers are equal: {0:?}")]
     HeadersAreEqual(BeaconBlockHeader),
     #[error("proposer with index {0} is not slashable")]
