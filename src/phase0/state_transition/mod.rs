@@ -5,9 +5,9 @@ pub mod epoch_processing;
 pub mod genesis;
 mod slot_processing;
 
-use crate::crypto::{fast_aggregate_verify, hash};
+use crate::crypto::{fast_aggregate_verify, hash, Signature as BLSSignature};
 use crate::domains::{DomainType, SigningData};
-use crate::phase0::beacon_block::SignedBeaconBlock;
+use crate::phase0::beacon_block::{BeaconBlockHeader, SignedBeaconBlock};
 use crate::phase0::beacon_state::BeaconState;
 use crate::phase0::fork::ForkData;
 use crate::phase0::operations::{Attestation, AttestationData, IndexedAttestation};
@@ -78,6 +78,10 @@ pub enum InvalidOperation {
     IndexedAttestation(InvalidIndexedAttestation),
     #[error("invalid deposit: {0}")]
     Deposit(InvalidDeposit),
+    #[error("invalid randao (BLS signature): {0:?}")]
+    Randao(BLSSignature),
+    #[error("invalid proposer slashing: {0}")]
+    ProposerSlashing(InvalidProposerSlashing),
 }
 
 #[derive(Debug, Error)]
@@ -123,6 +127,20 @@ pub enum InvalidIndexedAttestation {
 pub enum InvalidDeposit {
     #[error("expected {expected} deposits but only had {count} deposits")]
     IncorrectCount { expected: usize, count: usize },
+}
+
+#[derive(Debug, Error)]
+pub enum InvalidProposerSlashing {
+    #[error("different slots: {0} vs. {1}")]
+    SlotMismatch(Slot, Slot),
+    #[error("different proposers: {0} vs. {1}")]
+    ProposerMismatch(ValidatorIndex, ValidatorIndex),
+    #[error("headers are equal: {0:?}")]
+    HeadersAreEqual(BeaconBlockHeader),
+    #[error("proposer with index {0} is not slashable")]
+    ProposerIsNotSlashable(ValidatorIndex),
+    #[error("header has invalid signature: {0:?}")]
+    InvalidSignature(BLSSignature),
 }
 
 pub fn invalid_header_error(error: InvalidBeaconBlockHeader) -> Error {
@@ -730,13 +748,13 @@ pub fn get_validator_churn_limit<
         PENDING_ATTESTATIONS_BOUND,
     >,
     context: &Context,
-) -> u64 {
+) -> usize {
     let active_validator_indices =
         get_active_validator_indices(state, get_current_epoch(state, context));
     u64::max(
         context.min_per_epoch_churn_limit,
         active_validator_indices.len() as u64 / context.churn_limit_quotient,
-    )
+    ) as usize
 }
 
 pub fn get_seed<

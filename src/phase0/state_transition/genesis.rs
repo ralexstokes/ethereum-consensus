@@ -66,8 +66,10 @@ pub fn initialize_beacon_state_from_eth1<
         ..Default::default()
     };
     let eth1_block_hash = Bytes32(Vector::from_iter(eth1_block_hash.0.into_iter()));
-    let randao_mixes =
-        Vector::from_iter(vec![eth1_block_hash; context.epochs_per_historical_vector]);
+    let randao_mixes = Vector::from_iter(vec![
+        eth1_block_hash;
+        context.epochs_per_historical_vector as usize
+    ]);
     let mut state = BeaconState {
         genesis_time: eth1_timestamp + context.genesis_delay,
         fork,

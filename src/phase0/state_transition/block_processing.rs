@@ -1,12 +1,14 @@
-use crate::phase0::beacon_block::BeaconBlockHeader;
-use crate::phase0::beacon_block::{BeaconBlock, BeaconBlockBody};
+pub use crate::domains::DomainType;
+use crate::phase0::beacon_block::{BeaconBlock, BeaconBlockBody, BeaconBlockHeader};
 use crate::phase0::beacon_state::BeaconState;
 use crate::phase0::operations::{
     Attestation, AttesterSlashing, Deposit, ProposerSlashing, SignedVoluntaryExit,
 };
 use crate::phase0::state_transition::{
-    get_beacon_proposer_index, invalid_header_error, invalid_operation_error, Context, Error,
-    InvalidBeaconBlockHeader, InvalidDeposit, InvalidOperation,
+    compute_epoch_at_slot, compute_signing_root, get_beacon_proposer_index, get_current_epoch,
+    get_domain, get_randao_mix, hash, invalid_header_error, invalid_operation_error,
+    is_slashable_validator, slash_validator, Context, Error, InvalidBeaconBlockHeader,
+    InvalidDeposit, InvalidOperation, InvalidProposerSlashing,
 };
 use ssz_rs::prelude::*;
 
@@ -20,7 +22,7 @@ pub fn process_proposer_slashing<
     const MAX_VALIDATORS_PER_COMMITTEE: usize,
     const PENDING_ATTESTATIONS_BOUND: usize,
 >(
-    _state: &mut BeaconState<
+    state: &mut BeaconState<
         SLOTS_PER_HISTORICAL_ROOT,
         HISTORICAL_ROOTS_LIMIT,
         ETH1_DATA_VOTES_BOUND,
@@ -30,10 +32,60 @@ pub fn process_proposer_slashing<
         MAX_VALIDATORS_PER_COMMITTEE,
         PENDING_ATTESTATIONS_BOUND,
     >,
-    _proposer_slashing: &ProposerSlashing,
-    _context: &Context,
+    proposer_slashing: &mut ProposerSlashing,
+    context: &Context,
 ) -> Result<(), Error> {
-    Ok(())
+    let header_1 = &proposer_slashing.signed_header_1.message;
+    let header_2 = &proposer_slashing.signed_header_2.message;
+
+    if header_1.slot != header_2.slot {
+        return Err(invalid_operation_error(InvalidOperation::ProposerSlashing(
+            InvalidProposerSlashing::SlotMismatch(header_1.slot, header_2.slot),
+        )));
+    }
+
+    if header_1.proposer_index != header_2.proposer_index {
+        return Err(invalid_operation_error(InvalidOperation::ProposerSlashing(
+            InvalidProposerSlashing::ProposerMismatch(
+                header_1.proposer_index,
+                header_2.proposer_index,
+            ),
+        )));
+    }
+
+    if header_1 == header_2 {
+        return Err(invalid_operation_error(InvalidOperation::ProposerSlashing(
+            InvalidProposerSlashing::HeadersAreEqual(header_1.clone()),
+        )));
+    }
+
+    let proposer_index = header_1.proposer_index;
+    let proposer = &state.validators[proposer_index];
+    if !is_slashable_validator(proposer, get_current_epoch(state, context)) {
+        return Err(invalid_operation_error(InvalidOperation::ProposerSlashing(
+            InvalidProposerSlashing::ProposerIsNotSlashable(header_1.proposer_index),
+        )));
+    }
+
+    let epoch = compute_epoch_at_slot(header_1.slot, context);
+    let domain = get_domain(state, DomainType::BeaconProposer, Some(epoch), context)?;
+    for signed_header in [
+        &mut proposer_slashing.signed_header_1,
+        &mut proposer_slashing.signed_header_2,
+    ] {
+        let signing_root = compute_signing_root(&mut signed_header.message, domain)?;
+        let valid_signature = proposer
+            .pubkey
+            .verify_signature(signing_root.as_bytes(), &signed_header.signature);
+
+        if !valid_signature {
+            return Err(invalid_operation_error(InvalidOperation::ProposerSlashing(
+                InvalidProposerSlashing::InvalidSignature(signed_header.signature.clone()),
+            )));
+        }
+    }
+
+    slash_validator(state, proposer_index, None, context)
 }
 
 pub fn process_attester_slashing<
@@ -246,7 +298,7 @@ fn process_randao<
     const MAX_DEPOSITS: usize,
     const MAX_VOLUNTARY_EXITS: usize,
 >(
-    _state: &mut BeaconState<
+    state: &mut BeaconState<
         SLOTS_PER_HISTORICAL_ROOT,
         HISTORICAL_ROOTS_LIMIT,
         ETH1_DATA_VOTES_BOUND,
@@ -256,7 +308,7 @@ fn process_randao<
         MAX_VALIDATORS_PER_COMMITTEE,
         PENDING_ATTESTATIONS_BOUND,
     >,
-    _body: &BeaconBlockBody<
+    body: &BeaconBlockBody<
         MAX_PROPOSER_SLASHINGS,
         MAX_VALIDATORS_PER_COMMITTEE,
         MAX_ATTESTER_SLASHINGS,
@@ -264,8 +316,28 @@ fn process_randao<
         MAX_DEPOSITS,
         MAX_VOLUNTARY_EXITS,
     >,
-    _context: &Context,
+    context: &Context,
 ) -> Result<(), Error> {
+    let mut epoch = get_current_epoch(state, context);
+
+    let proposer_index = get_beacon_proposer_index(state, context)?;
+    let proposer = &state.validators[proposer_index];
+
+    let domain = get_domain(state, DomainType::Randao, Some(epoch), context)?;
+    let signing_root = compute_signing_root(&mut epoch, domain)?;
+
+    if !body
+        .randao_reveal
+        .verify(&proposer.pubkey, signing_root.as_bytes())
+    {
+        return Err(invalid_operation_error(InvalidOperation::Randao(
+            body.randao_reveal.clone(),
+        )));
+    }
+
+    let mix = get_randao_mix(state, epoch).xor(hash(body.randao_reveal.as_bytes()));
+    let mix_index = epoch % context.epochs_per_historical_vector;
+    state.randao_mixes[mix_index as usize] = mix;
     Ok(())
 }
 
@@ -332,7 +404,7 @@ fn process_operations<
         MAX_VALIDATORS_PER_COMMITTEE,
         PENDING_ATTESTATIONS_BOUND,
     >,
-    body: &BeaconBlockBody<
+    body: &mut BeaconBlockBody<
         MAX_PROPOSER_SLASHINGS,
         MAX_VALIDATORS_PER_COMMITTEE,
         MAX_ATTESTER_SLASHINGS,
@@ -357,7 +429,7 @@ fn process_operations<
     }
 
     body.proposer_slashings
-        .iter()
+        .iter_mut()
         .try_for_each(|op| process_proposer_slashing(state, op, context))?;
     body.attester_slashings
         .iter()
@@ -412,6 +484,6 @@ pub fn process_block<
     process_block_header(state, block, context)?;
     process_randao(state, &block.body, context)?;
     process_eth1_data(state, &block.body, context)?;
-    process_operations(state, &block.body, context)?;
+    process_operations(state, &mut block.body, context)?;
     Ok(())
 }
