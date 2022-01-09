@@ -41,7 +41,7 @@ pub struct Attestation<const MAX_VALIDATORS_PER_COMMITTEE: usize> {
     pub signature: BLSSignature,
 }
 
-#[derive(Default, Debug, SimpleSerialize, Clone)]
+#[derive(Default, Debug, SimpleSerialize, Clone, PartialEq, Eq)]
 pub struct Eth1Data {
     pub deposit_root: Root,
     pub deposit_count: u64,
