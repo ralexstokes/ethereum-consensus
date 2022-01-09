@@ -5,8 +5,8 @@ use crate::phase0::operations::{
     Attestation, AttesterSlashing, Deposit, ProposerSlashing, SignedVoluntaryExit,
 };
 use crate::phase0::state_transition::{
-    get_beacon_proposer_index, Context, Error, InvalidBeaconBlockHeader, InvalidDeposit,
-    InvalidOperation,
+    get_beacon_proposer_index, invalid_header_error, invalid_operation_error, Context, Error,
+    InvalidBeaconBlockHeader, InvalidDeposit, InvalidOperation,
 };
 use ssz_rs::prelude::*;
 
@@ -176,41 +176,41 @@ fn process_block_header<
     context: &Context,
 ) -> Result<(), Error> {
     if block.slot != state.slot {
-        return Err(Error::InvalidOperation(InvalidOperation::Header(
+        return Err(invalid_header_error(
             InvalidBeaconBlockHeader::StateSlotMismatch {
                 state_slot: state.slot,
                 block_slot: block.slot,
             },
-        )));
+        ));
     }
 
     if block.slot <= state.latest_block_header.slot {
-        return Err(Error::InvalidOperation(InvalidOperation::Header(
+        return Err(invalid_header_error(
             InvalidBeaconBlockHeader::OlderThanLatestBlockHeader {
                 block_slot: block.slot,
                 latest_block_header_slot: state.latest_block_header.slot,
             },
-        )));
+        ));
     }
 
     let proposer_index = get_beacon_proposer_index(state, context)?;
     if block.proposer_index != proposer_index {
-        return Err(Error::InvalidOperation(InvalidOperation::Header(
+        return Err(invalid_header_error(
             InvalidBeaconBlockHeader::ProposerIndexMismatch {
                 block_proposer_index: block.proposer_index,
                 state_proposer_index: proposer_index,
             },
-        )));
+        ));
     }
 
     let expected_parent_root = state.latest_block_header.hash_tree_root()?;
     if block.parent_root != expected_parent_root {
-        return Err(Error::InvalidOperation(InvalidOperation::Header(
+        return Err(invalid_header_error(
             InvalidBeaconBlockHeader::ParentBlockRootMismatch {
                 expected: expected_parent_root,
                 provided: block.parent_root,
             },
-        )));
+        ));
     }
 
     state.latest_block_header = BeaconBlockHeader {
@@ -223,9 +223,9 @@ fn process_block_header<
 
     let proposer = &state.validators[block.proposer_index];
     if proposer.slashed {
-        return Err(Error::InvalidOperation(InvalidOperation::Header(
+        return Err(invalid_header_error(
             InvalidBeaconBlockHeader::ProposerSlashed(proposer_index),
-        )));
+        ));
     }
 
     Ok(())
@@ -348,7 +348,7 @@ fn process_operations<
     );
 
     if body.deposits.len() != expected_deposit_count {
-        return Err(Error::InvalidOperation(InvalidOperation::Deposit(
+        return Err(invalid_operation_error(InvalidOperation::Deposit(
             InvalidDeposit::IncorrectCount {
                 expected: expected_deposit_count,
                 count: body.deposits.len(),
