@@ -12,10 +12,11 @@ use crate::phase0::state_transition::{
     compute_domain, compute_epoch_at_slot, compute_signing_root, get_beacon_committee,
     get_beacon_proposer_index, get_committee_count_per_slot, get_current_epoch, get_domain,
     get_indexed_attestation, get_previous_epoch, get_randao_mix, hash, increase_balance,
-    invalid_header_error, invalid_operation_error, is_slashable_attestation_data,
-    is_slashable_validator, is_valid_indexed_attestation, slash_validator, Context, Error,
-    InvalidAttestation, InvalidAttesterSlashing, InvalidBeaconBlockHeader, InvalidDeposit,
-    InvalidOperation, InvalidProposerSlashing,
+    initiate_validator_exit, invalid_header_error, invalid_operation_error, is_active_validator,
+    is_slashable_attestation_data, is_slashable_validator, is_valid_indexed_attestation,
+    slash_validator, Context, Error, InvalidAttestation, InvalidAttesterSlashing,
+    InvalidBeaconBlockHeader, InvalidDeposit, InvalidOperation, InvalidProposerSlashing,
+    InvalidVoluntaryExit,
 };
 use crate::phase0::validator::Validator;
 use crate::phase0::DEPOSIT_CONTRACT_TREE_DEPTH;
@@ -400,7 +401,7 @@ pub fn process_voluntary_exit<
     const MAX_VALIDATORS_PER_COMMITTEE: usize,
     const PENDING_ATTESTATIONS_BOUND: usize,
 >(
-    _state: &mut BeaconState<
+    state: &mut BeaconState<
         SLOTS_PER_HISTORICAL_ROOT,
         HISTORICAL_ROOTS_LIMIT,
         ETH1_DATA_VOTES_BOUND,
@@ -410,9 +411,67 @@ pub fn process_voluntary_exit<
         MAX_VALIDATORS_PER_COMMITTEE,
         PENDING_ATTESTATIONS_BOUND,
     >,
-    _signed_voluntary_exit: &SignedVoluntaryExit,
-    _context: &Context,
+    signed_voluntary_exit: &mut SignedVoluntaryExit,
+    context: &Context,
 ) -> Result<(), Error> {
+    let voluntary_exit = &mut signed_voluntary_exit.message;
+    let validator = &state.validators[voluntary_exit.validator_index];
+    let current_epoch = get_current_epoch(state, context);
+
+    if !is_active_validator(validator, current_epoch) {
+        return Err(invalid_operation_error(InvalidOperation::VoluntaryExit(
+            InvalidVoluntaryExit::InactiveValidator(current_epoch),
+        )));
+    }
+
+    if validator.exit_epoch != FAR_FUTURE_EPOCH {
+        return Err(invalid_operation_error(InvalidOperation::VoluntaryExit(
+            InvalidVoluntaryExit::ValidatorAlreadyExited {
+                index: voluntary_exit.validator_index,
+                epoch: validator.exit_epoch,
+            },
+        )));
+    }
+
+    if current_epoch < voluntary_exit.epoch {
+        return Err(invalid_operation_error(InvalidOperation::VoluntaryExit(
+            InvalidVoluntaryExit::EarlyExit {
+                current_epoch,
+                exit_epoch: voluntary_exit.epoch,
+            },
+        )));
+    }
+
+    let minimum_time_active =
+        validator.activation_eligibility_epoch + context.shard_committee_period;
+    if current_epoch < minimum_time_active {
+        return Err(invalid_operation_error(InvalidOperation::VoluntaryExit(
+            InvalidVoluntaryExit::ValidatoIsNotActiveForLongEnough {
+                current_epoch,
+                minimum_time_active,
+            },
+        )));
+    }
+
+    let domain = get_domain(
+        state,
+        DomainType::VoluntaryExit,
+        Some(voluntary_exit.epoch),
+        context,
+    )?;
+    let signing_root = compute_signing_root(voluntary_exit, domain)?;
+
+    if !validator
+        .pubkey
+        .verify_signature(signing_root.as_bytes(), &signed_voluntary_exit.signature)
+    {
+        return Err(invalid_operation_error(InvalidOperation::VoluntaryExit(
+            InvalidVoluntaryExit::InvalidSignature(signed_voluntary_exit.signature.clone()),
+        )));
+    }
+
+    initiate_validator_exit(state, voluntary_exit.validator_index, context);
+
     Ok(())
 }
 
@@ -675,7 +734,7 @@ fn process_operations<
         .iter_mut()
         .try_for_each(|op| process_deposit(state, op, context))?;
     body.voluntary_exits
-        .iter()
+        .iter_mut()
         .try_for_each(|op| process_voluntary_exit(state, op, context))?;
     Ok(())
 }
