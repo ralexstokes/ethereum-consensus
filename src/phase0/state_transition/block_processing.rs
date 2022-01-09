@@ -1,21 +1,25 @@
 use std::collections::HashSet;
 
-pub use crate::domains::DomainType;
+use crate::crypto::PublicKey as BLSPubkey;
+use crate::domains::DomainType;
 use crate::phase0::beacon_block::{BeaconBlock, BeaconBlockBody, BeaconBlockHeader};
 use crate::phase0::beacon_state::BeaconState;
 use crate::phase0::operations::{
-    Attestation, AttesterSlashing, Deposit, PendingAttestation, ProposerSlashing,
+    Attestation, AttesterSlashing, Deposit, DepositMessage, PendingAttestation, ProposerSlashing,
     SignedVoluntaryExit,
 };
 use crate::phase0::state_transition::{
-    compute_epoch_at_slot, compute_signing_root, get_beacon_committee, get_beacon_proposer_index,
-    get_committee_count_per_slot, get_current_epoch, get_domain, get_indexed_attestation,
-    get_previous_epoch, get_randao_mix, hash, invalid_header_error, invalid_operation_error,
-    is_slashable_attestation_data, is_slashable_validator, is_valid_indexed_attestation,
-    slash_validator, Context, Error, InvalidAttestation, InvalidAttesterSlashing,
-    InvalidBeaconBlockHeader, InvalidDeposit, InvalidOperation, InvalidProposerSlashing,
+    compute_domain, compute_epoch_at_slot, compute_signing_root, get_beacon_committee,
+    get_beacon_proposer_index, get_committee_count_per_slot, get_current_epoch, get_domain,
+    get_indexed_attestation, get_previous_epoch, get_randao_mix, hash, increase_balance,
+    invalid_header_error, invalid_operation_error, is_slashable_attestation_data,
+    is_slashable_validator, is_valid_indexed_attestation, slash_validator, Context, Error,
+    InvalidAttestation, InvalidAttesterSlashing, InvalidBeaconBlockHeader, InvalidDeposit,
+    InvalidOperation, InvalidProposerSlashing,
 };
-use crate::primitives::ValidatorIndex;
+use crate::phase0::validator::Validator;
+use crate::phase0::DEPOSIT_CONTRACT_TREE_DEPTH;
+use crate::primitives::{Gwei, ValidatorIndex, FAR_FUTURE_EPOCH};
 use ssz_rs::prelude::*;
 
 pub fn process_proposer_slashing<
@@ -285,6 +289,25 @@ pub fn process_attestation<
     Ok(())
 }
 
+fn get_validator_from_deposit(deposit: &Deposit, context: &Context) -> Validator {
+    let amount = deposit.data.amount;
+    let effective_balance = Gwei::min(
+        amount - amount % context.effective_balance_increment,
+        context.max_effective_balance,
+    );
+
+    Validator {
+        pubkey: deposit.data.pubkey.clone(),
+        withdrawal_credentials: deposit.data.withdrawal_credentials.clone(),
+        effective_balance,
+        activation_eligibility_epoch: FAR_FUTURE_EPOCH,
+        activation_epoch: FAR_FUTURE_EPOCH,
+        exit_epoch: FAR_FUTURE_EPOCH,
+        withdrawable_epoch: FAR_FUTURE_EPOCH,
+        ..Default::default()
+    }
+}
+
 pub fn process_deposit<
     const SLOTS_PER_HISTORICAL_ROOT: usize,
     const HISTORICAL_ROOTS_LIMIT: usize,
@@ -295,7 +318,7 @@ pub fn process_deposit<
     const MAX_VALIDATORS_PER_COMMITTEE: usize,
     const PENDING_ATTESTATIONS_BOUND: usize,
 >(
-    _state: &mut BeaconState<
+    state: &mut BeaconState<
         SLOTS_PER_HISTORICAL_ROOT,
         HISTORICAL_ROOTS_LIMIT,
         ETH1_DATA_VOTES_BOUND,
@@ -305,9 +328,65 @@ pub fn process_deposit<
         MAX_VALIDATORS_PER_COMMITTEE,
         PENDING_ATTESTATIONS_BOUND,
     >,
-    _deposit: &Deposit,
-    _context: &Context,
+    deposit: &mut Deposit,
+    context: &Context,
 ) -> Result<(), Error> {
+    let branch = deposit
+        .proof
+        .iter()
+        .map(|node| Node::from_bytes(node.as_ref().try_into().unwrap()))
+        .collect::<Vec<_>>();
+    let leaf = deposit.data.hash_tree_root()?;
+    let depth = DEPOSIT_CONTRACT_TREE_DEPTH + 1;
+    let index = state.eth1_deposit_index as usize;
+    let root = &state.eth1_data.deposit_root;
+    if !is_valid_merkle_branch(&leaf, branch.iter(), depth, index, root) {
+        return Err(invalid_operation_error(InvalidOperation::Deposit(
+            InvalidDeposit::InvalidProof {
+                leaf,
+                branch,
+                depth,
+                index,
+                root: *root,
+            },
+        )));
+    }
+
+    // NOTE: deviate from the order of the spec to avoid mutations
+    // that would need to be rolled back upon failure
+    let pubkey = deposit.data.pubkey.clone();
+    let amount = deposit.data.amount;
+    let validator_pubkeys: HashSet<&BLSPubkey> =
+        HashSet::from_iter(state.validators.iter().map(|v| &v.pubkey));
+    if !validator_pubkeys.contains(&pubkey) {
+        let mut deposit_message = DepositMessage {
+            pubkey: pubkey.clone(),
+            withdrawal_credentials: deposit.data.withdrawal_credentials.clone(),
+            amount,
+        };
+        let domain = compute_domain(DomainType::Deposit, None, None, context)?;
+        let signing_root = compute_signing_root(&mut deposit_message, domain)?;
+        if !pubkey.verify_signature(signing_root.as_bytes(), &deposit.data.signature) {
+            return Err(invalid_operation_error(InvalidOperation::Deposit(
+                InvalidDeposit::InvalidSignature(deposit.data.signature.clone()),
+            )));
+        }
+
+        state
+            .validators
+            .push(get_validator_from_deposit(deposit, context));
+        state.balances.push(amount);
+    } else {
+        let index = state
+            .validators
+            .iter()
+            .position(|v| v.pubkey == pubkey)
+            .unwrap();
+
+        increase_balance(state, index, amount);
+    }
+
+    state.eth1_deposit_index += 1;
     Ok(())
 }
 
@@ -593,7 +672,7 @@ fn process_operations<
         .iter()
         .try_for_each(|op| process_attestation(state, op, context))?;
     body.deposits
-        .iter()
+        .iter_mut()
         .try_for_each(|op| process_deposit(state, op, context))?;
     body.voluntary_exits
         .iter()

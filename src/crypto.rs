@@ -3,6 +3,7 @@ use blst::{min_pk as blst_core, BLST_ERROR};
 use sha2::{digest::FixedOutput, Digest, Sha256};
 use ssz_rs::prelude::*;
 use std::fmt;
+use std::hash::{Hash, Hasher};
 use thiserror::Error;
 
 const BLS_DST: &[u8] = b"BLS_SIG_BLS12381G2_XMD:SHA-256_SSWU_RO_POP_";
@@ -107,7 +108,7 @@ fn verify_signature(public_key: &PublicKey, msg: &[u8], sig: &Signature) -> bool
     res == BLST_ERROR::BLST_SUCCESS
 }
 
-#[derive(Default, Clone, PartialEq, Eq)]
+#[derive(Default, Clone, Eq)]
 pub struct PublicKey(blst_core::PublicKey);
 
 impl fmt::Debug for PublicKey {
@@ -125,6 +126,18 @@ impl fmt::LowerHex for PublicKey {
             write!(f, "{:02x}", i)?;
         }
         Ok(())
+    }
+}
+
+impl Hash for PublicKey {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        self.as_bytes().hash(state)
+    }
+}
+
+impl PartialEq for PublicKey {
+    fn eq(&self, other: &Self) -> bool {
+        self.0 == other.0
     }
 }
 

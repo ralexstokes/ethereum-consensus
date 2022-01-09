@@ -27,7 +27,7 @@ pub fn initialize_beacon_state_from_eth1<
 >(
     eth1_block_hash: Hash32,
     eth1_timestamp: u64,
-    deposits: &[Deposit],
+    deposits: &mut [Deposit],
     context: &Context,
 ) -> Result<
     BeaconState<
@@ -80,7 +80,7 @@ pub fn initialize_beacon_state_from_eth1<
     };
 
     let mut leaves = List::<DepositData, DEPOSIT_DATA_LIST_BOUND>::default();
-    for deposit in deposits.iter() {
+    for deposit in deposits.iter_mut() {
         leaves.push(deposit.data.clone());
         state.eth1_data.deposit_root = leaves.hash_tree_root()?;
         process_deposit(&mut state, deposit, context)?;
