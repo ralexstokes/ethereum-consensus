@@ -47,7 +47,7 @@ pub enum Error {
     #[error("overflow")]
     Overflow,
     #[error("{0}")]
-    InvalidOperation(InvalidOperation),
+    InvalidBlock(InvalidBlock),
     #[error("an invalid transition to a past slot {requested} from slot {current}")]
     TransitionToPreviousSlot { current: Slot, requested: Slot },
     #[error("invalid state root")]
@@ -63,6 +63,14 @@ pub enum Error {
 }
 
 #[derive(Debug, Error)]
+pub enum InvalidBlock {
+    #[error("invalid beacon block header: {0}")]
+    Header(InvalidBeaconBlockHeader),
+    #[error("invalid operation: {0}")]
+    InvalidOperation(InvalidOperation),
+}
+
+#[derive(Debug, Error)]
 pub enum InvalidOperation {
     #[error("invalid attestation: {0}")]
     Attestation(InvalidAttestation),
@@ -74,6 +82,26 @@ pub enum InvalidOperation {
     Randao(BLSSignature),
     #[error("invalid proposer slashing: {0}")]
     ProposerSlashing(InvalidProposerSlashing),
+}
+
+#[derive(Debug, Error)]
+pub enum InvalidBeaconBlockHeader {
+    #[error("mismatch between state slot {state_slot} and block slot {block_slot}")]
+    StateSlotMismatch { state_slot: Slot, block_slot: Slot },
+    #[error("mismatch between the block's parent root {expected:?} and the expected parent root {provided:?}")]
+    ParentBlockRootMismatch { expected: Root, provided: Root },
+    #[error("proposer with index {0} is slashed")]
+    ProposerSlashed(ValidatorIndex),
+    #[error("block slot {block_slot} is older than the latest block header slot {latest_block_header_slot}")]
+    OlderThanLatestBlockHeader {
+        block_slot: Slot,
+        latest_block_header_slot: Slot,
+    },
+    #[error("mismatch between the block proposer index {block_proposer_index} and the state proposer index {proposer_index}")]
+    ProposerIndexMismatch {
+        block_proposer_index: ValidatorIndex,
+        proposer_index: ValidatorIndex,
+    },
 }
 
 #[derive(Debug, Error)]
@@ -113,6 +141,14 @@ pub enum InvalidProposerSlashing {
     ProposerIsNotSlashable(ValidatorIndex),
     #[error("header has invalid signature: {0:?}")]
     InvalidSignature(BLSSignature),
+}
+
+pub fn invalid_header_error(error: InvalidBeaconBlockHeader) -> Error {
+    Error::InvalidBlock(InvalidBlock::Header(error))
+}
+
+pub fn invalid_operation_error(error: InvalidOperation) -> Error {
+    Error::InvalidBlock(InvalidBlock::InvalidOperation(error))
 }
 
 pub fn is_active_validator(validator: &Validator, epoch: Epoch) -> bool {
@@ -189,7 +225,7 @@ pub fn is_valid_indexed_attestation<
     let attesting_indices = &indexed_attestation.attesting_indices;
 
     if attesting_indices.is_empty() {
-        return Err(Error::InvalidOperation(
+        return Err(invalid_operation_error(
             InvalidOperation::IndexedAttestation(InvalidIndexedAttestation::AttestingIndicesEmpty),
         ));
     }
@@ -203,7 +239,7 @@ pub fn is_valid_indexed_attestation<
         })
         .all(|x| x);
     if !is_sorted {
-        return Err(Error::InvalidOperation(
+        return Err(invalid_operation_error(
             InvalidOperation::IndexedAttestation(
                 InvalidIndexedAttestation::AttestingIndicesNotSorted,
             ),
@@ -221,7 +257,7 @@ pub fn is_valid_indexed_attestation<
                 seen.insert(i);
             }
         }
-        return Err(Error::InvalidOperation(
+        return Err(invalid_operation_error(
             InvalidOperation::IndexedAttestation(InvalidIndexedAttestation::DuplicateIndices(
                 duplicates,
             )),
@@ -979,7 +1015,7 @@ pub fn get_attesting_indices<
     let committee = get_beacon_committee(state, data.slot, data.index, context)?;
 
     if bits.len() != committee.len() {
-        return Err(Error::InvalidOperation(InvalidOperation::Attestation(
+        return Err(invalid_operation_error(InvalidOperation::Attestation(
             InvalidAttestation::Bitfield {
                 expected_length: committee.len(),
                 length: bits.len(),

@@ -1,14 +1,16 @@
 pub use crate::domains::DomainType;
-use crate::phase0::beacon_block::{BeaconBlock, BeaconBlockBody};
+use crate::phase0::beacon_block::{BeaconBlock, BeaconBlockBody, BeaconBlockHeader};
 use crate::phase0::beacon_state::BeaconState;
 use crate::phase0::operations::{
     Attestation, AttesterSlashing, Deposit, ProposerSlashing, SignedVoluntaryExit,
 };
 use crate::phase0::state_transition::{
     compute_epoch_at_slot, compute_signing_root, get_beacon_proposer_index, get_current_epoch,
-    get_domain, get_randao_mix, hash, is_slashable_validator, slash_validator, Context, Error,
+    get_domain, get_randao_mix, hash, invalid_header_error, invalid_operation_error,
+    is_slashable_validator, slash_validator, Context, Error, InvalidBeaconBlockHeader,
     InvalidDeposit, InvalidOperation, InvalidProposerSlashing,
 };
+use ssz_rs::prelude::*;
 
 pub fn process_proposer_slashing<
     const SLOTS_PER_HISTORICAL_ROOT: usize,
@@ -37,13 +39,13 @@ pub fn process_proposer_slashing<
     let header_2 = &proposer_slashing.signed_header_2.message;
 
     if header_1.slot != header_2.slot {
-        return Err(Error::InvalidOperation(InvalidOperation::ProposerSlashing(
+        return Err(invalid_operation_error(InvalidOperation::ProposerSlashing(
             InvalidProposerSlashing::SlotMismatch(header_1.slot, header_2.slot),
         )));
     }
 
     if header_1.proposer_index != header_2.proposer_index {
-        return Err(Error::InvalidOperation(InvalidOperation::ProposerSlashing(
+        return Err(invalid_operation_error(InvalidOperation::ProposerSlashing(
             InvalidProposerSlashing::ProposerMismatch(
                 header_1.proposer_index,
                 header_2.proposer_index,
@@ -52,7 +54,7 @@ pub fn process_proposer_slashing<
     }
 
     if header_1 == header_2 {
-        return Err(Error::InvalidOperation(InvalidOperation::ProposerSlashing(
+        return Err(invalid_operation_error(InvalidOperation::ProposerSlashing(
             InvalidProposerSlashing::HeadersAreEqual(header_1.clone()),
         )));
     }
@@ -60,7 +62,7 @@ pub fn process_proposer_slashing<
     let proposer_index = header_1.proposer_index;
     let proposer = &state.validators[proposer_index];
     if !is_slashable_validator(proposer, get_current_epoch(state, context)) {
-        return Err(Error::InvalidOperation(InvalidOperation::ProposerSlashing(
+        return Err(invalid_operation_error(InvalidOperation::ProposerSlashing(
             InvalidProposerSlashing::ProposerIsNotSlashable(header_1.proposer_index),
         )));
     }
@@ -77,7 +79,7 @@ pub fn process_proposer_slashing<
             .verify_signature(signing_root.as_bytes(), &signed_header.signature);
 
         if !valid_signature {
-            return Err(Error::InvalidOperation(InvalidOperation::ProposerSlashing(
+            return Err(invalid_operation_error(InvalidOperation::ProposerSlashing(
                 InvalidProposerSlashing::InvalidSignature(signed_header.signature.clone()),
             )));
         }
@@ -205,7 +207,7 @@ fn process_block_header<
     const MAX_DEPOSITS: usize,
     const MAX_VOLUNTARY_EXITS: usize,
 >(
-    _state: &mut BeaconState<
+    state: &mut BeaconState<
         SLOTS_PER_HISTORICAL_ROOT,
         HISTORICAL_ROOTS_LIMIT,
         ETH1_DATA_VOTES_BOUND,
@@ -215,7 +217,7 @@ fn process_block_header<
         MAX_VALIDATORS_PER_COMMITTEE,
         PENDING_ATTESTATIONS_BOUND,
     >,
-    _block: &BeaconBlock<
+    block: &mut BeaconBlock<
         MAX_PROPOSER_SLASHINGS,
         MAX_VALIDATORS_PER_COMMITTEE,
         MAX_ATTESTER_SLASHINGS,
@@ -223,8 +225,61 @@ fn process_block_header<
         MAX_DEPOSITS,
         MAX_VOLUNTARY_EXITS,
     >,
-    _context: &Context,
+    context: &Context,
 ) -> Result<(), Error> {
+    if block.slot != state.slot {
+        return Err(invalid_header_error(
+            InvalidBeaconBlockHeader::StateSlotMismatch {
+                state_slot: state.slot,
+                block_slot: block.slot,
+            },
+        ));
+    }
+
+    if block.slot <= state.latest_block_header.slot {
+        return Err(invalid_header_error(
+            InvalidBeaconBlockHeader::OlderThanLatestBlockHeader {
+                block_slot: block.slot,
+                latest_block_header_slot: state.latest_block_header.slot,
+            },
+        ));
+    }
+
+    let proposer_index = get_beacon_proposer_index(state, context)?;
+    if block.proposer_index != proposer_index {
+        return Err(invalid_header_error(
+            InvalidBeaconBlockHeader::ProposerIndexMismatch {
+                block_proposer_index: block.proposer_index,
+                proposer_index,
+            },
+        ));
+    }
+
+    let expected_parent_root = state.latest_block_header.hash_tree_root()?;
+    if block.parent_root != expected_parent_root {
+        return Err(invalid_header_error(
+            InvalidBeaconBlockHeader::ParentBlockRootMismatch {
+                expected: expected_parent_root,
+                provided: block.parent_root,
+            },
+        ));
+    }
+
+    state.latest_block_header = BeaconBlockHeader {
+        slot: block.slot,
+        proposer_index: block.proposer_index,
+        parent_root: block.parent_root,
+        body_root: block.body.hash_tree_root()?,
+        ..Default::default()
+    };
+
+    let proposer = &state.validators[block.proposer_index];
+    if proposer.slashed {
+        return Err(invalid_header_error(
+            InvalidBeaconBlockHeader::ProposerSlashed(proposer_index),
+        ));
+    }
+
     Ok(())
 }
 
@@ -275,7 +330,7 @@ fn process_randao<
         .randao_reveal
         .verify(&proposer.pubkey, signing_root.as_bytes())
     {
-        return Err(Error::InvalidOperation(InvalidOperation::Randao(
+        return Err(invalid_operation_error(InvalidOperation::Randao(
             body.randao_reveal.clone(),
         )));
     }
@@ -375,7 +430,7 @@ fn process_operations<
     );
 
     if body.deposits.len() != expected_deposit_count {
-        return Err(Error::InvalidOperation(InvalidOperation::Deposit(
+        return Err(invalid_operation_error(InvalidOperation::Deposit(
             InvalidDeposit::IncorrectCount {
                 expected: expected_deposit_count,
                 count: body.deposits.len(),
