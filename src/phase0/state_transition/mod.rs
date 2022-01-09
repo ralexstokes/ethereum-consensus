@@ -82,6 +82,8 @@ pub enum InvalidOperation {
     Randao(BLSSignature),
     #[error("invalid proposer slashing: {0}")]
     ProposerSlashing(InvalidProposerSlashing),
+    #[error("invalid attester slashing: {0}")]
+    AttesterSlashing(InvalidAttesterSlashing),
 }
 
 #[derive(Debug, Error)]
@@ -143,11 +145,19 @@ pub enum InvalidProposerSlashing {
     InvalidSignature(BLSSignature),
 }
 
-pub fn invalid_header_error(error: InvalidBeaconBlockHeader) -> Error {
+#[derive(Debug, Error)]
+pub enum InvalidAttesterSlashing {
+    #[error("attestation data is not slashable: {0:?} vs. {1:?}")]
+    NotSlashable(Box<AttestationData>, Box<AttestationData>),
+    #[error("no validator was slashed across indices: {0:?}")]
+    NoSlashings(Vec<ValidatorIndex>),
+}
+
+pub(crate) fn invalid_header_error(error: InvalidBeaconBlockHeader) -> Error {
     Error::InvalidBlock(InvalidBlock::Header(error))
 }
 
-pub fn invalid_operation_error(error: InvalidOperation) -> Error {
+pub(crate) fn invalid_operation_error(error: InvalidOperation) -> Error {
     Error::InvalidBlock(InvalidBlock::InvalidOperation(error))
 }
 

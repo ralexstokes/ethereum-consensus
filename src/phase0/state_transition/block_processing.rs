@@ -1,3 +1,5 @@
+use std::collections::HashSet;
+
 pub use crate::domains::DomainType;
 use crate::phase0::beacon_block::{BeaconBlock, BeaconBlockBody, BeaconBlockHeader};
 use crate::phase0::beacon_state::BeaconState;
@@ -7,9 +9,11 @@ use crate::phase0::operations::{
 use crate::phase0::state_transition::{
     compute_epoch_at_slot, compute_signing_root, get_beacon_proposer_index, get_current_epoch,
     get_domain, get_randao_mix, hash, invalid_header_error, invalid_operation_error,
-    is_slashable_validator, slash_validator, Context, Error, InvalidBeaconBlockHeader,
+    is_slashable_attestation_data, is_slashable_validator, is_valid_indexed_attestation,
+    slash_validator, Context, Error, InvalidAttesterSlashing, InvalidBeaconBlockHeader,
     InvalidDeposit, InvalidOperation, InvalidProposerSlashing,
 };
+use crate::primitives::ValidatorIndex;
 use ssz_rs::prelude::*;
 
 pub fn process_proposer_slashing<
@@ -98,7 +102,7 @@ pub fn process_attester_slashing<
     const MAX_VALIDATORS_PER_COMMITTEE: usize,
     const PENDING_ATTESTATIONS_BOUND: usize,
 >(
-    _state: &mut BeaconState<
+    state: &mut BeaconState<
         SLOTS_PER_HISTORICAL_ROOT,
         HISTORICAL_ROOTS_LIMIT,
         ETH1_DATA_VOTES_BOUND,
@@ -108,10 +112,50 @@ pub fn process_attester_slashing<
         MAX_VALIDATORS_PER_COMMITTEE,
         PENDING_ATTESTATIONS_BOUND,
     >,
-    _attester_slashing: &AttesterSlashing<MAX_VALIDATORS_PER_COMMITTEE>,
-    _context: &Context,
+    attester_slashing: &mut AttesterSlashing<MAX_VALIDATORS_PER_COMMITTEE>,
+    context: &Context,
 ) -> Result<(), Error> {
-    Ok(())
+    let attestation_1 = &mut attester_slashing.attestation_1;
+    let attestation_2 = &mut attester_slashing.attestation_2;
+
+    if !is_slashable_attestation_data(&attestation_1.data, &attestation_2.data) {
+        return Err(invalid_operation_error(InvalidOperation::AttesterSlashing(
+            InvalidAttesterSlashing::NotSlashable(
+                Box::new(attestation_1.data.clone()),
+                Box::new(attestation_2.data.clone()),
+            ),
+        )));
+    }
+
+    let _ = is_valid_indexed_attestation(state, attestation_1, context)?;
+
+    let _ = is_valid_indexed_attestation(state, attestation_2, context)?;
+
+    let indices_1: HashSet<ValidatorIndex> =
+        HashSet::from_iter(attestation_1.attesting_indices.iter().cloned());
+    let indices_2 = HashSet::from_iter(attestation_2.attesting_indices.iter().cloned());
+    let mut indices = indices_1
+        .intersection(&indices_2)
+        .cloned()
+        .collect::<Vec<_>>();
+    indices.sort_unstable();
+
+    let mut slashed_any = false;
+    let current_epoch = get_current_epoch(state, context);
+    for &index in &indices {
+        if is_slashable_validator(&state.validators[index], current_epoch) {
+            slash_validator(state, index, None, context)?;
+            slashed_any = true;
+        }
+    }
+
+    if !slashed_any {
+        Err(invalid_operation_error(InvalidOperation::AttesterSlashing(
+            InvalidAttesterSlashing::NoSlashings(indices),
+        )))
+    } else {
+        Ok(())
+    }
 }
 
 pub fn process_attestation<
@@ -442,7 +486,7 @@ fn process_operations<
         .iter_mut()
         .try_for_each(|op| process_proposer_slashing(state, op, context))?;
     body.attester_slashings
-        .iter()
+        .iter_mut()
         .try_for_each(|op| process_attester_slashing(state, op, context))?;
     body.attestations
         .iter()
