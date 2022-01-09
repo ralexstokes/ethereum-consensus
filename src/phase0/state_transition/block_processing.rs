@@ -245,7 +245,7 @@ fn process_eth1_data<
         MAX_VOLUNTARY_EXITS,
     >,
     context: &Context,
-) -> Result<(), Error> {
+) {
     state.eth1_data_votes.push(body.eth1_data.clone());
 
     let votes_count = state
@@ -257,8 +257,6 @@ fn process_eth1_data<
     if votes_count * 2 > context.epochs_per_eth1_voting_period * context.slots_per_epoch {
         state.eth1_data = body.eth1_data.clone();
     }
-
-    Ok(())
 }
 
 fn process_operations<
@@ -365,7 +363,7 @@ pub fn process_block<
 ) -> Result<(), Error> {
     process_block_header(state, block, context)?;
     process_randao(state, &block.body, context)?;
-    process_eth1_data(state, &block.body, context)?;
+    process_eth1_data(state, &block.body, context);
     process_operations(state, &block.body, context)?;
     Ok(())
 }
