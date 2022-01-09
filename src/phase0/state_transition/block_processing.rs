@@ -198,7 +198,7 @@ fn process_block_header<
         return Err(invalid_header_error(
             InvalidBeaconBlockHeader::ProposerIndexMismatch {
                 block_proposer_index: block.proposer_index,
-                state_proposer_index: proposer_index,
+                proposer_index,
             },
         ));
     }

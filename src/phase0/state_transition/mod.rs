@@ -93,10 +93,10 @@ pub enum InvalidBeaconBlockHeader {
         block_slot: Slot,
         latest_block_header_slot: Slot,
     },
-    #[error("mismatch between the block proposer index {block_proposer_index} and the state proposer index {state_proposer_index}")]
+    #[error("mismatch between the block proposer index {block_proposer_index} and the state proposer index {proposer_index}")]
     ProposerIndexMismatch {
-        block_proposer_index: usize,
-        state_proposer_index: usize,
+        block_proposer_index: ValidatorIndex,
+        proposer_index: ValidatorIndex,
     },
 }
 
