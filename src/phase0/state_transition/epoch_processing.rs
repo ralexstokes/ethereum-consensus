@@ -181,6 +181,7 @@ pub fn process_justification_and_finalization<
     >,
     _context: &Context,
 ) -> Result<(), Error> {
+    // Placeholder
     Ok(())
 }
 
