@@ -3,12 +3,12 @@ use crate::phase0::operations::PendingAttestation;
 use crate::phase0::state_transition::{
     compute_activation_exit_epoch, decrease_balance, get_attesting_indices, get_block_root,
     get_block_root_at_slot, get_current_epoch, get_previous_epoch, get_randao_mix,
-    get_total_active_balance, get_total_balance, get_validator_churn_limit,
+    get_total_active_balance, get_total_balance, get_validator_churn_limit, increase_balance,
     initiate_validator_exit, is_active_validator, is_eligible_for_activation,
     is_eligible_for_activation_queue, Context, Error,
 };
 use crate::phase0::BASE_REWARDS_PER_EPOCH;
-use crate::primitives::{Epoch, Gwei, ValidatorIndex};
+use crate::primitives::{Epoch, Gwei, ValidatorIndex, GENESIS_EPOCH};
 use integer_sqrt::IntegerSquareRoot;
 use ssz_rs::prelude::*;
 use std::collections::HashSet;
@@ -193,7 +193,7 @@ pub fn process_rewards_and_penalties<
     const MAX_VALIDATORS_PER_COMMITTEE: usize,
     const PENDING_ATTESTATIONS_BOUND: usize,
 >(
-    _state: &mut BeaconState<
+    state: &mut BeaconState<
         SLOTS_PER_HISTORICAL_ROOT,
         HISTORICAL_ROOTS_LIMIT,
         ETH1_DATA_VOTES_BOUND,
@@ -203,8 +203,18 @@ pub fn process_rewards_and_penalties<
         MAX_VALIDATORS_PER_COMMITTEE,
         PENDING_ATTESTATIONS_BOUND,
     >,
-    _context: &Context,
+    context: &Context,
 ) -> Result<(), Error> {
+    // No rewards are applied at the end of `GENESIS_EPOCH` because rewards are for work done in the previous epoch
+    let current_epoch = get_current_epoch(state, context);
+    if current_epoch != GENESIS_EPOCH {
+        let (rewards, penalties) = get_attestation_deltas(state, context)?;
+        for i in 0..state.validators.len() {
+            increase_balance(state, i, rewards[i]);
+            decrease_balance(state, i, penalties[i]);
+        }
+    }
+
     Ok(())
 }
 
@@ -732,7 +742,7 @@ pub fn get_source_deltas<
     get_attestation_component_deltas(state, matching_source_attestations, context)
 }
 
-pub fn _get_target_deltas<
+pub fn get_target_deltas<
     const SLOTS_PER_HISTORICAL_ROOT: usize,
     const HISTORICAL_ROOTS_LIMIT: usize,
     const ETH1_DATA_VOTES_BOUND: usize,
@@ -742,7 +752,7 @@ pub fn _get_target_deltas<
     const MAX_VALIDATORS_PER_COMMITTEE: usize,
     const PENDING_ATTESTATIONS_BOUND: usize,
 >(
-    _state: &BeaconState<
+    state: &BeaconState<
         SLOTS_PER_HISTORICAL_ROOT,
         HISTORICAL_ROOTS_LIMIT,
         ETH1_DATA_VOTES_BOUND,
@@ -752,12 +762,18 @@ pub fn _get_target_deltas<
         MAX_VALIDATORS_PER_COMMITTEE,
         PENDING_ATTESTATIONS_BOUND,
     >,
-    _context: &Context,
-) -> Result<(), Error> {
-    Ok(())
+    context: &Context,
+) -> Result<(Vec<Gwei>, Vec<Gwei>), Error> {
+    // Return attester micro-rewards/penalties for target-vote for each validator.
+    let previous_epoch = get_previous_epoch(state, context);
+    let matching_target_attestations =
+        get_matching_target_attestations(state, previous_epoch, context)?
+            .cloned()
+            .collect::<Vec<_>>();
+    get_attestation_component_deltas(state, matching_target_attestations.as_slice(), context)
 }
 
-pub fn _get_head_deltas<
+pub fn get_head_deltas<
     const SLOTS_PER_HISTORICAL_ROOT: usize,
     const HISTORICAL_ROOTS_LIMIT: usize,
     const ETH1_DATA_VOTES_BOUND: usize,
@@ -767,7 +783,7 @@ pub fn _get_head_deltas<
     const MAX_VALIDATORS_PER_COMMITTEE: usize,
     const PENDING_ATTESTATIONS_BOUND: usize,
 >(
-    _state: &BeaconState<
+    state: &BeaconState<
         SLOTS_PER_HISTORICAL_ROOT,
         HISTORICAL_ROOTS_LIMIT,
         ETH1_DATA_VOTES_BOUND,
@@ -777,12 +793,18 @@ pub fn _get_head_deltas<
         MAX_VALIDATORS_PER_COMMITTEE,
         PENDING_ATTESTATIONS_BOUND,
     >,
-    _context: &Context,
-) -> Result<(), Error> {
-    Ok(())
+    context: &Context,
+) -> Result<(Vec<Gwei>, Vec<Gwei>), Error> {
+    // Return attester micro-rewards/penalties for head-vote for each validator.
+    let previous_epoch = get_previous_epoch(state, context);
+    let matching_head_attestations =
+        get_matching_head_attestations(state, previous_epoch, context)?
+            .cloned()
+            .collect::<Vec<_>>();
+    get_attestation_component_deltas(state, matching_head_attestations.as_slice(), context)
 }
 
-pub fn _get_inclusion_delay_deltas<
+pub fn get_inclusion_delay_deltas<
     const SLOTS_PER_HISTORICAL_ROOT: usize,
     const HISTORICAL_ROOTS_LIMIT: usize,
     const ETH1_DATA_VOTES_BOUND: usize,
@@ -792,7 +814,7 @@ pub fn _get_inclusion_delay_deltas<
     const MAX_VALIDATORS_PER_COMMITTEE: usize,
     const PENDING_ATTESTATIONS_BOUND: usize,
 >(
-    _state: &BeaconState<
+    state: &BeaconState<
         SLOTS_PER_HISTORICAL_ROOT,
         HISTORICAL_ROOTS_LIMIT,
         ETH1_DATA_VOTES_BOUND,
@@ -802,12 +824,35 @@ pub fn _get_inclusion_delay_deltas<
         MAX_VALIDATORS_PER_COMMITTEE,
         PENDING_ATTESTATIONS_BOUND,
     >,
-    _context: &Context,
-) -> Result<(), Error> {
-    Ok(())
+    context: &Context,
+) -> Result<(Vec<Gwei>, Vec<Gwei>), Error> {
+    // Return proposer and inclusion delay micro-rewards/penalties for each validator.
+    let previous_epoch = get_previous_epoch(state, context);
+    let validator_count = state.validators.len();
+    let mut rewards = vec![0; validator_count];
+    let matching_source_attestations =
+        get_matching_source_attestations(state, previous_epoch, context)?;
+    for i in get_unslashed_attesting_indices(state, matching_source_attestations, context)? {
+        let attestation = matching_source_attestations
+            .iter()
+            .filter(|a| {
+                get_attesting_indices(state, &a.data, &a.aggregation_bits, context)
+                    .unwrap()
+                    .contains(&i)
+            })
+            .min_by(|a, b| a.inclusion_delay.cmp(&b.inclusion_delay))
+            .unwrap();
+        rewards[attestation.proposer_index] += get_proposer_reward(state, i, context).unwrap();
+        let max_attester_reward =
+            get_base_reward(state, i, context)? - get_proposer_reward(state, i, context)?;
+        rewards[i] += max_attester_reward / attestation.inclusion_delay;
+    }
+    // No penalties associated with inclusion delay
+    let penalties = vec![0; validator_count];
+    Ok((rewards, penalties))
 }
 
-pub fn _get_inactivity_penalty_deltas<
+pub fn get_inactivity_penalty_deltas<
     const SLOTS_PER_HISTORICAL_ROOT: usize,
     const HISTORICAL_ROOTS_LIMIT: usize,
     const ETH1_DATA_VOTES_BOUND: usize,
@@ -817,7 +862,7 @@ pub fn _get_inactivity_penalty_deltas<
     const MAX_VALIDATORS_PER_COMMITTEE: usize,
     const PENDING_ATTESTATIONS_BOUND: usize,
 >(
-    _state: &BeaconState<
+    state: &BeaconState<
         SLOTS_PER_HISTORICAL_ROOT,
         HISTORICAL_ROOTS_LIMIT,
         ETH1_DATA_VOTES_BOUND,
@@ -827,12 +872,40 @@ pub fn _get_inactivity_penalty_deltas<
         MAX_VALIDATORS_PER_COMMITTEE,
         PENDING_ATTESTATIONS_BOUND,
     >,
-    _context: &Context,
-) -> Result<(), Error> {
-    Ok(())
+    context: &Context,
+) -> Result<(Vec<Gwei>, Vec<Gwei>), Error> {
+    // Return inactivity reward/penalty deltas for each validator.
+    let previous_epoch = get_previous_epoch(state, context);
+    let validator_count = state.validators.len();
+    let mut penalties = vec![0; validator_count];
+    if is_in_inactivity_leak(state, context) {
+        let matching_target_attestations =
+            get_matching_target_attestations(state, previous_epoch, context)?
+                .cloned()
+                .collect::<Vec<_>>();
+        let matching_target_attesting_indices = get_unslashed_attesting_indices(
+            state,
+            matching_target_attestations.as_slice(),
+            context,
+        )?;
+        for i in get_eligible_validator_indices(state, context) {
+            // If validator is performing optimally this cancels all rewards for a neutral balance
+            let base_reward = get_base_reward(state, i, context)?;
+            penalties[i] +=
+                BASE_REWARDS_PER_EPOCH * base_reward - get_proposer_reward(state, i, context)?;
+            if !matching_target_attesting_indices.contains(&i) {
+                let effective_balance = state.validators[i].effective_balance;
+                penalties[i] += effective_balance * get_finality_delay(state, context)
+                    / context.inactivity_penalty_quotient;
+            }
+        }
+    }
+    // No rewards associated with inactivity penalties
+    let rewards = vec![0; validator_count];
+    Ok((rewards, penalties))
 }
 
-pub fn _get_attestation_deltas<
+pub fn get_attestation_deltas<
     const SLOTS_PER_HISTORICAL_ROOT: usize,
     const HISTORICAL_ROOTS_LIMIT: usize,
     const ETH1_DATA_VOTES_BOUND: usize,
@@ -842,7 +915,7 @@ pub fn _get_attestation_deltas<
     const MAX_VALIDATORS_PER_COMMITTEE: usize,
     const PENDING_ATTESTATIONS_BOUND: usize,
 >(
-    _state: &BeaconState<
+    state: &BeaconState<
         SLOTS_PER_HISTORICAL_ROOT,
         HISTORICAL_ROOTS_LIMIT,
         ETH1_DATA_VOTES_BOUND,
@@ -852,9 +925,28 @@ pub fn _get_attestation_deltas<
         MAX_VALIDATORS_PER_COMMITTEE,
         PENDING_ATTESTATIONS_BOUND,
     >,
-    _context: &Context,
-) -> Result<(), Error> {
-    Ok(())
+    context: &Context,
+) -> Result<(Vec<Gwei>, Vec<Gwei>), Error> {
+    // Return attestation reward/penalty deltas for each validator.
+    let (source_rewards, source_penalties) = get_source_deltas(state, context)?;
+    let (target_rewards, target_penalties) = get_target_deltas(state, context)?;
+    let (head_rewards, head_penalties) = get_head_deltas(state, context)?;
+    let (inclusion_delay_rewards, _) = get_inclusion_delay_deltas(state, context)?;
+    let (_, inactivity_penalties) = get_inactivity_penalty_deltas(state, context)?;
+
+    let validator_count = state.validators.len();
+    let mut rewards = vec![0; validator_count];
+    for i in 0..validator_count {
+        rewards[i] =
+            source_rewards[i] + target_rewards[i] + head_rewards[i] + inclusion_delay_rewards[i]
+    }
+
+    let mut penalties = vec![0; validator_count];
+    for i in 0..validator_count {
+        penalties[i] =
+            source_penalties[i] + target_penalties[i] + head_penalties[i] + inactivity_penalties[i]
+    }
+    Ok((rewards, penalties))
 }
 
 pub fn process_epoch<
