@@ -46,6 +46,8 @@ pub enum Error {
     },
     #[error("overflow")]
     Overflow,
+    #[error("invalid attestation")]
+    InvalidAttestation,
     #[error("{0}")]
     InvalidBlock(InvalidBlock),
     #[error("an invalid transition to a past slot {requested} from slot {current}")]
