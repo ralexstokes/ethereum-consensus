@@ -125,6 +125,7 @@ pub fn get_matching_head_attestations<
 }
 
 pub fn get_unslashed_attesting_indices<
+    'a,
     const SLOTS_PER_HISTORICAL_ROOT: usize,
     const HISTORICAL_ROOTS_LIMIT: usize,
     const ETH1_DATA_VOTES_BOUND: usize,
@@ -134,7 +135,7 @@ pub fn get_unslashed_attesting_indices<
     const MAX_VALIDATORS_PER_COMMITTEE: usize,
     const PENDING_ATTESTATIONS_BOUND: usize,
 >(
-    state: &BeaconState<
+    state: &'a BeaconState<
         SLOTS_PER_HISTORICAL_ROOT,
         HISTORICAL_ROOTS_LIMIT,
         ETH1_DATA_VOTES_BOUND,
@@ -144,17 +145,20 @@ pub fn get_unslashed_attesting_indices<
         MAX_VALIDATORS_PER_COMMITTEE,
         PENDING_ATTESTATIONS_BOUND,
     >,
-    attestations: &[&PendingAttestation<MAX_VALIDATORS_PER_COMMITTEE>],
+    attestations: impl Iterator<Item = &'a PendingAttestation<MAX_VALIDATORS_PER_COMMITTEE>>,
     context: &Context,
 ) -> Result<HashSet<ValidatorIndex>, Error> {
-    let output = HashSet::new();
-    for a in attestations.iter() {
-        output.union(&get_attesting_indices(
-            state,
-            &a.data,
-            &a.aggregation_bits,
-            context,
-        )?);
+    let mut output = HashSet::new();
+    for a in attestations {
+        output = output
+            .union(&get_attesting_indices(
+                state,
+                &a.data,
+                &a.aggregation_bits,
+                context,
+            )?)
+            .cloned()
+            .collect::<HashSet<_>>();
     }
     Ok(output
         .into_iter()
@@ -668,6 +672,7 @@ pub fn get_eligible_validator_indices<
 }
 
 pub fn get_attestation_component_deltas<
+    'a,
     const SLOTS_PER_HISTORICAL_ROOT: usize,
     const HISTORICAL_ROOTS_LIMIT: usize,
     const ETH1_DATA_VOTES_BOUND: usize,
@@ -677,7 +682,7 @@ pub fn get_attestation_component_deltas<
     const MAX_VALIDATORS_PER_COMMITTEE: usize,
     const PENDING_ATTESTATIONS_BOUND: usize,
 >(
-    state: &BeaconState<
+    state: &'a BeaconState<
         SLOTS_PER_HISTORICAL_ROOT,
         HISTORICAL_ROOTS_LIMIT,
         ETH1_DATA_VOTES_BOUND,
@@ -687,7 +692,7 @@ pub fn get_attestation_component_deltas<
         MAX_VALIDATORS_PER_COMMITTEE,
         PENDING_ATTESTATIONS_BOUND,
     >,
-    attestations: &[&PendingAttestation<MAX_VALIDATORS_PER_COMMITTEE>],
+    attestations: impl Iterator<Item = &'a PendingAttestation<MAX_VALIDATORS_PER_COMMITTEE>>,
     context: &Context,
 ) -> Result<(Vec<Gwei>, Vec<Gwei>), Error> {
     // Helper with shared logic for use by get source, target, and head deltas functions
@@ -741,11 +746,9 @@ pub fn get_source_deltas<
 ) -> Result<(Vec<Gwei>, Vec<Gwei>), Error> {
     // Return attester micro-rewards/penalties for source-vote for each validator.
     let previous_epoch = get_previous_epoch(state, context);
-    let mut matching_source_attestations = Vec::new();
-    for a in get_matching_source_attestations(state, previous_epoch, context)?.iter() {
-        matching_source_attestations.push(a);
-    }
-    get_attestation_component_deltas(state, &matching_source_attestations, context)
+    let matching_source_attestations =
+        get_matching_source_attestations(state, previous_epoch, context)?.iter();
+    get_attestation_component_deltas(state, matching_source_attestations, context)
 }
 
 pub fn get_target_deltas<
@@ -773,8 +776,8 @@ pub fn get_target_deltas<
     // Return attester micro-rewards/penalties for target-vote for each validator.
     let previous_epoch = get_previous_epoch(state, context);
     let matching_target_attestations =
-        get_matching_target_attestations(state, previous_epoch, context)?.collect::<Vec<_>>();
-    get_attestation_component_deltas(state, &matching_target_attestations, context)
+        get_matching_target_attestations(state, previous_epoch, context)?;
+    get_attestation_component_deltas(state, matching_target_attestations, context)
 }
 
 pub fn get_head_deltas<
@@ -803,7 +806,7 @@ pub fn get_head_deltas<
     let previous_epoch = get_previous_epoch(state, context);
     let matching_head_attestations =
         get_matching_head_attestations(state, previous_epoch, context)?;
-    get_attestation_component_deltas(state, &matching_head_attestations, context)
+    get_attestation_component_deltas(state, matching_head_attestations.into_iter(), context)
 }
 
 pub fn get_inclusion_delay_deltas<
@@ -832,21 +835,19 @@ pub fn get_inclusion_delay_deltas<
     let previous_epoch = get_previous_epoch(state, context);
     let validator_count = state.validators.len();
     let mut rewards = vec![0; validator_count];
-    let mut matching_source_attestations = Vec::new();
-    for a in get_matching_source_attestations(state, previous_epoch, context)?.iter() {
-        matching_source_attestations.push(a);
-    }
-    for i in get_unslashed_attesting_indices(state, &matching_source_attestations, context)? {
+    let matching_source_attestations =
+        get_matching_source_attestations(state, previous_epoch, context)?;
+    for i in get_unslashed_attesting_indices(state, matching_source_attestations.iter(), context)? {
         let mut attestations = Vec::new();
-        for a in &matching_source_attestations {
+        for a in matching_source_attestations.iter() {
             if get_attesting_indices(state, &a.data, &a.aggregation_bits, context)?.contains(&i) {
-                attestations.push(*a)
+                attestations.push(a)
             }
         }
         let attestation = attestations
             .iter()
             .min_by(|&a, &b| a.inclusion_delay.cmp(&b.inclusion_delay))
-            .ok_or(Error::InvalidAttestation)?;
+            .expect("at least one attestation in collection");
         rewards[attestation.proposer_index] += get_proposer_reward(state, i, context)?;
         let max_attester_reward =
             get_base_reward(state, i, context)? - get_proposer_reward(state, i, context)?;
@@ -885,9 +886,9 @@ pub fn get_inactivity_penalty_deltas<
     let mut penalties = vec![0; validator_count];
     if is_in_inactivity_leak(state, context) {
         let matching_target_attestations =
-            get_matching_target_attestations(state, previous_epoch, context)?.collect::<Vec<_>>();
+            get_matching_target_attestations(state, previous_epoch, context)?;
         let matching_target_attesting_indices =
-            get_unslashed_attesting_indices(state, &matching_target_attestations, context)?;
+            get_unslashed_attesting_indices(state, matching_target_attestations, context)?;
         for i in get_eligible_validator_indices(state, context) {
             // If validator is performing optimally this cancels all rewards for a neutral balance
             let base_reward = get_base_reward(state, i, context)?;
