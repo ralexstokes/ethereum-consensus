@@ -157,7 +157,7 @@ pub fn process_registry_updates<
         PENDING_ATTESTATIONS_BOUND,
     >,
     context: &Context,
-) -> Result<(), Error> {
+) {
     // Process activation eligibility and ejections
     let current_epoch = get_current_epoch(state, context);
 
@@ -203,8 +203,6 @@ pub fn process_registry_updates<
         let validator = &mut state.validators[i];
         validator.activation_epoch = activation_exit_epoch;
     }
-
-    Ok(())
 }
 
 pub fn process_slashings<
@@ -273,13 +271,12 @@ pub fn process_eth1_data_reset<
         PENDING_ATTESTATIONS_BOUND,
     >,
     context: &Context,
-) -> Result<(), Error> {
+) {
     let next_epoch = get_current_epoch(state, context) + 1;
 
     if next_epoch % context.epochs_per_eth1_voting_period == 0 {
         state.eth1_data_votes.clear();
     }
-    Ok(())
 }
 
 pub fn process_effective_balance_updates<
@@ -303,7 +300,7 @@ pub fn process_effective_balance_updates<
         PENDING_ATTESTATIONS_BOUND,
     >,
     context: &Context,
-) -> Result<(), Error> {
+) {
     // Update effective balances with hysteresis
     let hysteresis_increment = context.effective_balance_increment / context.hysteresis_quotient;
     let downward_threshold = hysteresis_increment * context.hysteresis_downward_multiplier;
@@ -320,7 +317,6 @@ pub fn process_effective_balance_updates<
             );
         }
     }
-    Ok(())
 }
 
 pub fn process_slashings_reset<
@@ -344,12 +340,11 @@ pub fn process_slashings_reset<
         PENDING_ATTESTATIONS_BOUND,
     >,
     context: &Context,
-) -> Result<(), Error> {
+) {
     let next_epoch = get_current_epoch(state, context) + 1;
 
     let slashings_index = next_epoch % context.epochs_per_slashings_vector;
     state.slashings[slashings_index as usize] = 0;
-    Ok(())
 }
 
 pub fn process_randao_mixes_reset<
@@ -373,12 +368,11 @@ pub fn process_randao_mixes_reset<
         PENDING_ATTESTATIONS_BOUND,
     >,
     context: &Context,
-) -> Result<(), Error> {
+) {
     let current_epoch = get_current_epoch(state, context);
     let next_epoch = current_epoch + 1;
     let mix_index = next_epoch % context.epochs_per_historical_vector;
     state.randao_mixes[mix_index as usize] = get_randao_mix(state, current_epoch).clone();
-    Ok(())
 }
 
 pub fn process_historical_roots_update<
@@ -437,11 +431,9 @@ pub fn process_participation_record_updates<
         MAX_VALIDATORS_PER_COMMITTEE,
         PENDING_ATTESTATIONS_BOUND,
     >,
-) -> Result<(), Error> {
+) {
     let current_attestations = mem::take(&mut state.current_epoch_attestations);
     state.previous_epoch_attestations = current_attestations;
-
-    Ok(())
 }
 
 pub fn process_epoch<
@@ -468,13 +460,13 @@ pub fn process_epoch<
 ) -> Result<(), Error> {
     process_justification_and_finalization(state, context)?;
     process_rewards_and_penalties(state, context)?;
-    process_registry_updates(state, context)?;
+    process_registry_updates(state, context);
     process_slashings(state, context)?;
-    process_eth1_data_reset(state, context)?;
-    process_effective_balance_updates(state, context)?;
-    process_slashings_reset(state, context)?;
-    process_randao_mixes_reset(state, context)?;
+    process_eth1_data_reset(state, context);
+    process_effective_balance_updates(state, context);
+    process_slashings_reset(state, context);
+    process_randao_mixes_reset(state, context);
     process_historical_roots_update(state, context)?;
-    process_participation_record_updates(state)?;
+    process_participation_record_updates(state);
     Ok(())
 }
