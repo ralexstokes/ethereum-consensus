@@ -780,3 +780,143 @@ pub fn process_block<
     process_operations(state, &mut block.body, context)?;
     Ok(())
 }
+
+#[cfg(test)]
+mod tests {
+    use super::process_block_header;
+    use crate::phase0::mainnet::{BeaconBlock, BeaconState, Context};
+    use project_root;
+    use snap;
+    use ssz_rs::prelude::*;
+    use std::fs::File;
+    use std::io::Read;
+    use std::path::Path;
+    use std::path::PathBuf;
+
+    // Return SSZ-encoded bytes from test file at `target_path`
+    pub fn read_ssz_snappy_from_test_data(target_path: &Path) -> Vec<u8> {
+        let project_root = project_root::get_project_root().unwrap();
+        let target_path = PathBuf::from(target_path);
+        let data_path = project_root.join(&target_path);
+        let mut file = File::open(&data_path).expect("can read file");
+        let mut data = vec![];
+        let _ = file.read_to_end(&mut data).expect("can read file data");
+        let mut decoder = snap::raw::Decoder::new();
+        decoder
+            .decompress_vec(&data)
+            .expect("can decompress snappy")
+    }
+
+    #[test]
+    fn test_invalid_multiple_blocks_single_slot() {
+        let test_folder = Path::new("consensus-spec-tests/tests/mainnet/phase0/operations/block_header/pyspec_tests/invalid_multiple_blocks_single_slot/");
+        let pre_state_path = test_folder.join("pre.ssz_snappy");
+        let block_path = test_folder.join("block.ssz_snappy");
+
+        let pre_state = read_ssz_snappy_from_test_data(&pre_state_path);
+        let mut pre_state: BeaconState = deserialize(&pre_state).expect("can deserialize");
+
+        let block = read_ssz_snappy_from_test_data(&block_path);
+        let mut block: BeaconBlock = deserialize(&block).expect("can deserialize");
+
+        let context = Context::for_mainnet();
+
+        let result = process_block_header(&mut pre_state, &mut block, &context);
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_invalid_parent_root() {
+        let test_folder = Path::new("consensus-spec-tests/tests/mainnet/phase0/operations/block_header/pyspec_tests/invalid_parent_root/");
+        let pre_state_path = test_folder.join("pre.ssz_snappy");
+        let block_path = test_folder.join("block.ssz_snappy");
+
+        let pre_state = read_ssz_snappy_from_test_data(&pre_state_path);
+        let mut pre_state: BeaconState = deserialize(&pre_state).expect("can deserialize");
+
+        let block = read_ssz_snappy_from_test_data(&block_path);
+        let mut block: BeaconBlock = deserialize(&block).expect("can deserialize");
+
+        let context = Context::for_mainnet();
+
+        let result = process_block_header(&mut pre_state, &mut block, &context);
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_invalid_proposer_index() {
+        let test_folder = Path::new("consensus-spec-tests/tests/mainnet/phase0/operations/block_header/pyspec_tests/invalid_proposer_index/");
+        let pre_state_path = test_folder.join("pre.ssz_snappy");
+        let block_path = test_folder.join("block.ssz_snappy");
+
+        let pre_state = read_ssz_snappy_from_test_data(&pre_state_path);
+        let mut pre_state: BeaconState = deserialize(&pre_state).expect("can deserialize");
+
+        let block = read_ssz_snappy_from_test_data(&block_path);
+        let mut block: BeaconBlock = deserialize(&block).expect("can deserialize");
+
+        let context = Context::for_mainnet();
+
+        let result = process_block_header(&mut pre_state, &mut block, &context);
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_invalid_slot_block_header() {
+        let test_folder = Path::new("consensus-spec-tests/tests/mainnet/phase0/operations/block_header/pyspec_tests/invalid_slot_block_header/");
+        let pre_state_path = test_folder.join("pre.ssz_snappy");
+        let block_path = test_folder.join("block.ssz_snappy");
+
+        let pre_state = read_ssz_snappy_from_test_data(&pre_state_path);
+        let mut pre_state: BeaconState = deserialize(&pre_state).expect("can deserialize");
+
+        let block = read_ssz_snappy_from_test_data(&block_path);
+        let mut block: BeaconBlock = deserialize(&block).expect("can deserialize");
+
+        let context = Context::for_mainnet();
+
+        let result = process_block_header(&mut pre_state, &mut block, &context);
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_proposer_slashed() {
+        let test_folder = Path::new("consensus-spec-tests/tests/mainnet/phase0/operations/block_header/pyspec_tests/proposer_slashed/");
+        let pre_state_path = test_folder.join("pre.ssz_snappy");
+        let block_path = test_folder.join("block.ssz_snappy");
+
+        let pre_state = read_ssz_snappy_from_test_data(&pre_state_path);
+        let mut pre_state: BeaconState = deserialize(&pre_state).expect("can deserialize");
+
+        let block = read_ssz_snappy_from_test_data(&block_path);
+        let mut block: BeaconBlock = deserialize(&block).expect("can deserialize");
+
+        let context = Context::for_mainnet();
+
+        let result = process_block_header(&mut pre_state, &mut block, &context);
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_success_block_header() {
+        let test_folder = Path::new("consensus-spec-tests/tests/mainnet/phase0/operations/block_header/pyspec_tests/success_block_header/");
+        let pre_state_path = test_folder.join("pre.ssz_snappy");
+        let post_state_path = test_folder.join("post.ssz_snappy");
+        let block_path = test_folder.join("block.ssz_snappy");
+
+        let pre_state = read_ssz_snappy_from_test_data(&pre_state_path);
+        let mut pre_state: BeaconState = deserialize(&pre_state).expect("can deserialize");
+
+        let block = read_ssz_snappy_from_test_data(&block_path);
+        let mut block: BeaconBlock = deserialize(&block).expect("can deserialize");
+
+        let context = Context::for_mainnet();
+
+        let result = process_block_header(&mut pre_state, &mut block, &context);
+        assert!(result.is_ok());
+
+        let ser_post_state = read_ssz_snappy_from_test_data(&post_state_path);
+        let ser_state = serialize(&pre_state).expect("can serialize");
+        assert_eq!(ser_state, ser_post_state);
+    }
+}
