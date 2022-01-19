@@ -150,20 +150,13 @@ pub fn get_unslashed_attesting_indices<
 ) -> Result<HashSet<ValidatorIndex>, Error> {
     let mut output = HashSet::new();
     for a in attestations {
-        output = output
-            .union(&get_attesting_indices(
-                state,
-                &a.data,
-                &a.aggregation_bits,
-                context,
-            )?)
-            .cloned()
-            .collect::<HashSet<_>>();
+        for index in get_attesting_indices(state, &a.data, &a.aggregation_bits, context)? {
+            if !state.validators[index].slashed {
+                output.insert(index);
+            }
+        }
     }
-    Ok(output
-        .into_iter()
-        .filter(|&i| !state.validators[i].slashed)
-        .collect())
+    Ok(output)
 }
 
 pub fn process_justification_and_finalization<
