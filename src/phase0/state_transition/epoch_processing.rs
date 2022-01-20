@@ -740,8 +740,8 @@ pub fn get_source_deltas<
     // Return attester micro-rewards/penalties for source-vote for each validator.
     let previous_epoch = get_previous_epoch(state, context);
     let matching_source_attestations =
-        get_matching_source_attestations(state, previous_epoch, context)?.iter();
-    get_attestation_component_deltas(state, matching_source_attestations, context)
+        get_matching_source_attestations(state, previous_epoch, context)?;
+    get_attestation_component_deltas(state, matching_source_attestations.iter(), context)
 }
 
 pub fn get_target_deltas<
@@ -823,7 +823,7 @@ pub fn get_inclusion_delay_deltas<
         PENDING_ATTESTATIONS_BOUND,
     >,
     context: &Context,
-) -> Result<(Vec<Gwei>, Vec<Gwei>), Error> {
+) -> Result<Vec<Gwei>, Error> {
     // Return proposer and inclusion delay micro-rewards/penalties for each validator.
     let previous_epoch = get_previous_epoch(state, context);
     let validator_count = state.validators.len();
@@ -847,8 +847,8 @@ pub fn get_inclusion_delay_deltas<
         rewards[i] += max_attester_reward / attestation.inclusion_delay;
     }
     // No penalties associated with inclusion delay
-    let penalties = vec![0; validator_count];
-    Ok((rewards, penalties))
+    // Note: a slight deviation from the spec -- `penalties` is not provided in the return since it's unused
+    Ok(rewards)
 }
 
 pub fn get_inactivity_penalty_deltas<
@@ -872,7 +872,7 @@ pub fn get_inactivity_penalty_deltas<
         PENDING_ATTESTATIONS_BOUND,
     >,
     context: &Context,
-) -> Result<(Vec<Gwei>, Vec<Gwei>), Error> {
+) -> Result<Vec<Gwei>, Error> {
     // Return inactivity reward/penalty deltas for each validator.
     let previous_epoch = get_previous_epoch(state, context);
     let validator_count = state.validators.len();
@@ -895,8 +895,8 @@ pub fn get_inactivity_penalty_deltas<
         }
     }
     // No rewards associated with inactivity penalties
-    let rewards = vec![0; validator_count];
-    Ok((rewards, penalties))
+    // Note: a slight deviation from the spec -- `rewards` is not provided in the return since it's unused
+    Ok(penalties)
 }
 
 pub fn get_attestation_deltas<
@@ -925,8 +925,8 @@ pub fn get_attestation_deltas<
     let (source_rewards, source_penalties) = get_source_deltas(state, context)?;
     let (target_rewards, target_penalties) = get_target_deltas(state, context)?;
     let (head_rewards, head_penalties) = get_head_deltas(state, context)?;
-    let (inclusion_delay_rewards, _) = get_inclusion_delay_deltas(state, context)?;
-    let (_, inactivity_penalties) = get_inactivity_penalty_deltas(state, context)?;
+    let inclusion_delay_rewards = get_inclusion_delay_deltas(state, context)?;
+    let inactivity_penalties = get_inactivity_penalty_deltas(state, context)?;
 
     let validator_count = state.validators.len();
     let mut rewards = vec![0; validator_count];
