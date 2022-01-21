@@ -46,6 +46,8 @@ pub enum Error {
     },
     #[error("overflow")]
     Overflow,
+    #[error("invalid attestation")]
+    InvalidAttestation,
     #[error("{0}")]
     InvalidBlock(InvalidBlock),
     #[error("an invalid transition to a past slot {requested} from slot {current}")]
@@ -975,7 +977,7 @@ pub fn get_total_balance<
         MAX_VALIDATORS_PER_COMMITTEE,
         PENDING_ATTESTATIONS_BOUND,
     >,
-    indices: HashSet<ValidatorIndex>,
+    indices: &HashSet<ValidatorIndex>,
     context: &Context,
 ) -> Result<Gwei, Error> {
     let total_balance = indices
@@ -1010,7 +1012,7 @@ pub fn get_total_active_balance<
     context: &Context,
 ) -> Result<Gwei, Error> {
     let indices = get_active_validator_indices(state, get_current_epoch(state, context));
-    get_total_balance(state, HashSet::from_iter(indices), context)
+    get_total_balance(state, &HashSet::from_iter(indices), context)
 }
 
 pub fn get_indexed_attestation<

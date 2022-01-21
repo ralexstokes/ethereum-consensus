@@ -27,6 +27,6 @@ pub mod mainnet {
 
 pub mod minimal {}
 
-pub const BASE_REWARDS_PER_EPOCH: usize = 4;
+pub const BASE_REWARDS_PER_EPOCH: u64 = 4;
 pub const DEPOSIT_CONTRACT_TREE_DEPTH: usize = 2usize.pow(5);
 pub const JUSTIFICATION_BITS_LENGTH: usize = 4;
