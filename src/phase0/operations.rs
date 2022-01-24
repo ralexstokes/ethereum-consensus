@@ -26,7 +26,7 @@ pub struct IndexedAttestation<const MAX_VALIDATORS_PER_COMMITTEE: usize> {
     pub signature: BLSSignature,
 }
 
-#[derive(Default, Debug, SimpleSerialize, Clone)]
+#[derive(Default, Debug, SimpleSerialize, Clone, PartialEq, Eq)]
 pub struct PendingAttestation<const MAX_VALIDATORS_PER_COMMITTEE: usize> {
     pub aggregation_bits: Bitlist<MAX_VALIDATORS_PER_COMMITTEE>,
     pub data: AttestationData,

@@ -39,7 +39,7 @@ pub struct HistoricalBatchAccumulator {
     pub state_roots_root: Root,
 }
 
-#[derive(Default, Debug, SimpleSerialize, Clone)]
+#[derive(Default, Debug, SimpleSerialize, Clone, PartialEq, Eq)]
 pub struct BeaconState<
     const SLOTS_PER_HISTORICAL_ROOT: usize,
     const HISTORICAL_ROOTS_LIMIT: usize,
