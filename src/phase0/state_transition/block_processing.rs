@@ -780,3 +780,90 @@ pub fn process_block<
     process_operations(state, &mut block.body, context)?;
     Ok(())
 }
+
+#[cfg(test)]
+mod tests {
+    use super::process_block_header;
+    use crate::phase0::mainnet::{BeaconBlock, BeaconState, Context};
+    use glob::glob;
+    use project_root;
+    use snap;
+    use ssz_rs::prelude::*;
+    use std::fs::File;
+    use std::io::Read;
+    use std::path::PathBuf;
+
+    // Return SSZ-encoded bytes from test file at `target_path`
+    pub fn read_ssz_snappy_from_test_data(
+        target_path: &PathBuf,
+    ) -> Result<Vec<u8>, std::io::Error> {
+        let project_root = project_root::get_project_root().unwrap();
+        let data_path = project_root.join(&target_path);
+        let mut file = File::open(&data_path)?;
+        let mut data = vec![];
+        let _ = file.read_to_end(&mut data).expect("can read file data");
+        let mut decoder = snap::raw::Decoder::new();
+        Ok(decoder
+            .decompress_vec(&data)
+            .expect("can decompress snappy"))
+    }
+
+    struct BlockHeaderTestIO {
+        pre_state: Vec<u8>,
+        block: Vec<u8>,
+        post_state: Option<Vec<u8>>,
+    }
+
+    impl BlockHeaderTestIO {
+        fn verify(&self) {
+            let context = Context::for_mainnet();
+
+            let mut state: BeaconState = deserialize(&self.pre_state).expect("can deserialize");
+            let mut block: BeaconBlock = deserialize(&self.block).expect("can deserialize");
+            let result = process_block_header(&mut state, &mut block, &context);
+
+            match &self.post_state {
+                None => assert!(result.is_err()),
+                Some(post_state) => {
+                    assert!(result.is_ok());
+                    let post_state = deserialize(&post_state).expect("can deserialize");
+                    assert_eq!(state, post_state);
+                }
+            };
+        }
+
+        fn execute_test_cases(path_glob: &str) {
+            let entries = glob(path_glob).expect("is valid glob pattern");
+            for entry in entries {
+                let path = entry.unwrap();
+                println!("{:?}", path);
+
+                let pre_state_path = path.join("pre.ssz_snappy");
+                let post_state_path = path.join("post.ssz_snappy");
+                let block_path = path.join("block.ssz_snappy");
+
+                let pre_state =
+                    read_ssz_snappy_from_test_data(&pre_state_path).expect("file exists");
+                let block = read_ssz_snappy_from_test_data(&block_path).expect("file exists");
+                let post_state = match read_ssz_snappy_from_test_data(&post_state_path) {
+                    Ok(post_state) => Some(post_state),
+                    Err(_) => None,
+                };
+
+                let test_data: Self = BlockHeaderTestIO {
+                    pre_state,
+                    block,
+                    post_state,
+                };
+                test_data.verify();
+            }
+        }
+    }
+
+    #[test]
+    fn test_process_block_header() {
+        BlockHeaderTestIO::execute_test_cases(
+            "consensus-spec-tests/tests/mainnet/phase0/operations/block_header/pyspec_tests/*/",
+        )
+    }
+}
