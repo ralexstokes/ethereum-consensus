@@ -10,7 +10,6 @@ use serde_yaml;
 use std::fmt::Debug;
 use std::fs::File;
 
-// type TestResult = Result<(), Box<dyn Error>>;
 trait TestCase
 where
     Self: for<'de> serde::Deserialize<'de>,
