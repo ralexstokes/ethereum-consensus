@@ -3,6 +3,7 @@ use blst::{min_pk as blst_core, BLST_ERROR};
 use sha2::{digest::FixedOutput, Digest, Sha256};
 use ssz_rs::prelude::*;
 use std::fmt;
+use std::hash::{Hash, Hasher};
 use thiserror::Error;
 
 const BLS_DST: &[u8] = b"BLS_SIG_BLS12381G2_XMD:SHA-256_SSWU_RO_POP_";
@@ -10,11 +11,11 @@ const BLS_PUBLIC_KEY_BYTES_LEN: usize = 48;
 const BLS_SECRET_KEY_BYTES_LEN: usize = 32;
 
 pub fn hash<D: AsRef<[u8]>>(data: D) -> Bytes32 {
-    let mut result = Bytes32::default();
+    let mut result = vec![0u8; 32];
     let mut hasher = Sha256::new();
     hasher.update(data);
-    hasher.finalize_into(result.0.as_mut_slice().into());
-    result
+    hasher.finalize_into(result.as_mut_slice().into());
+    Bytes32(result.try_into().expect("correct input"))
 }
 
 #[derive(Debug, Error)]
@@ -107,7 +108,7 @@ fn verify_signature(public_key: &PublicKey, msg: &[u8], sig: &Signature) -> bool
     res == BLST_ERROR::BLST_SUCCESS
 }
 
-#[derive(Default, Clone, PartialEq, Eq)]
+#[derive(Default, Clone, Eq)]
 pub struct PublicKey(blst_core::PublicKey);
 
 impl fmt::Debug for PublicKey {
@@ -125,6 +126,18 @@ impl fmt::LowerHex for PublicKey {
             write!(f, "{:02x}", i)?;
         }
         Ok(())
+    }
+}
+
+impl Hash for PublicKey {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        self.as_bytes().hash(state)
+    }
+}
+
+impl PartialEq for PublicKey {
+    fn eq(&self, other: &Self) -> bool {
+        self.0 == other.0
     }
 }
 
@@ -177,11 +190,11 @@ impl Deserialize for PublicKey {
 }
 
 impl Merkleized for PublicKey {
-    fn hash_tree_root(&self, context: &MerkleizationContext) -> Result<Node, MerkleizationError> {
+    fn hash_tree_root(&mut self) -> Result<Node, MerkleizationError> {
         let mut buffer = vec![];
         self.serialize(&mut buffer)?;
         pack_bytes(&mut buffer);
-        merkleize(&buffer, None, context)
+        merkleize(&buffer, None)
     }
 }
 
@@ -271,11 +284,11 @@ impl Deserialize for Signature {
 }
 
 impl Merkleized for Signature {
-    fn hash_tree_root(&self, context: &MerkleizationContext) -> Result<Node, MerkleizationError> {
+    fn hash_tree_root(&mut self) -> Result<Node, MerkleizationError> {
         let mut buffer = vec![];
         self.serialize(&mut buffer)?;
         pack_bytes(&mut buffer);
-        merkleize(&buffer, None, context)
+        merkleize(&buffer, None)
     }
 }
 

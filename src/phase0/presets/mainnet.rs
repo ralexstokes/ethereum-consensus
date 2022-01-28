@@ -10,18 +10,21 @@ pub use crate::phase0::operations::{
     SignedVoluntaryExit, VoluntaryExit,
 };
 use crate::phase0::presets::Preset;
-use crate::phase0::state_transition::Context;
+// TODO: remove once the helpers here have been integrated
+pub use crate::phase0::state_transition::epoch_processing::*;
+pub use crate::phase0::state_transition::genesis::*;
 pub use crate::phase0::state_transition::{
-    apply_block, compute_activation_exit_epoch, compute_committee, compute_domain,
-    compute_epoch_at_slot, compute_fork_data_root, compute_fork_digest, compute_proposer_index,
-    compute_shuffled_index, compute_signing_root, compute_start_slot_at_epoch,
+    compute_activation_exit_epoch, compute_committee, compute_domain, compute_epoch_at_slot,
+    compute_fork_data_root, compute_fork_digest, compute_proposer_index, compute_shuffled_index,
+    compute_signing_root, compute_start_slot_at_epoch, decrease_balance,
     get_active_validator_indices, get_attesting_indices, get_beacon_committee,
     get_beacon_proposer_index, get_block_root, get_block_root_at_slot,
     get_committee_count_per_slot, get_current_epoch, get_domain, get_indexed_attestation,
     get_previous_epoch, get_randao_mix, get_seed, get_total_active_balance, get_total_balance,
-    get_validator_churn_limit, is_active_validator, is_eligible_for_activation,
-    is_eligible_for_activation_queue, is_slashable_attestation_data, is_slashable_validator,
-    is_valid_indexed_attestation, verify_block_signature, Error,
+    get_validator_churn_limit, increase_balance, initiate_validator_exit, is_active_validator,
+    is_eligible_for_activation, is_eligible_for_activation_queue, is_slashable_attestation_data,
+    is_slashable_validator, is_valid_indexed_attestation, slash_validator, verify_block_signature,
+    Error,
 };
 pub use crate::phase0::validator::Validator;
 use crate::primitives::{Epoch, Gwei, Slot};
@@ -41,7 +44,7 @@ pub const SLOTS_PER_EPOCH: Slot = 32;
 pub const MIN_SEED_LOOKAHEAD: Epoch = 1;
 pub const MAX_SEED_LOOKAHEAD: Epoch = 4;
 pub const MIN_EPOCHS_TO_INACTIVITY_PENALTY: Epoch = 4;
-pub const EPOCHS_PER_ETH1_VOTING_PERIOD: usize = 64;
+pub const EPOCHS_PER_ETH1_VOTING_PERIOD: Epoch = 64;
 pub const SLOTS_PER_HISTORICAL_ROOT: usize = 8192;
 pub const EPOCHS_PER_HISTORICAL_VECTOR: usize = 65536;
 pub const EPOCHS_PER_SLASHINGS_VECTOR: usize = 8192;
@@ -76,9 +79,9 @@ pub const PRESET: Preset = Preset {
     max_seed_lookahead: MAX_SEED_LOOKAHEAD,
     min_epochs_to_inactivity_penalty: MIN_EPOCHS_TO_INACTIVITY_PENALTY,
     epochs_per_eth1_voting_period: EPOCHS_PER_ETH1_VOTING_PERIOD,
-    slots_per_historical_root: SLOTS_PER_HISTORICAL_ROOT,
-    epochs_per_historical_vector: EPOCHS_PER_HISTORICAL_VECTOR,
-    epochs_per_slashings_vector: EPOCHS_PER_SLASHINGS_VECTOR,
+    slots_per_historical_root: SLOTS_PER_HISTORICAL_ROOT as Slot,
+    epochs_per_historical_vector: EPOCHS_PER_HISTORICAL_VECTOR as Epoch,
+    epochs_per_slashings_vector: EPOCHS_PER_SLASHINGS_VECTOR as Epoch,
     historical_roots_limit: HISTORICAL_ROOTS_LIMIT,
     validator_registry_limit: VALIDATOR_REGISTRY_LIMIT,
     base_reward_factor: BASE_REWARD_FACTOR,
@@ -94,13 +97,8 @@ pub const PRESET: Preset = Preset {
     max_voluntary_exits: MAX_VOLUNTARY_EXITS,
 };
 
-pub fn context() -> Context {
-    Context::with_preset(&PRESET)
-}
-
 pub type IndexedAttestation = operations::IndexedAttestation<MAX_VALIDATORS_PER_COMMITTEE>;
 pub type PendingAttestation = operations::PendingAttestation<MAX_VALIDATORS_PER_COMMITTEE>;
-pub type HistoricalBatch = beacon_state::HistoricalBatch<SLOTS_PER_HISTORICAL_ROOT>;
 pub type AttesterSlashing = operations::AttesterSlashing<MAX_VALIDATORS_PER_COMMITTEE>;
 pub type Attestation = operations::Attestation<MAX_VALIDATORS_PER_COMMITTEE>;
 

@@ -1,13 +1,18 @@
 mod block_processing;
 mod context;
-mod epoch_processing;
+// TODO make mod private once the helpers here have been integated
+pub mod epoch_processing;
+pub mod genesis;
+mod slot_processing;
 
-use crate::crypto::{fast_aggregate_verify, hash};
+use crate::crypto::{fast_aggregate_verify, hash, Signature as BLSSignature};
 use crate::domains::{DomainType, SigningData};
-use crate::phase0::beacon_block::SignedBeaconBlock;
+use crate::phase0::beacon_block::{BeaconBlockHeader, SignedBeaconBlock};
 use crate::phase0::beacon_state::BeaconState;
 use crate::phase0::fork::ForkData;
-use crate::phase0::operations::{Attestation, AttestationData, IndexedAttestation};
+use crate::phase0::operations::{Attestation, AttestationData, Checkpoint, IndexedAttestation};
+use crate::phase0::state_transition::block_processing::process_block;
+use crate::phase0::state_transition::slot_processing::process_slots;
 use crate::phase0::validator::Validator;
 use crate::primitives::{
     Bytes32, CommitteeIndex, Domain, Epoch, ForkDigest, Gwei, Root, Slot, ValidatorIndex, Version,
@@ -24,7 +29,7 @@ pub enum Error {
     #[error("{0}")]
     Merkleization(#[from] MerkleizationError),
     #[error("{0}")]
-    Deserialize(#[from] DeserializeError),
+    SimpleSerialize(#[from] SimpleSerializeError),
     #[error("requested element {requested} but collection only has {bound} elements")]
     OutOfBounds { requested: usize, bound: usize },
     #[error("invalid signature")]
@@ -42,6 +47,26 @@ pub enum Error {
     #[error("overflow")]
     Overflow,
     #[error("{0}")]
+    InvalidBlock(InvalidBlock),
+    #[error("an invalid transition to a past slot {requested} from slot {current}")]
+    TransitionToPreviousSlot { current: Slot, requested: Slot },
+    #[error("invalid state root")]
+    InvalidStateRoot,
+    #[error(
+    "the requested epoch {requested} is not in the required current epoch {current} or previous epoch {previous}"
+    )]
+    InvalidEpoch {
+        requested: Epoch,
+        previous: Epoch,
+        current: Epoch,
+    },
+}
+
+#[derive(Debug, Error)]
+pub enum InvalidBlock {
+    #[error("invalid beacon block header: {0}")]
+    Header(InvalidBeaconBlockHeader),
+    #[error("invalid operation: {0}")]
     InvalidOperation(InvalidOperation),
 }
 
@@ -51,6 +76,36 @@ pub enum InvalidOperation {
     Attestation(InvalidAttestation),
     #[error("invalid indexed attestation: {0}")]
     IndexedAttestation(InvalidIndexedAttestation),
+    #[error("invalid deposit: {0}")]
+    Deposit(InvalidDeposit),
+    #[error("invalid randao (BLS signature): {0:?}")]
+    Randao(BLSSignature),
+    #[error("invalid proposer slashing: {0}")]
+    ProposerSlashing(InvalidProposerSlashing),
+    #[error("invalid attester slashing: {0}")]
+    AttesterSlashing(InvalidAttesterSlashing),
+    #[error("invalid voluntary exit: {0}")]
+    VoluntaryExit(InvalidVoluntaryExit),
+}
+
+#[derive(Debug, Error)]
+pub enum InvalidBeaconBlockHeader {
+    #[error("mismatch between state slot {state_slot} and block slot {block_slot}")]
+    StateSlotMismatch { state_slot: Slot, block_slot: Slot },
+    #[error("mismatch between the block's parent root {expected:?} and the expected parent root {provided:?}")]
+    ParentBlockRootMismatch { expected: Root, provided: Root },
+    #[error("proposer with index {0} is slashed")]
+    ProposerSlashed(ValidatorIndex),
+    #[error("block slot {block_slot} is older than the latest block header slot {latest_block_header_slot}")]
+    OlderThanLatestBlockHeader {
+        block_slot: Slot,
+        latest_block_header_slot: Slot,
+    },
+    #[error("mismatch between the block proposer index {block_proposer_index} and the state proposer index {proposer_index}")]
+    ProposerIndexMismatch {
+        block_proposer_index: ValidatorIndex,
+        proposer_index: ValidatorIndex,
+    },
 }
 
 #[derive(Debug, Error)]
@@ -59,6 +114,29 @@ pub enum InvalidAttestation {
     Bitfield {
         expected_length: usize,
         length: usize,
+    },
+    #[error("invalid target epoch {target}, not current ({current}) or previous epochs")]
+    InvalidTargetEpoch { target: Epoch, current: Epoch },
+    #[error("invalid slot {slot} (in epoch {epoch}) based on target epoch {target}")]
+    InvalidSlot {
+        slot: Slot,
+        epoch: Epoch,
+        target: Epoch,
+    },
+    #[error("attestation at slot {attestation_slot} is not timely for state slot {state_slot}, outside of range [{lower_bound}, {upper_bound}]")]
+    NotTimely {
+        state_slot: Slot,
+        attestation_slot: Slot,
+        lower_bound: Slot,
+        upper_bound: Slot,
+    },
+    #[error("attestation's index {index} exceeds the current committee count {upper_bound}")]
+    InvalidIndex { index: usize, upper_bound: usize },
+    #[error("attestation's source checkpoint {source_checkpoint:?} does not match the expected checkpoint {expected:?} (in epoch {current})")]
+    InvalidSource {
+        expected: Checkpoint,
+        source_checkpoint: Checkpoint,
+        current: Epoch,
     },
 }
 
@@ -70,6 +148,72 @@ pub enum InvalidIndexedAttestation {
     DuplicateIndices(Vec<ValidatorIndex>),
     #[error("attesting indices are not sorted")]
     AttestingIndicesNotSorted,
+}
+
+#[derive(Debug, Error)]
+pub enum InvalidDeposit {
+    #[error("expected {expected} deposits but only had {count} deposits")]
+    IncorrectCount { expected: usize, count: usize },
+    #[error("merkle validation failed for tree with depth {depth} and root {root:?} at index {index} for leaf {leaf:?} and branch {branch:?}")]
+    InvalidProof {
+        leaf: Node,
+        branch: Vec<Node>,
+        depth: usize,
+        index: usize,
+        root: Root,
+    },
+    #[error("invalid signature for deposit: {0:?}")]
+    InvalidSignature(BLSSignature),
+}
+
+#[derive(Debug, Error)]
+pub enum InvalidProposerSlashing {
+    #[error("different slots: {0} vs. {1}")]
+    SlotMismatch(Slot, Slot),
+    #[error("different proposers: {0} vs. {1}")]
+    ProposerMismatch(ValidatorIndex, ValidatorIndex),
+    #[error("headers are equal: {0:?}")]
+    HeadersAreEqual(BeaconBlockHeader),
+    #[error("proposer with index {0} is not slashable")]
+    ProposerIsNotSlashable(ValidatorIndex),
+    #[error("header has invalid signature: {0:?}")]
+    InvalidSignature(BLSSignature),
+}
+
+#[derive(Debug, Error)]
+pub enum InvalidAttesterSlashing {
+    #[error("attestation data is not slashable: {0:?} vs. {1:?}")]
+    NotSlashable(Box<AttestationData>, Box<AttestationData>),
+    #[error("no validator was slashed across indices: {0:?}")]
+    NoSlashings(Vec<ValidatorIndex>),
+}
+
+#[derive(Debug, Error)]
+pub enum InvalidVoluntaryExit {
+    #[error("validator is not active in the current epoch {0}")]
+    InactiveValidator(Epoch),
+    #[error("validator {index} already exited in {epoch}")]
+    ValidatorAlreadyExited { index: ValidatorIndex, epoch: Epoch },
+    #[error("exit in epoch {exit_epoch} is not eligible for processing in current epoch {current_epoch}")]
+    EarlyExit {
+        current_epoch: Epoch,
+        exit_epoch: Epoch,
+    },
+    #[error("validator needs to be active for a minimum period of time (from epoch {minimum_time_active}, currently in {current_epoch})")]
+    ValidatoIsNotActiveForLongEnough {
+        current_epoch: Epoch,
+        minimum_time_active: Epoch,
+    },
+    #[error("voluntary exit has invalid signature: {0:?}")]
+    InvalidSignature(BLSSignature),
+}
+
+pub(crate) fn invalid_header_error(error: InvalidBeaconBlockHeader) -> Error {
+    Error::InvalidBlock(InvalidBlock::Header(error))
+}
+
+pub(crate) fn invalid_operation_error(error: InvalidOperation) -> Error {
+    Error::InvalidBlock(InvalidBlock::InvalidOperation(error))
 }
 
 pub fn is_active_validator(validator: &Validator, epoch: Epoch) -> bool {
@@ -140,13 +284,13 @@ pub fn is_valid_indexed_attestation<
         MAX_VALIDATORS_PER_COMMITTEE,
         PENDING_ATTESTATIONS_BOUND,
     >,
-    indexed_attestation: &IndexedAttestation<MAX_VALIDATORS_PER_COMMITTEE>,
+    indexed_attestation: &mut IndexedAttestation<MAX_VALIDATORS_PER_COMMITTEE>,
     context: &Context,
 ) -> Result<(), Error> {
     let attesting_indices = &indexed_attestation.attesting_indices;
 
     if attesting_indices.is_empty() {
-        return Err(Error::InvalidOperation(
+        return Err(invalid_operation_error(
             InvalidOperation::IndexedAttestation(InvalidIndexedAttestation::AttestingIndicesEmpty),
         ));
     }
@@ -160,7 +304,7 @@ pub fn is_valid_indexed_attestation<
         })
         .all(|x| x);
     if !is_sorted {
-        return Err(Error::InvalidOperation(
+        return Err(invalid_operation_error(
             InvalidOperation::IndexedAttestation(
                 InvalidIndexedAttestation::AttestingIndicesNotSorted,
             ),
@@ -178,7 +322,7 @@ pub fn is_valid_indexed_attestation<
                 seen.insert(i);
             }
         }
-        return Err(Error::InvalidOperation(
+        return Err(invalid_operation_error(
             InvalidOperation::IndexedAttestation(InvalidIndexedAttestation::DuplicateIndices(
                 duplicates,
             )),
@@ -203,7 +347,7 @@ pub fn is_valid_indexed_attestation<
         Some(indexed_attestation.data.target.epoch),
         context,
     )?;
-    let signing_root = compute_signing_root(&indexed_attestation.data, domain, context)?;
+    let signing_root = compute_signing_root(&mut indexed_attestation.data, domain)?;
     if fast_aggregate_verify(
         &pubkeys,
         signing_root.as_bytes(),
@@ -213,53 +357,6 @@ pub fn is_valid_indexed_attestation<
     } else {
         Err(Error::InvalidSignature)
     }
-}
-
-pub fn apply_block<
-    const SLOTS_PER_HISTORICAL_ROOT: usize,
-    const HISTORICAL_ROOTS_LIMIT: usize,
-    const ETH1_DATA_VOTES_BOUND: usize,
-    const VALIDATOR_REGISTRY_LIMIT: usize,
-    const EPOCHS_PER_HISTORICAL_VECTOR: usize,
-    const EPOCHS_PER_SLASHINGS_VECTOR: usize,
-    const MAX_VALIDATORS_PER_COMMITTEE: usize,
-    const PENDING_ATTESTATIONS_BOUND: usize,
-    const MAX_PROPOSER_SLASHINGS: usize,
-    const MAX_ATTESTER_SLASHINGS: usize,
-    const MAX_ATTESTATIONS: usize,
-    const MAX_DEPOSITS: usize,
-    const MAX_VOLUNTARY_EXITS: usize,
->(
-    state: &BeaconState<
-        SLOTS_PER_HISTORICAL_ROOT,
-        HISTORICAL_ROOTS_LIMIT,
-        ETH1_DATA_VOTES_BOUND,
-        VALIDATOR_REGISTRY_LIMIT,
-        EPOCHS_PER_HISTORICAL_VECTOR,
-        EPOCHS_PER_SLASHINGS_VECTOR,
-        MAX_VALIDATORS_PER_COMMITTEE,
-        PENDING_ATTESTATIONS_BOUND,
-    >,
-    _signed_block: &SignedBeaconBlock<
-        MAX_PROPOSER_SLASHINGS,
-        MAX_VALIDATORS_PER_COMMITTEE,
-        MAX_ATTESTER_SLASHINGS,
-        MAX_ATTESTATIONS,
-        MAX_DEPOSITS,
-        MAX_VOLUNTARY_EXITS,
-    >,
-    _context: &Context,
-) -> BeaconState<
-    SLOTS_PER_HISTORICAL_ROOT,
-    HISTORICAL_ROOTS_LIMIT,
-    ETH1_DATA_VOTES_BOUND,
-    VALIDATOR_REGISTRY_LIMIT,
-    EPOCHS_PER_HISTORICAL_VECTOR,
-    EPOCHS_PER_SLASHINGS_VECTOR,
-    MAX_VALIDATORS_PER_COMMITTEE,
-    PENDING_ATTESTATIONS_BOUND,
-> {
-    state.clone()
 }
 
 pub fn verify_block_signature<
@@ -287,7 +384,7 @@ pub fn verify_block_signature<
         MAX_VALIDATORS_PER_COMMITTEE,
         PENDING_ATTESTATIONS_BOUND,
     >,
-    signed_block: &SignedBeaconBlock<
+    signed_block: &mut SignedBeaconBlock<
         MAX_PROPOSER_SLASHINGS,
         MAX_VALIDATORS_PER_COMMITTEE,
         MAX_ATTESTER_SLASHINGS,
@@ -306,7 +403,7 @@ pub fn verify_block_signature<
             bound: state.validators.len(),
         })?;
     let domain = get_domain(state, DomainType::BeaconProposer, None, context)?;
-    let signing_root = compute_signing_root(&signed_block.message, domain, context)?;
+    let signing_root = compute_signing_root(&mut signed_block.message, domain)?;
 
     if proposer
         .pubkey
@@ -383,18 +480,16 @@ pub fn get_current_epoch<
 }
 
 pub fn compute_signing_root<T: SimpleSerialize>(
-    ssz_object: &T,
+    ssz_object: &mut T,
     domain: Domain,
-    context: &Context,
 ) -> Result<Root, Error> {
-    let context = context.for_merkleization();
-    let object_root = ssz_object.hash_tree_root(context)?;
+    let object_root = ssz_object.hash_tree_root()?;
 
-    let s = SigningData {
+    let mut s = SigningData {
         object_root,
         domain,
     };
-    s.hash_tree_root(context).map_err(Error::Merkleization)
+    s.hash_tree_root().map_err(Error::Merkleization)
 }
 
 pub fn compute_shuffled_index(
@@ -516,9 +611,8 @@ pub fn compute_activation_exit_epoch(epoch: Epoch, context: &Context) -> Epoch {
 pub fn compute_fork_digest(
     current_version: Version,
     genesis_validators_root: Root,
-    context: &Context,
 ) -> Result<ForkDigest, Error> {
-    let fork_data_root = compute_fork_data_root(current_version, genesis_validators_root, context)?;
+    let fork_data_root = compute_fork_data_root(current_version, genesis_validators_root)?;
     let digest = &fork_data_root.as_ref()[..4];
     Ok(digest.try_into().expect("should not fail"))
 }
@@ -529,10 +623,9 @@ pub fn compute_domain(
     genesis_validators_root: Option<Root>,
     context: &Context,
 ) -> Result<Domain, Error> {
-    // NOTE: `GENESIS_FORK_VERSION` is equivalent to the `Default` impl
-    let fork_version = fork_version.unwrap_or_default();
+    let fork_version = fork_version.unwrap_or(context.genesis_fork_version);
     let genesis_validators_root = genesis_validators_root.unwrap_or_default();
-    let fork_data_root = compute_fork_data_root(fork_version, genesis_validators_root, context)?;
+    let fork_data_root = compute_fork_data_root(fork_version, genesis_validators_root)?;
 
     let mut domain = Domain::default();
     domain[..4].copy_from_slice(&domain_type.as_bytes());
@@ -543,13 +636,12 @@ pub fn compute_domain(
 pub fn compute_fork_data_root(
     current_version: Version,
     genesis_validators_root: Root,
-    context: &Context,
 ) -> Result<Root, Error> {
     ForkData {
         current_version,
         genesis_validators_root,
     }
-    .hash_tree_root(context.for_merkleization())
+    .hash_tree_root()
     .map_err(Error::Merkleization)
 }
 
@@ -709,8 +801,6 @@ pub fn get_validator_churn_limit<
     const EPOCHS_PER_SLASHINGS_VECTOR: usize,
     const MAX_VALIDATORS_PER_COMMITTEE: usize,
     const PENDING_ATTESTATIONS_BOUND: usize,
-    const CHURN_LIMIT_QUOTIENT: usize,
-    const MIN_PER_EPOCH_CHURN_LIMIT: usize,
 >(
     state: &BeaconState<
         SLOTS_PER_HISTORICAL_ROOT,
@@ -723,13 +813,13 @@ pub fn get_validator_churn_limit<
         PENDING_ATTESTATIONS_BOUND,
     >,
     context: &Context,
-) -> u64 {
+) -> usize {
     let active_validator_indices =
         get_active_validator_indices(state, get_current_epoch(state, context));
     u64::max(
-        MIN_PER_EPOCH_CHURN_LIMIT as u64,
-        active_validator_indices.len() as u64 / CHURN_LIMIT_QUOTIENT as u64,
-    )
+        context.min_per_epoch_churn_limit,
+        active_validator_indices.len() as u64 / context.churn_limit_quotient,
+    ) as usize
 }
 
 pub fn get_seed<
@@ -788,7 +878,7 @@ pub fn get_committee_count_per_slot<
     >,
     epoch: Epoch,
     context: &Context,
-) -> u64 {
+) -> usize {
     u64::max(
         1,
         u64::min(
@@ -797,7 +887,7 @@ pub fn get_committee_count_per_slot<
                 / context.slots_per_epoch
                 / context.target_committee_size,
         ),
-    )
+    ) as usize
 }
 
 pub fn get_beacon_committee<
@@ -828,8 +918,8 @@ pub fn get_beacon_committee<
     let committees_per_slot = get_committee_count_per_slot(state, epoch, context);
     let indices = get_active_validator_indices(state, epoch);
     let seed = get_seed(state, epoch, DomainType::BeaconAttester, context);
-    let index = (slot % context.slots_per_epoch) * committees_per_slot + index as u64;
-    let count = committees_per_slot * context.slots_per_epoch;
+    let index = (slot % context.slots_per_epoch) * committees_per_slot as u64 + index as u64;
+    let count = committees_per_slot as u64 * context.slots_per_epoch;
     compute_committee(&indices, &seed, index as usize, count as usize, context)
 }
 
@@ -842,9 +932,6 @@ pub fn get_beacon_proposer_index<
     const EPOCHS_PER_SLASHINGS_VECTOR: usize,
     const MAX_VALIDATORS_PER_COMMITTEE: usize,
     const PENDING_ATTESTATIONS_BOUND: usize,
-    const MAX_COMMITTEES_PER_SLOT: u64,
-    const SLOTS_PER_EPOCH: u64,
-    const TARGET_COMMITTEE_SIZE: u64,
 >(
     state: &BeaconState<
         SLOTS_PER_HISTORICAL_ROOT,
@@ -888,7 +975,7 @@ pub fn get_total_balance<
         MAX_VALIDATORS_PER_COMMITTEE,
         PENDING_ATTESTATIONS_BOUND,
     >,
-    indices: HashSet<ValidatorIndex>,
+    indices: &HashSet<ValidatorIndex>,
     context: &Context,
 ) -> Result<Gwei, Error> {
     let total_balance = indices
@@ -923,7 +1010,7 @@ pub fn get_total_active_balance<
     context: &Context,
 ) -> Result<Gwei, Error> {
     let indices = get_active_validator_indices(state, get_current_epoch(state, context));
-    get_total_balance(state, HashSet::from_iter(indices), context)
+    get_total_balance(state, &HashSet::from_iter(indices), context)
 }
 
 pub fn get_indexed_attestation<
@@ -950,15 +1037,17 @@ pub fn get_indexed_attestation<
     context: &Context,
 ) -> Result<IndexedAttestation<MAX_VALIDATORS_PER_COMMITTEE>, Error> {
     let bits = &attestation.aggregation_bits;
-    let attesting_indices = get_attesting_indices(state, &attestation.data, bits, context)?;
-    let mut indices = List::from_iter(attesting_indices);
+    let mut attesting_indices = get_attesting_indices(state, &attestation.data, bits, context)?
+        .into_iter()
+        .collect::<Vec<_>>();
     // NOTE: the spec uses a "stable" sort; however, we cannot discriminate
     // a stable from unstable sort on the primitive `ValidatorIndex` type here.
-    indices.sort_unstable();
+    attesting_indices.sort_unstable();
+
+    let attesting_indices = attesting_indices.try_into()?;
 
     Ok(IndexedAttestation {
-        // TODO: move to `try_into` once it lands in `ssz_rs`
-        attesting_indices: indices,
+        attesting_indices,
         data: attestation.data.clone(),
         signature: attestation.signature.clone(),
     })
@@ -991,7 +1080,7 @@ pub fn get_attesting_indices<
     let committee = get_beacon_committee(state, data.slot, data.index, context)?;
 
     if bits.len() != committee.len() {
-        return Err(Error::InvalidOperation(InvalidOperation::Attestation(
+        return Err(invalid_operation_error(InvalidOperation::Attestation(
             InvalidAttestation::Bitfield {
                 expected_length: committee.len(),
                 length: bits.len(),
@@ -1008,4 +1097,223 @@ pub fn get_attesting_indices<
     }
 
     Ok(indices)
+}
+
+pub fn increase_balance<
+    const SLOTS_PER_HISTORICAL_ROOT: usize,
+    const HISTORICAL_ROOTS_LIMIT: usize,
+    const ETH1_DATA_VOTES_BOUND: usize,
+    const VALIDATOR_REGISTRY_LIMIT: usize,
+    const EPOCHS_PER_HISTORICAL_VECTOR: usize,
+    const EPOCHS_PER_SLASHINGS_VECTOR: usize,
+    const MAX_VALIDATORS_PER_COMMITTEE: usize,
+    const PENDING_ATTESTATIONS_BOUND: usize,
+>(
+    state: &mut BeaconState<
+        SLOTS_PER_HISTORICAL_ROOT,
+        HISTORICAL_ROOTS_LIMIT,
+        ETH1_DATA_VOTES_BOUND,
+        VALIDATOR_REGISTRY_LIMIT,
+        EPOCHS_PER_HISTORICAL_VECTOR,
+        EPOCHS_PER_SLASHINGS_VECTOR,
+        MAX_VALIDATORS_PER_COMMITTEE,
+        PENDING_ATTESTATIONS_BOUND,
+    >,
+    index: ValidatorIndex,
+    delta: Gwei,
+) {
+    state.balances[index] += delta
+}
+
+pub fn decrease_balance<
+    const SLOTS_PER_HISTORICAL_ROOT: usize,
+    const HISTORICAL_ROOTS_LIMIT: usize,
+    const ETH1_DATA_VOTES_BOUND: usize,
+    const VALIDATOR_REGISTRY_LIMIT: usize,
+    const EPOCHS_PER_HISTORICAL_VECTOR: usize,
+    const EPOCHS_PER_SLASHINGS_VECTOR: usize,
+    const MAX_VALIDATORS_PER_COMMITTEE: usize,
+    const PENDING_ATTESTATIONS_BOUND: usize,
+>(
+    state: &mut BeaconState<
+        SLOTS_PER_HISTORICAL_ROOT,
+        HISTORICAL_ROOTS_LIMIT,
+        ETH1_DATA_VOTES_BOUND,
+        VALIDATOR_REGISTRY_LIMIT,
+        EPOCHS_PER_HISTORICAL_VECTOR,
+        EPOCHS_PER_SLASHINGS_VECTOR,
+        MAX_VALIDATORS_PER_COMMITTEE,
+        PENDING_ATTESTATIONS_BOUND,
+    >,
+    index: ValidatorIndex,
+    delta: Gwei,
+) {
+    if delta > state.balances[index] {
+        state.balances[index] = 0
+    } else {
+        state.balances[index] -= delta
+    }
+}
+
+pub fn initiate_validator_exit<
+    const SLOTS_PER_HISTORICAL_ROOT: usize,
+    const HISTORICAL_ROOTS_LIMIT: usize,
+    const ETH1_DATA_VOTES_BOUND: usize,
+    const VALIDATOR_REGISTRY_LIMIT: usize,
+    const EPOCHS_PER_HISTORICAL_VECTOR: usize,
+    const EPOCHS_PER_SLASHINGS_VECTOR: usize,
+    const MAX_VALIDATORS_PER_COMMITTEE: usize,
+    const PENDING_ATTESTATIONS_BOUND: usize,
+>(
+    state: &mut BeaconState<
+        SLOTS_PER_HISTORICAL_ROOT,
+        HISTORICAL_ROOTS_LIMIT,
+        ETH1_DATA_VOTES_BOUND,
+        VALIDATOR_REGISTRY_LIMIT,
+        EPOCHS_PER_HISTORICAL_VECTOR,
+        EPOCHS_PER_SLASHINGS_VECTOR,
+        MAX_VALIDATORS_PER_COMMITTEE,
+        PENDING_ATTESTATIONS_BOUND,
+    >,
+    index: ValidatorIndex,
+    context: &Context,
+) {
+    if state.validators[index].exit_epoch != FAR_FUTURE_EPOCH {
+        return;
+    }
+
+    let mut exit_epochs: Vec<Epoch> = state
+        .validators
+        .iter()
+        .filter(|v| v.exit_epoch != FAR_FUTURE_EPOCH)
+        .map(|v| v.exit_epoch)
+        .collect();
+
+    exit_epochs.push(compute_activation_exit_epoch(
+        get_current_epoch(state, context),
+        context,
+    ));
+
+    let mut exit_queue_epoch = *exit_epochs.iter().max().unwrap();
+
+    let exit_queue_churn = state
+        .validators
+        .iter()
+        .filter(|v| v.exit_epoch == exit_queue_epoch)
+        .count();
+
+    if exit_queue_churn >= get_validator_churn_limit(state, context) as usize {
+        exit_queue_epoch += 1
+    }
+
+    state.validators[index].exit_epoch = exit_queue_epoch;
+    state.validators[index].withdrawable_epoch =
+        state.validators[index].exit_epoch + context.min_validator_withdrawability_delay;
+}
+
+pub fn slash_validator<
+    const SLOTS_PER_HISTORICAL_ROOT: usize,
+    const HISTORICAL_ROOTS_LIMIT: usize,
+    const ETH1_DATA_VOTES_BOUND: usize,
+    const VALIDATOR_REGISTRY_LIMIT: usize,
+    const EPOCHS_PER_HISTORICAL_VECTOR: usize,
+    const EPOCHS_PER_SLASHINGS_VECTOR: usize,
+    const MAX_VALIDATORS_PER_COMMITTEE: usize,
+    const PENDING_ATTESTATIONS_BOUND: usize,
+>(
+    state: &mut BeaconState<
+        SLOTS_PER_HISTORICAL_ROOT,
+        HISTORICAL_ROOTS_LIMIT,
+        ETH1_DATA_VOTES_BOUND,
+        VALIDATOR_REGISTRY_LIMIT,
+        EPOCHS_PER_HISTORICAL_VECTOR,
+        EPOCHS_PER_SLASHINGS_VECTOR,
+        MAX_VALIDATORS_PER_COMMITTEE,
+        PENDING_ATTESTATIONS_BOUND,
+    >,
+    slashed_index: ValidatorIndex,
+    whistleblower_index: Option<ValidatorIndex>,
+    context: &Context,
+) -> Result<(), Error> {
+    let epoch = get_current_epoch(state, context);
+    initiate_validator_exit(state, slashed_index, context);
+    state.validators[slashed_index].slashed = true;
+    state.validators[slashed_index].withdrawable_epoch = u64::max(
+        state.validators[slashed_index].withdrawable_epoch,
+        epoch + context.epochs_per_slashings_vector as u64,
+    );
+    let slashings_index = epoch as usize % EPOCHS_PER_SLASHINGS_VECTOR;
+    state.slashings[slashings_index] += state.validators[slashed_index].effective_balance;
+    decrease_balance(
+        state,
+        slashed_index,
+        state.validators[slashed_index].effective_balance / context.min_slashing_penalty_quotient,
+    );
+
+    let proposer_index = get_beacon_proposer_index(state, context)?;
+
+    let whistleblower_index = whistleblower_index.unwrap_or(proposer_index);
+
+    let whistleblower_reward =
+        state.validators[slashed_index].effective_balance / context.whistleblower_reward_quotient;
+    let proposer_reward = whistleblower_reward / context.proposer_reward_quotient;
+    increase_balance(state, proposer_index, proposer_reward);
+    increase_balance(
+        state,
+        whistleblower_index,
+        whistleblower_reward - proposer_reward,
+    );
+    Ok(())
+}
+
+pub fn state_transition<
+    const SLOTS_PER_HISTORICAL_ROOT: usize,
+    const HISTORICAL_ROOTS_LIMIT: usize,
+    const ETH1_DATA_VOTES_BOUND: usize,
+    const VALIDATOR_REGISTRY_LIMIT: usize,
+    const EPOCHS_PER_HISTORICAL_VECTOR: usize,
+    const EPOCHS_PER_SLASHINGS_VECTOR: usize,
+    const MAX_VALIDATORS_PER_COMMITTEE: usize,
+    const PENDING_ATTESTATIONS_BOUND: usize,
+    const MAX_PROPOSER_SLASHINGS: usize,
+    const MAX_ATTESTER_SLASHINGS: usize,
+    const MAX_ATTESTATIONS: usize,
+    const MAX_DEPOSITS: usize,
+    const MAX_VOLUNTARY_EXITS: usize,
+>(
+    state: &mut BeaconState<
+        SLOTS_PER_HISTORICAL_ROOT,
+        HISTORICAL_ROOTS_LIMIT,
+        ETH1_DATA_VOTES_BOUND,
+        VALIDATOR_REGISTRY_LIMIT,
+        EPOCHS_PER_HISTORICAL_VECTOR,
+        EPOCHS_PER_SLASHINGS_VECTOR,
+        MAX_VALIDATORS_PER_COMMITTEE,
+        PENDING_ATTESTATIONS_BOUND,
+    >,
+    signed_block: &mut SignedBeaconBlock<
+        MAX_PROPOSER_SLASHINGS,
+        MAX_VALIDATORS_PER_COMMITTEE,
+        MAX_ATTESTER_SLASHINGS,
+        MAX_ATTESTATIONS,
+        MAX_DEPOSITS,
+        MAX_VOLUNTARY_EXITS,
+    >,
+    validate_result: Option<bool>,
+    context: &Context,
+) -> Result<(), Error> {
+    let validate_result = validate_result.unwrap_or(true);
+    let slot = signed_block.message.slot;
+
+    process_slots(state, slot, context)?;
+    if validate_result {
+        verify_block_signature(state, signed_block, context)?;
+    }
+    let block = &mut signed_block.message;
+    process_block(state, block, context)?;
+    if validate_result && block.state_root != state.hash_tree_root()? {
+        return Err(Error::InvalidStateRoot);
+    }
+
+    Ok(())
 }

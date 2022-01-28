@@ -1,10 +1,9 @@
-use crate::phase0::presets::Preset;
-use crate::primitives::{Epoch, Gwei, Slot};
-use ssz_rs::prelude::MerkleizationContext;
+use crate::phase0::configs::{mainnet::CONFIG as MAINNET_CONFIG, Config};
+use crate::phase0::presets::{mainnet::PRESET as MAINNET_PRESET, Preset};
+use crate::primitives::{Epoch, Gwei, Slot, Version};
 
 #[derive(Debug, Default)]
 pub struct Context {
-    merkleization_context: MerkleizationContext,
     pub max_committees_per_slot: u64,
     pub target_committee_size: u64,
     pub max_validators_per_committee: usize,
@@ -20,10 +19,10 @@ pub struct Context {
     pub min_seed_lookahead: Epoch,
     pub max_seed_lookahead: Epoch,
     pub min_epochs_to_inactivity_penalty: Epoch,
-    pub epochs_per_eth1_voting_period: usize,
-    pub slots_per_historical_root: usize,
-    pub epochs_per_historical_vector: usize,
-    pub epochs_per_slashings_vector: usize,
+    pub epochs_per_eth1_voting_period: Epoch,
+    pub slots_per_historical_root: Slot,
+    pub epochs_per_historical_vector: Epoch,
+    pub epochs_per_slashings_vector: Epoch,
     pub historical_roots_limit: usize,
     pub validator_registry_limit: usize,
     pub base_reward_factor: u64,
@@ -37,10 +36,22 @@ pub struct Context {
     pub max_attestations: usize,
     pub max_deposits: usize,
     pub max_voluntary_exits: usize,
+    pub min_genesis_active_validator_count: usize,
+    pub min_genesis_time: u64,
+    pub genesis_fork_version: Version,
+    pub genesis_delay: u64,
+    pub seconds_per_slot: u64,
+    pub seconds_per_eth1_block: u64,
+    pub min_validator_withdrawability_delay: Epoch,
+    pub shard_committee_period: Epoch,
+    pub eth1_follow_distance: Epoch,
+    pub ejection_balance: Gwei,
+    pub min_per_epoch_churn_limit: u64,
+    pub churn_limit_quotient: u64,
 }
 
 impl Context {
-    pub fn with_preset(preset: &Preset) -> Self {
+    pub fn from(preset: &Preset, config: &Config) -> Self {
         Context {
             max_committees_per_slot: preset.max_committees_per_slot,
             target_committee_size: preset.target_committee_size,
@@ -74,11 +85,26 @@ impl Context {
             max_attestations: preset.max_attestations,
             max_deposits: preset.max_deposits,
             max_voluntary_exits: preset.max_voluntary_exits,
-            ..Default::default()
+            min_genesis_active_validator_count: config.min_genesis_active_validator_count,
+            min_genesis_time: config.min_genesis_time,
+            genesis_fork_version: config.genesis_fork_version,
+            genesis_delay: config.genesis_delay,
+            seconds_per_slot: config.seconds_per_slot,
+            seconds_per_eth1_block: config.seconds_per_eth1_block,
+            min_validator_withdrawability_delay: config.min_validator_withdrawability_delay,
+            shard_committee_period: config.shard_committee_period,
+            eth1_follow_distance: config.eth1_follow_distance,
+            ejection_balance: config.ejection_balance,
+            churn_limit_quotient: config.churn_limit_quotient,
+            min_per_epoch_churn_limit: config.min_per_epoch_churn_limit,
         }
     }
 
-    pub fn for_merkleization(&self) -> &MerkleizationContext {
-        &self.merkleization_context
+    pub fn for_mainnet() -> Self {
+        Self::from(&MAINNET_PRESET, &MAINNET_CONFIG)
+    }
+
+    pub fn for_minimal() -> Self {
+        unimplemented!()
     }
 }
