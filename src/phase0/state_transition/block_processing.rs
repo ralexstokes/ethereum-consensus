@@ -808,14 +808,19 @@ mod tests {
             .expect("can decompress snappy"))
     }
 
+    trait TestCase {
+        fn execute(&self);
+        fn execute_from_glob(path_glob: &str);
+    }
+
     struct BlockHeaderTestIO {
         pre_state: Vec<u8>,
         block: Vec<u8>,
         post_state: Option<Vec<u8>>,
     }
 
-    impl BlockHeaderTestIO {
-        fn verify(&self) {
+    impl TestCase for BlockHeaderTestIO {
+        fn execute(&self) {
             let context = Context::for_mainnet();
 
             let mut state: BeaconState = deserialize(&self.pre_state).expect("can deserialize");
@@ -832,11 +837,10 @@ mod tests {
             };
         }
 
-        fn execute_test_cases(path_glob: &str) {
+        fn execute_from_glob(path_glob: &str) {
             let entries = glob(path_glob).expect("is valid glob pattern");
             for entry in entries {
                 let path = entry.unwrap();
-                println!("{:?}", path);
 
                 let pre_state_path = path.join("pre.ssz_snappy");
                 let post_state_path = path.join("post.ssz_snappy");
@@ -850,19 +854,19 @@ mod tests {
                     Err(_) => None,
                 };
 
-                let test_data: Self = BlockHeaderTestIO {
+                let test_data = BlockHeaderTestIO {
                     pre_state,
                     block,
                     post_state,
                 };
-                test_data.verify();
+                test_data.execute();
             }
         }
     }
 
     #[test]
     fn test_process_block_header() {
-        BlockHeaderTestIO::execute_test_cases(
+        BlockHeaderTestIO::execute_from_glob(
             "consensus-spec-tests/tests/mainnet/phase0/operations/block_header/pyspec_tests/*/",
         )
     }
