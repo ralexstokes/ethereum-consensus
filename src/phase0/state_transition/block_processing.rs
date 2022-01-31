@@ -475,7 +475,7 @@ pub fn process_voluntary_exit<
     Ok(())
 }
 
-fn process_block_header<
+pub fn process_block_header<
     const SLOTS_PER_HISTORICAL_ROOT: usize,
     const HISTORICAL_ROOTS_LIMIT: usize,
     const ETH1_DATA_VOTES_BOUND: usize,
@@ -566,7 +566,7 @@ fn process_block_header<
     Ok(())
 }
 
-fn process_randao<
+pub fn process_randao<
     const SLOTS_PER_HISTORICAL_ROOT: usize,
     const HISTORICAL_ROOTS_LIMIT: usize,
     const ETH1_DATA_VOTES_BOUND: usize,
@@ -624,7 +624,7 @@ fn process_randao<
     Ok(())
 }
 
-fn process_eth1_data<
+pub fn process_eth1_data<
     const SLOTS_PER_HISTORICAL_ROOT: usize,
     const HISTORICAL_ROOTS_LIMIT: usize,
     const ETH1_DATA_VOTES_BOUND: usize,
@@ -672,7 +672,7 @@ fn process_eth1_data<
     }
 }
 
-fn process_operations<
+pub fn process_operations<
     const SLOTS_PER_HISTORICAL_ROOT: usize,
     const HISTORICAL_ROOTS_LIMIT: usize,
     const ETH1_DATA_VOTES_BOUND: usize,

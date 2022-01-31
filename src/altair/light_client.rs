@@ -1,4 +1,5 @@
-use crate::altair::{BeaconBlockHeader, SyncCommittee};
+use crate::altair::beacon_block::BeaconBlockHeader;
+use crate::altair::sync_committee::SyncCommittee;
 use ssz_rs::prelude::*;
 
 #[derive(Default, Debug, SimpleSerialize)]

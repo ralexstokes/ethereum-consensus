@@ -14,6 +14,7 @@ pub type Version = [u8; 4];
 pub type DomainType = [u8; 4];
 pub type ForkDigest = [u8; 4];
 pub type Domain = [u8; 32];
+pub type ParticipationFlags = u8;
 
 pub const GENESIS_SLOT: Slot = 0;
 pub const GENESIS_EPOCH: Epoch = 0;

@@ -10,6 +10,9 @@ pub enum DomainType {
     VoluntaryExit,
     SelectionProof,
     AggregateAndProof,
+    SyncCommittee,
+    SyncCommitteeSelectionProof,
+    ContributionAndProof,
 }
 
 impl DomainType {

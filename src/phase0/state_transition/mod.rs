@@ -1,4 +1,4 @@
-mod block_processing;
+pub mod block_processing;
 mod context;
 // TODO make mod private once the helpers here have been integated
 pub mod epoch_processing;
