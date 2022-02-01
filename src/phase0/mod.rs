@@ -9,6 +9,7 @@ mod operations;
 mod presets;
 mod state_transition;
 mod validator;
+mod weak_subjectivity;
 
 pub mod mainnet {
     use super::*;
