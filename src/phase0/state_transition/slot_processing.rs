@@ -1,6 +1,7 @@
 use crate::phase0::beacon_state::BeaconState;
 use crate::phase0::state_transition::epoch_processing::process_epoch;
-use crate::phase0::state_transition::{Context, Error};
+use crate::phase0::state_transition::errors::Error;
+use crate::phase0::state_transition::Context;
 use crate::primitives::{Bytes32, Slot};
 use ssz_rs::prelude::*;
 

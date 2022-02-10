@@ -1,11 +1,12 @@
 use crate::phase0::beacon_state::{BeaconState, HistoricalBatchAccumulator};
 use crate::phase0::operations::PendingAttestation;
+use crate::phase0::state_transition::errors::Error;
 use crate::phase0::state_transition::{
     compute_activation_exit_epoch, decrease_balance, get_attesting_indices, get_block_root,
     get_block_root_at_slot, get_current_epoch, get_previous_epoch, get_randao_mix,
     get_total_active_balance, get_total_balance, get_validator_churn_limit, increase_balance,
     initiate_validator_exit, is_active_validator, is_eligible_for_activation,
-    is_eligible_for_activation_queue, Context, Error,
+    is_eligible_for_activation_queue, Context,
 };
 use crate::phase0::BASE_REWARDS_PER_EPOCH;
 use crate::primitives::{Epoch, Gwei, ValidatorIndex, GENESIS_EPOCH};

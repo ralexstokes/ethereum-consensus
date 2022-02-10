@@ -12,6 +12,7 @@ pub use crate::phase0::operations::{
 use crate::phase0::presets::Preset;
 // TODO: remove once the helpers here have been integrated
 pub use crate::phase0::state_transition::epoch_processing::*;
+pub use crate::phase0::state_transition::errors::Error;
 pub use crate::phase0::state_transition::genesis::*;
 pub use crate::phase0::state_transition::{
     compute_activation_exit_epoch, compute_committee, compute_domain, compute_epoch_at_slot,
@@ -24,7 +25,6 @@ pub use crate::phase0::state_transition::{
     get_validator_churn_limit, increase_balance, initiate_validator_exit, is_active_validator,
     is_eligible_for_activation, is_eligible_for_activation_queue, is_slashable_attestation_data,
     is_slashable_validator, is_valid_indexed_attestation, slash_validator, verify_block_signature,
-    Error,
 };
 pub use crate::phase0::validator::Validator;
 use crate::primitives::{Epoch, Gwei, Slot};
