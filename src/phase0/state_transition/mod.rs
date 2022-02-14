@@ -498,7 +498,7 @@ pub fn compute_shuffled_index(
     seed: &Bytes32,
     context: &Context,
 ) -> Option<usize> {
-    if index < index_count {
+    if index >= index_count {
         return None;
     }
 
