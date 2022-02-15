@@ -36,8 +36,8 @@ pub enum Error {
     InvalidSignature,
     #[error("collection cannot be empty")]
     CollectionCannotBeEmpty,
-    #[error("unable to shuffle")]
-    Shuffle,
+    #[error("given index {index} is greater than the total amount of indices {total}")]
+    InvalidShufflingIndex { index: usize, total: usize },
     #[error("slot {requested} is outside of allowed range ({lower_bound}, {upper_bound})")]
     SlotOutOfRange {
         requested: Slot,
@@ -497,9 +497,12 @@ pub fn compute_shuffled_index(
     index_count: usize,
     seed: &Bytes32,
     context: &Context,
-) -> Option<usize> {
+) -> Result<usize, Error> {
     if index >= index_count {
-        return None;
+        return Err(Error::InvalidShufflingIndex {
+            index,
+            total: index_count,
+        });
     }
 
     let mut pivot_input = [0u8; 33];
@@ -525,7 +528,7 @@ pub fn compute_shuffled_index(
         index = if bit != 0 { flip } else { index };
     }
 
-    Some(index)
+    Ok(index)
 }
 
 pub fn compute_proposer_index<
@@ -562,8 +565,7 @@ pub fn compute_proposer_index<
     let mut hash_input = [0u8; 40];
     hash_input[..32].copy_from_slice(seed.as_ref());
     loop {
-        let shuffled_index = compute_shuffled_index((i % total) as usize, total, seed, context)
-            .ok_or(Error::Shuffle)?;
+        let shuffled_index = compute_shuffled_index((i % total) as usize, total, seed, context)?;
         let candidate_index = indices[shuffled_index];
 
         let i_bytes: [u8; 8] = (i / 32).to_le_bytes();
@@ -589,8 +591,7 @@ pub fn compute_committee(
     let start = (indices.len() * index) / count;
     let end = (indices.len()) * (index + 1) / count;
     for i in start..end {
-        let index =
-            compute_shuffled_index(i, indices.len(), seed, context).ok_or(Error::Shuffle)?;
+        let index = compute_shuffled_index(i, indices.len(), seed, context)?;
         committee[index] = indices[index];
     }
     Ok(committee)
