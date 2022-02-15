@@ -37,7 +37,7 @@ pub enum Error {
     #[error("collection cannot be empty")]
     CollectionCannotBeEmpty,
     #[error("given index {index} is greater than the total amount of indices {total}")]
-    InvalidIndex { index: ValidatorIndex, total: usize },
+    InvalidShufflingIndex { index: usize, total: usize },
     #[error("slot {requested} is outside of allowed range ({lower_bound}, {upper_bound})")]
     SlotOutOfRange {
         requested: Slot,
@@ -499,7 +499,7 @@ pub fn compute_shuffled_index(
     context: &Context,
 ) -> Result<usize, Error> {
     if index >= index_count {
-        return Err(Error::InvalidIndex {
+        return Err(Error::InvalidShufflingIndex {
             index,
             total: index_count,
         });
