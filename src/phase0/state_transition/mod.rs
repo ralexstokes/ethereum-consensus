@@ -847,9 +847,9 @@ pub fn get_seed<
     domain_type: DomainType,
     context: &Context,
 ) -> Bytes32 {
-    let epoch =
+    let mix_epoch =
         epoch + (context.epochs_per_historical_vector as u64 - context.min_seed_lookahead) - 1;
-    let mix = get_randao_mix(state, epoch);
+    let mix = get_randao_mix(state, mix_epoch);
     let mut input = [0u8; 44];
     input[..4].copy_from_slice(&domain_type.as_bytes());
     input[4..12].copy_from_slice(&epoch.to_le_bytes());
