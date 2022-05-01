@@ -3,7 +3,7 @@
 //! the "presets" like `mainnet` or `minimal`.
 pub mod light_client;
 mod presets;
-mod sync_committee;
+mod sync;
 
 pub mod mainnet {
     pub use super::presets::mainnet::*;

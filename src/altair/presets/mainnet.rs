@@ -1,5 +1,5 @@
 use crate::altair::presets::Preset;
-use crate::altair::sync_committee;
+use crate::altair::sync;
 use crate::primitives::Epoch;
 
 pub const INACTIVITY_PENALTY_QUOTIENT_ALTAIR: u64 = 50331648;
@@ -20,4 +20,5 @@ pub const PRESET: Preset = Preset {
     update_timeout: UPDATE_TIMEOUT,
 };
 
-pub type SyncCommittee = sync_committee::SyncCommittee<SYNC_COMMITTEE_SIZE>;
+pub type SyncAggregate = sync::SyncAggregate<SYNC_COMMITTEE_SIZE>;
+pub type SyncCommittee = sync::SyncCommittee<SYNC_COMMITTEE_SIZE>;
