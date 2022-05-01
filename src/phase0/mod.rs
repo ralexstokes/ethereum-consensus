@@ -3,7 +3,6 @@
 //! the "presets" like `mainnet` or `minimal`.
 mod beacon_block;
 mod beacon_state;
-mod configs;
 mod fork;
 mod operations;
 mod presets;
