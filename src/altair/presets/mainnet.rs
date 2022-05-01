@@ -1,6 +1,5 @@
 use crate::altair::presets::Preset;
 use crate::altair::sync_committee;
-pub use crate::phase0::mainnet::*;
 use crate::primitives::Epoch;
 
 pub const INACTIVITY_PENALTY_QUOTIENT_ALTAIR: u64 = 50331648;
