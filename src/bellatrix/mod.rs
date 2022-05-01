@@ -4,14 +4,12 @@ use crate::primitives::{Bytes32, ExecutionAddress, Hash32, Root};
 use ssz_rs::prelude::*;
 
 pub mod mainnet {
-    use super::*;
-
-    pub use presets::mainnet::*;
+    pub use super::presets::mainnet::*;
 }
 
 pub type Transaction<const MAX_BYTES_PER_TRANSACTION: usize> = List<u8, MAX_BYTES_PER_TRANSACTION>;
 
-#[derive(Default, SimpleSerialize)]
+#[derive(Default, Debug, SimpleSerialize)]
 pub struct ExecutionPayload<
     const BYTES_PER_LOGS_BLOOM: usize,
     const MAX_EXTRA_DATA_BYTES: usize,
@@ -34,7 +32,7 @@ pub struct ExecutionPayload<
     transactions: List<Transaction<MAX_BYTES_PER_TRANSACTION>, MAX_TRANSACTIONS_PER_PAYLOAD>,
 }
 
-#[derive(Default, SimpleSerialize)]
+#[derive(Default, Debug, SimpleSerialize)]
 pub struct ExecutionPayloadHeader<
     const BYTES_PER_LOGS_BLOOM: usize,
     const MAX_EXTRA_DATA_BYTES: usize,
