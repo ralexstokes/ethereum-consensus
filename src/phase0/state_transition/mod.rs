@@ -398,7 +398,7 @@ pub fn verify_block_signature<
     let proposer = state
         .validators
         .get(proposer_index)
-        .ok_or_else(|| Error::OutOfBounds {
+        .ok_or(Error::OutOfBounds {
             requested: proposer_index,
             bound: state.validators.len(),
         })?;
