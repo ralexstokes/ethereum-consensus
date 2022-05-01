@@ -15,7 +15,7 @@ pub type DomainType = [u8; 4];
 pub type ForkDigest = [u8; 4];
 pub type Domain = [u8; 32];
 
-pub type ExecutionAddress = [u8; 20];
+pub type ExecutionAddress = Vector<u8, 20>;
 
 pub const GENESIS_SLOT: Slot = 0;
 pub const GENESIS_EPOCH: Epoch = 0;

@@ -1,8 +1,6 @@
 pub mod mainnet;
 pub mod minimal;
 
-use crate::primitives::Epoch;
-
 pub struct Preset {
     pub inactivity_penalty_quotient_bellatrix: u64,
     pub min_slashing_penalty_quotient_bellatrix: u64,
