@@ -183,25 +183,23 @@ pub fn process_justification_and_finalization<
 ) -> Result<(), Error> {
     // Initial FFG checkpoint values have a `0x00` stub for `root`.
     // Skip FFG updates in the first two epochs to avoid corner cases that might result in modifying this stub.
-    if get_current_epoch(state, context) > GENESIS_EPOCH + 1 {
-        let previous_attestations =
-            get_matching_target_attestations(state, get_previous_epoch(state, context), context);
-        let current_attestations =
-            get_matching_target_attestations(state, get_current_epoch(state, context), context);
-        let total_active_balance = get_total_active_balance(state, context)?;
-        let previous_target_balance =
-            get_attesting_balance(state, previous_attestations?, context)?;
-        let current_target_balance = get_attesting_balance(state, current_attestations?, context)?;
-        weigh_justification_and_finalization(
-            state,
-            total_active_balance,
-            previous_target_balance,
-            current_target_balance,
-            context,
-        )?;
+    if get_current_epoch(state, context) <= GENESIS_EPOCH + 1 {
+        return Ok(());
     }
-
-    Ok(())
+    let previous_attestations =
+        get_matching_target_attestations(state, get_previous_epoch(state, context), context)?;
+    let current_attestations =
+        get_matching_target_attestations(state, get_current_epoch(state, context), context)?;
+    let total_active_balance = get_total_active_balance(state, context)?;
+    let previous_target_balance = get_attesting_balance(state, previous_attestations, context)?;
+    let current_target_balance = get_attesting_balance(state, current_attestations, context)?;
+    weigh_justification_and_finalization(
+        state,
+        total_active_balance,
+        previous_target_balance,
+        current_target_balance,
+        context,
+    )
 }
 
 pub fn process_rewards_and_penalties<
@@ -606,27 +604,21 @@ pub fn weigh_justification_and_finalization<
 
     // Process justifications
     state.previous_justified_checkpoint = state.current_justified_checkpoint.clone();
-    for i in (1..(JUSTIFICATION_BITS_LENGTH - 1)).rev() {
-        let prev = state
-            .justification_bits
-            .get(i - 1)
-            .expect("at least one bit in justification_bits");
-        state.justification_bits.set(i, prev);
-    }
+    state
+        .justification_bits
+        .copy_within(..JUSTIFICATION_BITS_LENGTH - 1, 1);
     state.justification_bits.set(0, false);
     if previous_epoch_target_balance * 3 >= total_active_balance * 2 {
         state.current_justified_checkpoint = Checkpoint {
             epoch: previous_epoch,
-            root: *get_block_root(state, previous_epoch, context)
-                .expect("block root exists for checkpoint"),
+            root: *get_block_root(state, previous_epoch, context)?,
         };
         state.justification_bits.set(1, true);
     }
     if current_epoch_target_balance * 3 >= total_active_balance * 2 {
         state.current_justified_checkpoint = Checkpoint {
             epoch: current_epoch,
-            root: *get_block_root(state, current_epoch, context)
-                .expect("block root exists for checkpoint"),
+            root: *get_block_root(state, current_epoch, context)?,
         };
         state.justification_bits.set(0, true);
     }
