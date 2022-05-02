@@ -5,9 +5,9 @@ use crate::phase0::state_transition::{
     get_block_root_at_slot, get_current_epoch, get_previous_epoch, get_randao_mix,
     get_total_active_balance, get_total_balance, get_validator_churn_limit, increase_balance,
     initiate_validator_exit, is_active_validator, is_eligible_for_activation,
-    is_eligible_for_activation_queue, Context, Error,
+    is_eligible_for_activation_queue, Checkpoint, Context, Error,
 };
-use crate::phase0::BASE_REWARDS_PER_EPOCH;
+use crate::phase0::{BASE_REWARDS_PER_EPOCH, JUSTIFICATION_BITS_LENGTH};
 use crate::primitives::{Epoch, Gwei, ValidatorIndex, GENESIS_EPOCH};
 use integer_sqrt::IntegerSquareRoot;
 use ssz_rs::prelude::*;
@@ -169,7 +169,7 @@ pub fn process_justification_and_finalization<
     const MAX_VALIDATORS_PER_COMMITTEE: usize,
     const PENDING_ATTESTATIONS_BOUND: usize,
 >(
-    _state: &mut BeaconState<
+    state: &mut BeaconState<
         SLOTS_PER_HISTORICAL_ROOT,
         HISTORICAL_ROOTS_LIMIT,
         ETH1_DATA_VOTES_BOUND,
@@ -179,8 +179,28 @@ pub fn process_justification_and_finalization<
         MAX_VALIDATORS_PER_COMMITTEE,
         PENDING_ATTESTATIONS_BOUND,
     >,
-    _context: &Context,
+    context: &Context,
 ) -> Result<(), Error> {
+    // Initial FFG checkpoint values have a `0x00` stub for `root`.
+    // Skip FFG updates in the first two epochs to avoid corner cases that might result in modifying this stub.
+    if get_current_epoch(state, context) > GENESIS_EPOCH + 1 {
+        let previous_attestations =
+            get_matching_target_attestations(state, get_previous_epoch(state, context), context);
+        let current_attestations =
+            get_matching_target_attestations(state, get_current_epoch(state, context), context);
+        let total_active_balance = get_total_active_balance(state, context)?;
+        let previous_target_balance =
+            get_attesting_balance(state, previous_attestations?, context)?;
+        let current_target_balance = get_attesting_balance(state, current_attestations?, context)?;
+        weigh_justification_and_finalization(
+            state,
+            total_active_balance,
+            previous_target_balance,
+            current_target_balance,
+            context,
+        )?;
+    }
+
     Ok(())
 }
 
@@ -517,6 +537,120 @@ pub fn process_participation_record_updates<
 ) {
     let current_attestations = mem::take(&mut state.current_epoch_attestations);
     state.previous_epoch_attestations = current_attestations;
+}
+
+pub fn get_attesting_balance<
+    'a,
+    const SLOTS_PER_HISTORICAL_ROOT: usize,
+    const HISTORICAL_ROOTS_LIMIT: usize,
+    const ETH1_DATA_VOTES_BOUND: usize,
+    const VALIDATOR_REGISTRY_LIMIT: usize,
+    const EPOCHS_PER_HISTORICAL_VECTOR: usize,
+    const EPOCHS_PER_SLASHINGS_VECTOR: usize,
+    const MAX_VALIDATORS_PER_COMMITTEE: usize,
+    const PENDING_ATTESTATIONS_BOUND: usize,
+>(
+    state: &'a BeaconState<
+        SLOTS_PER_HISTORICAL_ROOT,
+        HISTORICAL_ROOTS_LIMIT,
+        ETH1_DATA_VOTES_BOUND,
+        VALIDATOR_REGISTRY_LIMIT,
+        EPOCHS_PER_HISTORICAL_VECTOR,
+        EPOCHS_PER_SLASHINGS_VECTOR,
+        MAX_VALIDATORS_PER_COMMITTEE,
+        PENDING_ATTESTATIONS_BOUND,
+    >,
+    attestations: impl Iterator<Item = &'a PendingAttestation<MAX_VALIDATORS_PER_COMMITTEE>>,
+    context: &Context,
+) -> Result<Gwei, Error> {
+    /*
+    Return the combined effective balance of the set of unslashed validators participating in ``attestations``.
+    Note: ``get_total_balance`` returns ``EFFECTIVE_BALANCE_INCREMENT`` Gwei minimum to avoid divisions by zero.
+     */
+    get_total_balance(
+        state,
+        &get_unslashed_attesting_indices(state, attestations, context)?,
+        context,
+    )
+}
+
+pub fn weigh_justification_and_finalization<
+    const SLOTS_PER_HISTORICAL_ROOT: usize,
+    const HISTORICAL_ROOTS_LIMIT: usize,
+    const ETH1_DATA_VOTES_BOUND: usize,
+    const VALIDATOR_REGISTRY_LIMIT: usize,
+    const EPOCHS_PER_HISTORICAL_VECTOR: usize,
+    const EPOCHS_PER_SLASHINGS_VECTOR: usize,
+    const MAX_VALIDATORS_PER_COMMITTEE: usize,
+    const PENDING_ATTESTATIONS_BOUND: usize,
+>(
+    state: &mut BeaconState<
+        SLOTS_PER_HISTORICAL_ROOT,
+        HISTORICAL_ROOTS_LIMIT,
+        ETH1_DATA_VOTES_BOUND,
+        VALIDATOR_REGISTRY_LIMIT,
+        EPOCHS_PER_HISTORICAL_VECTOR,
+        EPOCHS_PER_SLASHINGS_VECTOR,
+        MAX_VALIDATORS_PER_COMMITTEE,
+        PENDING_ATTESTATIONS_BOUND,
+    >,
+    total_active_balance: Gwei,
+    previous_epoch_target_balance: Gwei,
+    current_epoch_target_balance: Gwei,
+    context: &Context,
+) -> Result<(), Error> {
+    let previous_epoch = get_current_epoch(state, context);
+    let current_epoch = get_current_epoch(state, context);
+    let old_previous_justified_checkpoint = state.previous_justified_checkpoint.clone();
+    let old_current_justified_checkpoint = state.current_justified_checkpoint.clone();
+
+    // Process justifications
+    state.previous_justified_checkpoint = state.current_justified_checkpoint.clone();
+    for i in (1..(JUSTIFICATION_BITS_LENGTH - 1)).rev() {
+        let prev = state
+            .justification_bits
+            .get(i - 1)
+            .expect("at least one bit in justification_bits");
+        state.justification_bits.set(i, prev);
+    }
+    state.justification_bits.set(0, false);
+    if previous_epoch_target_balance * 3 >= total_active_balance * 2 {
+        state.current_justified_checkpoint = Checkpoint {
+            epoch: previous_epoch,
+            root: *get_block_root(state, previous_epoch, context)
+                .expect("block root exists for checkpoint"),
+        };
+        state.justification_bits.set(1, true);
+    }
+    if current_epoch_target_balance * 3 >= total_active_balance * 2 {
+        state.current_justified_checkpoint = Checkpoint {
+            epoch: current_epoch,
+            root: *get_block_root(state, current_epoch, context)
+                .expect("block root exists for checkpoint"),
+        };
+        state.justification_bits.set(0, true);
+    }
+
+    // Process finalizations
+    let bits = &state.justification_bits;
+    // The 2nd/3rd/4th most recent epochs are justified, the 2nd using the 4th as source
+    if bits[1..4].all() && old_previous_justified_checkpoint.epoch + 3 == current_epoch {
+        state.finalized_checkpoint = old_previous_justified_checkpoint.clone();
+    }
+    // The 2nd/3rd most recent epochs are justified, the 2nd using the 3rd as source
+    if bits[1..3].all() && old_previous_justified_checkpoint.epoch + 2 == current_epoch {
+        state.finalized_checkpoint = old_previous_justified_checkpoint;
+    }
+    // The 1st/2nd/3rd most recent epochs are justified, the 1st using the 3rd as source
+    if bits[0..3].all() && old_current_justified_checkpoint.epoch + 2 == current_epoch {
+        state.finalized_checkpoint = old_current_justified_checkpoint.clone();
+    }
+    // The 1st/2nd most recent epochs are justified, the 1st using the 2nd as source
+    if bits[0..2].all() && old_current_justified_checkpoint.epoch + 1 == current_epoch {
+        state.finalized_checkpoint = old_current_justified_checkpoint;
+    }
+
+    Ok(())
 }
 
 pub fn get_base_reward<
