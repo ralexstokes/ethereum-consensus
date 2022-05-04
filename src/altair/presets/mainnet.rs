@@ -1,6 +1,9 @@
 use crate::altair::presets::Preset;
 use crate::altair::sync;
+use crate::altair::validator;
 use crate::primitives::Epoch;
+
+pub use validator::SyncCommitteeMessage;
 
 pub const INACTIVITY_PENALTY_QUOTIENT_ALTAIR: u64 = 50331648;
 pub const MIN_SLASHING_PENALTY_QUOTIENT_ALTAIR: u64 = 64;
@@ -20,5 +23,12 @@ pub const PRESET: Preset = Preset {
     update_timeout: UPDATE_TIMEOUT,
 };
 
+pub const SYNC_SUBCOMMITTEE_SIZE: usize =
+    validator::get_sync_subcommittee_size(SYNC_COMMITTEE_SIZE);
+
 pub type SyncAggregate = sync::SyncAggregate<SYNC_COMMITTEE_SIZE>;
 pub type SyncCommittee = sync::SyncCommittee<SYNC_COMMITTEE_SIZE>;
+
+pub type SyncCommitteeContribution = validator::SyncCommitteeContribution<SYNC_SUBCOMMITTEE_SIZE>;
+pub type ContributionAndProof = validator::ContributionAndProof<SYNC_SUBCOMMITTEE_SIZE>;
+pub type SignedContributionAndProof = validator::SignedContributionAndProof<SYNC_SUBCOMMITTEE_SIZE>;

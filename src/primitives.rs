@@ -1,3 +1,4 @@
+pub use crate::crypto::{PublicKey as BlsPublicKey, Signature as BlsSignature};
 use ssz_rs::prelude::*;
 use std::convert::AsRef;
 use std::fmt;
@@ -16,6 +17,17 @@ pub type ForkDigest = [u8; 4];
 pub type Domain = [u8; 32];
 
 pub type ExecutionAddress = Vector<u8, 20>;
+
+pub type ChainId = usize;
+pub type NetworkId = usize;
+
+pub type RandaoReveal = BlsSignature;
+
+// Coordinate refers to a unique location in the block tree
+pub struct Coordinate {
+    slot: Slot,
+    root: Root,
+}
 
 pub const GENESIS_SLOT: Slot = 0;
 pub const GENESIS_EPOCH: Epoch = 0;

@@ -26,8 +26,9 @@ pub use crate::phase0::state_transition::{
     is_slashable_validator, is_valid_indexed_attestation, slash_validator, verify_block_signature,
     Error,
 };
-pub use crate::phase0::validator::Validator;
+use crate::phase0::validator;
 use crate::primitives::{Epoch, Gwei, Slot};
+pub use validator::Validator;
 
 pub const MAX_COMMITTEES_PER_SLOT: u64 = 64;
 pub const TARGET_COMMITTEE_SIZE: u64 = 128;
@@ -144,3 +145,6 @@ pub type SignedBeaconBlock = beacon_block::SignedBeaconBlock<
     MAX_DEPOSITS,
     MAX_VOLUNTARY_EXITS,
 >;
+
+pub type AggregateAndProof = validator::AggregateAndProof<MAX_VALIDATORS_PER_COMMITTEE>;
+pub type SignedAggregateAndProof = validator::SignedAggregateAndProof<MAX_VALIDATORS_PER_COMMITTEE>;

@@ -1,5 +1,10 @@
+use crate::altair::mainnet::SYNC_COMMITTEE_SIZE;
 use crate::bellatrix;
 use crate::bellatrix::presets::Preset;
+use crate::phase0::mainnet::{
+    MAX_ATTESTATIONS, MAX_ATTESTER_SLASHINGS, MAX_DEPOSITS, MAX_PROPOSER_SLASHINGS,
+    MAX_VALIDATORS_PER_COMMITTEE, MAX_VOLUNTARY_EXITS,
+};
 
 pub const INACTIVITY_PENALTY_QUOTIENT_BELLATRIX: u64 = 16777216;
 pub const MIN_SLASHING_PENALTY_QUOTIENT_BELLATRIX: u64 = 32;
@@ -29,6 +34,33 @@ pub type ExecutionPayload = bellatrix::ExecutionPayload<
 >;
 
 pub type ExecutionPayloadHeader = bellatrix::ExecutionPayloadHeader<
+    BYTES_PER_LOGS_BLOOM,
+    MAX_EXTRA_DATA_BYTES,
+    MAX_BYTES_PER_TRANSACTION,
+    MAX_TRANSACTIONS_PER_PAYLOAD,
+>;
+
+pub type BlindedBeaconBlock = bellatrix::BlindedBeaconBlock<
+    MAX_PROPOSER_SLASHINGS,
+    MAX_VALIDATORS_PER_COMMITTEE,
+    MAX_ATTESTER_SLASHINGS,
+    MAX_ATTESTATIONS,
+    MAX_DEPOSITS,
+    MAX_VOLUNTARY_EXITS,
+    SYNC_COMMITTEE_SIZE,
+    BYTES_PER_LOGS_BLOOM,
+    MAX_EXTRA_DATA_BYTES,
+    MAX_BYTES_PER_TRANSACTION,
+    MAX_TRANSACTIONS_PER_PAYLOAD,
+>;
+pub type SignedBlindedBeaconBlock = bellatrix::SignedBlindedBeaconBlock<
+    MAX_PROPOSER_SLASHINGS,
+    MAX_VALIDATORS_PER_COMMITTEE,
+    MAX_ATTESTER_SLASHINGS,
+    MAX_ATTESTATIONS,
+    MAX_DEPOSITS,
+    MAX_VOLUNTARY_EXITS,
+    SYNC_COMMITTEE_SIZE,
     BYTES_PER_LOGS_BLOOM,
     MAX_EXTRA_DATA_BYTES,
     MAX_BYTES_PER_TRANSACTION,

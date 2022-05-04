@@ -3,14 +3,11 @@
 //! the "presets" like `mainnet` or `minimal`.
 pub mod light_client;
 mod presets;
-mod sync;
+pub(crate) mod sync;
+mod validator;
 
 pub mod mainnet {
     pub use super::presets::mainnet::*;
 }
 
 pub mod minimal {}
-
-pub type BeaconBlockHeader = crate::phase0::mainnet::BeaconBlockHeader;
-
-pub const SYNC_COMMITTEE_SIZE: usize = 512;
