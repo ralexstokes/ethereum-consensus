@@ -219,65 +219,76 @@ pub struct BeaconProposerRegistration {
 
 impl Client {
     /* beacon namespace */
-    pub async fn get_genesis_details(&self) -> GenesisDetails {
+    pub async fn get_genesis_details(&self) -> Result<GenesisDetails, Error> {
         unimplemented!("")
     }
 
-    pub async fn get_state_root(id: StateId) -> Root {
+    pub async fn get_state_root(id: StateId) -> Result<Root, Error> {
         unimplemented!("")
     }
 
-    pub async fn get_fork(id: StateId) -> Fork {
+    pub async fn get_fork(id: StateId) -> Result<Fork, Error> {
         unimplemented!("")
     }
 
-    pub async fn get_finality_checkpoints(id: StateId) -> FinalityCheckpoints {
+    pub async fn get_finality_checkpoints(id: StateId) -> Result<FinalityCheckpoints, Error> {
         unimplemented!("")
     }
 
     pub async fn get_validators(
         id: StateId,
         filters: &[ValidatorDescriptor],
-    ) -> Vec<ValidatorSummary> {
+    ) -> Result<Vec<ValidatorSummary>, Error> {
         unimplemented!("")
     }
 
-    pub async fn get_validator(id: StateId, validator_id: PubkeyOrIndex) -> ValidatorSummary {
+    pub async fn get_validator(
+        id: StateId,
+        validator_id: PubkeyOrIndex,
+    ) -> Result<ValidatorSummary, Error> {
         unimplemented!("")
     }
 
-    pub async fn get_balances(id: StateId, filters: &[PubkeyOrIndex]) -> Vec<BalanceSummary> {
+    pub async fn get_balances(
+        id: StateId,
+        filters: &[PubkeyOrIndex],
+    ) -> Result<Vec<BalanceSummary>, Error> {
         unimplemented!("")
     }
 
-    pub async fn get_all_committees(id: StateId) -> Vec<CommitteeSummary> {
+    pub async fn get_all_committees(id: StateId) -> Result<Vec<CommitteeSummary>, Error> {
         unimplemented!("")
     }
 
-    pub async fn get_committees(id: StateId, filter: CommitteeFilter) -> Vec<CommitteeSummary> {
+    pub async fn get_committees(
+        id: StateId,
+        filter: CommitteeFilter,
+    ) -> Result<Vec<CommitteeSummary>, Error> {
         unimplemented!("")
     }
 
     pub async fn get_sync_committees(
         id: StateId,
         epoch: Option<Epoch>,
-    ) -> Vec<SyncCommitteeSummary> {
+    ) -> Result<Vec<SyncCommitteeSummary>, Error> {
         unimplemented!("")
     }
 
-    pub async fn get_beacon_header_at_head() -> BeaconHeaderSummary {
+    pub async fn get_beacon_header_at_head() -> Result<BeaconHeaderSummary, Error> {
         unimplemented!("")
     }
 
-    pub async fn get_beacon_header_for_slot(slot: Slot) -> BeaconHeaderSummary {
+    pub async fn get_beacon_header_for_slot(slot: Slot) -> Result<BeaconHeaderSummary, Error> {
         unimplemented!("")
     }
 
-    pub async fn get_beacon_header_for_parent_root(parent_root: Root) -> BeaconHeaderSummary {
+    pub async fn get_beacon_header_for_parent_root(
+        parent_root: Root,
+    ) -> Result<BeaconHeaderSummary, Error> {
         unimplemented!("")
     }
 
-    pub async fn get_beacon_header(id: BlockId) -> BeaconHeaderSummary {
+    pub async fn get_beacon_header(id: BlockId) -> Result<BeaconHeaderSummary, Error> {
         unimplemented!("")
     }
 
@@ -292,22 +303,24 @@ impl Client {
     }
 
     // v2 endpoint
-    pub async fn get_beacon_block(id: BlockId) -> SignedBeaconBlock {
+    pub async fn get_beacon_block(id: BlockId) -> Result<SignedBeaconBlock, Error> {
         unimplemented!("")
     }
 
-    pub async fn get_beacon_block_root(id: BlockId) -> Root {
+    pub async fn get_beacon_block_root(id: BlockId) -> Result<Root, Error> {
         unimplemented!("")
     }
 
-    pub async fn get_attestations_from_beacon_block(id: BlockId) -> Vec<Attestation> {
+    pub async fn get_attestations_from_beacon_block(
+        id: BlockId,
+    ) -> Result<Vec<Attestation>, Error> {
         unimplemented!("")
     }
 
     pub async fn get_attestations_from_pool(
         slot: Option<Slot>,
         committee_index: Option<CommitteeIndex>,
-    ) -> Vec<Attestation> {
+    ) -> Result<Vec<Attestation>, Error> {
         unimplemented!("")
     }
 
@@ -315,7 +328,7 @@ impl Client {
         unimplemented!("")
     }
 
-    pub async fn get_attester_slashings_from_pool() -> Vec<AttesterSlashing> {
+    pub async fn get_attester_slashings_from_pool() -> Result<Vec<AttesterSlashing>, Error> {
         unimplemented!("")
     }
 
@@ -323,7 +336,7 @@ impl Client {
         unimplemented!("")
     }
 
-    pub async fn get_proposer_slashings_from_pool() -> Vec<ProposerSlashing> {
+    pub async fn get_proposer_slashings_from_pool() -> Result<Vec<ProposerSlashing>, Error> {
         unimplemented!("")
     }
 
@@ -337,7 +350,7 @@ impl Client {
         unimplemented!("")
     }
 
-    pub async fn get_voluntary_exits_from_pool() -> Vec<SignedVoluntaryExit> {
+    pub async fn get_voluntary_exits_from_pool() -> Result<Vec<SignedVoluntaryExit>, Error> {
         unimplemented!("")
     }
 
@@ -346,62 +359,62 @@ impl Client {
     }
 
     /* config namespace */
-    pub async fn get_fork_schedule() -> Vec<Fork> {
+    pub async fn get_fork_schedule() -> Result<Vec<Fork>, Error> {
         unimplemented!("")
     }
 
-    pub async fn get_spec() -> HashMap<String, String> {
+    pub async fn get_spec() -> Result<HashMap<String, String>, Error> {
         unimplemented!("")
     }
 
-    pub async fn get_deposit_contract_address() -> (ChainId, ExecutionAddress) {
+    pub async fn get_deposit_contract_address() -> Result<(ChainId, ExecutionAddress), Error> {
         unimplemented!("")
     }
 
     /* debug namespace */
     // v2 endpoint
-    pub async fn get_state(id: StateId) -> BeaconState {
+    pub async fn get_state(id: StateId) -> Result<BeaconState, Error> {
         unimplemented!("")
     }
 
     // v2 endpoint
-    pub async fn get_heads() -> Vec<Coordinate> {
+    pub async fn get_heads() -> Result<Vec<Coordinate>, Error> {
         unimplemented!("")
     }
 
     /* events namespace */
     // TODO: figure out return type
-    pub async fn get_events<T>(topics: &[EventTopic]) -> T {
+    pub async fn get_events<T>(topics: &[EventTopic]) -> Result<T, Error> {
         // get back "event: TOPIC, data: T"
         unimplemented!("")
     }
 
     /* node namespace */
-    pub async fn get_node_identity() -> NetworkIdentity {
+    pub async fn get_node_identity() -> Result<NetworkIdentity, Error> {
         unimplemented!("")
     }
 
-    pub async fn get_node_peers(filters: &[PeerDescriptor]) -> Vec<PeerDescription> {
+    pub async fn get_node_peers(filters: &[PeerDescriptor]) -> Result<Vec<PeerDescription>, Error> {
         unimplemented!("")
     }
 
-    pub async fn get_peer(peer_id: Multiaddr) -> PeerDescription {
+    pub async fn get_peer(peer_id: Multiaddr) -> Result<PeerDescription, Error> {
         unimplemented!("")
     }
 
-    pub async fn get_peer_count() -> PeerSummary {
+    pub async fn get_peer_count() -> Result<PeerSummary, Error> {
         unimplemented!("")
     }
 
-    pub async fn get_node_version() -> String {
+    pub async fn get_node_version() -> Result<String, Error> {
         unimplemented!("")
     }
 
-    pub async fn get_sync_status() -> SyncStatus {
+    pub async fn get_sync_status() -> Result<SyncStatus, Error> {
         unimplemented!("")
     }
 
-    pub async fn get_health() -> HealthStatus {
+    pub async fn get_health() -> Result<HealthStatus, Error> {
         unimplemented!("")
     }
 
@@ -409,18 +422,18 @@ impl Client {
     pub async fn get_attester_duties(
         epoch: Epoch,
         indices: &[ValidatorIndex],
-    ) -> (Root, Vec<AttestationDuty>) {
+    ) -> Result<(Root, Vec<AttestationDuty>), Error> {
         unimplemented!("")
     }
 
-    pub async fn get_proposer_duties(epoch: Epoch) -> (Root, Vec<ProposerDuty>) {
+    pub async fn get_proposer_duties(epoch: Epoch) -> Result<(Root, Vec<ProposerDuty>), Error> {
         unimplemented!("")
     }
 
     pub async fn get_sync_committee_duties(
         epoch: Epoch,
         indices: &[ValidatorIndex],
-    ) -> (Root, Vec<SyncCommitteeDuty>) {
+    ) -> Result<(Root, Vec<SyncCommitteeDuty>), Error> {
         unimplemented!("")
     }
 
@@ -429,7 +442,7 @@ impl Client {
         slot: Slot,
         randao_reveal: RandaoReveal,
         graffiti: Bytes32,
-    ) -> BeaconBlock {
+    ) -> Result<BeaconBlock, Error> {
         unimplemented!("")
     }
 
@@ -437,18 +450,21 @@ impl Client {
         slot: Slot,
         randao_reveal: RandaoReveal,
         graffiti: Bytes32,
-    ) -> BlindedBeaconBlock {
+    ) -> Result<BlindedBeaconBlock, Error> {
         unimplemented!("")
     }
 
     pub async fn get_attestation_data(
         slot: Slot,
         committee_index: CommitteeIndex,
-    ) -> AttestationData {
+    ) -> Result<AttestationData, Error> {
         unimplemented!("")
     }
 
-    pub async fn get_attestation_aggregate(attestation_data_root: Root, slot: Slot) -> Attestation {
+    pub async fn get_attestation_aggregate(
+        attestation_data_root: Root,
+        slot: Slot,
+    ) -> Result<Attestation, Error> {
         unimplemented!("")
     }
 
