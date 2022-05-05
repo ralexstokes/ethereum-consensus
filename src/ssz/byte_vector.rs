@@ -1,0 +1,73 @@
+use ssz_rs::prelude::*;
+use std::fmt;
+use std::hash::{self, Hasher};
+use std::ops::{Deref, DerefMut};
+
+#[derive(Default, Clone, Eq, SimpleSerialize)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+pub struct ByteVector<const N: usize>(
+    #[serde(with = "crate::serde::as_hex")] pub(crate) Vector<u8, N>,
+);
+
+impl<const N: usize> ByteVector<N> {
+    pub fn try_from_bytes(bytes: &[u8]) -> Result<Self, ssz_rs::DeserializeError> {
+        ByteVector::<N>::deserialize(bytes)
+    }
+}
+
+// impl here to satisfy clippy
+impl<const N: usize> PartialEq for ByteVector<N> {
+    fn eq(&self, other: &Self) -> bool {
+        self.0 == other.0
+    }
+}
+
+impl<const N: usize> hash::Hash for ByteVector<N> {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        self.as_ref().hash(state);
+    }
+}
+
+impl<const N: usize> fmt::LowerHex for ByteVector<N> {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        if f.alternate() {
+            write!(f, "0x")?;
+        }
+        for i in &self.0[..] {
+            write!(f, "{:02x}", i)?;
+        }
+        Ok(())
+    }
+}
+
+impl<const N: usize> fmt::Debug for ByteVector<N> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "ByteVector<{}>({:x})", N, self)
+    }
+}
+
+impl<const N: usize> fmt::Display for ByteVector<N> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{:#x}", self)
+    }
+}
+
+impl<const N: usize> AsRef<[u8]> for ByteVector<N> {
+    fn as_ref(&self) -> &[u8] {
+        &self.0
+    }
+}
+
+impl<const N: usize> Deref for ByteVector<N> {
+    type Target = Vector<u8, N>;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
+impl<const N: usize> DerefMut for ByteVector<N> {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.0
+    }
+}

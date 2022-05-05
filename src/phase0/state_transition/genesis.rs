@@ -5,7 +5,7 @@ use crate::phase0::operations::{Deposit, DepositData, Eth1Data};
 use crate::phase0::state_transition::block_processing::process_deposit;
 use crate::phase0::state_transition::{get_active_validator_indices, Context, Error};
 use crate::phase0::DEPOSIT_CONTRACT_TREE_DEPTH;
-use crate::primitives::{Bytes32, Gwei, Hash32, GENESIS_EPOCH};
+use crate::primitives::{Gwei, Hash32, GENESIS_EPOCH};
 use ssz_rs::prelude::*;
 
 const DEPOSIT_DATA_LIST_BOUND: usize = 2usize.pow(DEPOSIT_CONTRACT_TREE_DEPTH as u32);
@@ -48,7 +48,7 @@ pub fn initialize_beacon_state_from_eth1<
         epoch: GENESIS_EPOCH,
     };
     let eth1_data = Eth1Data {
-        block_hash: eth1_block_hash,
+        block_hash: eth1_block_hash.clone(),
         deposit_count: deposits.len() as u64,
         ..Default::default()
     };
@@ -65,11 +65,9 @@ pub fn initialize_beacon_state_from_eth1<
         body_root,
         ..Default::default()
     };
-    let eth1_block_hash = Bytes32(Vector::from_iter(eth1_block_hash.0.into_iter()));
-    let randao_mixes = Vector::from_iter(vec![
-        eth1_block_hash;
-        context.epochs_per_historical_vector as usize
-    ]);
+    let randao_mixes = Vector::from_iter(
+        std::iter::repeat(eth1_block_hash).take(context.epochs_per_historical_vector as usize),
+    );
     let mut state = BeaconState {
         genesis_time: eth1_timestamp + context.genesis_delay,
         fork,

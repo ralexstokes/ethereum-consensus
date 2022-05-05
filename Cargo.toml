@@ -6,6 +6,8 @@ license = "MIT OR Apache-2.0"
 
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+[features]
+default = ["serde"]
 
 [dependencies]
 ssz_rs = { git = "https://github.com/ralexstokes/ssz_rs" }
@@ -19,3 +21,7 @@ integer-sqrt = "0.1.5"
 enr = "0.5.1"
 multiaddr = "0.14.0"
 libp2p-core = "0.32.1"
+serde = { version = "1.0", features = ["derive"], optional = true }
+
+[dev-dependencies]
+serde_json = "1.0.81"

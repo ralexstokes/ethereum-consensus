@@ -1,5 +1,9 @@
 use crate::primitives::Bytes32;
+#[cfg(feature = "serde")]
+use crate::serde::as_hex;
 use blst::{min_pk as blst_core, BLST_ERROR};
+#[cfg(feature = "serde")]
+use serde;
 use sha2::{digest::FixedOutput, Digest, Sha256};
 use ssz_rs::prelude::*;
 use std::fmt;
@@ -15,7 +19,7 @@ pub fn hash<D: AsRef<[u8]>>(data: D) -> Bytes32 {
     let mut hasher = Sha256::new();
     hasher.update(data);
     hasher.finalize_into(result.as_mut_slice().into());
-    Bytes32(result.try_into().expect("correct input"))
+    Bytes32::try_from_bytes(&result).expect("correct input")
 }
 
 #[derive(Debug, Error)]
@@ -111,9 +115,32 @@ fn verify_signature(public_key: &PublicKey, msg: &[u8], sig: &Signature) -> bool
 #[derive(Default, Clone, Eq)]
 pub struct PublicKey(blst_core::PublicKey);
 
-impl fmt::Debug for PublicKey {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{:#x}", self)
+#[cfg(feature = "serde")]
+impl serde::Serialize for PublicKey {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        let data = self.as_bytes();
+        as_hex::serialize(&data, serializer)
+    }
+}
+
+#[cfg(feature = "serde")]
+impl<'de> serde::Deserialize<'de> for PublicKey {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        // TODO how to use as_hex::deserialize?
+        let s = <String>::deserialize(deserializer)?;
+        let bytes = hex::decode(&s[2..]).map_err(serde::de::Error::custom)?;
+
+        let inner = blst_core::PublicKey::from_bytes(&bytes).map_err(|err| {
+            let local_err = BLSTError::from(err);
+            serde::de::Error::custom(local_err)
+        })?;
+        Ok(Self(inner))
     }
 }
 
@@ -126,6 +153,18 @@ impl fmt::LowerHex for PublicKey {
             write!(f, "{:02x}", i)?;
         }
         Ok(())
+    }
+}
+
+impl fmt::Debug for PublicKey {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "PublicKey({:x})", self)
+    }
+}
+
+impl fmt::Display for PublicKey {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{:#x}", self)
     }
 }
 
@@ -206,6 +245,32 @@ impl SimpleSerialize for PublicKey {
 
 #[derive(Clone, PartialEq, Eq)]
 pub struct Signature(blst_core::Signature);
+
+#[cfg(feature = "serde")]
+impl serde::Serialize for Signature {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        let data = self.as_bytes();
+        as_hex::serialize(&data, serializer)
+    }
+}
+
+#[cfg(feature = "serde")]
+impl<'de> serde::Deserialize<'de> for Signature {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        // TODO how to use as_hex::deserialize?
+        let s = <String>::deserialize(deserializer)?;
+        let bytes = hex::decode(&s[2..]).map_err(serde::de::Error::custom)?;
+
+        let inner = Signature::from_bytes(&bytes).map_err(serde::de::Error::custom)?;
+        Ok(inner)
+    }
+}
 
 impl fmt::Debug for Signature {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
