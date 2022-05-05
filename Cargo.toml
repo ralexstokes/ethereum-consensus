@@ -20,7 +20,7 @@ hex = "0.4.3"
 integer-sqrt = "0.1.5"
 enr = "0.5.1"
 multiaddr = "0.14.0"
-libp2p-core = "0.32.1"
+libp2p-core = { version = "0.32.1", features = ["serde"] }
 serde = { version = "1.0", features = ["derive"], optional = true }
 
 [dev-dependencies]

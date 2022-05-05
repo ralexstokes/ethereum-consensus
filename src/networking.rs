@@ -32,7 +32,9 @@ impl MessageDomain {
     }
 }
 
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct MetaData {
+    #[serde(with = "crate::serde::as_string")]
     pub seq_number: u64,
     pub attnets: Bitvector<ATTESTATION_SUBNET_COUNT>,
 }
