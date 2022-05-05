@@ -4,6 +4,7 @@ use crate::altair::sync::SyncAggregate;
 use crate::phase0::operations::{
     Attestation, AttesterSlashing, Deposit, Eth1Data, ProposerSlashing, SignedVoluntaryExit,
 };
+use crate::ssz::{ByteList, ByteVector};
 
 use crate::primitives::{
     BlsSignature, Bytes32, ExecutionAddress, Hash32, Root, Slot, ValidatorIndex,
@@ -14,9 +15,10 @@ pub mod mainnet {
     pub use super::presets::mainnet::*;
 }
 
-pub type Transaction<const MAX_BYTES_PER_TRANSACTION: usize> = List<u8, MAX_BYTES_PER_TRANSACTION>;
+pub type Transaction<const MAX_BYTES_PER_TRANSACTION: usize> = ByteList<MAX_BYTES_PER_TRANSACTION>;
 
 #[derive(Default, Debug, SimpleSerialize)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct ExecutionPayload<
     const BYTES_PER_LOGS_BLOOM: usize,
     const MAX_EXTRA_DATA_BYTES: usize,
@@ -27,19 +29,24 @@ pub struct ExecutionPayload<
     pub fee_recipient: ExecutionAddress,
     pub state_root: Bytes32,
     pub receipts_root: Bytes32,
-    pub logs_bloom: Vector<u8, BYTES_PER_LOGS_BLOOM>,
+    pub logs_bloom: ByteVector<BYTES_PER_LOGS_BLOOM>,
     pub prev_randao: Bytes32,
+    #[serde(with = "crate::serde::as_string")]
     pub block_number: u64,
+    #[serde(with = "crate::serde::as_string")]
     pub gas_limit: u64,
+    #[serde(with = "crate::serde::as_string")]
     pub gas_used: u64,
+    #[serde(with = "crate::serde::as_string")]
     pub timestamp: u64,
-    pub extra_data: List<u8, MAX_EXTRA_DATA_BYTES>,
+    pub extra_data: ByteList<MAX_EXTRA_DATA_BYTES>,
     pub base_fee_per_gas: U256,
     pub block_hash: Hash32,
     pub transactions: List<Transaction<MAX_BYTES_PER_TRANSACTION>, MAX_TRANSACTIONS_PER_PAYLOAD>,
 }
 
 #[derive(Default, Debug, SimpleSerialize)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct ExecutionPayloadHeader<
     const BYTES_PER_LOGS_BLOOM: usize,
     const MAX_EXTRA_DATA_BYTES: usize,
@@ -50,19 +57,24 @@ pub struct ExecutionPayloadHeader<
     pub fee_recipient: ExecutionAddress,
     pub state_root: Bytes32,
     pub receipts_root: Bytes32,
-    pub logs_bloom: Vector<u8, BYTES_PER_LOGS_BLOOM>,
+    pub logs_bloom: ByteVector<BYTES_PER_LOGS_BLOOM>,
     pub prev_randao: Bytes32,
+    #[serde(with = "crate::serde::as_string")]
     pub block_number: u64,
+    #[serde(with = "crate::serde::as_string")]
     pub gas_limit: u64,
+    #[serde(with = "crate::serde::as_string")]
     pub gas_used: u64,
+    #[serde(with = "crate::serde::as_string")]
     pub timestamp: u64,
-    pub extra_data: List<u8, MAX_EXTRA_DATA_BYTES>,
+    pub extra_data: ByteList<MAX_EXTRA_DATA_BYTES>,
     pub base_fee_per_gas: U256,
     pub block_hash: Hash32,
     pub transactions_root: Root,
 }
 
 #[derive(Default, Debug, SimpleSerialize)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct BlindedBeaconBlockBody<
     const MAX_PROPOSER_SLASHINGS: usize,
     const MAX_VALIDATORS_PER_COMMITTEE: usize,
@@ -95,6 +107,7 @@ pub struct BlindedBeaconBlockBody<
 }
 
 #[derive(Default, Debug, SimpleSerialize)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct BlindedBeaconBlock<
     const MAX_PROPOSER_SLASHINGS: usize,
     const MAX_VALIDATORS_PER_COMMITTEE: usize,
@@ -108,7 +121,9 @@ pub struct BlindedBeaconBlock<
     const MAX_BYTES_PER_TRANSACTION: usize,
     const MAX_TRANSACTIONS_PER_PAYLOAD: usize,
 > {
+    #[serde(with = "crate::serde::as_string")]
     pub slot: Slot,
+    #[serde(with = "crate::serde::as_string")]
     pub proposer_index: ValidatorIndex,
     pub parent_root: Root,
     pub state_root: Root,
@@ -128,6 +143,7 @@ pub struct BlindedBeaconBlock<
 }
 
 #[derive(Default, Debug, SimpleSerialize)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct SignedBlindedBeaconBlock<
     const MAX_PROPOSER_SLASHINGS: usize,
     const MAX_VALIDATORS_PER_COMMITTEE: usize,
