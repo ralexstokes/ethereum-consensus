@@ -12,18 +12,23 @@ use ethereum_consensus::primitives::{
     BlsPublicKey, Bytes32, ChainId, CommitteeIndex, Coordinate, Epoch, ExecutionAddress, Gwei,
     RandaoReveal, Root, Slot, ValidatorIndex, Version,
 };
+use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
 pub enum Error {}
 
 pub struct Client {}
 
+#[derive(Serialize, Deserialize)]
 pub struct GenesisDetails {
+    #[serde(with = "crate::serde::as_string")]
     pub genesis_time: u64,
     pub genesis_validators_root: Root,
+    #[serde(with = "crate::serde::as_hex")]
     pub genesis_fork_version: Version,
 }
 
+#[derive(Serialize, Deserialize)]
 pub enum StateId {
     Head,
     Genesis,
@@ -33,6 +38,7 @@ pub enum StateId {
     Root(Root),
 }
 
+#[derive(Serialize, Deserialize)]
 pub enum BlockId {
     Head,
     Genesis,
@@ -41,17 +47,20 @@ pub enum BlockId {
     Root(Root),
 }
 
+#[derive(Serialize, Deserialize)]
 pub enum ExecutionStatus {
     Default,
     Optimistic,
 }
 
+#[derive(Serialize, Deserialize)]
 pub struct FinalityCheckpoints {
     pub previous_justified: Checkpoint,
     pub current_justified: Checkpoint,
     pub finalized: Checkpoint,
 }
 
+#[derive(Serialize, Deserialize)]
 pub enum ValidatorStatus {
     PendingInitialized,
     PendingQueued,
@@ -79,15 +88,21 @@ pub struct ValidatorDescriptor {
     pub status: ValidatorStatus,
 }
 
+#[derive(Serialize, Deserialize)]
 pub struct ValidatorSummary {
+    #[serde(with = "crate::serde::as_string")]
     pub index: ValidatorIndex,
+    #[serde(with = "crate::serde::as_string")]
     pub balance: Gwei,
     pub status: ValidatorStatus,
     pub validator: Validator,
 }
 
+#[derive(Serialize, Deserialize)]
 pub struct BalanceSummary {
+    #[serde(with = "crate::serde::as_string")]
     pub index: ValidatorIndex,
+    #[serde(with = "crate::serde::as_string")]
     pub balance: Gwei,
 }
 
@@ -97,17 +112,25 @@ pub struct CommitteeFilter {
     pub slot: Option<Slot>,
 }
 
+#[derive(Serialize, Deserialize)]
 pub struct CommitteeSummary {
+    #[serde(with = "crate::serde::as_string")]
     pub index: CommitteeIndex,
+    #[serde(with = "crate::serde::as_string")]
     pub slot: Slot,
+    #[serde(with = "crate::serde::collection_over_string")]
     pub validators: Vec<ValidatorIndex>,
 }
 
+#[derive(Serialize, Deserialize)]
 pub struct SyncCommitteeSummary {
+    #[serde(with = "crate::serde::collection_over_string")]
     pub validators: Vec<ValidatorIndex>,
+    // TODO fix serde here
     pub validator_aggregates: Vec<Vec<ValidatorIndex>>,
 }
 
+#[derive(Serialize, Deserialize)]
 pub struct BeaconHeaderSummary {
     pub root: Root,
     pub canonical: bool,
@@ -124,6 +147,7 @@ pub enum EventTopic {
     ContributionAndProof,
 }
 
+#[derive(Serialize, Deserialize)]
 pub struct NetworkIdentity {
     pub peer_id: PeerId,
     pub enr: Enr,
@@ -132,6 +156,7 @@ pub struct NetworkIdentity {
     pub metadata: MetaData,
 }
 
+#[derive(Serialize, Deserialize)]
 pub enum PeerState {
     Disconnected,
     Connecting,
@@ -139,16 +164,19 @@ pub enum PeerState {
     Disconnecting,
 }
 
+#[derive(Serialize, Deserialize)]
 pub enum ConnectionOrientation {
     Inbound,
     Outbound,
 }
 
+#[derive(Serialize, Deserialize)]
 pub struct PeerDescriptor {
     pub state: PeerState,
     pub direction: ConnectionOrientation,
 }
 
+#[derive(Serialize, Deserialize)]
 pub struct PeerDescription {
     pub peer_id: PeerId,
     pub enr: Enr,
@@ -157,44 +185,66 @@ pub struct PeerDescription {
     pub direction: ConnectionOrientation,
 }
 
+#[derive(Serialize, Deserialize)]
 pub struct PeerSummary {
+    #[serde(with = "crate::serde::as_string")]
     pub disconnected: usize,
+    #[serde(with = "crate::serde::as_string")]
     pub connecting: usize,
+    #[serde(with = "crate::serde::as_string")]
     pub connected: usize,
+    #[serde(with = "crate::serde::as_string")]
     pub disconnecting: usize,
 }
 
+#[derive(Serialize, Deserialize)]
 pub struct SyncStatus {
+    #[serde(with = "crate::serde::as_string")]
     pub head_slot: Slot,
+    #[serde(with = "crate::serde::as_string")]
     pub sync_distance: usize,
     pub is_syncing: bool,
 }
 
+#[derive(Serialize, Deserialize)]
 pub enum HealthStatus {
     Ready,
     Syncing,
     NotInitialized,
 }
 
+#[derive(Serialize, Deserialize)]
 pub struct AttestationDuty {
     pub pubkey: BlsPublicKey,
+    #[serde(with = "crate::serde::as_string")]
     pub validator_index: ValidatorIndex,
+    #[serde(with = "crate::serde::as_string")]
     pub committee_index: CommitteeIndex,
+    #[serde(with = "crate::serde::as_string")]
     pub committee_length: usize,
+    #[serde(with = "crate::serde::as_string")]
     pub committees_at_slot: usize,
+    #[serde(with = "crate::serde::as_string")]
     pub validator_committee_index: usize,
+    #[serde(with = "crate::serde::as_string")]
     pub slot: Slot,
 }
 
+#[derive(Serialize, Deserialize)]
 pub struct ProposerDuty {
     pub pubkey: BlsPublicKey,
+    #[serde(with = "crate::serde::as_string")]
     pub validator_index: ValidatorIndex,
+    #[serde(with = "crate::serde::as_string")]
     pub slot: Slot,
 }
 
+#[derive(Serialize, Deserialize)]
 pub struct SyncCommitteeDuty {
     pub pubkey: BlsPublicKey,
+    #[serde(with = "crate::serde::as_string")]
     pub validator_index: ValidatorIndex,
+    #[serde(with = "crate::serde::collection_over_string")]
     pub validator_sync_committee_indices: Vec<usize>,
 }
 
@@ -212,7 +262,9 @@ pub struct SyncCommitteeDescriptor {
     pub until_epoch: Epoch,
 }
 
+#[derive(Serialize, Deserialize)]
 pub struct BeaconProposerRegistration {
+    #[serde(with = "crate::serde::as_string")]
     pub validator_index: ValidatorIndex,
     pub fee_recipient: ExecutionAddress,
 }
