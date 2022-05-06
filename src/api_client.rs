@@ -9,6 +9,7 @@ use ethereum_consensus::altair::mainnet::{
     SignedContributionAndProof, SyncCommitteeContribution, SyncCommitteeMessage,
 };
 use ethereum_consensus::bellatrix::mainnet::{BlindedBeaconBlock, SignedBlindedBeaconBlock};
+use ethereum_consensus::builder::SignedValidatorRegistration;
 use ethereum_consensus::networking::Multiaddr;
 use ethereum_consensus::phase0::mainnet::{
     Attestation, AttestationData, AttesterSlashing, BeaconBlock, BeaconState, Fork,
@@ -307,8 +308,15 @@ impl Client {
         Ok(())
     }
 
-    pub async fn register_proposers(
+    pub async fn prepare_proposers(
         registrations: &[BeaconProposerRegistration],
+    ) -> Result<(), Error> {
+        Ok(())
+    }
+
+    // endpoint for builder registrations
+    pub async fn register_validators_with_builders(
+        registrations: &[SignedValidatorRegistration],
     ) -> Result<(), Error> {
         Ok(())
     }
