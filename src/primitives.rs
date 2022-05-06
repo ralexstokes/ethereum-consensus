@@ -40,7 +40,7 @@ pub const FAR_FUTURE_EPOCH: Epoch = Epoch::MAX;
 pub const BLS_WITHDRAWAL_PREFIX: u8 = 0x00;
 pub const ETH1_ADDRESS_WITHDRAWAL_PREFIX: u8 = 0x01;
 
-#[derive(Default, Clone, PartialEq, Eq, SimpleSerialize)]
+#[derive(Default, Clone, PartialEq, Eq, Hash, SimpleSerialize)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct Bytes32(ByteVector<32>);
 
