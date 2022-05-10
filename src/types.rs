@@ -1,3 +1,4 @@
+use crate::error::ApiError;
 use ethereum_consensus::networking::{Enr, MetaData, Multiaddr, PeerId};
 use ethereum_consensus::phase0::mainnet::{Checkpoint, SignedBeaconBlockHeader, Validator};
 use ethereum_consensus::primitives::{
@@ -256,23 +257,31 @@ pub struct BeaconProposerRegistration {
     pub fee_recipient: ExecutionAddress,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Debug)]
 #[serde(bound = "T: Serialize + serde::de::DeserializeOwned")]
-pub struct ApiResponse<T: Serialize + DeserializeOwned> {
+pub struct Value<T: Serialize + DeserializeOwned> {
     pub data: T,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Debug)]
 #[serde(bound = "T: Serialize + serde::de::DeserializeOwned")]
-pub struct VersionedApiResponse<T: Serialize + DeserializeOwned> {
+pub struct VersionedValue<T: Serialize + DeserializeOwned> {
     pub version: ConsensusVersion,
     pub data: T,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Debug)]
 #[serde(rename_all = "lowercase")]
 pub enum ConsensusVersion {
     Phase0,
     Altair,
     Bellatrix,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+#[serde(bound = "T: Serialize + serde::de::DeserializeOwned")]
+#[serde(untagged)]
+pub enum ApiResult<T: Serialize + DeserializeOwned> {
+    Ok(T),
+    Err(ApiError),
 }
