@@ -9,6 +9,7 @@ pub struct ValidatorRegistration {
     pub gas_limit: u64,
     #[serde(with = "crate::serde::as_string")]
     pub timestamp: u64,
+    #[serde(rename = "pubkey")]
     pub public_key: BlsPublicKey,
 }
 
