@@ -1,9 +1,10 @@
+use crate::error::ApiError;
 use crate::types::{
-    AttestationDuty, BalanceSummary, BeaconHeaderSummary, BeaconProposerRegistration, BlockId,
-    CommitteeDescriptor, CommitteeFilter, CommitteeSummary, EventTopic, FinalityCheckpoints,
-    GenesisDetails, HealthStatus, NetworkIdentity, PeerDescription, PeerDescriptor, PeerSummary,
-    ProposerDuty, PubkeyOrIndex, StateId, SyncCommitteeDescriptor, SyncCommitteeDuty,
-    SyncCommitteeSummary, SyncStatus, ValidatorDescriptor, ValidatorSummary,
+    ApiResult, AttestationDuty, BalanceSummary, BeaconHeaderSummary, BeaconProposerRegistration,
+    BlockId, CommitteeDescriptor, CommitteeFilter, CommitteeSummary, EventTopic,
+    FinalityCheckpoints, GenesisDetails, HealthStatus, NetworkIdentity, PeerDescription,
+    PeerDescriptor, PeerSummary, ProposerDuty, PubkeyOrIndex, StateId, SyncCommitteeDescriptor,
+    SyncCommitteeDuty, SyncCommitteeSummary, SyncStatus, ValidatorDescriptor, ValidatorSummary,
 };
 use ethereum_consensus::altair::mainnet::{
     SignedContributionAndProof, SyncCommitteeContribution, SyncCommitteeMessage,
@@ -19,16 +20,69 @@ use ethereum_consensus::primitives::{
     Bytes32, ChainId, CommitteeIndex, Coordinate, Epoch, ExecutionAddress, RandaoReveal, Root,
     Slot, ValidatorIndex,
 };
+use reqwest;
 use std::collections::HashMap;
+use thiserror::Error;
+use url::{ParseError, Url};
 
-pub enum Error {}
+#[derive(Debug, Error)]
+pub enum Error {
+    #[error("could not parse URL: {0}")]
+    Url(#[from] ParseError),
+    #[error("could not send request: {0}")]
+    Http(#[from] reqwest::Error),
+    #[error("error from API: {0}")]
+    Api(#[from] ApiError),
+}
 
-pub struct Client {}
+pub struct Client {
+    http: reqwest::Client,
+    endpoint: Url,
+}
 
 impl Client {
+    pub fn new<U: Into<Url>>(client: &reqwest::Client, endpoint: U) -> Self {
+        Self {
+            http: client.clone(),
+            endpoint: endpoint.into(),
+        }
+    }
+
+    pub async fn get<T: serde::Serialize + serde::de::DeserializeOwned>(
+        &self,
+        path: &str,
+    ) -> Result<T, Error> {
+        let target = self.endpoint.join(path)?;
+        let result: ApiResult<T> = self.http.get(target).send().await?.json().await?;
+        match result {
+            ApiResult::Ok(result) => Ok(result),
+            ApiResult::Err(err) => Err(err.into()),
+        }
+    }
+
+    pub async fn post<T: serde::Serialize + serde::de::DeserializeOwned>(
+        &self,
+        path: &str,
+        argument: &T,
+    ) -> Result<T, Error> {
+        let target = self.endpoint.join(path)?;
+        let result: ApiResult<T> = self
+            .http
+            .post(target)
+            .json(argument)
+            .send()
+            .await?
+            .json()
+            .await?;
+        match result {
+            ApiResult::Ok(result) => Ok(result),
+            ApiResult::Err(err) => Err(err.into()),
+        }
+    }
+
     /* beacon namespace */
     pub async fn get_genesis_details(&self) -> Result<GenesisDetails, Error> {
-        unimplemented!("")
+        self.get("/eth/v1/beacon/genesis").await
     }
 
     pub async fn get_state_root(id: StateId) -> Result<Root, Error> {
