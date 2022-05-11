@@ -63,6 +63,11 @@ impl fmt::Debug for Bytes32 {
         write!(f, "{:x}", self.0)
     }
 }
+impl fmt::Display for Bytes32 {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{:#x}", self.0)
+    }
+}
 
 impl Deref for Bytes32 {
     type Target = ByteVector<32>;
