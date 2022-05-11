@@ -41,11 +41,16 @@ pub struct Client {
 }
 
 impl Client {
-    pub fn new<U: Into<Url>>(client: &reqwest::Client, endpoint: U) -> Self {
+    pub fn new_with_client<U: Into<Url>>(client: reqwest::Client, endpoint: U) -> Self {
         Self {
             http: client.clone(),
             endpoint: endpoint.into(),
         }
+    }
+
+    pub fn new<U: Into<Url>>(endpoint: U) -> Self {
+        let client = reqwest::Client::new();
+        Self::new_with_client(client, endpoint)
     }
 
     pub async fn get<T: serde::Serialize + serde::de::DeserializeOwned>(
