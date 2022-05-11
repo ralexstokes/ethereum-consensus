@@ -65,13 +65,16 @@ impl Client {
         }
     }
 
-    pub async fn post<T: serde::Serialize + serde::de::DeserializeOwned>(
+    pub async fn post<
+        T: serde::Serialize + serde::de::DeserializeOwned,
+        U: serde::Serialize + serde::de::DeserializeOwned,
+    >(
         &self,
         path: &str,
         argument: &T,
-    ) -> Result<T, Error> {
+    ) -> Result<U, Error> {
         let target = self.endpoint.join(path)?;
-        let result: ApiResult<T> = self
+        let result: ApiResult<U> = self
             .http
             .post(target)
             .json(argument)
