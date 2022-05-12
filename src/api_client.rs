@@ -36,7 +36,7 @@ pub enum Error {
 }
 
 pub struct Client {
-    http: reqwest::Client,
+    pub http: reqwest::Client,
     endpoint: Url,
 }
 
