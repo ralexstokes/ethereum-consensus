@@ -36,7 +36,7 @@ pub enum Error {
 }
 
 pub struct Client {
-    pub http: reqwest::Client,
+    http: reqwest::Client,
     endpoint: Url,
 }
 
@@ -73,19 +73,21 @@ impl Client {
         path: &str,
         argument: &T,
     ) -> Result<U, Error> {
-        let target = self.endpoint.join(path)?;
-        let result: ApiResult<U> = self
-            .http
-            .post(target)
-            .json(argument)
-            .send()
-            .await?
-            .json()
-            .await?;
+        let result: ApiResult<U> = self.http_post(path, argument).await?.json().await?;
         match result {
             ApiResult::Ok(result) => Ok(result),
             ApiResult::Err(err) => Err(err.into()),
         }
+    }
+
+    pub async fn http_post<T: serde::Serialize + serde::de::DeserializeOwned>(
+        &self,
+        path: &str,
+        argument: &T,
+    ) -> Result<reqwest::Response, Error> {
+        let target = self.endpoint.join(path)?;
+        let response = self.http.post(target).json(argument).send().await?;
+        Ok(response)
     }
 
     /* beacon namespace */
