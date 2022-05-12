@@ -45,7 +45,7 @@ pub struct ExecutionPayload<
     pub transactions: List<Transaction<MAX_BYTES_PER_TRANSACTION>, MAX_TRANSACTIONS_PER_PAYLOAD>,
 }
 
-#[derive(Default, Debug, SimpleSerialize)]
+#[derive(Default, Debug, Clone, SimpleSerialize)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct ExecutionPayloadHeader<
     const BYTES_PER_LOGS_BLOOM: usize,
