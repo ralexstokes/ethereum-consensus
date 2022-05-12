@@ -57,12 +57,17 @@ impl Client {
         &self,
         path: &str,
     ) -> Result<T, Error> {
-        let target = self.endpoint.join(path)?;
-        let result: ApiResult<T> = self.http.get(target).send().await?.json().await?;
+        let result: ApiResult<T> = self.http_get(path).await?.json().await?;
         match result {
             ApiResult::Ok(result) => Ok(result),
             ApiResult::Err(err) => Err(err.into()),
         }
+    }
+
+    pub async fn http_get(&self, path: &str) -> Result<reqwest::Response, Error> {
+        let target = self.endpoint.join(path)?;
+        let response = self.http.get(target).send().await?;
+        Ok(response)
     }
 
     pub async fn post<
