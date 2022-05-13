@@ -66,7 +66,7 @@ impl Client {
 
     pub async fn http_get(&self, path: &str) -> Result<reqwest::Response, Error> {
         let target = self.endpoint.join(path)?;
-        let response = self.http.get(target).send().await?;
+        let response = self.http.get(target).send().await?.error_for_status()?;
         Ok(response)
     }
 
@@ -91,7 +91,13 @@ impl Client {
         argument: &T,
     ) -> Result<reqwest::Response, Error> {
         let target = self.endpoint.join(path)?;
-        let response = self.http.post(target).json(argument).send().await?;
+        let response = self
+            .http
+            .post(target)
+            .json(argument)
+            .send()
+            .await?
+            .error_for_status()?;
         Ok(response)
     }
 
