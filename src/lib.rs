@@ -6,3 +6,5 @@ mod types;
 pub use api_client::*;
 pub use error::ApiError;
 pub use types::*;
+
+pub use http::StatusCode;
