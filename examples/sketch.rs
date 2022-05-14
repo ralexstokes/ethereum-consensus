@@ -25,7 +25,7 @@ fn main() {
     println!("{:#?}", recovered_success);
 
     let full_error_response: ApiResult<Value<BlindedBeaconBlock>> =
-        ApiResult::Err(ApiError::from((404, "some failure")));
+        ApiResult::Err(ApiError::try_from((404, "some failure")).unwrap());
     let str_repr = serde_json::to_string(&full_error_response).unwrap();
     println!("{str_repr}");
 
