@@ -10,12 +10,18 @@ pub enum DomainType {
     VoluntaryExit,
     SelectionProof,
     AggregateAndProof,
+    ApplicationMask,
 }
 
 impl DomainType {
     pub fn as_bytes(&self) -> [u8; 4] {
-        let data = *self as u32;
-        data.to_le_bytes()
+        match self {
+            Self::ApplicationMask => [0, 0, 0, 1u8],
+            _ => {
+                let data = *self as u32;
+                data.to_le_bytes()
+            }
+        }
     }
 }
 

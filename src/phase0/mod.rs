@@ -6,7 +6,7 @@ mod beacon_state;
 mod fork;
 pub(crate) mod operations;
 mod presets;
-mod state_transition;
+pub(crate) mod state_transition;
 mod validator;
 
 pub mod mainnet {
