@@ -15,7 +15,12 @@ pub mod as_hex {
         D: serde::Deserializer<'de>,
         T: TryFrom<Vec<u8>>,
     {
-        let s: String = <String>::deserialize(deserializer)?;
+        let s = <String>::deserialize(deserializer)?;
+        if s.len() < 2 {
+            let message = format!("invalid input when deserializing hex: {s}");
+            return Err(serde::de::Error::custom(message));
+        }
+
         let bytes = hex::decode(&s[2..]).map_err(serde::de::Error::custom)?;
 
         let inner = T::try_from(bytes)

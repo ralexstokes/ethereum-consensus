@@ -1,6 +1,4 @@
 use crate::primitives::Bytes32;
-#[cfg(feature = "serde")]
-use crate::serde::as_hex;
 use blst::{min_pk as blst_core, BLST_ERROR};
 #[cfg(feature = "serde")]
 use serde;
@@ -24,6 +22,8 @@ pub fn hash<D: AsRef<[u8]>>(data: D) -> Bytes32 {
 
 #[derive(Debug, Error)]
 pub enum Error {
+    #[error("error deserializing: {0}")]
+    Deserialize(String),
     #[error("Zero sized input")]
     ZeroSizedInput,
     #[error("randomness failure: {0}")]
@@ -112,33 +112,34 @@ fn verify_signature(public_key: &PublicKey, msg: &[u8], sig: &Signature) -> bool
     res == BLST_ERROR::BLST_SUCCESS
 }
 
+fn try_bytes_from_str(s: &str) -> Result<Vec<u8>, Error> {
+    if s.len() < 2 {
+        return Err(Error::Deserialize("input too short".to_string()));
+    }
+    let bytes = hex::decode(&s[2..]).map_err(|err| Error::Deserialize(err.to_string()))?;
+    Ok(bytes)
+}
+
 #[derive(Default, Clone, Eq)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = "serde", serde(into = "String"))]
+#[cfg_attr(feature = "serde", serde(try_from = "String"))]
 pub struct PublicKey(blst_core::PublicKey);
 
-#[cfg(feature = "serde")]
-impl serde::Serialize for PublicKey {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: serde::Serializer,
-    {
-        let data = self.as_bytes();
-        as_hex::serialize(&data, serializer)
+impl From<PublicKey> for String {
+    fn from(key: PublicKey) -> Self {
+        format!("{key}")
     }
 }
 
-#[cfg(feature = "serde")]
-impl<'de> serde::Deserialize<'de> for PublicKey {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-    where
-        D: serde::Deserializer<'de>,
-    {
-        // TODO how to use as_hex::deserialize?
-        let s = <String>::deserialize(deserializer)?;
-        let bytes = hex::decode(&s[2..]).map_err(serde::de::Error::custom)?;
+impl TryFrom<String> for PublicKey {
+    type Error = Error;
 
-        let inner = blst_core::PublicKey::from_bytes(&bytes).map_err(|err| {
-            let local_err = BLSTError::from(err);
-            serde::de::Error::custom(local_err)
+    fn try_from(s: String) -> Result<Self, Error> {
+        let encoding = try_bytes_from_str(&s)?;
+        let inner = blst_core::PublicKey::from_bytes(&encoding).map_err(|err| {
+            let err = BLSTError::from(err);
+            Error::from(err)
         })?;
         Ok(Self(inner))
     }
@@ -244,37 +245,24 @@ impl SimpleSerialize for PublicKey {
 }
 
 #[derive(Clone, PartialEq, Eq)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = "serde", serde(into = "String"))]
+#[cfg_attr(feature = "serde", serde(try_from = "String"))]
 pub struct Signature(blst_core::Signature);
 
-#[cfg(feature = "serde")]
-impl serde::Serialize for Signature {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: serde::Serializer,
-    {
-        let data = self.as_bytes();
-        as_hex::serialize(&data, serializer)
+impl From<Signature> for String {
+    fn from(signature: Signature) -> Self {
+        format!("{signature}")
     }
 }
 
-#[cfg(feature = "serde")]
-impl<'de> serde::Deserialize<'de> for Signature {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-    where
-        D: serde::Deserializer<'de>,
-    {
-        // TODO how to use as_hex::deserialize?
-        let s = <String>::deserialize(deserializer)?;
-        let bytes = hex::decode(&s[2..]).map_err(serde::de::Error::custom)?;
+impl TryFrom<String> for Signature {
+    type Error = Error;
 
-        let inner = Signature::from_bytes(&bytes).map_err(serde::de::Error::custom)?;
+    fn try_from(s: String) -> Result<Self, Error> {
+        let encoding = try_bytes_from_str(&s)?;
+        let inner = Self::from_bytes(&encoding)?;
         Ok(inner)
-    }
-}
-
-impl fmt::Debug for Signature {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{:#x}", self)
     }
 }
 
@@ -287,6 +275,18 @@ impl fmt::LowerHex for Signature {
             write!(f, "{:02x}", i)?;
         }
         Ok(())
+    }
+}
+
+impl fmt::Debug for Signature {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "Signature({:x})", self)
+    }
+}
+
+impl fmt::Display for Signature {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{:#x}", self)
     }
 }
 
