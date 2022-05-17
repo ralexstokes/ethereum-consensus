@@ -6,8 +6,11 @@ mod beacon_state;
 mod fork;
 pub(crate) mod operations;
 mod presets;
+mod signing;
 pub(crate) mod state_transition;
 mod validator;
+
+pub use signing::{sign_with_domain, verify_signed_data};
 
 pub mod mainnet {
     use super::*;
