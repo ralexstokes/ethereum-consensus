@@ -11,6 +11,8 @@ pub struct SyncAggregate<const SYNC_COMMITTEE_SIZE: usize> {
 #[derive(Default, Debug, SimpleSerialize)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct SyncCommittee<const SYNC_COMMITTEE_SIZE: usize> {
-    pub pubkeys: Vector<BlsPublicKey, SYNC_COMMITTEE_SIZE>,
-    pub aggregate_pubkey: BlsPublicKey,
+    #[serde(rename = "pubkeys")]
+    pub public_keys: Vector<BlsPublicKey, SYNC_COMMITTEE_SIZE>,
+    #[serde(rename = "aggregate_pubkey")]
+    pub aggregate_public_key: BlsPublicKey,
 }

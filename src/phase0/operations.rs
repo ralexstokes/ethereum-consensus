@@ -64,7 +64,8 @@ pub struct Eth1Data {
 #[derive(Default, Debug, SimpleSerialize)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct DepositMessage {
-    pub pubkey: BLSPubkey,
+    #[serde(rename = "pubkey")]
+    pub public_key: BLSPubkey,
     pub withdrawal_credentials: Bytes32,
     #[serde(with = "crate::serde::as_string")]
     pub amount: Gwei,
@@ -73,7 +74,8 @@ pub struct DepositMessage {
 #[derive(Default, Debug, Clone, SimpleSerialize)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct DepositData {
-    pub pubkey: BLSPubkey,
+    #[serde(rename = "pubkey")]
+    pub public_key: BLSPubkey,
     pub withdrawal_credentials: Bytes32,
     #[serde(with = "crate::serde::as_string")]
     pub amount: Gwei,

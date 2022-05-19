@@ -328,13 +328,13 @@ pub fn is_valid_indexed_attestation<
             )),
         ));
     }
-    let pubkeys = state
+    let public_keys = state
         .validators
         .iter()
         .enumerate()
         .filter_map(|(i, v)| {
             if indices.contains(&i) {
-                Some(&v.pubkey)
+                Some(&v.public_key)
             } else {
                 None
             }
@@ -349,7 +349,7 @@ pub fn is_valid_indexed_attestation<
     )?;
     let signing_root = compute_signing_root(&mut indexed_attestation.data, domain)?;
     if fast_aggregate_verify(
-        &pubkeys,
+        &public_keys,
         signing_root.as_bytes(),
         &indexed_attestation.signature,
     ) {
@@ -406,7 +406,7 @@ pub fn verify_block_signature<
     let signing_root = compute_signing_root(&mut signed_block.message, domain)?;
 
     if proposer
-        .pubkey
+        .public_key
         .verify_signature(signing_root.as_bytes(), &signed_block.signature)
     {
         Ok(())
