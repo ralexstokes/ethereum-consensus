@@ -1,7 +1,6 @@
 use crate::primitives::{BlsSignature, Root, Slot, ValidatorIndex};
 use ssz_rs::prelude::Bitvector;
 
-pub const TARGET_AGGREGATORS_PER_SYNC_SUBCOMMITTEE: usize = 16;
 pub const SYNC_COMMITTEE_SUBNET_COUNT: usize = 4;
 
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
