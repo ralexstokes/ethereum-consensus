@@ -23,15 +23,6 @@ pub enum MessageDomain {
     ValidSnappy,
 }
 
-impl MessageDomain {
-    fn as_bytes(&self) -> [u8; 4] {
-        match self {
-            Self::InvalidSnappy => [0, 0, 0, 0],
-            Self::ValidSnappy => [1, 0, 0, 0],
-        }
-    }
-}
-
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct MetaData {
     #[serde(with = "crate::serde::as_string")]

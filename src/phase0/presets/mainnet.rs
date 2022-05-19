@@ -63,6 +63,10 @@ pub const MAX_ATTESTATIONS: usize = 128;
 pub const MAX_DEPOSITS: usize = 16;
 pub const MAX_VOLUNTARY_EXITS: usize = 16;
 
+pub const TARGET_AGGREGATORS_PER_COMMITTEE: usize = 16;
+pub const RANDOM_SUBNETS_PER_VALIDATOR: usize = 1;
+pub const EPOCHS_PER_RANDOM_SUBNET_SUBSCRIPTION: Epoch = 256;
+
 pub const PRESET: Preset = Preset {
     max_committees_per_slot: MAX_COMMITTEES_PER_SLOT,
     target_committee_size: TARGET_COMMITTEE_SIZE,
