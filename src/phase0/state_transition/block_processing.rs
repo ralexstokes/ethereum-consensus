@@ -1,6 +1,3 @@
-use std::collections::HashSet;
-
-use crate::crypto::PublicKey as BLSPubkey;
 use crate::domains::DomainType;
 use crate::phase0::beacon_block::{BeaconBlock, BeaconBlockBody, BeaconBlockHeader};
 use crate::phase0::beacon_state::BeaconState;
@@ -20,8 +17,9 @@ use crate::phase0::state_transition::{
 };
 use crate::phase0::validator::Validator;
 use crate::phase0::DEPOSIT_CONTRACT_TREE_DEPTH;
-use crate::primitives::{Gwei, ValidatorIndex, FAR_FUTURE_EPOCH};
+use crate::primitives::{BlsPublicKey, Gwei, ValidatorIndex, FAR_FUTURE_EPOCH};
 use ssz_rs::prelude::*;
+use std::collections::HashSet;
 
 pub fn process_proposer_slashing<
     const SLOTS_PER_HISTORICAL_ROOT: usize,
@@ -86,7 +84,7 @@ pub fn process_proposer_slashing<
     ] {
         let signing_root = compute_signing_root(&mut signed_header.message, domain)?;
         let valid_signature = proposer
-            .pubkey
+            .public_key
             .verify_signature(signing_root.as_bytes(), &signed_header.signature);
 
         if !valid_signature {
@@ -298,7 +296,7 @@ fn get_validator_from_deposit(deposit: &Deposit, context: &Context) -> Validator
     );
 
     Validator {
-        pubkey: deposit.data.pubkey.clone(),
+        public_key: deposit.data.public_key.clone(),
         withdrawal_credentials: deposit.data.withdrawal_credentials.clone(),
         effective_balance,
         activation_eligibility_epoch: FAR_FUTURE_EPOCH,
@@ -355,19 +353,19 @@ pub fn process_deposit<
 
     // NOTE: deviate from the order of the spec to avoid mutations
     // that would need to be rolled back upon failure
-    let pubkey = deposit.data.pubkey.clone();
+    let public_key = deposit.data.public_key.clone();
     let amount = deposit.data.amount;
-    let validator_pubkeys: HashSet<&BLSPubkey> =
-        HashSet::from_iter(state.validators.iter().map(|v| &v.pubkey));
-    if !validator_pubkeys.contains(&pubkey) {
+    let validator_public_keys: HashSet<&BlsPublicKey> =
+        HashSet::from_iter(state.validators.iter().map(|v| &v.public_key));
+    if !validator_public_keys.contains(&public_key) {
         let mut deposit_message = DepositMessage {
-            pubkey: pubkey.clone(),
+            public_key: public_key.clone(),
             withdrawal_credentials: deposit.data.withdrawal_credentials.clone(),
             amount,
         };
         let domain = compute_domain(DomainType::Deposit, None, None, context)?;
         let signing_root = compute_signing_root(&mut deposit_message, domain)?;
-        if !pubkey.verify_signature(signing_root.as_bytes(), &deposit.data.signature) {
+        if !public_key.verify_signature(signing_root.as_bytes(), &deposit.data.signature) {
             return Err(invalid_operation_error(InvalidOperation::Deposit(
                 InvalidDeposit::InvalidSignature(deposit.data.signature.clone()),
             )));
@@ -381,7 +379,7 @@ pub fn process_deposit<
         let index = state
             .validators
             .iter()
-            .position(|v| v.pubkey == pubkey)
+            .position(|v| v.public_key == public_key)
             .unwrap();
 
         increase_balance(state, index, amount);
@@ -462,7 +460,7 @@ pub fn process_voluntary_exit<
     let signing_root = compute_signing_root(voluntary_exit, domain)?;
 
     if !validator
-        .pubkey
+        .public_key
         .verify_signature(signing_root.as_bytes(), &signed_voluntary_exit.signature)
     {
         return Err(invalid_operation_error(InvalidOperation::VoluntaryExit(
@@ -611,7 +609,7 @@ fn process_randao<
 
     if !body
         .randao_reveal
-        .verify(&proposer.pubkey, signing_root.as_bytes())
+        .verify(&proposer.public_key, signing_root.as_bytes())
     {
         return Err(invalid_operation_error(InvalidOperation::Randao(
             body.randao_reveal.clone(),
