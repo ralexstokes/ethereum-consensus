@@ -1,6 +1,7 @@
 pub mod altair;
 pub mod bellatrix;
 pub mod builder;
+pub mod clock;
 pub mod configs;
 pub mod crypto;
 pub mod domains;
