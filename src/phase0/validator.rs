@@ -9,7 +9,8 @@ pub const EPOCHS_PER_RANDOM_SUBNET_SUBSCRIPTION: Epoch = 256;
 #[derive(Default, Debug, SimpleSerialize, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct Validator {
-    pub pubkey: BlsPublicKey,
+    #[serde(rename = "pubkey")]
+    pub public_key: BlsPublicKey,
     pub withdrawal_credentials: Bytes32,
     #[serde(with = "crate::serde::as_string")]
     pub effective_balance: Gwei,
