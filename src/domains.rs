@@ -11,12 +11,14 @@ pub enum DomainType {
     SelectionProof,
     AggregateAndProof,
     ApplicationMask,
+    ApplicationBuilder,
 }
 
 impl DomainType {
     pub fn as_bytes(&self) -> [u8; 4] {
         match self {
-            Self::ApplicationMask => [0, 0, 0, 1u8],
+            Self::ApplicationMask => [0, 0, 0, 1],
+            Self::ApplicationBuilder => [0, 0, 0, 1],
             _ => {
                 let data = *self as u32;
                 data.to_le_bytes()

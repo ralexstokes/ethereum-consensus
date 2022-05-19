@@ -23,7 +23,6 @@ pub struct SignedValidatorRegistration {
 }
 
 pub fn compute_builder_domain(context: &Context) -> Result<Domain, Error> {
-    // NOTE: `DOMAIN_APPLICATION_BUILDER` is `0x0` so can skip the `&` masking for now...
-    let domain_type = DomainType::ApplicationMask;
+    let domain_type = DomainType::ApplicationBuilder;
     compute_domain(domain_type, None, None, context)
 }
