@@ -13,6 +13,8 @@ pub const EPOCHS_PER_SYNC_COMMITTEE_PERIOD: Epoch = 256;
 pub const MIN_SYNC_COMMITTEE_PARTICIPANTS: usize = 1;
 pub const UPDATE_TIMEOUT: usize = 8192;
 
+pub const TARGET_AGGREGATORS_PER_SYNC_SUBCOMMITTEE: usize = 16;
+
 pub const PRESET: Preset = Preset {
     inactivity_penalty_quotient_altair: INACTIVITY_PENALTY_QUOTIENT_ALTAIR,
     min_slashing_penalty_quotient_altair: MIN_SLASHING_PENALTY_QUOTIENT_ALTAIR,
