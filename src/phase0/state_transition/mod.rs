@@ -47,7 +47,7 @@ pub enum Error {
     #[error("overflow")]
     Overflow,
     #[error("{0}")]
-    InvalidBlock(InvalidBlock),
+    InvalidBlock(Box<InvalidBlock>),
     #[error("an invalid transition to a past slot {requested} from slot {current}")]
     TransitionToPreviousSlot { current: Slot, requested: Slot },
     #[error("invalid state root")]
@@ -209,11 +209,11 @@ pub enum InvalidVoluntaryExit {
 }
 
 pub(crate) fn invalid_header_error(error: InvalidBeaconBlockHeader) -> Error {
-    Error::InvalidBlock(InvalidBlock::Header(error))
+    Error::InvalidBlock(Box::new(InvalidBlock::Header(error)))
 }
 
 pub(crate) fn invalid_operation_error(error: InvalidOperation) -> Error {
-    Error::InvalidBlock(InvalidBlock::InvalidOperation(error))
+    Error::InvalidBlock(Box::new(InvalidBlock::InvalidOperation(error)))
 }
 
 pub fn is_active_validator(validator: &Validator, epoch: Epoch) -> bool {
