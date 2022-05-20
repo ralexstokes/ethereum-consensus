@@ -1,3 +1,6 @@
+// TODO: remove once things are all used
+#![allow(unused_variables)]
+
 use crate::error::ApiError;
 use crate::types::{
     ApiResult, AttestationDuty, BalanceSummary, BeaconHeaderSummary, BeaconProposerRegistration,
@@ -20,7 +23,6 @@ use ethereum_consensus::primitives::{
     Bytes32, ChainId, CommitteeIndex, Coordinate, Epoch, ExecutionAddress, RandaoReveal, Root,
     Slot, ValidatorIndex,
 };
-use reqwest;
 use std::collections::HashMap;
 use thiserror::Error;
 use url::{ParseError, Url};
@@ -52,7 +54,7 @@ pub struct Client {
 impl Client {
     pub fn new_with_client<U: Into<Url>>(client: reqwest::Client, endpoint: U) -> Self {
         Self {
-            http: client.clone(),
+            http: client,
             endpoint: endpoint.into(),
         }
     }
