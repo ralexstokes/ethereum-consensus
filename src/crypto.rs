@@ -1,5 +1,7 @@
 use crate::primitives::Bytes32;
 use blst::{min_pk as blst_core, BLST_ERROR};
+#[cfg(feature = "serde")]
+use serde;
 use sha2::{digest::FixedOutput, Digest, Sha256};
 use ssz_rs::prelude::*;
 use std::fmt;
@@ -15,11 +17,13 @@ pub fn hash<D: AsRef<[u8]>>(data: D) -> Bytes32 {
     let mut hasher = Sha256::new();
     hasher.update(data);
     hasher.finalize_into(result.as_mut_slice().into());
-    Bytes32(result.try_into().expect("correct input"))
+    Bytes32::try_from_bytes(&result).expect("correct input")
 }
 
 #[derive(Debug, Error)]
 pub enum Error {
+    #[error("error deserializing: {0}")]
+    Deserialize(String),
     #[error("Zero sized input")]
     ZeroSizedInput,
     #[error("randomness failure: {0}")]
@@ -108,12 +112,36 @@ fn verify_signature(public_key: &PublicKey, msg: &[u8], sig: &Signature) -> bool
     res == BLST_ERROR::BLST_SUCCESS
 }
 
+fn try_bytes_from_str(s: &str) -> Result<Vec<u8>, Error> {
+    if s.len() < 2 {
+        return Err(Error::Deserialize("input too short".to_string()));
+    }
+    let bytes = hex::decode(&s[2..]).map_err(|err| Error::Deserialize(err.to_string()))?;
+    Ok(bytes)
+}
+
 #[derive(Default, Clone, Eq)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = "serde", serde(into = "String"))]
+#[cfg_attr(feature = "serde", serde(try_from = "String"))]
 pub struct PublicKey(blst_core::PublicKey);
 
-impl fmt::Debug for PublicKey {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{:#x}", self)
+impl From<PublicKey> for String {
+    fn from(key: PublicKey) -> Self {
+        format!("{key}")
+    }
+}
+
+impl TryFrom<String> for PublicKey {
+    type Error = Error;
+
+    fn try_from(s: String) -> Result<Self, Error> {
+        let encoding = try_bytes_from_str(&s)?;
+        let inner = blst_core::PublicKey::from_bytes(&encoding).map_err(|err| {
+            let err = BLSTError::from(err);
+            Error::from(err)
+        })?;
+        Ok(Self(inner))
     }
 }
 
@@ -126,6 +154,18 @@ impl fmt::LowerHex for PublicKey {
             write!(f, "{:02x}", i)?;
         }
         Ok(())
+    }
+}
+
+impl fmt::Debug for PublicKey {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "PublicKey({:x})", self)
+    }
+}
+
+impl fmt::Display for PublicKey {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{:#x}", self)
     }
 }
 
@@ -205,11 +245,24 @@ impl SimpleSerialize for PublicKey {
 }
 
 #[derive(Clone, PartialEq, Eq)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = "serde", serde(into = "String"))]
+#[cfg_attr(feature = "serde", serde(try_from = "String"))]
 pub struct Signature(blst_core::Signature);
 
-impl fmt::Debug for Signature {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{:#x}", self)
+impl From<Signature> for String {
+    fn from(signature: Signature) -> Self {
+        format!("{signature}")
+    }
+}
+
+impl TryFrom<String> for Signature {
+    type Error = Error;
+
+    fn try_from(s: String) -> Result<Self, Error> {
+        let encoding = try_bytes_from_str(&s)?;
+        let inner = Self::from_bytes(&encoding)?;
+        Ok(inner)
     }
 }
 
@@ -222,6 +275,18 @@ impl fmt::LowerHex for Signature {
             write!(f, "{:02x}", i)?;
         }
         Ok(())
+    }
+}
+
+impl fmt::Debug for Signature {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "Signature({:x})", self)
+    }
+}
+
+impl fmt::Display for Signature {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{:#x}", self)
     }
 }
 

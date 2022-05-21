@@ -36,8 +36,8 @@ pub enum Error {
     InvalidSignature,
     #[error("collection cannot be empty")]
     CollectionCannotBeEmpty,
-    #[error("unable to shuffle")]
-    Shuffle,
+    #[error("given index {index} is greater than the total amount of indices {total}")]
+    InvalidShufflingIndex { index: usize, total: usize },
     #[error("slot {requested} is outside of allowed range ({lower_bound}, {upper_bound})")]
     SlotOutOfRange {
         requested: Slot,
@@ -47,7 +47,7 @@ pub enum Error {
     #[error("overflow")]
     Overflow,
     #[error("{0}")]
-    InvalidBlock(InvalidBlock),
+    InvalidBlock(Box<InvalidBlock>),
     #[error("an invalid transition to a past slot {requested} from slot {current}")]
     TransitionToPreviousSlot { current: Slot, requested: Slot },
     #[error("invalid state root")]
@@ -209,11 +209,11 @@ pub enum InvalidVoluntaryExit {
 }
 
 pub(crate) fn invalid_header_error(error: InvalidBeaconBlockHeader) -> Error {
-    Error::InvalidBlock(InvalidBlock::Header(error))
+    Error::InvalidBlock(Box::new(InvalidBlock::Header(error)))
 }
 
 pub(crate) fn invalid_operation_error(error: InvalidOperation) -> Error {
-    Error::InvalidBlock(InvalidBlock::InvalidOperation(error))
+    Error::InvalidBlock(Box::new(InvalidBlock::InvalidOperation(error)))
 }
 
 pub fn is_active_validator(validator: &Validator, epoch: Epoch) -> bool {
@@ -328,13 +328,13 @@ pub fn is_valid_indexed_attestation<
             )),
         ));
     }
-    let pubkeys = state
+    let public_keys = state
         .validators
         .iter()
         .enumerate()
         .filter_map(|(i, v)| {
             if indices.contains(&i) {
-                Some(&v.pubkey)
+                Some(&v.public_key)
             } else {
                 None
             }
@@ -349,7 +349,7 @@ pub fn is_valid_indexed_attestation<
     )?;
     let signing_root = compute_signing_root(&mut indexed_attestation.data, domain)?;
     if fast_aggregate_verify(
-        &pubkeys,
+        &public_keys,
         signing_root.as_bytes(),
         &indexed_attestation.signature,
     ) {
@@ -398,7 +398,7 @@ pub fn verify_block_signature<
     let proposer = state
         .validators
         .get(proposer_index)
-        .ok_or_else(|| Error::OutOfBounds {
+        .ok_or(Error::OutOfBounds {
             requested: proposer_index,
             bound: state.validators.len(),
         })?;
@@ -406,7 +406,7 @@ pub fn verify_block_signature<
     let signing_root = compute_signing_root(&mut signed_block.message, domain)?;
 
     if proposer
-        .pubkey
+        .public_key
         .verify_signature(signing_root.as_bytes(), &signed_block.signature)
     {
         Ok(())
@@ -497,9 +497,12 @@ pub fn compute_shuffled_index(
     index_count: usize,
     seed: &Bytes32,
     context: &Context,
-) -> Option<usize> {
-    if index < index_count {
-        return None;
+) -> Result<usize, Error> {
+    if index >= index_count {
+        return Err(Error::InvalidShufflingIndex {
+            index,
+            total: index_count,
+        });
     }
 
     let mut pivot_input = [0u8; 33];
@@ -525,7 +528,7 @@ pub fn compute_shuffled_index(
         index = if bit != 0 { flip } else { index };
     }
 
-    Some(index)
+    Ok(index)
 }
 
 pub fn compute_proposer_index<
@@ -562,8 +565,7 @@ pub fn compute_proposer_index<
     let mut hash_input = [0u8; 40];
     hash_input[..32].copy_from_slice(seed.as_ref());
     loop {
-        let shuffled_index = compute_shuffled_index((i % total) as usize, total, seed, context)
-            .ok_or(Error::Shuffle)?;
+        let shuffled_index = compute_shuffled_index((i % total) as usize, total, seed, context)?;
         let candidate_index = indices[shuffled_index];
 
         let i_bytes: [u8; 8] = (i / 32).to_le_bytes();
@@ -589,8 +591,7 @@ pub fn compute_committee(
     let start = (indices.len() * index) / count;
     let end = (indices.len()) * (index + 1) / count;
     for i in start..end {
-        let index =
-            compute_shuffled_index(i, indices.len(), seed, context).ok_or(Error::Shuffle)?;
+        let index = compute_shuffled_index(i, indices.len(), seed, context)?;
         committee[index] = indices[index];
     }
     Ok(committee)
@@ -846,9 +847,9 @@ pub fn get_seed<
     domain_type: DomainType,
     context: &Context,
 ) -> Bytes32 {
-    let epoch =
+    let mix_epoch =
         epoch + (context.epochs_per_historical_vector as u64 - context.min_seed_lookahead) - 1;
-    let mix = get_randao_mix(state, epoch);
+    let mix = get_randao_mix(state, mix_epoch);
     let mut input = [0u8; 44];
     input[..4].copy_from_slice(&domain_type.as_bytes());
     input[4..12].copy_from_slice(&epoch.to_le_bytes());

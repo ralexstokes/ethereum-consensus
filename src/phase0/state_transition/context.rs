@@ -1,4 +1,4 @@
-use crate::phase0::configs::{mainnet::CONFIG as MAINNET_CONFIG, Config};
+use crate::configs::{mainnet, Config};
 use crate::phase0::presets::{mainnet::PRESET as MAINNET_PRESET, Preset};
 use crate::primitives::{Epoch, Gwei, Slot, Version};
 
@@ -101,7 +101,7 @@ impl Context {
     }
 
     pub fn for_mainnet() -> Self {
-        Self::from(&MAINNET_PRESET, &MAINNET_CONFIG)
+        Self::from(&MAINNET_PRESET, &mainnet::config())
     }
 
     pub fn for_minimal() -> Self {

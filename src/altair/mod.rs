@@ -1,14 +1,13 @@
+//! This module provides an implementation of the `altair` fork
+//! of the consensus spec. The primary entrypoints should be one of
+//! the "presets" like `mainnet` or `minimal`.
 pub mod light_client;
+mod presets;
+pub(crate) mod sync;
+mod validator;
 
-use crate::{crypto::PublicKey as BLSPubkey, phase0};
-use ssz_rs::prelude::*;
-
-pub type BeaconBlockHeader = phase0::mainnet::BeaconBlockHeader;
-
-pub const SYNC_COMMITTEE_SIZE: usize = 512;
-
-#[derive(Default, Debug, SimpleSerialize)]
-pub struct SyncCommittee {
-    pub pubkeys: Vector<BLSPubkey, SYNC_COMMITTEE_SIZE>,
-    pub aggregate_pubkey: BLSPubkey,
+pub mod mainnet {
+    pub use super::presets::mainnet::*;
 }
+
+pub mod minimal {}

@@ -1,14 +1,16 @@
 //! This module provides an implementation of the `phase0` fork
 //! of the consensus spec. The primary entrypoints should be one of
 //! the "presets" like `mainnet` or `minimal`.
-mod beacon_block;
+pub(crate) mod beacon_block;
 mod beacon_state;
-mod configs;
 mod fork;
-mod operations;
+pub(crate) mod operations;
 mod presets;
-mod state_transition;
+mod signing;
+pub(crate) mod state_transition;
 mod validator;
+
+pub use signing::{sign_with_domain, verify_signed_data};
 
 pub mod mainnet {
     use super::*;
