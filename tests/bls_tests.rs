@@ -1,86 +1,16 @@
-#![cfg(feature = "spec_tests")]
+#![cfg(feature = "spec-tests")]
+
+mod test_utils;
 
 use ethereum_consensus::crypto::{
     aggregate, aggregate_verify, fast_aggregate_verify, PublicKey, SecretKey, Signature,
 };
-use glob::glob;
-use hex;
-use serde::{de::Error, Deserialize, Deserializer, Serialize};
-use serde_yaml;
-use std::fmt::Debug;
-use std::fs::File;
+use serde::Deserialize;
+use test_utils::{
+    decode_hex_vec_with_prefix, decode_hex_with_prefix, decode_hex_with_prefix_maybe, TestCase,
+};
 
-trait TestCase
-where
-    Self: for<'de> serde::Deserialize<'de>,
-{
-    fn execute(&self);
-
-    fn execute_from_glob(path_glob: &str) {
-        let entries = glob(path_glob).expect("Failed to read glob pattern");
-        for entry in entries {
-            let path = entry.unwrap();
-            let file = File::open(path).expect("File does not exist");
-            let test_case: Self =
-                serde_yaml::from_reader(file).expect("Is not well-formatted yaml");
-            test_case.execute()
-        }
-    }
-}
-
-fn hex_from_string(data: &str) -> Result<Vec<u8>, hex::FromHexError> {
-    let data = data.as_bytes();
-    let data = if data.starts_with(b"0x") {
-        &data[2..]
-    } else {
-        data
-    };
-    hex::decode(data)
-}
-
-fn decode_hex_with_prefix<'a, D>(input: D) -> Result<Vec<u8>, D::Error>
-where
-    D: Deserializer<'a>,
-{
-    let data: String = Deserialize::deserialize(input)?;
-    hex_from_string(&data).map_err(D::Error::custom)
-}
-
-const YAML_NULL_CHAR: &str = "~";
-
-fn decode_hex_with_prefix_maybe<'a, D>(input: D) -> Result<Option<Vec<u8>>, D::Error>
-where
-    D: Deserializer<'a>,
-{
-    let data: String = Deserialize::deserialize(input)?;
-    if data == YAML_NULL_CHAR {
-        return Ok(None);
-    }
-    hex_from_string(&data).map(Some).map_err(D::Error::custom)
-}
-
-fn decode_hex_vec_with_prefix<'a, D>(input: D) -> Result<Vec<Vec<u8>>, D::Error>
-where
-    D: Deserializer<'a>,
-{
-    let data: Vec<String> = Deserialize::deserialize(input)?;
-    if data.is_empty() {
-        return Ok(vec![]);
-    }
-    let data = data
-        .iter()
-        .map(|x| {
-            if x == YAML_NULL_CHAR {
-                vec![]
-            } else {
-                hex_from_string(x).unwrap()
-            }
-        })
-        .collect();
-    Ok(data)
-}
-
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Deserialize)]
 struct SigningInput {
     #[serde(deserialize_with = "decode_hex_with_prefix")]
     privkey: Vec<u8>,
@@ -88,7 +18,7 @@ struct SigningInput {
     message: Vec<u8>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Deserialize)]
 struct SigningTestIO {
     input: SigningInput,
     #[serde(deserialize_with = "decode_hex_with_prefix_maybe")]
@@ -112,7 +42,7 @@ impl TestCase for SigningTestIO {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Deserialize)]
 struct AggregatingTestIO {
     #[serde(deserialize_with = "decode_hex_vec_with_prefix")]
     input: Vec<Vec<u8>>,
@@ -141,7 +71,7 @@ impl TestCase for AggregatingTestIO {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Deserialize)]
 struct AggVerifyInput {
     #[serde(deserialize_with = "decode_hex_vec_with_prefix")]
     pubkeys: Vec<Vec<u8>>,
@@ -151,7 +81,7 @@ struct AggVerifyInput {
     signature: Vec<u8>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Deserialize)]
 struct AggVerifyTestIO {
     input: AggVerifyInput,
     output: bool,
@@ -187,7 +117,7 @@ impl TestCase for AggVerifyTestIO {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Deserialize)]
 struct FastAggVerifyInput {
     #[serde(deserialize_with = "decode_hex_vec_with_prefix")]
     pubkeys: Vec<Vec<u8>>,
@@ -197,7 +127,7 @@ struct FastAggVerifyInput {
     signature: Vec<u8>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Deserialize)]
 struct FastAggVerifyTestIO {
     input: FastAggVerifyInput,
     output: bool,
@@ -233,7 +163,7 @@ impl TestCase for FastAggVerifyTestIO {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Deserialize)]
 struct VerifyInput {
     #[serde(deserialize_with = "decode_hex_with_prefix")]
     pubkey: Vec<u8>,
@@ -243,7 +173,7 @@ struct VerifyInput {
     signature: Vec<u8>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Deserialize)]
 struct VerifyTestIO {
     input: VerifyInput,
     output: bool,

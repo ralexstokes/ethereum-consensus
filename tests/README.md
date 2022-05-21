@@ -9,4 +9,4 @@ git lfs install
 git lfs pull
 ``` 
 
-The tests are currently behind a feature `spec_tests` which is enabled by default in `Cargo.toml`. If you don't want to run these tests, you can run `cargo` with the default features disabled.
+The tests are currently behind a feature `spec-tests` which is enabled by default in `Cargo.toml`. If you don't want to run these tests, you can run `cargo` with the default features disabled.
