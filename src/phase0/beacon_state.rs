@@ -32,7 +32,7 @@ pub(super) const fn get_pending_attestations_bound(
 /// `state_transition` crate's `process_historical_roots_update` function. Also note that the
 /// `HistoricalBatch` container has no need for serialization, otherwise, this design would pose an issue.
 ///
-/// For more information, see the comment here: https://github.com/ralexstokes/ethereum_consensus/pull/37#discussion_r775995594
+/// For more information, see the comment here: https://github.com/ralexstokes/ethereum-consensus/pull/37#discussion_r775995594
 #[derive(Default, Debug, SimpleSerialize)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct HistoricalBatchAccumulator {

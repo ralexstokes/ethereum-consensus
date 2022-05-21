@@ -1,4 +1,4 @@
-# ethereum_consensus
+# ethereum-consensus
 
 A library for interacting with ethereum consensus objects.
 
