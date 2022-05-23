@@ -1,7 +1,7 @@
 use crate::phase0::beacon_state::BeaconState;
 use crate::phase0::state_transition::epoch_processing::process_epoch;
 use crate::phase0::state_transition::{Context, Error};
-use crate::primitives::{Bytes32, Slot};
+use crate::primitives::Slot;
 use ssz_rs::prelude::*;
 
 pub fn process_slots<
@@ -69,7 +69,7 @@ pub fn process_slot<
     let root_index = state.slot % context.slots_per_historical_root as u64;
     state.state_roots[root_index as usize] = previous_state_root;
 
-    if state.latest_block_header.state_root == Bytes32::default() {
+    if state.latest_block_header.state_root == Node::default() {
         state.latest_block_header.state_root = previous_state_root;
     }
 

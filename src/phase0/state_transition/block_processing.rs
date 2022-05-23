@@ -17,7 +17,8 @@ use crate::phase0::state_transition::{
 };
 use crate::phase0::validator::Validator;
 use crate::phase0::DEPOSIT_CONTRACT_TREE_DEPTH;
-use crate::primitives::{BlsPublicKey, Gwei, ValidatorIndex, FAR_FUTURE_EPOCH};
+use crate::primitives::{BlsPublicKey, Bytes32, Gwei, ValidatorIndex, FAR_FUTURE_EPOCH};
+use crate::ssz::ByteVector;
 use ssz_rs::prelude::*;
 use std::collections::HashSet;
 
@@ -564,6 +565,15 @@ fn process_block_header<
     Ok(())
 }
 
+fn xor(a: &Bytes32, b: &Bytes32) -> Bytes32 {
+    let inner = a
+        .iter()
+        .zip(b.iter())
+        .map(|(a, b)| a ^ b)
+        .collect::<Vector<u8, 32>>();
+    ByteVector::<32>(inner)
+}
+
 fn process_randao<
     const SLOTS_PER_HISTORICAL_ROOT: usize,
     const HISTORICAL_ROOTS_LIMIT: usize,
@@ -616,7 +626,10 @@ fn process_randao<
         )));
     }
 
-    let mix = get_randao_mix(state, epoch).xor(hash(body.randao_reveal.as_bytes()));
+    let mix = xor(
+        get_randao_mix(state, epoch),
+        &hash(body.randao_reveal.as_bytes()),
+    );
     let mix_index = epoch % context.epochs_per_historical_vector;
     state.randao_mixes[mix_index as usize] = mix;
     Ok(())
