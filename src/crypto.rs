@@ -537,10 +537,9 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "infinity-based public key")]
     fn infinity_as_public_key() {
         PublicKey::try_from(INFINITY_COMPRESSED_PUBLIC_KEY.as_ref())
-            .expect(" can make an infinity-based public key");
+            .expect("can make an infinity-based public key");
     }
 
     #[test]
