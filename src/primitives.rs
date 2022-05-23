@@ -1,9 +1,6 @@
 pub use crate::crypto::{PublicKey as BlsPublicKey, Signature as BlsSignature};
 use crate::ssz::ByteVector;
 use ssz_rs::prelude::*;
-use std::convert::AsRef;
-use std::fmt;
-use std::ops::{Deref, DerefMut};
 
 pub type Root = Node;
 pub type Slot = u64;
@@ -40,60 +37,7 @@ pub const FAR_FUTURE_EPOCH: Epoch = Epoch::MAX;
 pub const BLS_WITHDRAWAL_PREFIX: u8 = 0x00;
 pub const ETH1_ADDRESS_WITHDRAWAL_PREFIX: u8 = 0x01;
 
-#[derive(Default, Clone, PartialEq, Eq, Hash, SimpleSerialize)]
-#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-pub struct Bytes32(ByteVector<32>);
-
-impl Bytes32 {
-    pub fn try_from_bytes(bytes: &[u8]) -> Result<Self, ssz_rs::DeserializeError> {
-        Ok(Self(ByteVector::<32>::try_from_bytes(bytes)?))
-    }
-
-    pub fn xor(&self, other: Self) -> Self {
-        let mut result = Self::default();
-        for (i, (a, b)) in self.iter().zip(other.iter()).enumerate() {
-            result[i] = a ^ b;
-        }
-        result
-    }
-}
-
-impl fmt::Debug for Bytes32 {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{:x}", self.0)
-    }
-}
-impl fmt::Display for Bytes32 {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{:#x}", self.0)
-    }
-}
-
-impl Deref for Bytes32 {
-    type Target = ByteVector<32>;
-
-    fn deref(&self) -> &Self::Target {
-        &self.0
-    }
-}
-
-impl DerefMut for Bytes32 {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.0
-    }
-}
-
-impl PartialEq<Root> for Bytes32 {
-    fn eq(&self, other: &Root) -> bool {
-        self.as_ref() == other.as_ref()
-    }
-}
-
-impl PartialEq<Bytes32> for Root {
-    fn eq(&self, other: &Bytes32) -> bool {
-        self.as_ref() == other.as_ref()
-    }
-}
+pub type Bytes32 = ByteVector<32>;
 
 #[cfg(test)]
 #[cfg(feature = "serde")]
