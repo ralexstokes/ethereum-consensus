@@ -1,14 +1,17 @@
+use crate::bytes::write_bytes_to_lower_hex;
 use ssz_rs::prelude::*;
 use std::fmt;
-use std::hash::{self, Hasher};
+use std::hash::{Hash, Hasher};
 use std::ops::{Deref, DerefMut};
 
 #[derive(Default, Clone, Eq, SimpleSerialize)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct ByteList<const N: usize>(#[serde(with = "crate::serde::as_hex")] pub(crate) List<u8, N>);
 
-impl<const N: usize> ByteList<N> {
-    pub fn try_from_bytes(bytes: &[u8]) -> Result<Self, ssz_rs::DeserializeError> {
+impl<const N: usize> TryFrom<&[u8]> for ByteList<N> {
+    type Error = ssz_rs::DeserializeError;
+
+    fn try_from(bytes: &[u8]) -> Result<Self, Self::Error> {
         ByteList::<N>::deserialize(bytes)
     }
 }
@@ -20,7 +23,7 @@ impl<const N: usize> PartialEq for ByteList<N> {
     }
 }
 
-impl<const N: usize> hash::Hash for ByteList<N> {
+impl<const N: usize> Hash for ByteList<N> {
     fn hash<H: Hasher>(&self, state: &mut H) {
         self.as_ref().hash(state);
     }
@@ -28,13 +31,7 @@ impl<const N: usize> hash::Hash for ByteList<N> {
 
 impl<const N: usize> fmt::LowerHex for ByteList<N> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        if f.alternate() {
-            write!(f, "0x")?;
-        }
-        for i in &self.0[..] {
-            write!(f, "{:02x}", i)?;
-        }
-        Ok(())
+        write_bytes_to_lower_hex(f, self)
     }
 }
 
