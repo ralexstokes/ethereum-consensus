@@ -1,4 +1,6 @@
 use crate::primitives::Bytes32;
+#[cfg(feature = "serde")]
+use crate::serde::{try_bytes_from_hex_str, HexError};
 use blst::{min_pk as blst_core, BLST_ERROR};
 #[cfg(feature = "serde")]
 use serde;
@@ -12,20 +14,13 @@ const BLS_DST: &[u8] = b"BLS_SIG_BLS12381G2_XMD:SHA-256_SSWU_RO_POP_";
 const BLS_PUBLIC_KEY_BYTES_LEN: usize = 48;
 const BLS_SECRET_KEY_BYTES_LEN: usize = 32;
 
-pub fn hash<D: AsRef<[u8]>>(data: D) -> Bytes32 {
-    let mut result = vec![0u8; 32];
-    let mut hasher = Sha256::new();
-    hasher.update(data);
-    hasher.finalize_into(result.as_mut_slice().into());
-    Bytes32::try_from_bytes(&result).expect("correct input")
-}
-
 #[derive(Debug, Error)]
 pub enum Error {
+    #[cfg(feature = "serde")]
     #[error("error deserializing: {0}")]
-    Deserialize(String),
-    #[error("Zero sized input")]
-    ZeroSizedInput,
+    Deserialize(#[from] HexError),
+    #[error("inputs required but none were provided")]
+    EmptyInput,
     #[error("randomness failure: {0}")]
     Randomness(#[from] rand::Error),
     #[error("blst error: {0}")]
@@ -52,26 +47,97 @@ impl From<BLST_ERROR> for BLSTError {
     }
 }
 
-#[derive(Clone, Default)]
-pub struct SecretKey(blst_core::SecretKey);
-
-impl fmt::Debug for SecretKey {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{:#x}", self)
-    }
+pub fn hash<D: AsRef<[u8]>>(data: D) -> Bytes32 {
+    let mut result = vec![0u8; 32];
+    let mut hasher = Sha256::new();
+    hasher.update(data);
+    hasher.finalize_into(result.as_mut_slice().into());
+    Bytes32::try_from_bytes(&result).expect("correct input")
 }
+
+fn verify_signature(public_key: &PublicKey, msg: &[u8], sig: &Signature) -> bool {
+    let pk = &public_key.0;
+    let avg = &[];
+    let res = sig.0.verify(true, msg, BLS_DST, avg, pk, true);
+    res == BLST_ERROR::BLST_SUCCESS
+}
+
+fn write_bytes_to_lower_hex<T: AsRef<[u8]>>(f: &mut fmt::Formatter<'_>, data: T) -> fmt::Result {
+    if f.alternate() {
+        write!(f, "0x")?;
+    }
+    for i in data.as_ref() {
+        write!(f, "{:02x}", i)?;
+    }
+    Ok(())
+}
+
+pub fn aggregate(signatures: &[Signature]) -> Result<Signature, Error> {
+    if signatures.is_empty() {
+        return Err(Error::EmptyInput);
+    }
+    let vs: Vec<&blst_core::Signature> = signatures.iter().map(|s| &s.0).collect();
+
+    blst_core::AggregateSignature::aggregate(&vs, true)
+        .map(|s| Signature(s.to_signature()))
+        .map_err(|e| BLSTError::from(e).into())
+}
+
+pub fn aggregate_verify(pks: &[PublicKey], msgs: &[&[u8]], signature: &Signature) -> bool {
+    let v: Vec<&blst_core::PublicKey> = pks.iter().map(|pk| &pk.0).collect();
+    let res = signature.0.aggregate_verify(true, msgs, BLS_DST, &v, true);
+    res == BLST_ERROR::BLST_SUCCESS
+}
+
+pub fn fast_aggregate_verify(pks: &[&PublicKey], msg: &[u8], signature: &Signature) -> bool {
+    let v: Vec<&blst_core::PublicKey> = pks.iter().map(|pk| &pk.0).collect();
+    let res = signature.0.fast_aggregate_verify(true, msg, BLS_DST, &v);
+    res == BLST_ERROR::BLST_SUCCESS
+}
+
+#[derive(Clone, Default)]
+#[cfg_attr(feature = "serde", derive(serde::Deserialize))]
+#[cfg_attr(feature = "serde", serde(try_from = "String"))]
+pub struct SecretKey(blst_core::SecretKey);
 
 impl fmt::LowerHex for SecretKey {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        if f.alternate() {
-            write!(f, "0x")?;
-        }
-        for i in self.0.to_bytes() {
-            write!(f, "{:02x}", i)?;
-        }
-        Ok(())
+        write_bytes_to_lower_hex(f, self.as_bytes())
     }
 }
+
+impl fmt::Debug for SecretKey {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "SecretKey({:#x})", self)
+    }
+}
+
+#[cfg(feature = "serde")]
+impl TryFrom<String> for SecretKey {
+    type Error = Error;
+
+    fn try_from(data: String) -> Result<Self, Self::Error> {
+        let encoding = try_bytes_from_hex_str(&data)?;
+        Self::try_from(encoding.as_ref())
+    }
+}
+
+impl TryFrom<&[u8]> for SecretKey {
+    type Error = Error;
+
+    fn try_from(data: &[u8]) -> Result<Self, Self::Error> {
+        let inner = blst_core::SecretKey::from_bytes(data).map_err(BLSTError::from)?;
+        Ok(Self(inner))
+    }
+}
+
+impl PartialEq for SecretKey {
+    fn eq(&self, other: &Self) -> bool {
+        self.as_bytes() == other.as_bytes()
+    }
+}
+
+impl Eq for SecretKey {}
 
 impl SecretKey {
     // https://docs.rs/rand/latest/rand/trait.Rng.html#generic-usage
@@ -83,11 +149,6 @@ impl SecretKey {
 
     pub fn key_gen(ikm: &[u8]) -> Result<Self, Error> {
         let sk = blst_core::SecretKey::key_gen(ikm, &[]).map_err(BLSTError::from)?;
-        Ok(Self(sk))
-    }
-
-    pub fn from_bytes(secret_bytes: &[u8]) -> Result<Self, Error> {
-        let sk = blst_core::SecretKey::from_bytes(secret_bytes).map_err(BLSTError::from)?;
         Ok(Self(sk))
     }
 
@@ -105,67 +166,52 @@ impl SecretKey {
     }
 }
 
-fn verify_signature(public_key: &PublicKey, msg: &[u8], sig: &Signature) -> bool {
-    let pk = &public_key.0;
-    let avg = &[];
-    let res = sig.0.verify(true, msg, BLS_DST, avg, pk, true);
-    res == BLST_ERROR::BLST_SUCCESS
-}
-
-fn try_bytes_from_str(s: &str) -> Result<Vec<u8>, Error> {
-    if s.len() < 2 {
-        return Err(Error::Deserialize("input too short".to_string()));
-    }
-    let bytes = hex::decode(&s[2..]).map_err(|err| Error::Deserialize(err.to_string()))?;
-    Ok(bytes)
-}
-
 #[derive(Default, Clone, Eq)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[cfg_attr(feature = "serde", serde(into = "String"))]
-#[cfg_attr(feature = "serde", serde(try_from = "String"))]
+#[cfg_attr(feature = "serde", serde(into = "String", try_from = "String"))]
 pub struct PublicKey(blst_core::PublicKey);
-
-impl From<PublicKey> for String {
-    fn from(key: PublicKey) -> Self {
-        format!("{key}")
-    }
-}
-
-impl TryFrom<String> for PublicKey {
-    type Error = Error;
-
-    fn try_from(s: String) -> Result<Self, Error> {
-        let encoding = try_bytes_from_str(&s)?;
-        let inner = blst_core::PublicKey::from_bytes(&encoding).map_err(|err| {
-            let err = BLSTError::from(err);
-            Error::from(err)
-        })?;
-        Ok(Self(inner))
-    }
-}
 
 impl fmt::LowerHex for PublicKey {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        if f.alternate() {
-            write!(f, "0x")?;
-        }
-        for i in self.0.to_bytes() {
-            write!(f, "{:02x}", i)?;
-        }
-        Ok(())
+        write_bytes_to_lower_hex(f, self.as_bytes())
     }
 }
 
 impl fmt::Debug for PublicKey {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "PublicKey({:x})", self)
+        write!(f, "PublicKey({:#x})", self)
     }
 }
 
 impl fmt::Display for PublicKey {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{:#x}", self)
+    }
+}
+
+#[cfg(feature = "serde")]
+impl From<PublicKey> for String {
+    fn from(key: PublicKey) -> Self {
+        format!("{key}")
+    }
+}
+
+#[cfg(feature = "serde")]
+impl TryFrom<String> for PublicKey {
+    type Error = Error;
+
+    fn try_from(s: String) -> Result<Self, Error> {
+        let encoding = try_bytes_from_hex_str(&s)?;
+        Self::try_from(encoding.as_ref())
+    }
+}
+
+impl TryFrom<&[u8]> for PublicKey {
+    type Error = Error;
+
+    fn try_from(data: &[u8]) -> Result<Self, Error> {
+        let inner = blst_core::PublicKey::from_bytes(data).map_err(BLSTError::from)?;
+        Ok(Self(inner))
     }
 }
 
@@ -188,11 +234,6 @@ impl PublicKey {
 
     pub fn validate(&self) -> bool {
         self.0.validate().is_ok()
-    }
-
-    pub fn from_bytes(bytes: &[u8]) -> Result<Self, Error> {
-        let inner = blst_core::PublicKey::key_validate(bytes).map_err(BLSTError::from)?;
-        Ok(Self(inner))
     }
 
     pub fn as_bytes(&self) -> [u8; BLS_PUBLIC_KEY_BYTES_LEN] {
@@ -225,7 +266,7 @@ impl Deserialize for PublicKey {
     where
         Self: Sized,
     {
-        Self::from_bytes(encoding).map_err(|_| DeserializeError::InvalidInput)
+        Self::try_from(encoding).map_err(|_| DeserializeError::InvalidInput)
     }
 }
 
@@ -246,47 +287,50 @@ impl SimpleSerialize for PublicKey {
 
 #[derive(Clone, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[cfg_attr(feature = "serde", serde(into = "String"))]
-#[cfg_attr(feature = "serde", serde(try_from = "String"))]
+#[cfg_attr(feature = "serde", serde(into = "String", try_from = "String"))]
 pub struct Signature(blst_core::Signature);
-
-impl From<Signature> for String {
-    fn from(signature: Signature) -> Self {
-        format!("{signature}")
-    }
-}
-
-impl TryFrom<String> for Signature {
-    type Error = Error;
-
-    fn try_from(s: String) -> Result<Self, Error> {
-        let encoding = try_bytes_from_str(&s)?;
-        let inner = Self::from_bytes(&encoding)?;
-        Ok(inner)
-    }
-}
 
 impl fmt::LowerHex for Signature {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        if f.alternate() {
-            write!(f, "0x")?;
-        }
-        for i in self.0.to_bytes() {
-            write!(f, "{:02x}", i)?;
-        }
-        Ok(())
+        write_bytes_to_lower_hex(f, self.as_bytes())
     }
 }
 
 impl fmt::Debug for Signature {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "Signature({:x})", self)
+        write!(f, "Signature({:#x})", self)
     }
 }
 
 impl fmt::Display for Signature {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{:#x}", self)
+    }
+}
+
+#[cfg(feature = "serde")]
+impl From<Signature> for String {
+    fn from(signature: Signature) -> Self {
+        format!("{signature}")
+    }
+}
+
+#[cfg(feature = "serde")]
+impl TryFrom<String> for Signature {
+    type Error = Error;
+
+    fn try_from(s: String) -> Result<Self, Error> {
+        let encoding = try_bytes_from_hex_str(&s)?;
+        Self::try_from(encoding.as_ref())
+    }
+}
+
+impl TryFrom<&[u8]> for Signature {
+    type Error = Error;
+
+    fn try_from(data: &[u8]) -> Result<Self, Error> {
+        let inner = blst_core::Signature::from_bytes(data).map_err(BLSTError::from)?;
+        Ok(Self(inner))
     }
 }
 
@@ -305,11 +349,6 @@ impl Default for Signature {
 impl Signature {
     pub fn verify(&self, pk: &PublicKey, msg: &[u8]) -> bool {
         verify_signature(pk, msg, self)
-    }
-
-    pub fn from_bytes(encoding: &[u8]) -> Result<Self, Error> {
-        let sig = blst_core::Signature::from_bytes(encoding).map_err(BLSTError::from)?;
-        Ok(Self(sig))
     }
 
     pub fn as_bytes(&self) -> [u8; 96] {
@@ -363,29 +402,6 @@ impl SimpleSerialize for Signature {
     }
 }
 
-pub fn aggregate(signatures: &[Signature]) -> Result<Signature, Error> {
-    if signatures.is_empty() {
-        return Err(Error::ZeroSizedInput);
-    }
-    let vs: Vec<&blst_core::Signature> = signatures.iter().map(|s| &s.0).collect();
-
-    blst_core::AggregateSignature::aggregate(&vs, true)
-        .map(|s| Signature(s.to_signature()))
-        .map_err(|e| BLSTError::from(e).into())
-}
-
-pub fn aggregate_verify(pks: &[PublicKey], msgs: &[&[u8]], signature: Signature) -> bool {
-    let v: Vec<&blst_core::PublicKey> = pks.iter().map(|pk| &pk.0).collect();
-    let res = signature.0.aggregate_verify(true, msgs, BLS_DST, &v, true);
-    res == BLST_ERROR::BLST_SUCCESS
-}
-
-pub fn fast_aggregate_verify(pks: &[&PublicKey], msg: &[u8], signature: &Signature) -> bool {
-    let v: Vec<&blst_core::PublicKey> = pks.iter().map(|pk| &pk.0).collect();
-    let res = signature.0.fast_aggregate_verify(true, msg, BLS_DST, &v);
-    res == BLST_ERROR::BLST_SUCCESS
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -415,7 +431,7 @@ mod tests {
     #[should_panic(expected = "bad encoding")]
     fn test_signature_from_null_bytes() {
         let b = [0u8; 0];
-        Signature::from_bytes(&b).expect("can make a signature");
+        Signature::try_from(b.as_ref()).expect("can make a signature");
     }
 
     #[test]
@@ -429,7 +445,7 @@ mod tests {
             0xd8, 0x3a, 0x40, 0x10, 0x1f, 0x4a, 0x45, 0x3f, 0xca, 0x62, 0x87, 0x8c, 0x89, 0x0e,
             0xca, 0x62, 0x23, 0x63, 0xf9, 0xdd, 0xb8, 0xf3, 0x67, 0xa9, 0x1e, 0x84,
         ];
-        Signature::from_bytes(&b).expect("can make a signature");
+        Signature::try_from(b.as_ref()).expect("can make a signature");
     }
 
     #[test]
@@ -444,28 +460,28 @@ mod tests {
             0xd8, 0x3a, 0x40, 0x10, 0x1f, 0x4a, 0x45, 0x3f, 0xca, 0x62, 0x87, 0x8c, 0x89, 0x0e,
             0xca, 0x62, 0x23, 0x63, 0xf9, 0xdd, 0xb8, 0xf3, 0x67, 0xa9, 0x1e, 0x84, 0xfc,
         ];
-        Signature::from_bytes(&b).expect("can make a signature");
+        Signature::try_from(b.as_ref()).expect("can make a signature");
     }
 
     #[test]
     #[should_panic(expected = "null secret key")]
     fn null_secret_key() {
         let ikm = [0u8; 0];
-        SecretKey::from_bytes(&ikm).expect("can make a null secret key");
+        SecretKey::try_from(ikm.as_ref()).expect("can make a null secret key");
     }
 
     #[test]
     #[should_panic(expected = "short secret key")]
     fn short_secret_key() {
         let bytes = [1u8; BLS_SECRET_KEY_BYTES_LEN - 1];
-        SecretKey::from_bytes(&bytes).expect("can make a short secret key");
+        SecretKey::try_from(bytes.as_ref()).expect("can make a short secret key");
     }
 
     #[test]
     #[should_panic(expected = "long secret key")]
     fn long_secret_key() {
         let bytes = [1u8; BLS_SECRET_KEY_BYTES_LEN + 1];
-        SecretKey::from_bytes(&bytes).expect("can make a long secret key");
+        SecretKey::try_from(bytes.as_ref()).expect("can make a long secret key");
     }
 
     #[test]
@@ -476,7 +492,7 @@ mod tests {
             0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
             0xff, 0xff, 0xff, 0xff,
         ];
-        SecretKey::from_bytes(&bytes).expect("can make a bad secret key");
+        SecretKey::try_from(bytes.as_ref()).expect("can make a bad secret key");
     }
 
     #[test]
@@ -502,7 +518,7 @@ mod tests {
             0xb6, 0x13, 0x49, 0xb4, 0xbf, 0x2d, 0x15, 0x3f, 0x64, 0x9f, 0x7b, 0x53, 0x35, 0x9f,
             0xe8, 0xb9, 0x4a, 0x38, 0xe4, 0x4c,
         ];
-        let pk = PublicKey::from_bytes(&bytes).expect("can't make a good public key");
+        let pk = PublicKey::try_from(bytes.as_ref()).expect("can't make a good public key");
         assert!(pk.validate());
     }
 
@@ -510,20 +526,20 @@ mod tests {
     #[should_panic(expected = "zero public key")]
     fn zero_public_key() {
         let z = [0u8; BLS_PUBLIC_KEY_BYTES_LEN];
-        PublicKey::from_bytes(&z).expect("can make a zero public key");
+        PublicKey::try_from(z.as_ref()).expect("can make a zero public key");
     }
 
     #[test]
     #[should_panic(expected = "short public key")]
     fn short_public_key() {
         let z = [0u8; BLS_PUBLIC_KEY_BYTES_LEN - 1];
-        PublicKey::from_bytes(&z).expect("can make a short public key");
+        PublicKey::try_from(z.as_ref()).expect("can make a short public key");
     }
 
     #[test]
     #[should_panic(expected = "infinity-based public key")]
     fn infinity_as_public_key() {
-        PublicKey::from_bytes(&INFINITY_COMPRESSED_PUBLIC_KEY)
+        PublicKey::try_from(INFINITY_COMPRESSED_PUBLIC_KEY.as_ref())
             .expect(" can make an infinity-based public key");
     }
 
@@ -531,7 +547,7 @@ mod tests {
     #[should_panic]
     fn long_public_key() {
         let z = [0u8; BLS_PUBLIC_KEY_BYTES_LEN + 1];
-        PublicKey::from_bytes(&z).expect("can make a long public key");
+        PublicKey::try_from(z.as_ref()).expect("can make a long public key");
     }
 
     #[test]
@@ -555,7 +571,7 @@ mod tests {
         let msgs = msgs.iter().map(|r| &r[..]).collect::<Vec<_>>();
 
         let sig = aggregate(signatures.as_ref()).unwrap();
-        let v = aggregate_verify(pks.as_slice(), msgs.as_ref(), sig);
+        let v = aggregate_verify(pks.as_slice(), msgs.as_ref(), &sig);
 
         assert!(v);
     }
@@ -581,19 +597,19 @@ mod tests {
 
     #[test]
     fn test_can_make_default_signature() {
-        let signature = Signature::default();
-        dbg!(signature);
+        let _ = Signature::default();
     }
 
     #[test]
     fn test_can_sign() {
         let secret_key_hex = "40094c5c6c378857eac09b8ec64c87182f58700c056a8b371ad0eb0a5b983d50";
         let secret_key_bytes = hex::decode(secret_key_hex).expect("is hex");
-        let secret_key = SecretKey::from_bytes(&secret_key_bytes).unwrap();
+        let encoding: &[u8] = secret_key_bytes.as_ref();
+        let secret_key = SecretKey::try_from(encoding).unwrap();
 
         let signature_hex = "a01e49276730e4752eef31b0570c8707de501398dac70dd144438cd1bd05fb9b9bb3e1a9ceef0a68cc08904362cafa3f1005e5b699a41847fff6f5552260468846de5bdbf94a9aedeb29bc6cdb2c1d34922d9e9af4c0593a69ae978a90b5aba6";
         let signature_bytes = hex::decode(signature_hex).expect("can decode hex");
-        let expected_signature = Signature::from_bytes(&signature_bytes).unwrap();
+        let expected_signature = Signature::try_from(signature_bytes.as_ref()).unwrap();
 
         let message = b"blst is such a blast";
         let signature = secret_key.sign(message);
@@ -612,11 +628,11 @@ mod tests {
         let publicy_key_bytes = public_key.as_bytes();
         let signature_bytes = signature.as_bytes();
 
-        let _ = SecretKey::from_bytes(&secret_key_bytes).unwrap();
+        let _ = SecretKey::try_from(secret_key_bytes.as_ref()).unwrap();
 
-        let recovered_public_key = PublicKey::from_bytes(&publicy_key_bytes).unwrap();
+        let recovered_public_key = PublicKey::try_from(publicy_key_bytes.as_ref()).unwrap();
         assert_eq!(public_key, recovered_public_key);
-        let recovered_signature = Signature::from_bytes(&signature_bytes).unwrap();
+        let recovered_signature = Signature::try_from(signature_bytes.as_ref()).unwrap();
         assert_eq!(signature, recovered_signature);
 
         assert!(signature.verify(&public_key, msg));

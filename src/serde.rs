@@ -1,4 +1,26 @@
+use hex::FromHexError;
+use thiserror::Error;
+
+const HEX_ENCODING_PREFIX: &str = "0x";
+
+#[derive(Debug, Error)]
+pub enum HexError {
+    #[error("{0}")]
+    Hex(#[from] FromHexError),
+    #[error("missing prefix `{HEX_ENCODING_PREFIX}` when deserializing hex data")]
+    MissingPrefix,
+}
+
+pub fn try_bytes_from_hex_str(s: &str) -> Result<Vec<u8>, HexError> {
+    let target = s
+        .strip_prefix(HEX_ENCODING_PREFIX)
+        .ok_or(HexError::MissingPrefix)?;
+    let data = hex::decode(target)?;
+    Ok(data)
+}
+
 pub mod as_hex {
+    use super::*;
     use serde::de::Deserialize;
 
     pub fn serialize<S, T: AsRef<[u8]>>(data: &T, serializer: S) -> Result<S::Ok, S::Error>
@@ -6,7 +28,7 @@ pub mod as_hex {
         S: serde::Serializer,
     {
         let encoding = hex::encode(data.as_ref());
-        let output = format!("0x{encoding}");
+        let output = format!("{HEX_ENCODING_PREFIX}{encoding}");
         serializer.collect_str(&output)
     }
 
@@ -16,15 +38,11 @@ pub mod as_hex {
         T: TryFrom<Vec<u8>>,
     {
         let s = <String>::deserialize(deserializer)?;
-        if s.len() < 2 {
-            let message = format!("invalid input when deserializing hex: {s}");
-            return Err(serde::de::Error::custom(message));
-        }
 
-        let bytes = hex::decode(&s[2..]).map_err(serde::de::Error::custom)?;
+        let data = try_bytes_from_hex_str(&s).map_err(serde::de::Error::custom)?;
 
-        let inner = T::try_from(bytes)
-            .map_err(|_| serde::de::Error::custom("failure to parse bytes type from hex data"))?;
+        let inner = T::try_from(data)
+            .map_err(|_| serde::de::Error::custom("type failed to parse bytes from hex data"))?;
         Ok(inner)
     }
 }
