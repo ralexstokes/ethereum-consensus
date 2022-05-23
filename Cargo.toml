@@ -11,8 +11,7 @@ async = ["tokio", "tokio-stream", "async-stream"]
 spec_tests = []
 
 [dependencies]
-ssz_rs = { git = "https://github.com/ralexstokes/ssz_rs" }
-ssz_rs_derive = { git = "https://github.com/ralexstokes/ssz_rs" }
+ssz-rs = { git = "https://github.com/ralexstokes/ssz-rs" }
 blst = "0.3.6"
 rand = "0.8.4"
 thiserror = "1.0.30"
