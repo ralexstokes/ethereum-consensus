@@ -22,6 +22,7 @@ pub type ChainId = usize;
 pub type NetworkId = usize;
 
 pub type RandaoReveal = BlsSignature;
+pub type Bytes32 = ByteVector<32>;
 
 // Coordinate refers to a unique location in the block tree
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
@@ -36,8 +37,6 @@ pub const FAR_FUTURE_EPOCH: Epoch = Epoch::MAX;
 
 pub const BLS_WITHDRAWAL_PREFIX: u8 = 0x00;
 pub const ETH1_ADDRESS_WITHDRAWAL_PREFIX: u8 = 0x01;
-
-pub type Bytes32 = ByteVector<32>;
 
 #[cfg(test)]
 #[cfg(feature = "serde")]

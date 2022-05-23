@@ -1,308 +1,251 @@
-#![cfg(feature = "spec_tests")]
+#![cfg(feature = "spec-tests")]
+
+mod test_utils;
 
 use ethereum_consensus::crypto::{
     aggregate, aggregate_verify, fast_aggregate_verify, PublicKey, SecretKey, Signature,
 };
-use glob::glob;
-use hex;
-use serde::{de::Error, Deserialize, Deserializer, Serialize};
-use serde_yaml;
-use std::fmt::Debug;
-use std::fs::File;
+use ethereum_consensus::primitives::Bytes32;
+use ethereum_consensus::serde as eth_serde;
+use serde::Deserialize;
+use serde_with::{serde_as, DefaultOnError};
+use test_utils::TestCase;
 
-trait TestCase
-where
-    Self: for<'de> serde::Deserialize<'de>,
-{
-    fn execute(&self);
+#[serde_as]
+#[derive(Debug, Deserialize)]
+struct SignInput {
+    #[serde_as(deserialize_as = "DefaultOnError")]
+    privkey: Option<SecretKey>,
+    #[serde(deserialize_with = "eth_serde::as_hex::deserialize")]
+    message: Vec<u8>,
+}
 
-    fn execute_from_glob(path_glob: &str) {
-        let entries = glob(path_glob).expect("Failed to read glob pattern");
-        for entry in entries {
-            let path = entry.unwrap();
-            let file = File::open(path).expect("File does not exist");
-            let test_case: Self =
-                serde_yaml::from_reader(file).expect("Is not well-formatted yaml");
-            test_case.execute()
+#[derive(Debug, Deserialize)]
+struct SignTest {
+    input: SignInput,
+    output: Option<Signature>,
+}
+
+impl TestCase for SignTest {
+    fn should_succeed(&self) -> bool {
+        self.output.is_some()
+    }
+
+    fn verify_success(&self) -> bool {
+        let signature = self
+            .input
+            .privkey
+            .as_ref()
+            .unwrap()
+            .sign(self.input.message.as_ref());
+        &signature == self.output.as_ref().unwrap()
+    }
+
+    fn verify_failure(&self) -> bool {
+        self.input.privkey.is_none()
+    }
+}
+
+#[derive(Debug, Deserialize)]
+struct AggregateTest {
+    input: Vec<Signature>,
+    output: Option<Signature>,
+}
+
+impl TestCase for AggregateTest {
+    fn should_succeed(&self) -> bool {
+        self.output.is_some()
+    }
+
+    fn verify_success(&self) -> bool {
+        let aggregation = aggregate(&self.input).unwrap();
+        self.output.as_ref().unwrap() == &aggregation
+    }
+
+    fn verify_failure(&self) -> bool {
+        let aggregation = aggregate(&self.input);
+        aggregation.is_err()
+    }
+}
+
+#[serde_as]
+#[derive(Debug, Deserialize)]
+struct AggregateVerifyInput {
+    #[serde_as(deserialize_as = "DefaultOnError")]
+    pubkeys: Vec<Option<PublicKey>>,
+    messages: Vec<Bytes32>,
+    #[serde_as(deserialize_as = "DefaultOnError")]
+    signature: Option<Signature>,
+}
+
+#[derive(Debug, Deserialize)]
+struct AggregateVerifyTest {
+    input: AggregateVerifyInput,
+    output: bool,
+}
+
+impl AggregateVerifyTest {
+    fn run(&self) -> bool {
+        let public_keys = self
+            .input
+            .pubkeys
+            .iter()
+            .cloned()
+            .filter_map(|k| k)
+            .collect::<Vec<_>>();
+        let messages = self
+            .input
+            .messages
+            .iter()
+            .map(|m| m.as_ref())
+            .collect::<Vec<_>>();
+        let signature = self.input.signature.as_ref().unwrap();
+        aggregate_verify(&public_keys, &messages, signature)
+    }
+}
+
+impl TestCase for AggregateVerifyTest {
+    fn should_succeed(&self) -> bool {
+        self.output
+    }
+
+    fn verify_success(&self) -> bool {
+        self.run()
+    }
+
+    fn verify_failure(&self) -> bool {
+        if self.input.signature.is_none() {
+            return true;
         }
+        !self.run()
     }
 }
 
-fn hex_from_string(data: &str) -> Result<Vec<u8>, hex::FromHexError> {
-    let data = data.as_bytes();
-    let data = if data.starts_with(b"0x") {
-        &data[2..]
-    } else {
-        data
-    };
-    hex::decode(data)
-}
-
-fn decode_hex_with_prefix<'a, D>(input: D) -> Result<Vec<u8>, D::Error>
-where
-    D: Deserializer<'a>,
-{
-    let data: String = Deserialize::deserialize(input)?;
-    hex_from_string(&data).map_err(D::Error::custom)
-}
-
-const YAML_NULL_CHAR: &str = "~";
-
-fn decode_hex_with_prefix_maybe<'a, D>(input: D) -> Result<Option<Vec<u8>>, D::Error>
-where
-    D: Deserializer<'a>,
-{
-    let data: String = Deserialize::deserialize(input)?;
-    if data == YAML_NULL_CHAR {
-        return Ok(None);
-    }
-    hex_from_string(&data).map(Some).map_err(D::Error::custom)
-}
-
-fn decode_hex_vec_with_prefix<'a, D>(input: D) -> Result<Vec<Vec<u8>>, D::Error>
-where
-    D: Deserializer<'a>,
-{
-    let data: Vec<String> = Deserialize::deserialize(input)?;
-    if data.is_empty() {
-        return Ok(vec![]);
-    }
-    let data = data
-        .iter()
-        .map(|x| {
-            if x == YAML_NULL_CHAR {
-                vec![]
-            } else {
-                hex_from_string(x).unwrap()
-            }
-        })
-        .collect();
-    Ok(data)
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-struct SigningInput {
-    #[serde(deserialize_with = "decode_hex_with_prefix")]
-    privkey: Vec<u8>,
-    #[serde(deserialize_with = "decode_hex_with_prefix")]
-    message: Vec<u8>,
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-struct SigningTestIO {
-    input: SigningInput,
-    #[serde(deserialize_with = "decode_hex_with_prefix_maybe")]
-    output: Option<Vec<u8>>,
-}
-
-impl TestCase for SigningTestIO {
-    fn execute(&self) {
-        let secret_key = match SecretKey::from_bytes(&self.input.privkey) {
-            Ok(sk) => sk,
-            // this is the empty secret key case
-            Err(_) => {
-                assert!(self.output.is_none());
-                return;
-            }
-        };
-        let signature = secret_key.sign(&self.input.message);
-        let output_value = self.output.as_ref().unwrap();
-        let expected_signature = Signature::from_bytes(output_value).unwrap();
-        assert_eq!(signature, expected_signature)
-    }
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-struct AggregatingTestIO {
-    #[serde(deserialize_with = "decode_hex_vec_with_prefix")]
-    input: Vec<Vec<u8>>,
-    #[serde(deserialize_with = "decode_hex_with_prefix_maybe")]
-    output: Option<Vec<u8>>,
-}
-
-impl TestCase for AggregatingTestIO {
-    fn execute(&self) {
-        let input_signatures: Vec<Signature> = self
-            .input
-            .iter()
-            .map(|x| Signature::from_bytes(x).unwrap())
-            .collect();
-        let aggregate = match aggregate(&input_signatures) {
-            Ok(agg) => agg,
-            // handling for zero sized input and output
-            Err(_) => {
-                assert!(self.output.is_none());
-                return;
-            }
-        };
-        let output_value = self.output.as_ref().unwrap();
-        let expected_aggregate = Signature::from_bytes(output_value).unwrap();
-        assert_eq!(aggregate, expected_aggregate)
-    }
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-struct AggVerifyInput {
-    #[serde(deserialize_with = "decode_hex_vec_with_prefix")]
-    pubkeys: Vec<Vec<u8>>,
-    #[serde(deserialize_with = "decode_hex_vec_with_prefix")]
-    messages: Vec<Vec<u8>>,
-    #[serde(deserialize_with = "decode_hex_with_prefix")]
-    signature: Vec<u8>,
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-struct AggVerifyTestIO {
-    input: AggVerifyInput,
-    output: bool,
-}
-
-impl TestCase for AggVerifyTestIO {
-    fn execute(&self) {
-        let pubkeys_result: Result<Vec<PublicKey>, _> = self
-            .input
-            .pubkeys
-            .iter()
-            .map(|x| PublicKey::from_bytes(&x))
-            .collect();
-        let pubkeys = match pubkeys_result {
-            Ok(pk) => pk,
-            // error handling for infinity pub key
-            Err(_) => {
-                assert!(!self.output);
-                return;
-            }
-        };
-        let messages: Vec<&[u8]> = self.input.messages.iter().map(|x| x.as_slice()).collect();
-        let signature = match Signature::from_bytes(&self.input.signature) {
-            Ok(sign) => sign,
-            // handling for the zero signature case which raises a blst bad encoding error
-            Err(_) => {
-                assert!(!self.output);
-                return;
-            }
-        };
-        let verify_result = aggregate_verify(&pubkeys, &messages, signature);
-        assert_eq!(verify_result, self.output)
-    }
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-struct FastAggVerifyInput {
-    #[serde(deserialize_with = "decode_hex_vec_with_prefix")]
-    pubkeys: Vec<Vec<u8>>,
-    #[serde(deserialize_with = "decode_hex_with_prefix")]
-    message: Vec<u8>,
-    #[serde(deserialize_with = "decode_hex_with_prefix")]
-    signature: Vec<u8>,
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-struct FastAggVerifyTestIO {
-    input: FastAggVerifyInput,
-    output: bool,
-}
-
-impl TestCase for FastAggVerifyTestIO {
-    fn execute(&self) {
-        let pubkeys_result: Result<Vec<PublicKey>, _> = self
-            .input
-            .pubkeys
-            .iter()
-            .map(|x| PublicKey::from_bytes(x))
-            .collect();
-        let pubkeys = match pubkeys_result {
-            Ok(pk) => pk,
-            // error handling for infinity pub key
-            Err(_) => {
-                assert!(!self.output);
-                return;
-            }
-        };
-        let pubkeys: Vec<&PublicKey> = pubkeys.iter().collect();
-        let signature = match Signature::from_bytes(&self.input.signature) {
-            Ok(sk) => sk,
-            // error handling for zero signature
-            Err(_) => {
-                assert!(!self.output);
-                return;
-            }
-        };
-        let verify_result = fast_aggregate_verify(&pubkeys, &self.input.message, &signature);
-        assert_eq!(verify_result, self.output)
-    }
-}
-
-#[derive(Debug, Serialize, Deserialize)]
+#[serde_as]
+#[derive(Debug, Deserialize)]
 struct VerifyInput {
-    #[serde(deserialize_with = "decode_hex_with_prefix")]
-    pubkey: Vec<u8>,
-    #[serde(deserialize_with = "decode_hex_with_prefix")]
-    message: Vec<u8>,
-    #[serde(deserialize_with = "decode_hex_with_prefix")]
-    signature: Vec<u8>,
+    pubkey: PublicKey,
+    message: Bytes32,
+    #[serde_as(deserialize_as = "DefaultOnError")]
+    signature: Option<Signature>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
-struct VerifyTestIO {
+#[derive(Debug, Deserialize)]
+struct VerifyTest {
     input: VerifyInput,
     output: bool,
 }
 
-impl TestCase for VerifyTestIO {
-    fn execute(&self) {
-        let pubkey: PublicKey = match PublicKey::from_bytes(&self.input.pubkey) {
-            Ok(pk) => pk,
-            // error handling for infinity pub key
-            Err(_) => {
-                assert!(!self.output);
-                return;
-            }
-        };
-        let signature = match Signature::from_bytes(&self.input.signature) {
-            Ok(sk) => sk,
-            // this is the case where the tampered signature cannot be read in as real signature
-            Err(_) => {
-                assert!(!self.output);
-                return;
-            }
-        };
-        let verify_result = signature.verify(&pubkey, &self.input.message);
-        assert_eq!(verify_result, self.output)
+impl VerifyTest {
+    fn run(&self) -> bool {
+        self.input
+            .signature
+            .as_ref()
+            .unwrap()
+            .verify(&self.input.pubkey, self.input.message.as_ref())
+    }
+}
+
+impl TestCase for VerifyTest {
+    fn should_succeed(&self) -> bool {
+        self.output
+    }
+
+    fn verify_success(&self) -> bool {
+        self.run()
+    }
+
+    fn verify_failure(&self) -> bool {
+        if self.input.signature.is_none() {
+            return true;
+        }
+        !self.run()
+    }
+}
+
+#[serde_as]
+#[derive(Debug, Deserialize)]
+struct FastAggregateVerifyInput {
+    pubkeys: Vec<PublicKey>,
+    message: Bytes32,
+    #[serde_as(deserialize_as = "DefaultOnError")]
+    signature: Option<Signature>,
+}
+
+#[derive(Debug, Deserialize)]
+struct FastAggregateVerifyTest {
+    input: FastAggregateVerifyInput,
+    output: bool,
+}
+
+impl FastAggregateVerifyTest {
+    fn run(&self) -> bool {
+        let public_keys = self.input.pubkeys.iter().collect::<Vec<_>>();
+        fast_aggregate_verify(
+            &public_keys,
+            self.input.message.as_ref(),
+            self.input.signature.as_ref().unwrap(),
+        )
+    }
+}
+
+impl TestCase for FastAggregateVerifyTest {
+    fn should_succeed(&self) -> bool {
+        self.output
+    }
+
+    fn verify_success(&self) -> bool {
+        self.run()
+    }
+
+    fn verify_failure(&self) -> bool {
+        if self.input.signature.is_none() {
+            return true;
+        }
+        if self
+            .input
+            .pubkeys
+            .iter()
+            .any(|k| k == &PublicKey::default())
+        {
+            return true;
+        }
+
+        !self.run()
     }
 }
 
 #[test]
-fn test_fast_aggregate_verify() {
-    FastAggVerifyTestIO::execute_from_glob(
-        "consensus-spec-tests/tests/general/phase0/bls/fast_aggregate_verify/small/**/*.yaml",
-    )
-}
-
-#[test]
-fn test_verify() {
-    VerifyTestIO::execute_from_glob(
-        "consensus-spec-tests/tests/general/phase0/bls/verify/small/**/*.yaml",
-    )
-}
-
-#[test]
-fn test_aggregate_verify() {
-    AggVerifyTestIO::execute_from_glob(
-        "consensus-spec-tests/tests/general/phase0/bls/aggregate_verify/small/**/*.yaml",
+fn test_sign() {
+    SignTest::execute_from_glob(
+        "consensus-spec-tests/tests/general/phase0/bls/sign/small/**/*.yaml",
     )
 }
 
 #[test]
 fn test_aggregate() {
-    AggregatingTestIO::execute_from_glob(
+    AggregateTest::execute_from_glob(
         "consensus-spec-tests/tests/general/phase0/bls/aggregate/small/**/*.yaml",
     )
 }
 
 #[test]
-fn test_sign() {
-    SigningTestIO::execute_from_glob(
-        "consensus-spec-tests/tests/general/phase0/bls/sign/small/**/*.yaml",
+fn test_aggregate_verify() {
+    AggregateVerifyTest::execute_from_glob(
+        "consensus-spec-tests/tests/general/phase0/bls/aggregate_verify/small/**/*.yaml",
+    )
+}
+
+#[test]
+fn test_verify() {
+    VerifyTest::execute_from_glob(
+        "consensus-spec-tests/tests/general/phase0/bls/verify/small/**/*.yaml",
+    )
+}
+
+#[test]
+fn test_fast_aggregate_verify() {
+    FastAggregateVerifyTest::execute_from_glob(
+        "consensus-spec-tests/tests/general/phase0/bls/fast_aggregate_verify/small/**/*.yaml",
     )
 }
