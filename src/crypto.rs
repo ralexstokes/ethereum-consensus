@@ -1,3 +1,4 @@
+use crate::bytes::write_bytes_to_lower_hex;
 use crate::primitives::Bytes32;
 #[cfg(feature = "serde")]
 use crate::serde::{try_bytes_from_hex_str, HexError};
@@ -52,7 +53,7 @@ pub fn hash<D: AsRef<[u8]>>(data: D) -> Bytes32 {
     let mut hasher = Sha256::new();
     hasher.update(data);
     hasher.finalize_into(result.as_mut_slice().into());
-    Bytes32::try_from_bytes(&result).expect("correct input")
+    Bytes32::try_from(result.as_ref()).expect("correct input")
 }
 
 fn verify_signature(public_key: &PublicKey, msg: &[u8], sig: &Signature) -> bool {
@@ -60,16 +61,6 @@ fn verify_signature(public_key: &PublicKey, msg: &[u8], sig: &Signature) -> bool
     let avg = &[];
     let res = sig.0.verify(true, msg, BLS_DST, avg, pk, true);
     res == BLST_ERROR::BLST_SUCCESS
-}
-
-fn write_bytes_to_lower_hex<T: AsRef<[u8]>>(f: &mut fmt::Formatter<'_>, data: T) -> fmt::Result {
-    if f.alternate() {
-        write!(f, "0x")?;
-    }
-    for i in data.as_ref() {
-        write!(f, "{:02x}", i)?;
-    }
-    Ok(())
 }
 
 pub fn aggregate(signatures: &[Signature]) -> Result<Signature, Error> {
