@@ -107,7 +107,7 @@ pub type PendingAttestation = operations::PendingAttestation<MAX_VALIDATORS_PER_
 pub type AttesterSlashing = operations::AttesterSlashing<MAX_VALIDATORS_PER_COMMITTEE>;
 pub type Attestation = operations::Attestation<MAX_VALIDATORS_PER_COMMITTEE>;
 
-const ETH1_DATA_VOTES_BOUND: usize =
+pub const ETH1_DATA_VOTES_BOUND: usize =
     get_eth1_data_votes_bound(EPOCHS_PER_ETH1_VOTING_PERIOD, SLOTS_PER_EPOCH as usize);
 const PENDING_ATTESTATIONS_BOUND: usize =
     get_pending_attestations_bound(MAX_ATTESTATIONS, SLOTS_PER_EPOCH as usize);

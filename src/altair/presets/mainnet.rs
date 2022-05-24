@@ -1,9 +1,14 @@
+use crate::altair;
 use crate::altair::presets::Preset;
-use crate::altair::sync;
-use crate::altair::validator;
+use crate::phase0::mainnet::{
+    EPOCHS_PER_HISTORICAL_VECTOR, EPOCHS_PER_SLASHINGS_VECTOR, ETH1_DATA_VOTES_BOUND,
+    HISTORICAL_ROOTS_LIMIT, MAX_ATTESTATIONS, MAX_ATTESTER_SLASHINGS, MAX_DEPOSITS,
+    MAX_PROPOSER_SLASHINGS, MAX_VALIDATORS_PER_COMMITTEE, MAX_VOLUNTARY_EXITS,
+    SLOTS_PER_HISTORICAL_ROOT, VALIDATOR_REGISTRY_LIMIT,
+};
 use crate::primitives::Epoch;
 
-pub use validator::SyncCommitteeMessage;
+pub use altair::SyncCommitteeMessage;
 
 pub const INACTIVITY_PENALTY_QUOTIENT_ALTAIR: u64 = 50331648;
 pub const MIN_SLASHING_PENALTY_QUOTIENT_ALTAIR: u64 = 64;
@@ -25,12 +30,40 @@ pub const PRESET: Preset = Preset {
     update_timeout: UPDATE_TIMEOUT,
 };
 
-pub const SYNC_SUBCOMMITTEE_SIZE: usize =
-    validator::get_sync_subcommittee_size(SYNC_COMMITTEE_SIZE);
+pub const SYNC_SUBCOMMITTEE_SIZE: usize = altair::get_sync_subcommittee_size(SYNC_COMMITTEE_SIZE);
 
-pub type SyncAggregate = sync::SyncAggregate<SYNC_COMMITTEE_SIZE>;
-pub type SyncCommittee = sync::SyncCommittee<SYNC_COMMITTEE_SIZE>;
+pub type SyncAggregate = altair::SyncAggregate<SYNC_COMMITTEE_SIZE>;
+pub type SyncCommittee = altair::SyncCommittee<SYNC_COMMITTEE_SIZE>;
 
-pub type SyncCommitteeContribution = validator::SyncCommitteeContribution<SYNC_SUBCOMMITTEE_SIZE>;
-pub type ContributionAndProof = validator::ContributionAndProof<SYNC_SUBCOMMITTEE_SIZE>;
-pub type SignedContributionAndProof = validator::SignedContributionAndProof<SYNC_SUBCOMMITTEE_SIZE>;
+pub type BeaconState = altair::BeaconState<
+    SLOTS_PER_HISTORICAL_ROOT,
+    HISTORICAL_ROOTS_LIMIT,
+    ETH1_DATA_VOTES_BOUND,
+    VALIDATOR_REGISTRY_LIMIT,
+    EPOCHS_PER_HISTORICAL_VECTOR,
+    EPOCHS_PER_SLASHINGS_VECTOR,
+    MAX_VALIDATORS_PER_COMMITTEE,
+    SYNC_COMMITTEE_SIZE,
+>;
+pub type BeaconBlock = altair::BeaconBlock<
+    MAX_PROPOSER_SLASHINGS,
+    MAX_VALIDATORS_PER_COMMITTEE,
+    MAX_ATTESTER_SLASHINGS,
+    MAX_ATTESTATIONS,
+    MAX_DEPOSITS,
+    MAX_VOLUNTARY_EXITS,
+    SYNC_COMMITTEE_SIZE,
+>;
+pub type SignedBeaconBlock = altair::SignedBeaconBlock<
+    MAX_PROPOSER_SLASHINGS,
+    MAX_VALIDATORS_PER_COMMITTEE,
+    MAX_ATTESTER_SLASHINGS,
+    MAX_ATTESTATIONS,
+    MAX_DEPOSITS,
+    MAX_VOLUNTARY_EXITS,
+    SYNC_COMMITTEE_SIZE,
+>;
+
+pub type SyncCommitteeContribution = altair::SyncCommitteeContribution<SYNC_SUBCOMMITTEE_SIZE>;
+pub type ContributionAndProof = altair::ContributionAndProof<SYNC_SUBCOMMITTEE_SIZE>;
+pub type SignedContributionAndProof = altair::SignedContributionAndProof<SYNC_SUBCOMMITTEE_SIZE>;
