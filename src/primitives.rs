@@ -3,6 +3,8 @@ pub use crate::domains::DomainType;
 use crate::ssz::ByteVector;
 use ssz_rs::prelude::*;
 
+pub use ssz_rs::prelude::U256;
+
 pub type Root = Node;
 pub type Slot = u64;
 pub type Epoch = u64;

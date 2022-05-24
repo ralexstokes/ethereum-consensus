@@ -1,4 +1,4 @@
-use crate::primitives::{Bytes32, ExecutionAddress, Hash32, Root};
+use crate::primitives::{Bytes32, ExecutionAddress, Hash32, Root, U256};
 use crate::ssz::{ByteList, ByteVector};
 use ssz_rs::prelude::*;
 
