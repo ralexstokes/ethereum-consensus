@@ -3,11 +3,11 @@ use crate::phase0::state_transition::{
     get_block_root_at_slot, get_current_epoch, get_previous_epoch, get_randao_mix,
     get_total_active_balance, get_total_balance, get_validator_churn_limit, increase_balance,
     initiate_validator_exit, is_active_validator, is_eligible_for_activation,
-    is_eligible_for_activation_queue, Checkpoint, Context, Error,
+    is_eligible_for_activation_queue, Context, Error,
 };
 use crate::phase0::{
-    BeaconState, HistoricalBatchAccumulator, PendingAttestation, BASE_REWARDS_PER_EPOCH,
-    JUSTIFICATION_BITS_LENGTH,
+    BeaconState, Checkpoint, HistoricalBatchAccumulator, PendingAttestation,
+    BASE_REWARDS_PER_EPOCH, JUSTIFICATION_BITS_LENGTH,
 };
 use crate::primitives::{Epoch, Gwei, ValidatorIndex, GENESIS_EPOCH};
 use integer_sqrt::IntegerSquareRoot;
