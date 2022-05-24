@@ -5,7 +5,11 @@ use crate::phase0::operations::{
     Attestation, AttesterSlashing, Deposit, DepositMessage, PendingAttestation, ProposerSlashing,
     SignedVoluntaryExit,
 };
-use crate::phase0::state_transition::{
+use crate::phase0::validator::Validator;
+use crate::phase0::DEPOSIT_CONTRACT_TREE_DEPTH;
+use crate::primitives::{BlsPublicKey, Bytes32, Gwei, ValidatorIndex, FAR_FUTURE_EPOCH};
+use crate::ssz::ByteVector;
+use crate::state_transition::{
     compute_domain, compute_epoch_at_slot, compute_signing_root, get_beacon_committee,
     get_beacon_proposer_index, get_committee_count_per_slot, get_current_epoch, get_domain,
     get_indexed_attestation, get_previous_epoch, get_randao_mix, hash, increase_balance,
@@ -15,10 +19,6 @@ use crate::phase0::state_transition::{
     InvalidBeaconBlockHeader, InvalidDeposit, InvalidOperation, InvalidProposerSlashing,
     InvalidVoluntaryExit,
 };
-use crate::phase0::validator::Validator;
-use crate::phase0::DEPOSIT_CONTRACT_TREE_DEPTH;
-use crate::primitives::{BlsPublicKey, Bytes32, Gwei, ValidatorIndex, FAR_FUTURE_EPOCH};
-use crate::ssz::ByteVector;
 use ssz_rs::prelude::*;
 use std::collections::HashSet;
 
@@ -213,16 +213,16 @@ pub fn process_attestation<
         )));
     }
 
-    let attestation_has_delay = data.slot + context.min_attestation_inclusion_delay <= state.slot;
-    let attestation_is_recent = state.slot <= data.slot + context.slots_per_epoch;
+    let attestation_has_delay = data.slot + context.spec.min_attestation_inclusion_delay <= state.slot;
+    let attestation_is_recent = state.slot <= data.slot + context.spec.slots_per_epoch;
     let attestation_is_timely = attestation_has_delay && attestation_is_recent;
     if !attestation_is_timely {
         return Err(invalid_operation_error(InvalidOperation::Attestation(
             InvalidAttestation::NotTimely {
                 state_slot: state.slot,
                 attestation_slot: data.slot,
-                lower_bound: data.slot + context.slots_per_epoch,
-                upper_bound: data.slot + context.min_attestation_inclusion_delay,
+                lower_bound: data.slot + context.spec.slots_per_epoch,
+                upper_bound: data.slot + context.spec.min_attestation_inclusion_delay,
             },
         )));
     }
@@ -292,8 +292,8 @@ pub fn process_attestation<
 fn get_validator_from_deposit(deposit: &Deposit, context: &Context) -> Validator {
     let amount = deposit.data.amount;
     let effective_balance = Gwei::min(
-        amount - amount % context.effective_balance_increment,
-        context.max_effective_balance,
+        amount - amount % context.spec.effective_balance_increment,
+        context.spec.max_effective_balance,
     );
 
     Validator {
@@ -442,7 +442,7 @@ pub fn process_voluntary_exit<
     }
 
     let minimum_time_active =
-        validator.activation_eligibility_epoch + context.shard_committee_period;
+        validator.activation_eligibility_epoch + context.spec.shard_committee_period;
     if current_epoch < minimum_time_active {
         return Err(invalid_operation_error(InvalidOperation::VoluntaryExit(
             InvalidVoluntaryExit::ValidatoIsNotActiveForLongEnough {
@@ -630,7 +630,7 @@ fn process_randao<
         get_randao_mix(state, epoch),
         &hash(body.randao_reveal.as_bytes()),
     );
-    let mix_index = epoch % context.epochs_per_historical_vector;
+    let mix_index = epoch % context.spec.epochs_per_historical_vector;
     state.randao_mixes[mix_index as usize] = mix;
     Ok(())
 }
@@ -678,7 +678,7 @@ fn process_eth1_data<
         .filter(|&vote| *vote == body.eth1_data)
         .count() as u64;
 
-    if votes_count * 2 > context.epochs_per_eth1_voting_period * context.slots_per_epoch {
+    if votes_count * 2 > context.spec.epochs_per_eth1_voting_period * context.spec.slots_per_epoch {
         state.eth1_data = body.eth1_data.clone();
     }
 }
@@ -719,7 +719,7 @@ fn process_operations<
     context: &Context,
 ) -> Result<(), Error> {
     let expected_deposit_count = usize::min(
-        context.max_deposits,
+        context.spec.max_deposits,
         (state.eth1_data.deposit_count - state.eth1_deposit_index) as usize,
     );
 

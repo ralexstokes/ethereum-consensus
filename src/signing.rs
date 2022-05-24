@@ -1,6 +1,6 @@
 use crate::crypto::SecretKey;
-use crate::phase0::state_transition::{compute_signing_root, Error};
 use crate::primitives::{BlsPublicKey, BlsSignature, Domain};
+use crate::state_transition::{compute_signing_root, Error};
 use ssz_rs::prelude::SimpleSerialize;
 
 pub fn sign_with_domain<T: SimpleSerialize>(

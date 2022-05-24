@@ -11,4 +11,8 @@ pub mod phase0;
 pub mod primitives;
 #[cfg(feature = "serde")]
 pub mod serde;
+mod signing;
 pub mod ssz;
+pub mod state_transition;
+
+pub use signing::{sign_with_domain, verify_signed_data};

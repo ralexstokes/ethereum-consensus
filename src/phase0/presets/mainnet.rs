@@ -1,34 +1,12 @@
-pub use crate::domains::{DomainType, SigningData};
 use crate::phase0::beacon_block;
-pub use crate::phase0::beacon_block::{BeaconBlockHeader, SignedBeaconBlockHeader};
 use crate::phase0::beacon_state;
 use crate::phase0::beacon_state::{get_eth1_data_votes_bound, get_pending_attestations_bound};
-pub use crate::phase0::fork::{Fork, ForkData};
 use crate::phase0::operations;
-pub use crate::phase0::operations::{
-    AttestationData, Checkpoint, Deposit, DepositData, DepositMessage, Eth1Data, ProposerSlashing,
-    SignedVoluntaryExit, VoluntaryExit,
-};
 use crate::phase0::presets::Preset;
-// TODO: remove once the helpers here have been integrated
-pub use crate::phase0::state_transition::epoch_processing::*;
-pub use crate::phase0::state_transition::genesis::*;
-pub use crate::phase0::state_transition::{
-    compute_activation_exit_epoch, compute_committee, compute_domain, compute_epoch_at_slot,
-    compute_fork_data_root, compute_fork_digest, compute_proposer_index, compute_shuffled_index,
-    compute_signing_root, compute_start_slot_at_epoch, decrease_balance,
-    get_active_validator_indices, get_attesting_indices, get_beacon_committee,
-    get_beacon_proposer_index, get_block_root, get_block_root_at_slot,
-    get_committee_count_per_slot, get_current_epoch, get_domain, get_indexed_attestation,
-    get_previous_epoch, get_randao_mix, get_seed, get_total_active_balance, get_total_balance,
-    get_validator_churn_limit, increase_balance, initiate_validator_exit, is_active_validator,
-    is_eligible_for_activation, is_eligible_for_activation_queue, is_slashable_attestation_data,
-    is_slashable_validator, is_valid_indexed_attestation, slash_validator, verify_block_signature,
-    Error,
-};
 use crate::phase0::validator;
 use crate::primitives::{Epoch, Gwei, Slot};
-pub use validator::Validator;
+
+pub use operations::{Deposit, ProposerSlashing, SignedVoluntaryExit};
 
 pub const MAX_COMMITTEES_PER_SLOT: u64 = 64;
 pub const TARGET_COMMITTEE_SIZE: u64 = 128;
@@ -107,9 +85,9 @@ pub type PendingAttestation = operations::PendingAttestation<MAX_VALIDATORS_PER_
 pub type AttesterSlashing = operations::AttesterSlashing<MAX_VALIDATORS_PER_COMMITTEE>;
 pub type Attestation = operations::Attestation<MAX_VALIDATORS_PER_COMMITTEE>;
 
-const ETH1_DATA_VOTES_BOUND: usize =
+pub const ETH1_DATA_VOTES_BOUND: usize =
     get_eth1_data_votes_bound(EPOCHS_PER_ETH1_VOTING_PERIOD, SLOTS_PER_EPOCH as usize);
-const PENDING_ATTESTATIONS_BOUND: usize =
+pub const PENDING_ATTESTATIONS_BOUND: usize =
     get_pending_attestations_bound(MAX_ATTESTATIONS, SLOTS_PER_EPOCH as usize);
 
 pub type BeaconState = beacon_state::BeaconState<

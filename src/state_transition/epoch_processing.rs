@@ -1,14 +1,14 @@
 use crate::phase0::beacon_state::{BeaconState, HistoricalBatchAccumulator};
 use crate::phase0::operations::PendingAttestation;
-use crate::phase0::state_transition::{
+use crate::phase0::{BASE_REWARDS_PER_EPOCH, JUSTIFICATION_BITS_LENGTH};
+use crate::primitives::{Epoch, Gwei, ValidatorIndex, GENESIS_EPOCH};
+use crate::state_transition::{
     compute_activation_exit_epoch, decrease_balance, get_attesting_indices, get_block_root,
     get_block_root_at_slot, get_current_epoch, get_previous_epoch, get_randao_mix,
     get_total_active_balance, get_total_balance, get_validator_churn_limit, increase_balance,
     initiate_validator_exit, is_active_validator, is_eligible_for_activation,
     is_eligible_for_activation_queue, Checkpoint, Context, Error,
 };
-use crate::phase0::{BASE_REWARDS_PER_EPOCH, JUSTIFICATION_BITS_LENGTH};
-use crate::primitives::{Epoch, Gwei, ValidatorIndex, GENESIS_EPOCH};
 use integer_sqrt::IntegerSquareRoot;
 use ssz_rs::prelude::*;
 use std::collections::HashSet;
@@ -269,7 +269,7 @@ pub fn process_registry_updates<
         }
 
         if is_active_validator(validator, current_epoch)
-            && validator.effective_balance <= context.ejection_balance
+            && validator.effective_balance <= context.spec.ejection_balance
         {
             initiate_validator_exit(state, i, context);
         }
@@ -331,16 +331,17 @@ pub fn process_slashings<
     let epoch = get_current_epoch(state, context);
     let total_balance = get_total_active_balance(state, context)?;
     let adjusted_total_slashing_balance = Gwei::min(
-        state.slashings.iter().sum::<Gwei>() * context.proportional_slashing_multiplier,
+        state.slashings.iter().sum::<Gwei>() * context.spec.proportional_slashing_multiplier,
         total_balance,
     );
 
     for i in 0..state.validators.len() {
         let validator = &state.validators[i];
         if validator.slashed
-            && (epoch + context.epochs_per_slashings_vector / 2) == validator.withdrawable_epoch
+            && (epoch + context.spec.epochs_per_slashings_vector / 2)
+                == validator.withdrawable_epoch
         {
-            let increment = context.effective_balance_increment;
+            let increment = context.spec.effective_balance_increment;
             let penalty_numerator =
                 validator.effective_balance / increment * adjusted_total_slashing_balance;
             let penalty = penalty_numerator / total_balance * increment;
@@ -375,7 +376,7 @@ pub fn process_eth1_data_reset<
 ) {
     let next_epoch = get_current_epoch(state, context) + 1;
 
-    if next_epoch % context.epochs_per_eth1_voting_period == 0 {
+    if next_epoch % context.spec.epochs_per_eth1_voting_period == 0 {
         state.eth1_data_votes.clear();
     }
 }
@@ -403,9 +404,10 @@ pub fn process_effective_balance_updates<
     context: &Context,
 ) {
     // Update effective balances with hysteresis
-    let hysteresis_increment = context.effective_balance_increment / context.hysteresis_quotient;
-    let downward_threshold = hysteresis_increment * context.hysteresis_downward_multiplier;
-    let upward_threshold = hysteresis_increment * context.hysteresis_upward_multiplier;
+    let hysteresis_increment =
+        context.spec.effective_balance_increment / context.spec.hysteresis_quotient;
+    let downward_threshold = hysteresis_increment * context.spec.hysteresis_downward_multiplier;
+    let upward_threshold = hysteresis_increment * context.spec.hysteresis_upward_multiplier;
     for i in 0..state.validators.len() {
         let validator = &mut state.validators[i];
         let balance = state.balances[i];
@@ -413,8 +415,8 @@ pub fn process_effective_balance_updates<
             || validator.effective_balance + upward_threshold < balance
         {
             validator.effective_balance = Gwei::min(
-                balance - balance % context.effective_balance_increment,
-                context.max_effective_balance,
+                balance - balance % context.spec.effective_balance_increment,
+                context.spec.max_effective_balance,
             );
         }
     }
@@ -444,7 +446,7 @@ pub fn process_slashings_reset<
 ) {
     let next_epoch = get_current_epoch(state, context) + 1;
 
-    let slashings_index = next_epoch % context.epochs_per_slashings_vector;
+    let slashings_index = next_epoch % context.spec.epochs_per_slashings_vector;
     state.slashings[slashings_index as usize] = 0;
 }
 
@@ -472,7 +474,7 @@ pub fn process_randao_mixes_reset<
 ) {
     let current_epoch = get_current_epoch(state, context);
     let next_epoch = current_epoch + 1;
-    let mix_index = next_epoch % context.epochs_per_historical_vector;
+    let mix_index = next_epoch % context.spec.epochs_per_historical_vector;
     state.randao_mixes[mix_index as usize] = get_randao_mix(state, current_epoch).clone();
 }
 
@@ -499,7 +501,8 @@ pub fn process_historical_roots_update<
     context: &Context,
 ) -> Result<(), Error> {
     let next_epoch = get_current_epoch(state, context) + 1;
-    let epochs_per_historical_root = context.slots_per_historical_root / context.slots_per_epoch;
+    let epochs_per_historical_root =
+        context.spec.slots_per_historical_root / context.spec.slots_per_epoch;
     if next_epoch % epochs_per_historical_root == 0 {
         let mut historical_batch = HistoricalBatchAccumulator {
             block_roots_root: state.block_roots.hash_tree_root()?,
@@ -670,7 +673,7 @@ pub fn get_base_reward<
 ) -> Result<Gwei, Error> {
     let total_balance = get_total_active_balance(state, context)?;
     let effective_balance = state.validators[index].effective_balance;
-    Ok(effective_balance * context.base_reward_factor
+    Ok(effective_balance * context.spec.base_reward_factor
         / total_balance.integer_sqrt()
         / BASE_REWARDS_PER_EPOCH)
 }
@@ -698,7 +701,7 @@ pub fn get_proposer_reward<
     attesting_index: ValidatorIndex,
     context: &Context,
 ) -> Result<Gwei, Error> {
-    Ok(get_base_reward(state, attesting_index, context)? / context.proposer_reward_quotient)
+    Ok(get_base_reward(state, attesting_index, context)? / context.spec.proposer_reward_quotient)
 }
 
 pub fn get_finality_delay<
@@ -748,7 +751,7 @@ pub fn is_in_inactivity_leak<
     >,
     context: &Context,
 ) -> bool {
-    get_finality_delay(state, context) > context.min_epochs_to_inactivity_penalty
+    get_finality_delay(state, context) > context.spec.min_epochs_to_inactivity_penalty
 }
 
 pub fn get_eligible_validator_indices<
@@ -822,7 +825,7 @@ pub fn get_attestation_component_deltas<
     let unslashed_attesting_indices =
         get_unslashed_attesting_indices(state, attestations, context)?;
     let attesting_balance = get_total_balance(state, &unslashed_attesting_indices, context)?;
-    let increment = context.effective_balance_increment; // Factored out from balance totals to avoid uint64 overflow
+    let increment = context.spec.effective_balance_increment; // Factored out from balance totals to avoid uint64 overflow
     for i in get_eligible_validator_indices(state, context) {
         if unslashed_attesting_indices.contains(&i) {
             if is_in_inactivity_leak(state, context) {
@@ -1016,7 +1019,7 @@ pub fn get_inactivity_penalty_deltas<
             if !matching_target_attesting_indices.contains(&i) {
                 let effective_balance = state.validators[i].effective_balance;
                 penalties[i] += effective_balance * get_finality_delay(state, context)
-                    / context.inactivity_penalty_quotient;
+                    / context.spec.inactivity_penalty_quotient;
             }
         }
     }
@@ -1078,8 +1081,9 @@ pub fn process_epoch<
     const EPOCHS_PER_SLASHINGS_VECTOR: usize,
     const MAX_VALIDATORS_PER_COMMITTEE: usize,
     const PENDING_ATTESTATIONS_BOUND: usize,
+    const SYNC_COMMITTEE_SIZE: usize,
 >(
-    state: &mut BeaconState<
+    context: &mut Context<
         SLOTS_PER_HISTORICAL_ROOT,
         HISTORICAL_ROOTS_LIMIT,
         ETH1_DATA_VOTES_BOUND,
@@ -1088,18 +1092,18 @@ pub fn process_epoch<
         EPOCHS_PER_SLASHINGS_VECTOR,
         MAX_VALIDATORS_PER_COMMITTEE,
         PENDING_ATTESTATIONS_BOUND,
+        SYNC_COMMITTEE_SIZE,
     >,
-    context: &Context,
 ) -> Result<(), Error> {
-    process_justification_and_finalization(state, context)?;
-    process_rewards_and_penalties(state, context)?;
-    process_registry_updates(state, context);
-    process_slashings(state, context)?;
-    process_eth1_data_reset(state, context);
-    process_effective_balance_updates(state, context);
-    process_slashings_reset(state, context);
-    process_randao_mixes_reset(state, context);
-    process_historical_roots_update(state, context)?;
-    process_participation_record_updates(state);
+    process_justification_and_finalization(context)?;
+    process_rewards_and_penalties(context)?;
+    process_registry_updates(context);
+    process_slashings(context)?;
+    process_eth1_data_reset(context);
+    process_effective_balance_updates(context);
+    process_slashings_reset(context);
+    process_randao_mixes_reset(context);
+    process_historical_roots_update(context)?;
+    process_participation_record_updates(context);
     Ok(())
 }
