@@ -1,11 +1,9 @@
-use crate::altair::mainnet::SYNC_COMMITTEE_SIZE;
+use crate::altair;
 use crate::bellatrix;
 use crate::bellatrix::presets::Preset;
-use crate::phase0::mainnet::{
-    MAX_ATTESTATIONS, MAX_ATTESTER_SLASHINGS, MAX_DEPOSITS, MAX_PROPOSER_SLASHINGS,
-    MAX_VALIDATORS_PER_COMMITTEE, MAX_VOLUNTARY_EXITS,
-};
 
+// use all items previously defined in the prior fork:
+pub use altair::mainnet::*;
 pub use bellatrix::*;
 
 pub const INACTIVITY_PENALTY_QUOTIENT_BELLATRIX: u64 = 16777216;
