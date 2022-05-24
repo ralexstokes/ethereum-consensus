@@ -1,10 +1,9 @@
-use crate::phase0::beacon_block::{BeaconBlock, BeaconBlockBody, BeaconBlockHeader};
-use crate::phase0::beacon_state::BeaconState;
-use crate::phase0::fork::Fork;
-use crate::phase0::operations::{Deposit, DepositData, Eth1Data};
 use crate::phase0::state_transition::block_processing::process_deposit;
 use crate::phase0::state_transition::{get_active_validator_indices, Context, Error};
-use crate::phase0::DEPOSIT_CONTRACT_TREE_DEPTH;
+use crate::phase0::{
+    BeaconBlock, BeaconBlockBody, BeaconBlockHeader, BeaconState, Deposit, DepositData, Eth1Data,
+    Fork, DEPOSIT_CONTRACT_TREE_DEPTH,
+};
 use crate::primitives::{Gwei, Hash32, GENESIS_EPOCH};
 use ssz_rs::prelude::*;
 

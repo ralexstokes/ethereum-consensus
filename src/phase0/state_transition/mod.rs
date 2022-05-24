@@ -1,22 +1,19 @@
 mod block_processing;
 mod context;
-// TODO make mod private once the helpers here have been integated
-pub mod epoch_processing;
+mod epoch_processing;
 pub mod genesis;
 mod slot_processing;
 
-use crate::crypto::{fast_aggregate_verify, hash, Signature as BLSSignature};
-use crate::domains::{DomainType, SigningData};
-use crate::phase0::beacon_block::{BeaconBlockHeader, SignedBeaconBlock};
-use crate::phase0::beacon_state::BeaconState;
-use crate::phase0::fork::ForkData;
-use crate::phase0::operations::{Attestation, AttestationData, Checkpoint, IndexedAttestation};
+use crate::crypto::{fast_aggregate_verify, hash};
 use crate::phase0::state_transition::block_processing::process_block;
 use crate::phase0::state_transition::slot_processing::process_slots;
-use crate::phase0::validator::Validator;
+use crate::phase0::{
+    Attestation, AttestationData, BeaconBlockHeader, BeaconState, Checkpoint, ForkData,
+    IndexedAttestation, SignedBeaconBlock, SigningData, Validator,
+};
 use crate::primitives::{
-    Bytes32, CommitteeIndex, Domain, Epoch, ForkDigest, Gwei, Root, Slot, ValidatorIndex, Version,
-    FAR_FUTURE_EPOCH, GENESIS_EPOCH,
+    BlsSignature, Bytes32, CommitteeIndex, Domain, DomainType, Epoch, ForkDigest, Gwei, Root, Slot,
+    ValidatorIndex, Version, FAR_FUTURE_EPOCH, GENESIS_EPOCH,
 };
 pub use context::Context;
 use ssz_rs::prelude::*;
@@ -78,8 +75,8 @@ pub enum InvalidOperation {
     IndexedAttestation(InvalidIndexedAttestation),
     #[error("invalid deposit: {0}")]
     Deposit(InvalidDeposit),
-    #[error("invalid randao (BLS signature): {0:?}")]
-    Randao(BLSSignature),
+    #[error("invalid randao (Bls signature): {0:?}")]
+    Randao(BlsSignature),
     #[error("invalid proposer slashing: {0}")]
     ProposerSlashing(InvalidProposerSlashing),
     #[error("invalid attester slashing: {0}")]
@@ -163,7 +160,7 @@ pub enum InvalidDeposit {
         root: Root,
     },
     #[error("invalid signature for deposit: {0:?}")]
-    InvalidSignature(BLSSignature),
+    InvalidSignature(BlsSignature),
 }
 
 #[derive(Debug, Error)]
@@ -177,7 +174,7 @@ pub enum InvalidProposerSlashing {
     #[error("proposer with index {0} is not slashable")]
     ProposerIsNotSlashable(ValidatorIndex),
     #[error("header has invalid signature: {0:?}")]
-    InvalidSignature(BLSSignature),
+    InvalidSignature(BlsSignature),
 }
 
 #[derive(Debug, Error)]
@@ -205,7 +202,7 @@ pub enum InvalidVoluntaryExit {
         minimum_time_active: Epoch,
     },
     #[error("voluntary exit has invalid signature: {0:?}")]
-    InvalidSignature(BLSSignature),
+    InvalidSignature(BlsSignature),
 }
 
 pub(crate) fn invalid_header_error(error: InvalidBeaconBlockHeader) -> Error {

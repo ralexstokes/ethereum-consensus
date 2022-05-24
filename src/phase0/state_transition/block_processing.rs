@@ -1,10 +1,3 @@
-use crate::domains::DomainType;
-use crate::phase0::beacon_block::{BeaconBlock, BeaconBlockBody, BeaconBlockHeader};
-use crate::phase0::beacon_state::BeaconState;
-use crate::phase0::operations::{
-    Attestation, AttesterSlashing, Deposit, DepositMessage, PendingAttestation, ProposerSlashing,
-    SignedVoluntaryExit,
-};
 use crate::phase0::state_transition::{
     compute_domain, compute_epoch_at_slot, compute_signing_root, get_beacon_committee,
     get_beacon_proposer_index, get_committee_count_per_slot, get_current_epoch, get_domain,
@@ -15,9 +8,14 @@ use crate::phase0::state_transition::{
     InvalidBeaconBlockHeader, InvalidDeposit, InvalidOperation, InvalidProposerSlashing,
     InvalidVoluntaryExit,
 };
-use crate::phase0::validator::Validator;
-use crate::phase0::DEPOSIT_CONTRACT_TREE_DEPTH;
-use crate::primitives::{BlsPublicKey, Bytes32, Gwei, ValidatorIndex, FAR_FUTURE_EPOCH};
+use crate::phase0::{
+    Attestation, AttesterSlashing, BeaconBlock, BeaconBlockBody, BeaconBlockHeader, BeaconState,
+    Deposit, DepositMessage, PendingAttestation, ProposerSlashing, SignedVoluntaryExit, Validator,
+    DEPOSIT_CONTRACT_TREE_DEPTH,
+};
+use crate::primitives::{
+    BlsPublicKey, Bytes32, DomainType, Gwei, ValidatorIndex, FAR_FUTURE_EPOCH,
+};
 use crate::ssz::ByteVector;
 use ssz_rs::prelude::*;
 use std::collections::HashSet;

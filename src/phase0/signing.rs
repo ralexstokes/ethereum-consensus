@@ -1,7 +1,13 @@
 use crate::crypto::SecretKey;
-use crate::phase0::state_transition::{compute_signing_root, Error};
-use crate::primitives::{BlsPublicKey, BlsSignature, Domain};
-use ssz_rs::prelude::SimpleSerialize;
+use crate::phase0::{compute_signing_root, Error};
+use crate::primitives::{BlsPublicKey, BlsSignature, Domain, Root};
+use ssz_rs::prelude::*;
+
+#[derive(Default, Debug, SimpleSerialize)]
+pub struct SigningData {
+    pub object_root: Root,
+    pub domain: Domain,
+}
 
 pub fn sign_with_domain<T: SimpleSerialize>(
     data: &mut T,

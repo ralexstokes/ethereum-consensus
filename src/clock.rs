@@ -211,7 +211,7 @@ mod tests {
             dbg!(slot);
             time_provider.tick_slot();
             iter += 1;
-            if iter > 2 {
+            if iter > 1 {
                 break;
             }
         }
