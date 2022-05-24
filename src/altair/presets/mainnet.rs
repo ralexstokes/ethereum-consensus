@@ -1,6 +1,14 @@
+use crate::altair::beacon_block;
+use crate::altair::beacon_state;
 use crate::altair::presets::Preset;
 use crate::altair::sync;
 use crate::altair::validator;
+use crate::phase0::presets::mainnet::{
+    EPOCHS_PER_HISTORICAL_VECTOR, EPOCHS_PER_SLASHINGS_VECTOR, ETH1_DATA_VOTES_BOUND,
+    HISTORICAL_ROOTS_LIMIT, MAX_ATTESTATIONS, MAX_ATTESTER_SLASHINGS, MAX_DEPOSITS,
+    MAX_PROPOSER_SLASHINGS, MAX_VALIDATORS_PER_COMMITTEE, MAX_VOLUNTARY_EXITS,
+    SLOTS_PER_HISTORICAL_ROOT, VALIDATOR_REGISTRY_LIMIT,
+};
 use crate::primitives::Epoch;
 
 pub use validator::SyncCommitteeMessage;
@@ -30,6 +38,35 @@ pub const SYNC_SUBCOMMITTEE_SIZE: usize =
 
 pub type SyncAggregate = sync::SyncAggregate<SYNC_COMMITTEE_SIZE>;
 pub type SyncCommittee = sync::SyncCommittee<SYNC_COMMITTEE_SIZE>;
+
+pub type BeaconState = beacon_state::BeaconState<
+    SLOTS_PER_HISTORICAL_ROOT,
+    HISTORICAL_ROOTS_LIMIT,
+    ETH1_DATA_VOTES_BOUND,
+    VALIDATOR_REGISTRY_LIMIT,
+    EPOCHS_PER_HISTORICAL_VECTOR,
+    EPOCHS_PER_SLASHINGS_VECTOR,
+    MAX_VALIDATORS_PER_COMMITTEE,
+    SYNC_COMMITTEE_SIZE,
+>;
+pub type BeaconBlock = beacon_block::BeaconBlock<
+    MAX_PROPOSER_SLASHINGS,
+    MAX_VALIDATORS_PER_COMMITTEE,
+    MAX_ATTESTER_SLASHINGS,
+    MAX_ATTESTATIONS,
+    MAX_DEPOSITS,
+    MAX_VOLUNTARY_EXITS,
+    SYNC_COMMITTEE_SIZE,
+>;
+pub type SignedBeaconBlock = beacon_block::SignedBeaconBlock<
+    MAX_PROPOSER_SLASHINGS,
+    MAX_VALIDATORS_PER_COMMITTEE,
+    MAX_ATTESTER_SLASHINGS,
+    MAX_ATTESTATIONS,
+    MAX_DEPOSITS,
+    MAX_VOLUNTARY_EXITS,
+    SYNC_COMMITTEE_SIZE,
+>;
 
 pub type SyncCommitteeContribution = validator::SyncCommitteeContribution<SYNC_SUBCOMMITTEE_SIZE>;
 pub type ContributionAndProof = validator::ContributionAndProof<SYNC_SUBCOMMITTEE_SIZE>;

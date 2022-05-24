@@ -1,4 +1,4 @@
-mod presets;
+pub mod presets;
 
 use crate::altair::sync::SyncAggregate;
 use crate::phase0::operations::{

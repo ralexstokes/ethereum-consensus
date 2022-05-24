@@ -8,7 +8,7 @@ pub struct SyncAggregate<const SYNC_COMMITTEE_SIZE: usize> {
     pub sync_committee_signature: BlsSignature,
 }
 
-#[derive(Default, Debug, SimpleSerialize)]
+#[derive(Default, Debug, SimpleSerialize, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct SyncCommittee<const SYNC_COMMITTEE_SIZE: usize> {
     #[serde(rename = "pubkeys")]
