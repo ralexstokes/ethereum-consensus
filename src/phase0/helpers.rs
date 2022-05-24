@@ -1,15 +1,17 @@
+use crate::phase0 as spec;
+
 use crate::crypto::{fast_aggregate_verify, hash};
-use crate::phase0::state_transition::{
-    invalid_operation_error, Context, Error, InvalidAttestation, InvalidIndexedAttestation,
-    InvalidOperation,
-};
-use crate::phase0::{
-    Attestation, AttestationData, BeaconState, ForkData, IndexedAttestation, SignedBeaconBlock,
-    SigningData, Validator,
-};
 use crate::primitives::{
     Bytes32, CommitteeIndex, Domain, DomainType, Epoch, ForkDigest, Gwei, Root, Slot,
     ValidatorIndex, Version, FAR_FUTURE_EPOCH, GENESIS_EPOCH,
+};
+use crate::state_transition::{
+    invalid_operation_error, Context, Error, InvalidAttestation, InvalidIndexedAttestation,
+    InvalidOperation,
+};
+use spec::{
+    Attestation, AttestationData, BeaconState, ForkData, IndexedAttestation, SignedBeaconBlock,
+    SigningData, Validator,
 };
 use ssz_rs::prelude::*;
 use std::cmp;

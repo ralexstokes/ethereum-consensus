@@ -1,16 +1,16 @@
-use crate::phase0::state_transition::{
+use crate::phase0 as spec;
+
+use crate::primitives::{Epoch, Gwei, ValidatorIndex, GENESIS_EPOCH};
+use crate::state_transition::{Context, Error};
+use integer_sqrt::IntegerSquareRoot;
+use spec::{
     compute_activation_exit_epoch, decrease_balance, get_attesting_indices, get_block_root,
     get_block_root_at_slot, get_current_epoch, get_previous_epoch, get_randao_mix,
     get_total_active_balance, get_total_balance, get_validator_churn_limit, increase_balance,
     initiate_validator_exit, is_active_validator, is_eligible_for_activation,
-    is_eligible_for_activation_queue, Context, Error,
+    is_eligible_for_activation_queue, BeaconState, Checkpoint, HistoricalBatchAccumulator,
+    PendingAttestation, BASE_REWARDS_PER_EPOCH, JUSTIFICATION_BITS_LENGTH,
 };
-use crate::phase0::{
-    BeaconState, Checkpoint, HistoricalBatchAccumulator, PendingAttestation,
-    BASE_REWARDS_PER_EPOCH, JUSTIFICATION_BITS_LENGTH,
-};
-use crate::primitives::{Epoch, Gwei, ValidatorIndex, GENESIS_EPOCH};
-use integer_sqrt::IntegerSquareRoot;
 use ssz_rs::prelude::*;
 use std::collections::HashSet;
 use std::mem;

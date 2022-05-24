@@ -1,7 +1,8 @@
-use crate::phase0::state_transition::epoch_processing::process_epoch;
-use crate::phase0::state_transition::{Context, Error};
-use crate::phase0::BeaconState;
+use crate::phase0 as spec;
+
 use crate::primitives::Slot;
+use crate::state_transition::{Context, Error, Result};
+use spec::{process_epoch, BeaconState};
 use ssz_rs::prelude::*;
 
 pub fn process_slots<
@@ -26,7 +27,7 @@ pub fn process_slots<
     >,
     slot: Slot,
     context: &Context,
-) -> Result<(), Error> {
+) -> Result<()> {
     if state.slot >= slot {
         return Err(Error::TransitionToPreviousSlot {
             requested: slot,
@@ -64,7 +65,7 @@ pub fn process_slot<
         PENDING_ATTESTATIONS_BOUND,
     >,
     context: &Context,
-) -> Result<(), Error> {
+) -> Result<()> {
     let previous_state_root = state.hash_tree_root()?;
     let root_index = state.slot % context.slots_per_historical_root as u64;
     state.state_roots[root_index as usize] = previous_state_root;

@@ -1,6 +1,7 @@
 use crate::crypto::SecretKey;
-use crate::phase0::{compute_signing_root, Error};
+use crate::phase0::compute_signing_root;
 use crate::primitives::{BlsPublicKey, BlsSignature, Domain, Root};
+use crate::state_transition::Error;
 use ssz_rs::prelude::*;
 
 #[derive(Default, Debug, SimpleSerialize)]

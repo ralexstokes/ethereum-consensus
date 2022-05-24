@@ -3,6 +3,8 @@ use crate::primitives::{BlsSignature, Epoch, Root, Slot, ValidatorIndex};
 use ssz_rs::prelude::*;
 use thiserror::Error;
 
+pub type Result<T> = std::result::Result<T, Error>;
+
 #[derive(Debug, Error)]
 pub enum Error {
     #[error("{0}")]

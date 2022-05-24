@@ -1,23 +1,25 @@
+use crate::phase0 as spec;
+
 use crate::crypto::hash;
-use crate::phase0::state_transition::{
-    compute_domain, compute_epoch_at_slot, compute_signing_root, get_beacon_committee,
-    get_beacon_proposer_index, get_committee_count_per_slot, get_current_epoch, get_domain,
-    get_indexed_attestation, get_previous_epoch, get_randao_mix, increase_balance,
-    initiate_validator_exit, invalid_header_error, invalid_operation_error, is_active_validator,
-    is_slashable_attestation_data, is_slashable_validator, is_valid_indexed_attestation,
-    slash_validator, Context, Error, InvalidAttestation, InvalidAttesterSlashing,
-    InvalidBeaconBlockHeader, InvalidDeposit, InvalidOperation, InvalidProposerSlashing,
-    InvalidVoluntaryExit,
-};
-use crate::phase0::{
-    Attestation, AttesterSlashing, BeaconBlock, BeaconBlockBody, BeaconBlockHeader, BeaconState,
-    Deposit, DepositMessage, PendingAttestation, ProposerSlashing, SignedVoluntaryExit, Validator,
-    DEPOSIT_CONTRACT_TREE_DEPTH,
-};
 use crate::primitives::{
     BlsPublicKey, Bytes32, DomainType, Gwei, ValidatorIndex, FAR_FUTURE_EPOCH,
 };
 use crate::ssz::ByteVector;
+use crate::state_transition::{
+    invalid_header_error, invalid_operation_error, Context, Error, InvalidAttestation,
+    InvalidAttesterSlashing, InvalidBeaconBlockHeader, InvalidDeposit, InvalidOperation,
+    InvalidProposerSlashing, InvalidVoluntaryExit,
+};
+use spec::{
+    compute_domain, compute_epoch_at_slot, compute_signing_root, get_beacon_committee,
+    get_beacon_proposer_index, get_committee_count_per_slot, get_current_epoch, get_domain,
+    get_indexed_attestation, get_previous_epoch, get_randao_mix, increase_balance,
+    initiate_validator_exit, is_active_validator, is_slashable_attestation_data,
+    is_slashable_validator, is_valid_indexed_attestation, slash_validator, Attestation,
+    AttesterSlashing, BeaconBlock, BeaconBlockBody, BeaconBlockHeader, BeaconState, Deposit,
+    DepositMessage, PendingAttestation, ProposerSlashing, SignedVoluntaryExit, Validator,
+    DEPOSIT_CONTRACT_TREE_DEPTH,
+};
 use ssz_rs::prelude::*;
 use std::collections::HashSet;
 

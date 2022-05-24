@@ -1,17 +1,7 @@
-mod block_processing;
-mod context;
-mod epoch_processing;
-mod error;
-pub mod genesis;
-mod helpers;
-mod slot_processing;
+use crate::phase0 as spec;
 
-use crate::phase0::{BeaconState, SignedBeaconBlock};
-pub use block_processing::process_block;
-pub use context::Context;
-pub use error::*;
-pub use helpers::*;
-pub use slot_processing::process_slots;
+use crate::state_transition::{Context, Error, Validation};
+use spec::{process_block, process_slots, verify_block_signature, BeaconState, SignedBeaconBlock};
 use ssz_rs::prelude::*;
 
 pub fn state_transition<
@@ -47,10 +37,14 @@ pub fn state_transition<
         MAX_DEPOSITS,
         MAX_VOLUNTARY_EXITS,
     >,
-    validate_result: Option<bool>,
+    validation: Validation,
     context: &Context,
 ) -> Result<(), Error> {
-    let validate_result = validate_result.unwrap_or(true);
+    let validate_result = match validation {
+        Validation::Enabled => true,
+        Validation::Disabled => false,
+    };
+
     let slot = signed_block.message.slot;
 
     process_slots(state, slot, context)?;

@@ -1,5 +1,5 @@
 use crate::configs::{mainnet, Config};
-use crate::phase0::presets::{mainnet::PRESET as MAINNET_PRESET, Preset};
+use crate::phase0::{mainnet::PRESET as MAINNET_PRESET, Preset};
 use crate::primitives::{Epoch, Gwei, Slot, Version};
 
 #[derive(Debug, Default)]

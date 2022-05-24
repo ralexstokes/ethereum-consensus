@@ -1,10 +1,11 @@
-use crate::phase0::state_transition::block_processing::process_deposit;
-use crate::phase0::state_transition::{get_active_validator_indices, Context, Error};
-use crate::phase0::{
-    BeaconBlock, BeaconBlockBody, BeaconBlockHeader, BeaconState, Deposit, DepositData, Eth1Data,
-    Fork, DEPOSIT_CONTRACT_TREE_DEPTH,
-};
+use crate::phase0 as spec;
+
 use crate::primitives::{Gwei, Hash32, GENESIS_EPOCH};
+use crate::state_transition::{Context, Error};
+use spec::{
+    get_active_validator_indices, process_deposit, BeaconBlock, BeaconBlockBody, BeaconBlockHeader,
+    BeaconState, Deposit, DepositData, Eth1Data, Fork, DEPOSIT_CONTRACT_TREE_DEPTH,
+};
 use ssz_rs::prelude::*;
 
 const DEPOSIT_DATA_LIST_BOUND: usize = 2usize.pow(DEPOSIT_CONTRACT_TREE_DEPTH as u32);
