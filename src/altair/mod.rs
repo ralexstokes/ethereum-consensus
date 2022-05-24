@@ -10,6 +10,7 @@ mod validator;
 
 pub use beacon_block::*;
 pub use beacon_state::*;
+pub use presets::Preset;
 pub use sync::*;
 pub use validator::*;
 

@@ -1,6 +1,5 @@
 use crate::configs::Config;
-use crate::primitives::{Epoch, /*ExecutionAddress,*/ Gwei, /*Hash32,*/ Version};
-// use ssz_rs::prelude::U256;
+use crate::primitives::{Epoch, ExecutionAddress, Gwei, Version, U256};
 
 pub const MIN_GENESIS_ACTIVE_VALIDATOR_COUNT: usize = 16384;
 pub const MIN_GENESIS_TIME: u64 = 1606824000;
@@ -14,8 +13,6 @@ pub const ETH1_FOLLOW_DISTANCE: u64 = 2048;
 pub const EJECTION_BALANCE: Gwei = 16 * 10u64.pow(9);
 pub const MIN_PER_EPOCH_CHURN_LIMIT: u64 = 4;
 pub const CHURN_LIMIT_QUOTIENT: u64 = 65536;
-// pub const TERMINAL_TOTAL_DIFFICULTY: U256 = Default::default();
-// pub const TERMINAL_BLOCK_HASH: Hash32 = Default::default();
 pub const TERMINAL_BLOCK_HASH_ACTIVATION_EPOCH: Epoch = 18446744073709551615;
 pub const ALTAIR_FORK_VERSION: Version = [1, 0, 0, 0];
 pub const ALTAIR_FORK_EPOCH: Epoch = 74240;
@@ -30,13 +27,23 @@ pub const INACTIVITY_SCORE_RECOVERY_RATE: u64 = 16;
 pub const PROPOSER_SCORE_BOOST: u64 = 70;
 pub const DEPOSIT_CHAIN_ID: usize = 1;
 pub const DEPOSIT_NETWORK_ID: usize = 1;
-// pub const DEPOSIT_CONTRACT_ADDRESS: ExecutionAddress = Default::default();
 
 pub fn config() -> Config {
+    let terminal_total_difficulty = U256::from_bytes_le([0xff; 32]);
+    let terminal_block_hash = Default::default();
+    let deposit_contract_address = ExecutionAddress::try_from(
+        [
+            // 0x00000000219ab540356cBB839Cbe05303d7705Fa
+            0, 0, 0, 0, 33, 154, 181, 64, 53, 108, 187, 131, 156, 190, 5, 48, 61, 119, 5, 250,
+        ]
+        .as_ref(),
+    )
+    .unwrap();
+
     Config {
         name: "mainnet",
-        terminal_total_difficulty: Default::default(),
-        terminal_block_hash: Default::default(),
+        terminal_total_difficulty,
+        terminal_block_hash,
         terminal_block_hash_activation_epoch: TERMINAL_BLOCK_HASH_ACTIVATION_EPOCH,
         min_genesis_active_validator_count: MIN_GENESIS_ACTIVE_VALIDATOR_COUNT,
         min_genesis_time: MIN_GENESIS_TIME,
@@ -63,6 +70,6 @@ pub fn config() -> Config {
         proposer_score_boost: PROPOSER_SCORE_BOOST,
         deposit_chain_id: DEPOSIT_CHAIN_ID,
         deposit_network_id: DEPOSIT_NETWORK_ID,
-        deposit_contract_address: Default::default(),
+        deposit_contract_address,
     }
 }

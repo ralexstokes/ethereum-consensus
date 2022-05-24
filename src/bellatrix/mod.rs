@@ -11,6 +11,7 @@ pub use beacon_block::*;
 pub use beacon_state::*;
 pub use blinded_beacon_block::*;
 pub use execution::*;
+pub use presets::Preset;
 
 pub mod mainnet {
     pub use super::presets::mainnet::*;

@@ -12,3 +12,4 @@ pub mod primitives;
 #[cfg(feature = "serde")]
 pub mod serde;
 pub mod ssz;
+pub mod state_transition;

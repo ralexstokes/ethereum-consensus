@@ -1,8 +1,7 @@
 pub mod mainnet;
 pub mod minimal;
 
-use crate::primitives::{Epoch, ExecutionAddress, Gwei, Hash32, Version};
-use ssz_rs::prelude::U256;
+use crate::primitives::{Epoch, ExecutionAddress, Gwei, Hash32, Version, U256};
 
 pub struct Config {
     pub name: &'static str,
