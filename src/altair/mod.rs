@@ -3,35 +3,29 @@
 //! the "presets" like `mainnet` or `minimal`.
 mod beacon_block;
 mod beacon_state;
-// mod block_processing;
-pub mod block_processing_altair;
-// mod epoch_processing;
-pub mod epoch_processing_altair;
-// mod helpers;
-pub mod genesis_altair;
-pub mod helpers_altair;
+mod block_processing;
+mod epoch_processing;
+mod helpers;
 pub mod light_client;
 mod presets;
 mod sync;
 mod validator;
-// mod slot_processing;
-// mod state_transition;
 
 pub use crate::phase0::{
     Attestation, AttestationData, AttesterSlashing, BeaconBlockHeader, Checkpoint, Deposit,
-    DepositMessage, Eth1Data, Fork, ForkData, HistoricalBatchAccumulator, IndexedAttestation,
-    PendingAttestation, ProposerSlashing, SignedVoluntaryExit, SigningData, Validator,
-    BASE_REWARDS_PER_EPOCH, DEPOSIT_CONTRACT_TREE_DEPTH, JUSTIFICATION_BITS_LENGTH,
+    DepositData, DepositMessage, Eth1Data, Fork, ForkData, HistoricalBatchAccumulator,
+    IndexedAttestation, ProposerSlashing, SignedVoluntaryExit, Validator, BASE_REWARDS_PER_EPOCH,
+    DEPOSIT_CONTRACT_TREE_DEPTH, JUSTIFICATION_BITS_LENGTH,
+};
+
+mod state_transition;
+pub use state_transition::{
+    block_processing::*, epoch_processing::*, genesis, helpers::*, slot_processing::*, *,
 };
 
 pub use beacon_block::*;
 pub use beacon_state::*;
-// pub use block_processing::*;
-// pub use epoch_processing::*;
-// pub use helpers::*;
 pub use presets::Preset;
-// pub use slot_processing::*;
-// pub use state_transition::*;
 pub use sync::*;
 pub use validator::*;
 

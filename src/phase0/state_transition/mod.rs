@@ -1,7 +1,13 @@
+pub mod block_processing;
+pub mod epoch_processing;
+pub mod genesis;
+pub mod helpers;
+pub mod slot_processing;
+
 use crate::phase0 as spec;
 
 use crate::state_transition::{Context, Error, Validation};
-use spec::{process_block, process_slots, verify_block_signature, BeaconState, SignedBeaconBlock};
+use spec::{process_block, process_slots, verify_block_signature};
 use ssz_rs::prelude::*;
 
 pub fn state_transition<
@@ -19,7 +25,7 @@ pub fn state_transition<
     const MAX_DEPOSITS: usize,
     const MAX_VOLUNTARY_EXITS: usize,
 >(
-    state: &mut BeaconState<
+    state: &mut spec::BeaconState<
         SLOTS_PER_HISTORICAL_ROOT,
         HISTORICAL_ROOTS_LIMIT,
         ETH1_DATA_VOTES_BOUND,
@@ -29,7 +35,7 @@ pub fn state_transition<
         MAX_VALIDATORS_PER_COMMITTEE,
         PENDING_ATTESTATIONS_BOUND,
     >,
-    signed_block: &mut SignedBeaconBlock<
+    signed_block: &mut spec::SignedBeaconBlock<
         MAX_PROPOSER_SLASHINGS,
         MAX_VALIDATORS_PER_COMMITTEE,
         MAX_ATTESTER_SLASHINGS,

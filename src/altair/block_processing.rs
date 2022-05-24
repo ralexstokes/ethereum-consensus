@@ -1,7 +1,10 @@
 use crate::altair as spec;
 
 use crate::state_transition::{Context, Result};
-use spec::{Attestation, BeaconBlock, BeaconState, Deposit, SyncAggregate};
+use spec::{
+    process_block_header, process_eth1_data, process_operations, process_randao, Attestation,
+    BeaconBlock, BeaconState, Deposit, SyncAggregate,
+};
 
 pub fn process_attestation<
     const SLOTS_PER_HISTORICAL_ROOT: usize,
@@ -13,7 +16,7 @@ pub fn process_attestation<
     const MAX_VALIDATORS_PER_COMMITTEE: usize,
     const SYNC_COMMITTEE_SIZE: usize,
 >(
-    state: &mut BeaconState<
+    _state: &mut BeaconState<
         SLOTS_PER_HISTORICAL_ROOT,
         HISTORICAL_ROOTS_LIMIT,
         ETH1_DATA_VOTES_BOUND,
@@ -23,8 +26,8 @@ pub fn process_attestation<
         MAX_VALIDATORS_PER_COMMITTEE,
         SYNC_COMMITTEE_SIZE,
     >,
-    attestation: &Attestation<MAX_VALIDATORS_PER_COMMITTEE>,
-    context: &Context,
+    _attestation: &Attestation<MAX_VALIDATORS_PER_COMMITTEE>,
+    _context: &Context,
 ) -> Result<()> {
     Ok(())
 }
@@ -39,7 +42,7 @@ pub fn process_deposit<
     const MAX_VALIDATORS_PER_COMMITTEE: usize,
     const SYNC_COMMITTEE_SIZE: usize,
 >(
-    state: &mut BeaconState<
+    _state: &mut BeaconState<
         SLOTS_PER_HISTORICAL_ROOT,
         HISTORICAL_ROOTS_LIMIT,
         ETH1_DATA_VOTES_BOUND,
@@ -49,8 +52,8 @@ pub fn process_deposit<
         MAX_VALIDATORS_PER_COMMITTEE,
         SYNC_COMMITTEE_SIZE,
     >,
-    deposit: &mut Deposit,
-    context: &Context,
+    _deposit: &mut Deposit,
+    _context: &Context,
 ) -> Result<()> {
     Ok(())
 }
@@ -65,7 +68,7 @@ pub fn process_sync_aggregate<
     const MAX_VALIDATORS_PER_COMMITTEE: usize,
     const SYNC_COMMITTEE_SIZE: usize,
 >(
-    state: &mut BeaconState<
+    _state: &mut BeaconState<
         SLOTS_PER_HISTORICAL_ROOT,
         HISTORICAL_ROOTS_LIMIT,
         ETH1_DATA_VOTES_BOUND,
@@ -75,8 +78,8 @@ pub fn process_sync_aggregate<
         MAX_VALIDATORS_PER_COMMITTEE,
         SYNC_COMMITTEE_SIZE,
     >,
-    sync_aggregate: &SyncAggregate<SYNC_COMMITTEE_SIZE>,
-    context: &Context,
+    _sync_aggregate: &SyncAggregate<SYNC_COMMITTEE_SIZE>,
+    _context: &Context,
 ) -> Result<()> {
     Ok(())
 }
@@ -117,10 +120,10 @@ pub fn process_block<
     >,
     context: &Context,
 ) -> Result<()> {
-    // process_block_header(state, block, context)?;
-    // process_randao(state, &block.body, context)?;
-    // process_eth1_data(state, &block.body, context);
-    // process_operations(state, &mut block.body, context)?;
+    process_block_header(state, block, context)?;
+    process_randao(state, &block.body, context)?;
+    process_eth1_data(state, &block.body, context);
+    process_operations(state, &mut block.body, context)?;
     process_sync_aggregate(state, &block.body.sync_aggregate, context)?;
     Ok(())
 }

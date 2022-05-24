@@ -4,6 +4,7 @@ use crate::crypto::hash;
 use crate::primitives::{
     BlsPublicKey, Bytes32, DomainType, Gwei, ValidatorIndex, FAR_FUTURE_EPOCH,
 };
+use crate::signing::compute_signing_root;
 use crate::ssz::ByteVector;
 use crate::state_transition::{
     invalid_header_error, invalid_operation_error, Context, Error, InvalidAttestation,
@@ -11,14 +12,13 @@ use crate::state_transition::{
     InvalidProposerSlashing, InvalidVoluntaryExit,
 };
 use spec::{
-    compute_domain, compute_epoch_at_slot, compute_signing_root, get_beacon_committee,
-    get_beacon_proposer_index, get_committee_count_per_slot, get_current_epoch, get_domain,
-    get_indexed_attestation, get_previous_epoch, get_randao_mix, increase_balance,
-    initiate_validator_exit, is_active_validator, is_slashable_attestation_data,
-    is_slashable_validator, is_valid_indexed_attestation, slash_validator, Attestation,
-    AttesterSlashing, BeaconBlock, BeaconBlockBody, BeaconBlockHeader, BeaconState, Deposit,
-    DepositMessage, PendingAttestation, ProposerSlashing, SignedVoluntaryExit, Validator,
-    DEPOSIT_CONTRACT_TREE_DEPTH,
+    compute_domain, compute_epoch_at_slot, get_beacon_committee, get_beacon_proposer_index,
+    get_committee_count_per_slot, get_current_epoch, get_domain, get_indexed_attestation,
+    get_previous_epoch, get_randao_mix, increase_balance, initiate_validator_exit,
+    is_active_validator, is_slashable_attestation_data, is_slashable_validator,
+    is_valid_indexed_attestation, slash_validator, Attestation, AttesterSlashing, BeaconBlock,
+    BeaconBlockBody, BeaconBlockHeader, BeaconState, Deposit, DepositMessage, PendingAttestation,
+    ProposerSlashing, SignedVoluntaryExit, Validator, DEPOSIT_CONTRACT_TREE_DEPTH,
 };
 use ssz_rs::prelude::*;
 use std::collections::HashSet;
@@ -290,7 +290,7 @@ pub fn process_attestation<
     Ok(())
 }
 
-fn get_validator_from_deposit(deposit: &Deposit, context: &Context) -> Validator {
+pub fn get_validator_from_deposit(deposit: &Deposit, context: &Context) -> Validator {
     let amount = deposit.data.amount;
     let effective_balance = Gwei::min(
         amount - amount % context.effective_balance_increment,
@@ -475,7 +475,7 @@ pub fn process_voluntary_exit<
     Ok(())
 }
 
-fn process_block_header<
+pub fn process_block_header<
     const SLOTS_PER_HISTORICAL_ROOT: usize,
     const HISTORICAL_ROOTS_LIMIT: usize,
     const ETH1_DATA_VOTES_BOUND: usize,
@@ -566,7 +566,7 @@ fn process_block_header<
     Ok(())
 }
 
-fn xor(a: &Bytes32, b: &Bytes32) -> Bytes32 {
+pub fn xor(a: &Bytes32, b: &Bytes32) -> Bytes32 {
     let inner = a
         .iter()
         .zip(b.iter())
@@ -575,7 +575,7 @@ fn xor(a: &Bytes32, b: &Bytes32) -> Bytes32 {
     ByteVector::<32>(inner)
 }
 
-fn process_randao<
+pub fn process_randao<
     const SLOTS_PER_HISTORICAL_ROOT: usize,
     const HISTORICAL_ROOTS_LIMIT: usize,
     const ETH1_DATA_VOTES_BOUND: usize,
@@ -636,7 +636,7 @@ fn process_randao<
     Ok(())
 }
 
-fn process_eth1_data<
+pub fn process_eth1_data<
     const SLOTS_PER_HISTORICAL_ROOT: usize,
     const HISTORICAL_ROOTS_LIMIT: usize,
     const ETH1_DATA_VOTES_BOUND: usize,
@@ -684,7 +684,7 @@ fn process_eth1_data<
     }
 }
 
-fn process_operations<
+pub fn process_operations<
     const SLOTS_PER_HISTORICAL_ROOT: usize,
     const HISTORICAL_ROOTS_LIMIT: usize,
     const ETH1_DATA_VOTES_BOUND: usize,

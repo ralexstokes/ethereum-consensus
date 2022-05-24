@@ -5,13 +5,14 @@ use crate::primitives::{
     Bytes32, CommitteeIndex, Domain, DomainType, Epoch, ForkDigest, Gwei, Root, Slot,
     ValidatorIndex, Version, FAR_FUTURE_EPOCH, GENESIS_EPOCH,
 };
+use crate::signing::compute_signing_root;
 use crate::state_transition::{
     invalid_operation_error, Context, Error, InvalidAttestation, InvalidIndexedAttestation,
     InvalidOperation,
 };
 use spec::{
     Attestation, AttestationData, BeaconState, ForkData, IndexedAttestation, SignedBeaconBlock,
-    SigningData, Validator,
+    Validator,
 };
 use ssz_rs::prelude::*;
 use std::cmp;
@@ -278,19 +279,6 @@ pub fn get_current_epoch<
     context: &Context,
 ) -> Epoch {
     compute_epoch_at_slot(state.slot, context)
-}
-
-pub fn compute_signing_root<T: SimpleSerialize>(
-    ssz_object: &mut T,
-    domain: Domain,
-) -> Result<Root, Error> {
-    let object_root = ssz_object.hash_tree_root()?;
-
-    let mut s = SigningData {
-        object_root,
-        domain,
-    };
-    s.hash_tree_root().map_err(Error::Merkleization)
 }
 
 pub fn compute_shuffled_index(

@@ -26,7 +26,7 @@ pub fn process_justification_and_finalization<
     const MAX_VALIDATORS_PER_COMMITTEE: usize,
     const SYNC_COMMITTEE_SIZE: usize,
 >(
-    state: &mut BeaconState<
+    _state: &mut BeaconState<
         SLOTS_PER_HISTORICAL_ROOT,
         HISTORICAL_ROOTS_LIMIT,
         ETH1_DATA_VOTES_BOUND,
@@ -36,7 +36,7 @@ pub fn process_justification_and_finalization<
         MAX_VALIDATORS_PER_COMMITTEE,
         SYNC_COMMITTEE_SIZE,
     >,
-    context: &Context,
+    _context: &Context,
 ) -> Result<()> {
     Ok(())
 }
@@ -51,7 +51,7 @@ pub fn process_inactivity_updates<
     const MAX_VALIDATORS_PER_COMMITTEE: usize,
     const SYNC_COMMITTEE_SIZE: usize,
 >(
-    state: &mut BeaconState<
+    _state: &mut BeaconState<
         SLOTS_PER_HISTORICAL_ROOT,
         HISTORICAL_ROOTS_LIMIT,
         ETH1_DATA_VOTES_BOUND,
@@ -61,7 +61,7 @@ pub fn process_inactivity_updates<
         MAX_VALIDATORS_PER_COMMITTEE,
         SYNC_COMMITTEE_SIZE,
     >,
-    context: &Context,
+    _context: &Context,
 ) -> Result<()> {
     Ok(())
 }
@@ -76,7 +76,7 @@ pub fn process_rewards_and_penalties<
     const MAX_VALIDATORS_PER_COMMITTEE: usize,
     const SYNC_COMMITTEE_SIZE: usize,
 >(
-    state: &mut BeaconState<
+    _state: &mut BeaconState<
         SLOTS_PER_HISTORICAL_ROOT,
         HISTORICAL_ROOTS_LIMIT,
         ETH1_DATA_VOTES_BOUND,
@@ -86,7 +86,7 @@ pub fn process_rewards_and_penalties<
         MAX_VALIDATORS_PER_COMMITTEE,
         SYNC_COMMITTEE_SIZE,
     >,
-    context: &Context,
+    _context: &Context,
 ) -> Result<()> {
     Ok(())
 }
@@ -101,7 +101,7 @@ pub fn process_slashings<
     const MAX_VALIDATORS_PER_COMMITTEE: usize,
     const SYNC_COMMITTEE_SIZE: usize,
 >(
-    state: &mut BeaconState<
+    _state: &mut BeaconState<
         SLOTS_PER_HISTORICAL_ROOT,
         HISTORICAL_ROOTS_LIMIT,
         ETH1_DATA_VOTES_BOUND,
@@ -111,7 +111,7 @@ pub fn process_slashings<
         MAX_VALIDATORS_PER_COMMITTEE,
         SYNC_COMMITTEE_SIZE,
     >,
-    context: &Context,
+    _context: &Context,
 ) -> Result<()> {
     Ok(())
 }
@@ -126,7 +126,7 @@ pub fn process_participation_flag_updates<
     const MAX_VALIDATORS_PER_COMMITTEE: usize,
     const SYNC_COMMITTEE_SIZE: usize,
 >(
-    state: &mut BeaconState<
+    _state: &mut BeaconState<
         SLOTS_PER_HISTORICAL_ROOT,
         HISTORICAL_ROOTS_LIMIT,
         ETH1_DATA_VOTES_BOUND,
@@ -136,7 +136,7 @@ pub fn process_participation_flag_updates<
         MAX_VALIDATORS_PER_COMMITTEE,
         SYNC_COMMITTEE_SIZE,
     >,
-    context: &Context,
+    _context: &Context,
 ) -> Result<()> {
     Ok(())
 }
@@ -151,7 +151,7 @@ pub fn process_sync_committee_updates<
     const MAX_VALIDATORS_PER_COMMITTEE: usize,
     const SYNC_COMMITTEE_SIZE: usize,
 >(
-    state: &mut BeaconState<
+    _state: &mut BeaconState<
         SLOTS_PER_HISTORICAL_ROOT,
         HISTORICAL_ROOTS_LIMIT,
         ETH1_DATA_VOTES_BOUND,
@@ -161,7 +161,7 @@ pub fn process_sync_committee_updates<
         MAX_VALIDATORS_PER_COMMITTEE,
         SYNC_COMMITTEE_SIZE,
     >,
-    context: &Context,
+    _context: &Context,
 ) -> Result<()> {
     Ok(())
 }

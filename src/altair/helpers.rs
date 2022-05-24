@@ -224,7 +224,7 @@ pub fn slash_validator<
     const MAX_VALIDATORS_PER_COMMITTEE: usize,
     const SYNC_COMMITTEE_SIZE: usize,
 >(
-    state: &BeaconState<
+    _state: &BeaconState<
         SLOTS_PER_HISTORICAL_ROOT,
         HISTORICAL_ROOTS_LIMIT,
         ETH1_DATA_VOTES_BOUND,
@@ -234,9 +234,9 @@ pub fn slash_validator<
         MAX_VALIDATORS_PER_COMMITTEE,
         SYNC_COMMITTEE_SIZE,
     >,
-    slashed_index: ValidatorIndex,
-    whistleblower_index: Option<ValidatorIndex>,
-    context: &Context,
+    _slashed_index: ValidatorIndex,
+    _whistleblower_index: Option<ValidatorIndex>,
+    _context: &Context,
 ) -> Result<(), Error> {
     Ok(())
 }
