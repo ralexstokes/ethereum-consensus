@@ -1,4 +1,5 @@
 pub use crate::crypto::{PublicKey as BlsPublicKey, Signature as BlsSignature};
+pub use crate::domains::DomainType;
 use crate::ssz::ByteVector;
 use ssz_rs::prelude::*;
 
@@ -12,7 +13,6 @@ pub type Gwei = u64;
 pub type Hash32 = Bytes32;
 
 pub type Version = [u8; 4];
-pub type DomainType = [u8; 4];
 pub type ForkDigest = [u8; 4];
 pub type Domain = [u8; 32];
 

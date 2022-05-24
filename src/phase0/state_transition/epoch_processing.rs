@@ -1,5 +1,3 @@
-use crate::phase0::beacon_state::{BeaconState, HistoricalBatchAccumulator};
-use crate::phase0::operations::PendingAttestation;
 use crate::phase0::state_transition::{
     compute_activation_exit_epoch, decrease_balance, get_attesting_indices, get_block_root,
     get_block_root_at_slot, get_current_epoch, get_previous_epoch, get_randao_mix,
@@ -7,7 +5,10 @@ use crate::phase0::state_transition::{
     initiate_validator_exit, is_active_validator, is_eligible_for_activation,
     is_eligible_for_activation_queue, Checkpoint, Context, Error,
 };
-use crate::phase0::{BASE_REWARDS_PER_EPOCH, JUSTIFICATION_BITS_LENGTH};
+use crate::phase0::{
+    BeaconState, HistoricalBatchAccumulator, PendingAttestation, BASE_REWARDS_PER_EPOCH,
+    JUSTIFICATION_BITS_LENGTH,
+};
 use crate::primitives::{Epoch, Gwei, ValidatorIndex, GENESIS_EPOCH};
 use integer_sqrt::IntegerSquareRoot;
 use ssz_rs::prelude::*;

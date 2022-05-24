@@ -1,4 +1,4 @@
-use crate::altair::sync::SyncCommittee;
+use crate::altair::SyncCommittee;
 use crate::phase0::{
     BeaconBlockHeader, Checkpoint, Eth1Data, Fork, Validator, JUSTIFICATION_BITS_LENGTH,
 };

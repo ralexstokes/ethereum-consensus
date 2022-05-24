@@ -1,7 +1,8 @@
-use crate::crypto::{PublicKey as BLSPubkey, Signature as BLSSignature};
-use crate::phase0::beacon_block::SignedBeaconBlockHeader;
-use crate::phase0::DEPOSIT_CONTRACT_TREE_DEPTH;
-use crate::primitives::{Bytes32, CommitteeIndex, Epoch, Gwei, Hash32, Root, Slot, ValidatorIndex};
+use crate::phase0::{SignedBeaconBlockHeader, DEPOSIT_CONTRACT_TREE_DEPTH};
+use crate::primitives::{
+    BlsPublicKey, BlsSignature, Bytes32, CommitteeIndex, Epoch, Gwei, Hash32, Root, Slot,
+    ValidatorIndex,
+};
 use ssz_rs::prelude::*;
 
 #[derive(Default, Clone, Debug, SimpleSerialize, PartialEq, Eq)]
@@ -30,7 +31,7 @@ pub struct IndexedAttestation<const MAX_VALIDATORS_PER_COMMITTEE: usize> {
     #[serde(with = "crate::serde::collection_over_string")]
     pub attesting_indices: List<ValidatorIndex, MAX_VALIDATORS_PER_COMMITTEE>,
     pub data: AttestationData,
-    pub signature: BLSSignature,
+    pub signature: BlsSignature,
 }
 
 #[derive(Default, Debug, SimpleSerialize, Clone)]
@@ -49,7 +50,7 @@ pub struct PendingAttestation<const MAX_VALIDATORS_PER_COMMITTEE: usize> {
 pub struct Attestation<const MAX_VALIDATORS_PER_COMMITTEE: usize> {
     pub aggregation_bits: Bitlist<MAX_VALIDATORS_PER_COMMITTEE>,
     pub data: AttestationData,
-    pub signature: BLSSignature,
+    pub signature: BlsSignature,
 }
 
 #[derive(Default, Debug, SimpleSerialize, Clone, PartialEq, Eq)]
@@ -65,7 +66,7 @@ pub struct Eth1Data {
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct DepositMessage {
     #[serde(rename = "pubkey")]
-    pub public_key: BLSPubkey,
+    pub public_key: BlsPublicKey,
     pub withdrawal_credentials: Bytes32,
     #[serde(with = "crate::serde::as_string")]
     pub amount: Gwei,
@@ -75,11 +76,11 @@ pub struct DepositMessage {
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct DepositData {
     #[serde(rename = "pubkey")]
-    pub public_key: BLSPubkey,
+    pub public_key: BlsPublicKey,
     pub withdrawal_credentials: Bytes32,
     #[serde(with = "crate::serde::as_string")]
     pub amount: Gwei,
-    pub signature: BLSSignature,
+    pub signature: BlsSignature,
 }
 
 #[derive(Default, Debug, SimpleSerialize)]
@@ -122,5 +123,5 @@ pub struct VoluntaryExit {
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct SignedVoluntaryExit {
     pub message: VoluntaryExit,
-    pub signature: BLSSignature,
+    pub signature: BlsSignature,
 }

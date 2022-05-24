@@ -1,6 +1,5 @@
-use crate::domains::DomainType;
 use crate::phase0::{compute_domain, Context, Error};
-use crate::primitives::{BlsPublicKey, BlsSignature, Domain, ExecutionAddress};
+use crate::primitives::{BlsPublicKey, BlsSignature, Domain, DomainType, ExecutionAddress};
 use ssz_rs::prelude::*;
 
 #[derive(Debug, Clone, Default, SimpleSerialize)]

@@ -1,4 +1,4 @@
-use crate::altair::sync::SyncAggregate;
+use crate::altair::SyncAggregate;
 use crate::phase0::{
     Attestation, AttesterSlashing, Deposit, Eth1Data, ProposerSlashing, SignedVoluntaryExit,
 };

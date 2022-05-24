@@ -1,6 +1,3 @@
-use crate::primitives::{Domain, Root};
-use ssz_rs::prelude::*;
-
 #[derive(Clone, Copy)]
 pub enum DomainType {
     BeaconProposer,
@@ -25,10 +22,4 @@ impl DomainType {
             }
         }
     }
-}
-
-#[derive(Default, Debug, SimpleSerialize)]
-pub struct SigningData {
-    pub object_root: Root,
-    pub domain: Domain,
 }

@@ -7,11 +7,11 @@ mod blinded_beacon_block;
 mod execution;
 mod presets;
 
-pub mod mainnet {
-    pub use super::presets::mainnet::*;
-}
-
 pub use beacon_block::*;
 pub use beacon_state::*;
 pub use blinded_beacon_block::*;
 pub use execution::*;
+
+pub mod mainnet {
+    pub use super::presets::mainnet::*;
+}

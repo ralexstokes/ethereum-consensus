@@ -1,8 +1,7 @@
-use crate::crypto::Signature as BLSSignature;
-use crate::phase0::operations::{
+use crate::phase0::{
     Attestation, AttesterSlashing, Deposit, Eth1Data, ProposerSlashing, SignedVoluntaryExit,
 };
-use crate::primitives::{Bytes32, Root, Slot, ValidatorIndex};
+use crate::primitives::{BlsSignature, Bytes32, Root, Slot, ValidatorIndex};
 use ssz_rs::prelude::*;
 
 #[derive(Default, Debug, SimpleSerialize)]
@@ -15,7 +14,7 @@ pub struct BeaconBlockBody<
     const MAX_DEPOSITS: usize,
     const MAX_VOLUNTARY_EXITS: usize,
 > {
-    pub randao_reveal: BLSSignature,
+    pub randao_reveal: BlsSignature,
     pub eth1_data: Eth1Data,
     pub graffiti: Bytes32,
     pub proposer_slashings: List<ProposerSlashing, MAX_PROPOSER_SLASHINGS>,
@@ -70,7 +69,7 @@ pub struct SignedBeaconBlock<
         MAX_DEPOSITS,
         MAX_VOLUNTARY_EXITS,
     >,
-    pub signature: BLSSignature,
+    pub signature: BlsSignature,
 }
 
 #[derive(Default, Debug, SimpleSerialize, Clone, PartialEq, Eq)]
@@ -89,5 +88,5 @@ pub struct BeaconBlockHeader {
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct SignedBeaconBlockHeader {
     pub message: BeaconBlockHeader,
-    pub signature: BLSSignature,
+    pub signature: BlsSignature,
 }

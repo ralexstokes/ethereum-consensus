@@ -8,7 +8,7 @@ use crate::phase0::mainnet::{
 };
 use crate::primitives::Epoch;
 
-pub use altair::SyncCommitteeMessage;
+pub use altair::*;
 
 pub const INACTIVITY_PENALTY_QUOTIENT_ALTAIR: u64 = 50331648;
 pub const MIN_SLASHING_PENALTY_QUOTIENT_ALTAIR: u64 = 64;
@@ -19,6 +19,7 @@ pub const MIN_SYNC_COMMITTEE_PARTICIPANTS: usize = 1;
 pub const UPDATE_TIMEOUT: usize = 8192;
 
 pub const TARGET_AGGREGATORS_PER_SYNC_SUBCOMMITTEE: usize = 16;
+pub const SYNC_SUBCOMMITTEE_SIZE: usize = altair::get_sync_subcommittee_size(SYNC_COMMITTEE_SIZE);
 
 pub const PRESET: Preset = Preset {
     inactivity_penalty_quotient_altair: INACTIVITY_PENALTY_QUOTIENT_ALTAIR,
@@ -29,8 +30,6 @@ pub const PRESET: Preset = Preset {
     min_sync_committee_participants: MIN_SYNC_COMMITTEE_PARTICIPANTS,
     update_timeout: UPDATE_TIMEOUT,
 };
-
-pub const SYNC_SUBCOMMITTEE_SIZE: usize = altair::get_sync_subcommittee_size(SYNC_COMMITTEE_SIZE);
 
 pub type SyncAggregate = altair::SyncAggregate<SYNC_COMMITTEE_SIZE>;
 pub type SyncCommittee = altair::SyncCommittee<SYNC_COMMITTEE_SIZE>;
