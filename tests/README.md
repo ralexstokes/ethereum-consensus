@@ -2,7 +2,7 @@
 
 The consensus spec tests repo is [here](https://github.com/ethereum/consensus-spec-tests).
 
-In order to run tests against the consensus spec test repo, [Git LFS](https://git-lfs.github.com) must be installed. Use the following commands:
+In order to run tests against the consensus spec test repo, use the following commands:
 
 ```
 just build-integration-tests
