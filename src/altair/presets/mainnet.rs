@@ -1,11 +1,14 @@
 use crate::altair;
 use crate::altair::presets::Preset;
-use crate::phase0;
+use crate::phase0::mainnet::{
+    EPOCHS_PER_HISTORICAL_VECTOR, EPOCHS_PER_SLASHINGS_VECTOR, ETH1_DATA_VOTES_BOUND,
+    HISTORICAL_ROOTS_LIMIT, MAX_ATTESTATIONS, MAX_ATTESTER_SLASHINGS, MAX_DEPOSITS,
+    MAX_PROPOSER_SLASHINGS, MAX_VALIDATORS_PER_COMMITTEE, MAX_VOLUNTARY_EXITS,
+    SLOTS_PER_HISTORICAL_ROOT, VALIDATOR_REGISTRY_LIMIT,
+};
 use crate::primitives::Epoch;
 
 pub use altair::*;
-// use all items previously defined in the prior fork:
-pub use phase0::mainnet::*;
 
 pub const INACTIVITY_PENALTY_QUOTIENT_ALTAIR: u64 = 50331648;
 pub const MIN_SLASHING_PENALTY_QUOTIENT_ALTAIR: u64 = 64;
