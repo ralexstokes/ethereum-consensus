@@ -4,7 +4,10 @@
 mod beacon_block;
 mod beacon_state;
 mod blinded_beacon_block;
+mod block_processing;
+mod epoch_processing;
 mod execution;
+mod helpers;
 mod presets;
 
 pub use beacon_block::*;
