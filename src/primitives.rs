@@ -26,6 +26,8 @@ pub type NetworkId = usize;
 pub type RandaoReveal = BlsSignature;
 pub type Bytes32 = ByteVector<32>;
 
+pub type ParticipationFlags = u8;
+
 // Coordinate refers to a unique location in the block tree
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct Coordinate {
