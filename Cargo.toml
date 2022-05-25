@@ -10,7 +10,7 @@ default = ["serde", "async", "spec-tests"]
 serde = ["dep:serde", "hex"]
 async = ["tokio", "tokio-stream", "async-stream"]
 spec-tests = ["serde", "serde_json", "serde_yaml", "glob"]
-gen-spec = ["syn", "prettyplease" ]
+gen-spec = ["syn", "prettyplease", "quote"]
 
 [dependencies]
 ssz-rs = { git = "https://github.com/ralexstokes/ssz-rs" }
@@ -35,6 +35,7 @@ async-stream = { version = "0.3.3", optional = true }
 
 syn = { version = "1.0.95", features = ["full", "visit", "visit-mut", "extra-traits"], optional = true }
 prettyplease = { version = "0.1.10", optional = true }
+quote = { version = "1.0.18", optional = true }
 
 [dev-dependencies]
 serde_with = "1.13.0"
