@@ -1,7 +1,7 @@
 //! WARNING: This file was derived by the `gen-spec` utility. DO NOT EDIT MANUALLY.
 use crate::altair as spec;
 use crate::primitives::{Epoch, Gwei, ValidatorIndex};
-use crate::state_transition::{Context, Error};
+use crate::state_transition::{Context, Result};
 use integer_sqrt::IntegerSquareRoot;
 use spec::{
     compute_activation_exit_epoch, get_block_root, get_current_epoch, get_previous_epoch,
@@ -217,7 +217,7 @@ pub fn process_historical_roots_update<
         SYNC_COMMITTEE_SIZE,
     >,
     context: &Context,
-) -> Result<(), Error> {
+) -> Result<()> {
     let next_epoch = get_current_epoch(state, context) + 1;
     let epochs_per_historical_root = context.slots_per_historical_root / context.slots_per_epoch;
     if next_epoch % epochs_per_historical_root == 0 {
@@ -255,7 +255,7 @@ pub fn weigh_justification_and_finalization<
     previous_epoch_target_balance: Gwei,
     current_epoch_target_balance: Gwei,
     context: &Context,
-) -> Result<(), Error> {
+) -> Result<()> {
     let previous_epoch = get_current_epoch(state, context);
     let current_epoch = get_current_epoch(state, context);
     let old_previous_justified_checkpoint = state.previous_justified_checkpoint.clone();
@@ -316,7 +316,7 @@ pub fn get_base_reward<
     >,
     index: ValidatorIndex,
     context: &Context,
-) -> Result<Gwei, Error> {
+) -> Result<Gwei> {
     let total_balance = get_total_active_balance(state, context)?;
     let effective_balance = state.validators[index].effective_balance;
     Ok(effective_balance * context.base_reward_factor
@@ -345,7 +345,7 @@ pub fn get_proposer_reward<
     >,
     attesting_index: ValidatorIndex,
     context: &Context,
-) -> Result<Gwei, Error> {
+) -> Result<Gwei> {
     Ok(get_base_reward(state, attesting_index, context)? / context.proposer_reward_quotient)
 }
 pub fn get_finality_delay<

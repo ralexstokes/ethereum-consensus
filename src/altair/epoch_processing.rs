@@ -1,5 +1,6 @@
 // TODO remove once impl is added
 #![allow(dead_code)]
+#![allow(unused_imports)]
 
 use crate::altair::BeaconState;
 use crate::state_transition::{Context, Result};

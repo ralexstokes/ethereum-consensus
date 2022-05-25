@@ -9,9 +9,9 @@ use crate::primitives::{Bytes32, DomainType, Gwei, ValidatorIndex, FAR_FUTURE_EP
 use crate::signing::compute_signing_root;
 use crate::ssz::ByteVector;
 use crate::state_transition::{
-    invalid_header_error, invalid_operation_error, Context, Error, InvalidAttesterSlashing,
+    invalid_header_error, invalid_operation_error, Context, InvalidAttesterSlashing,
     InvalidBeaconBlockHeader, InvalidDeposit, InvalidOperation, InvalidProposerSlashing,
-    InvalidVoluntaryExit,
+    InvalidVoluntaryExit, Result,
 };
 use spec::{
     compute_epoch_at_slot, get_beacon_proposer_index, get_current_epoch, get_domain,
@@ -44,7 +44,7 @@ pub fn process_proposer_slashing<
     >,
     proposer_slashing: &mut ProposerSlashing,
     context: &Context,
-) -> Result<(), Error> {
+) -> Result<()> {
     let header_1 = &proposer_slashing.signed_header_1.message;
     let header_2 = &proposer_slashing.signed_header_2.message;
     if header_1.slot != header_2.slot {
@@ -112,7 +112,7 @@ pub fn process_attester_slashing<
     >,
     attester_slashing: &mut AttesterSlashing<MAX_VALIDATORS_PER_COMMITTEE>,
     context: &Context,
-) -> Result<(), Error> {
+) -> Result<()> {
     let attestation_1 = &mut attester_slashing.attestation_1;
     let attestation_2 = &mut attester_slashing.attestation_2;
     if !is_slashable_attestation_data(&attestation_1.data, &attestation_2.data) {
@@ -188,7 +188,7 @@ pub fn process_voluntary_exit<
     >,
     signed_voluntary_exit: &mut SignedVoluntaryExit,
     context: &Context,
-) -> Result<(), Error> {
+) -> Result<()> {
     let voluntary_exit = &mut signed_voluntary_exit.message;
     let validator = &state.validators[voluntary_exit.validator_index];
     let current_epoch = get_current_epoch(state, context);
@@ -276,7 +276,7 @@ pub fn process_block_header<
         SYNC_COMMITTEE_SIZE,
     >,
     context: &Context,
-) -> Result<(), Error> {
+) -> Result<()> {
     if block.slot != state.slot {
         return Err(invalid_header_error(
             InvalidBeaconBlockHeader::StateSlotMismatch {
@@ -369,7 +369,7 @@ pub fn process_randao<
         SYNC_COMMITTEE_SIZE,
     >,
     context: &Context,
-) -> Result<(), Error> {
+) -> Result<()> {
     let mut epoch = get_current_epoch(state, context);
     let proposer_index = get_beacon_proposer_index(state, context)?;
     let proposer = &state.validators[proposer_index];
@@ -472,7 +472,7 @@ pub fn process_operations<
         SYNC_COMMITTEE_SIZE,
     >,
     context: &Context,
-) -> Result<(), Error> {
+) -> Result<()> {
     let expected_deposit_count = usize::min(
         context.max_deposits,
         (state.eth1_data.deposit_count - state.eth1_deposit_index) as usize,

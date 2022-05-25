@@ -6,7 +6,7 @@ pub mod slot_processing;
 
 use crate::phase0 as spec;
 
-use crate::state_transition::{Context, Error, Validation};
+use crate::state_transition::{Context, Error, Result, Validation};
 use spec::{process_block, process_slots, verify_block_signature};
 use ssz_rs::prelude::*;
 
@@ -45,7 +45,7 @@ pub fn state_transition<
     >,
     validation: Validation,
     context: &Context,
-) -> Result<(), Error> {
+) -> Result<()> {
     let validate_result = match validation {
         Validation::Enabled => true,
         Validation::Disabled => false,

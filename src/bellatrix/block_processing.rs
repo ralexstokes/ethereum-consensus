@@ -5,7 +5,7 @@
 use crate::bellatrix as spec;
 
 use crate::state_transition::{Context, Result};
-use spec::{BeaconBlockBody, BeaconState, ExecutionPayload};
+use spec::{BeaconBlock, BeaconState, ExecutionPayload};
 
 pub fn process_execution_payload<
     const SLOTS_PER_HISTORICAL_ROOT: usize,
@@ -65,7 +65,7 @@ pub fn process_block<
     const MAX_BYTES_PER_TRANSACTION: usize,
     const MAX_TRANSACTIONS_PER_PAYLOAD: usize,
 >(
-    state: &BeaconState<
+    state: &mut BeaconState<
         SLOTS_PER_HISTORICAL_ROOT,
         HISTORICAL_ROOTS_LIMIT,
         ETH1_DATA_VOTES_BOUND,
@@ -79,7 +79,7 @@ pub fn process_block<
         MAX_BYTES_PER_TRANSACTION,
         MAX_TRANSACTIONS_PER_PAYLOAD,
     >,
-    body: BeaconBlockBody<
+    block: &mut BeaconBlock<
         MAX_PROPOSER_SLASHINGS,
         MAX_VALIDATORS_PER_COMMITTEE,
         MAX_ATTESTER_SLASHINGS,

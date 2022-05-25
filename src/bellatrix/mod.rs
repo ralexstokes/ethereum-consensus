@@ -4,10 +4,10 @@
 mod beacon_block;
 mod beacon_state;
 mod blinded_beacon_block;
-mod block_processing;
-mod epoch_processing;
+pub mod block_processing;
+pub mod epoch_processing;
 mod execution;
-mod helpers;
+pub mod helpers;
 mod presets;
 
 pub use beacon_block::*;
@@ -15,6 +15,14 @@ pub use beacon_state::*;
 pub use blinded_beacon_block::*;
 pub use execution::*;
 pub use presets::Preset;
+
+pub use crate::altair::SyncAggregate;
+pub use crate::phase0::{
+    Attestation, AttestationData, AttesterSlashing, BeaconBlockHeader, Checkpoint, Deposit,
+    DepositData, DepositMessage, Eth1Data, Fork, ForkData, HistoricalBatchAccumulator,
+    IndexedAttestation, ProposerSlashing, SignedVoluntaryExit, Validator, BASE_REWARDS_PER_EPOCH,
+    DEPOSIT_CONTRACT_TREE_DEPTH, JUSTIFICATION_BITS_LENGTH,
+};
 
 pub mod mainnet {
     pub use super::presets::mainnet::*;

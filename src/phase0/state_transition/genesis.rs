@@ -1,7 +1,7 @@
 use crate::phase0 as spec;
 
 use crate::primitives::{Gwei, Hash32, GENESIS_EPOCH};
-use crate::state_transition::{Context, Error};
+use crate::state_transition::{Context, Result};
 use spec::{
     get_active_validator_indices, process_deposit, BeaconBlock, BeaconBlockBody, BeaconBlockHeader,
     BeaconState, Deposit, DepositData, Eth1Data, Fork, DEPOSIT_CONTRACT_TREE_DEPTH,
@@ -40,7 +40,6 @@ pub fn initialize_beacon_state_from_eth1<
         MAX_VALIDATORS_PER_COMMITTEE,
         PENDING_ATTESTATIONS_BOUND,
     >,
-    Error,
 > {
     let fork = Fork {
         previous_version: context.genesis_fork_version,
@@ -177,7 +176,6 @@ pub fn get_genesis_block<
         MAX_DEPOSITS,
         MAX_VOLUNTARY_EXITS,
     >,
-    Error,
 > {
     Ok(BeaconBlock {
         state_root: genesis_state.hash_tree_root()?,

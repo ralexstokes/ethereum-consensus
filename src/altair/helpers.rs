@@ -3,7 +3,7 @@
 
 use crate::altair::BeaconState;
 use crate::primitives::{ParticipationFlags, ValidatorIndex};
-use crate::state_transition::{Context, Error};
+use crate::state_transition::{Context, Result};
 
 pub fn add_flag(flags: ParticipationFlags, flag_index: u8) -> ParticipationFlags {
     // Return a new ``ParticipationFlags`` adding ``flag_index`` to ``flags``
@@ -38,7 +38,7 @@ pub fn get_next_sync_committee_indices<
         SYNC_COMMITTEE_SIZE,
     >,
     _context: &Context,
-) -> Result<(), Error> {
+) -> Result<()> {
     Ok(())
 }
 
@@ -63,7 +63,7 @@ pub fn get_next_sync_committee<
         SYNC_COMMITTEE_SIZE,
     >,
     _context: &Context,
-) -> Result<(), Error> {
+) -> Result<()> {
     Ok(())
 }
 
@@ -88,7 +88,7 @@ pub fn get_base_reward_per_increment<
         SYNC_COMMITTEE_SIZE,
     >,
     _context: &Context,
-) -> Result<(), Error> {
+) -> Result<()> {
     Ok(())
 }
 
@@ -113,7 +113,7 @@ pub fn get_base_reward<
         SYNC_COMMITTEE_SIZE,
     >,
     _context: &Context,
-) -> Result<(), Error> {
+) -> Result<()> {
     Ok(())
 }
 
@@ -138,7 +138,7 @@ pub fn get_unslashed_participating_indices<
         SYNC_COMMITTEE_SIZE,
     >,
     _context: &Context,
-) -> Result<(), Error> {
+) -> Result<()> {
     Ok(())
 }
 
@@ -163,7 +163,7 @@ pub fn get_attestation_participation_flag_indices<
         SYNC_COMMITTEE_SIZE,
     >,
     _context: &Context,
-) -> Result<(), Error> {
+) -> Result<()> {
     Ok(())
 }
 
@@ -188,7 +188,7 @@ pub fn get_flag_index_deltas<
         SYNC_COMMITTEE_SIZE,
     >,
     _context: &Context,
-) -> Result<(), Error> {
+) -> Result<()> {
     Ok(())
 }
 
@@ -213,7 +213,7 @@ pub fn get_inactivity_penalty_deltas<
         SYNC_COMMITTEE_SIZE,
     >,
     _context: &Context,
-) -> Result<(), Error> {
+) -> Result<()> {
     Ok(())
 }
 
@@ -240,6 +240,6 @@ pub fn slash_validator<
     _slashed_index: ValidatorIndex,
     _whistleblower_index: Option<ValidatorIndex>,
     _context: &Context,
-) -> Result<(), Error> {
+) -> Result<()> {
     Ok(())
 }

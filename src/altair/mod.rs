@@ -3,22 +3,15 @@
 //! the "presets" like `mainnet` or `minimal`.
 mod beacon_block;
 mod beacon_state;
-mod block_processing;
-mod epoch_processing;
-mod helpers;
+pub mod block_processing;
+pub mod epoch_processing;
+pub mod helpers;
 pub mod light_client;
 mod presets;
 mod sync;
 mod validator;
 
-pub use crate::phase0::{
-    Attestation, AttestationData, AttesterSlashing, BeaconBlockHeader, Checkpoint, Deposit,
-    DepositData, DepositMessage, Eth1Data, Fork, ForkData, HistoricalBatchAccumulator,
-    IndexedAttestation, ProposerSlashing, SignedVoluntaryExit, Validator, BASE_REWARDS_PER_EPOCH,
-    DEPOSIT_CONTRACT_TREE_DEPTH, JUSTIFICATION_BITS_LENGTH,
-};
-
-mod state_transition;
+pub mod state_transition;
 pub use state_transition::{
     block_processing::*, epoch_processing::*, genesis, helpers::*, slot_processing::*, *,
 };
@@ -28,6 +21,13 @@ pub use beacon_state::*;
 pub use presets::Preset;
 pub use sync::*;
 pub use validator::*;
+
+pub use crate::phase0::{
+    Attestation, AttestationData, AttesterSlashing, BeaconBlockHeader, Checkpoint, Deposit,
+    DepositData, DepositMessage, Eth1Data, Fork, ForkData, HistoricalBatchAccumulator,
+    IndexedAttestation, ProposerSlashing, SignedVoluntaryExit, Validator, BASE_REWARDS_PER_EPOCH,
+    DEPOSIT_CONTRACT_TREE_DEPTH, JUSTIFICATION_BITS_LENGTH,
+};
 
 pub mod mainnet {
     pub use super::presets::mainnet::*;

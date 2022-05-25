@@ -1,3 +1,6 @@
+// TODO remove once impl is added
+#![allow(dead_code)]
+
 use crate::altair as spec;
 
 use crate::state_transition::{Context, Result};

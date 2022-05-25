@@ -19,7 +19,7 @@ use crate::primitives::{
 use crate::signing::compute_signing_root;
 use crate::state_transition::{
     invalid_operation_error, Context, Error, InvalidAttestation, InvalidIndexedAttestation,
-    InvalidOperation,
+    InvalidOperation, Result,
 };
 use spec::{
     Attestation, AttestationData, BeaconState, ForkData, IndexedAttestation, SignedBeaconBlock,
@@ -93,7 +93,7 @@ pub fn is_valid_indexed_attestation<
     >,
     indexed_attestation: &mut IndexedAttestation<MAX_VALIDATORS_PER_COMMITTEE>,
     context: &Context,
-) -> Result<(), Error> {
+) -> Result<()> {
     let attesting_indices = &indexed_attestation.attesting_indices;
     if attesting_indices.is_empty() {
         return Err(invalid_operation_error(
@@ -196,7 +196,7 @@ pub fn verify_block_signature<
         SYNC_COMMITTEE_SIZE,
     >,
     context: &Context,
-) -> Result<(), Error> {
+) -> Result<()> {
     let proposer_index = signed_block.message.proposer_index;
     let proposer = state
         .validators
@@ -239,7 +239,7 @@ pub fn get_domain<
     domain_type: DomainType,
     epoch: Option<Epoch>,
     context: &Context,
-) -> Result<Domain, Error> {
+) -> Result<Domain> {
     let epoch = epoch.unwrap_or_else(|| get_current_epoch(state, context));
     let fork_version = if epoch < state.fork.epoch {
         state.fork.previous_version
@@ -282,7 +282,7 @@ pub fn compute_shuffled_index(
     index_count: usize,
     seed: &Bytes32,
     context: &Context,
-) -> Result<usize, Error> {
+) -> Result<usize> {
     if index >= index_count {
         return Err(Error::InvalidShufflingIndex {
             index,
@@ -332,7 +332,7 @@ pub fn compute_proposer_index<
     indices: &[ValidatorIndex],
     seed: &Bytes32,
     context: &Context,
-) -> Result<ValidatorIndex, Error> {
+) -> Result<ValidatorIndex> {
     if indices.is_empty() {
         return Err(Error::CollectionCannotBeEmpty);
     }
@@ -360,7 +360,7 @@ pub fn compute_committee(
     index: usize,
     count: usize,
     context: &Context,
-) -> Result<Vec<ValidatorIndex>, Error> {
+) -> Result<Vec<ValidatorIndex>> {
     let mut committee = vec![0usize; count];
     let start = (indices.len() * index) / count;
     let end = (indices.len()) * (index + 1) / count;
@@ -382,7 +382,7 @@ pub fn compute_activation_exit_epoch(epoch: Epoch, context: &Context) -> Epoch {
 pub fn compute_fork_digest(
     current_version: Version,
     genesis_validators_root: Root,
-) -> Result<ForkDigest, Error> {
+) -> Result<ForkDigest> {
     let fork_data_root = compute_fork_data_root(current_version, genesis_validators_root)?;
     let digest = &fork_data_root.as_ref()[..4];
     Ok(digest.try_into().expect("should not fail"))
@@ -392,7 +392,7 @@ pub fn compute_domain(
     fork_version: Option<Version>,
     genesis_validators_root: Option<Root>,
     context: &Context,
-) -> Result<Domain, Error> {
+) -> Result<Domain> {
     let fork_version = fork_version.unwrap_or(context.genesis_fork_version);
     let genesis_validators_root = genesis_validators_root.unwrap_or_default();
     let fork_data_root = compute_fork_data_root(fork_version, genesis_validators_root)?;
@@ -404,7 +404,7 @@ pub fn compute_domain(
 pub fn compute_fork_data_root(
     current_version: Version,
     genesis_validators_root: Root,
-) -> Result<Root, Error> {
+) -> Result<Root> {
     ForkData {
         current_version,
         genesis_validators_root,
@@ -464,7 +464,7 @@ pub fn get_block_root<
     >,
     epoch: Epoch,
     context: &Context,
-) -> Result<&'a Root, Error> {
+) -> Result<&'a Root> {
     get_block_root_at_slot(state, compute_start_slot_at_epoch(epoch, context))
 }
 pub fn get_block_root_at_slot<
@@ -488,7 +488,7 @@ pub fn get_block_root_at_slot<
         SYNC_COMMITTEE_SIZE,
     >,
     slot: Slot,
-) -> Result<&Root, Error> {
+) -> Result<&Root> {
     if slot < state.slot || state.slot <= (slot + SLOTS_PER_HISTORICAL_ROOT as Slot) {
         return Err(Error::SlotOutOfRange {
             requested: slot,
@@ -671,7 +671,7 @@ pub fn get_beacon_committee<
     slot: Slot,
     index: CommitteeIndex,
     context: &Context,
-) -> Result<Vec<ValidatorIndex>, Error> {
+) -> Result<Vec<ValidatorIndex>> {
     let epoch = compute_epoch_at_slot(slot, context);
     let committees_per_slot = get_committee_count_per_slot(state, epoch, context);
     let indices = get_active_validator_indices(state, epoch);
@@ -701,7 +701,7 @@ pub fn get_beacon_proposer_index<
         SYNC_COMMITTEE_SIZE,
     >,
     context: &Context,
-) -> Result<ValidatorIndex, Error> {
+) -> Result<ValidatorIndex> {
     let epoch = get_current_epoch(state, context);
     let mut input = [0u8; 40];
     input[..32]
@@ -733,7 +733,7 @@ pub fn get_total_balance<
     >,
     indices: &HashSet<ValidatorIndex>,
     context: &Context,
-) -> Result<Gwei, Error> {
+) -> Result<Gwei> {
     let total_balance = indices
         .iter()
         .try_fold(Gwei::default(), |acc, i| {
@@ -763,7 +763,7 @@ pub fn get_total_active_balance<
         SYNC_COMMITTEE_SIZE,
     >,
     context: &Context,
-) -> Result<Gwei, Error> {
+) -> Result<Gwei> {
     let indices = get_active_validator_indices(state, get_current_epoch(state, context));
     get_total_balance(state, &HashSet::from_iter(indices), context)
 }
@@ -789,7 +789,7 @@ pub fn get_indexed_attestation<
     >,
     attestation: &Attestation<MAX_VALIDATORS_PER_COMMITTEE>,
     context: &Context,
-) -> Result<IndexedAttestation<MAX_VALIDATORS_PER_COMMITTEE>, Error> {
+) -> Result<IndexedAttestation<MAX_VALIDATORS_PER_COMMITTEE>> {
     let bits = &attestation.aggregation_bits;
     let mut attesting_indices = get_attesting_indices(state, &attestation.data, bits, context)?
         .into_iter()
@@ -825,7 +825,7 @@ pub fn get_attesting_indices<
     data: &AttestationData,
     bits: &Bitlist<MAX_VALIDATORS_PER_COMMITTEE>,
     context: &Context,
-) -> Result<HashSet<ValidatorIndex>, Error> {
+) -> Result<HashSet<ValidatorIndex>> {
     let committee = get_beacon_committee(state, data.slot, data.index, context)?;
     if bits.len() != committee.len() {
         return Err(invalid_operation_error(InvalidOperation::Attestation(

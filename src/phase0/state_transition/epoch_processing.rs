@@ -1,7 +1,7 @@
 use crate::phase0 as spec;
 
 use crate::primitives::{Epoch, Gwei, ValidatorIndex, GENESIS_EPOCH};
-use crate::state_transition::{Context, Error};
+use crate::state_transition::{Context, Error, Result};
 use integer_sqrt::IntegerSquareRoot;
 use spec::{
     compute_activation_exit_epoch, decrease_balance, get_attesting_indices, get_block_root,
@@ -38,10 +38,8 @@ pub fn get_matching_source_attestations<
     >,
     epoch: Epoch,
     context: &Context,
-) -> Result<
-    &'a List<PendingAttestation<MAX_VALIDATORS_PER_COMMITTEE>, PENDING_ATTESTATIONS_BOUND>,
-    Error,
-> {
+) -> Result<&'a List<PendingAttestation<MAX_VALIDATORS_PER_COMMITTEE>, PENDING_ATTESTATIONS_BOUND>>
+{
     let previous_epoch = get_previous_epoch(state, context);
     let current_epoch = get_current_epoch(state, context);
 
@@ -83,7 +81,7 @@ pub fn get_matching_target_attestations<
     >,
     epoch: Epoch,
     context: &Context,
-) -> Result<impl Iterator<Item = &'a PendingAttestation<MAX_VALIDATORS_PER_COMMITTEE>>, Error> {
+) -> Result<impl Iterator<Item = &'a PendingAttestation<MAX_VALIDATORS_PER_COMMITTEE>>> {
     let source_attestations = get_matching_source_attestations(state, epoch, context)?;
     let block_root = get_block_root(state, epoch, context)?;
     Ok(source_attestations
@@ -114,7 +112,7 @@ pub fn get_matching_head_attestations<
     >,
     epoch: Epoch,
     context: &Context,
-) -> Result<Vec<&'a PendingAttestation<MAX_VALIDATORS_PER_COMMITTEE>>, Error> {
+) -> Result<Vec<&'a PendingAttestation<MAX_VALIDATORS_PER_COMMITTEE>>> {
     let matching_target_attestations = get_matching_target_attestations(state, epoch, context)?;
     let mut matching_head_attestations = Vec::new();
     for a in matching_target_attestations {
@@ -148,7 +146,7 @@ pub fn get_unslashed_attesting_indices<
     >,
     attestations: impl Iterator<Item = &'a PendingAttestation<MAX_VALIDATORS_PER_COMMITTEE>>,
     context: &Context,
-) -> Result<HashSet<ValidatorIndex>, Error> {
+) -> Result<HashSet<ValidatorIndex>> {
     let mut output = HashSet::new();
     for a in attestations {
         for index in get_attesting_indices(state, &a.data, &a.aggregation_bits, context)? {
@@ -181,7 +179,7 @@ pub fn process_justification_and_finalization<
         PENDING_ATTESTATIONS_BOUND,
     >,
     context: &Context,
-) -> Result<(), Error> {
+) -> Result<()> {
     // Initial FFG checkpoint values have a `0x00` stub for `root`.
     // Skip FFG updates in the first two epochs to avoid corner cases that might result in modifying this stub.
     if get_current_epoch(state, context) <= GENESIS_EPOCH + 1 {
@@ -224,7 +222,7 @@ pub fn process_rewards_and_penalties<
         PENDING_ATTESTATIONS_BOUND,
     >,
     context: &Context,
-) -> Result<(), Error> {
+) -> Result<()> {
     // No rewards are applied at the end of `GENESIS_EPOCH` because rewards are for work done in the previous epoch
     let current_epoch = get_current_epoch(state, context);
     if current_epoch != GENESIS_EPOCH {
@@ -328,7 +326,7 @@ pub fn process_slashings<
         PENDING_ATTESTATIONS_BOUND,
     >,
     context: &Context,
-) -> Result<(), Error> {
+) -> Result<()> {
     let epoch = get_current_epoch(state, context);
     let total_balance = get_total_active_balance(state, context)?;
     let adjusted_total_slashing_balance = Gwei::min(
@@ -498,7 +496,7 @@ pub fn process_historical_roots_update<
         PENDING_ATTESTATIONS_BOUND,
     >,
     context: &Context,
-) -> Result<(), Error> {
+) -> Result<()> {
     let next_epoch = get_current_epoch(state, context) + 1;
     let epochs_per_historical_root = context.slots_per_historical_root / context.slots_per_epoch;
     if next_epoch % epochs_per_historical_root == 0 {
@@ -561,7 +559,7 @@ pub fn get_attesting_balance<
     >,
     attestations: impl Iterator<Item = &'a PendingAttestation<MAX_VALIDATORS_PER_COMMITTEE>>,
     context: &Context,
-) -> Result<Gwei, Error> {
+) -> Result<Gwei> {
     /*
     Return the combined effective balance of the set of unslashed validators participating in ``attestations``.
     Note: ``get_total_balance`` returns ``EFFECTIVE_BALANCE_INCREMENT`` Gwei minimum to avoid divisions by zero.
@@ -597,7 +595,7 @@ pub fn weigh_justification_and_finalization<
     previous_epoch_target_balance: Gwei,
     current_epoch_target_balance: Gwei,
     context: &Context,
-) -> Result<(), Error> {
+) -> Result<()> {
     let previous_epoch = get_current_epoch(state, context);
     let current_epoch = get_current_epoch(state, context);
     let old_previous_justified_checkpoint = state.previous_justified_checkpoint.clone();
@@ -668,7 +666,7 @@ pub fn get_base_reward<
     >,
     index: ValidatorIndex,
     context: &Context,
-) -> Result<Gwei, Error> {
+) -> Result<Gwei> {
     let total_balance = get_total_active_balance(state, context)?;
     let effective_balance = state.validators[index].effective_balance;
     Ok(effective_balance * context.base_reward_factor
@@ -698,7 +696,7 @@ pub fn get_proposer_reward<
     >,
     attesting_index: ValidatorIndex,
     context: &Context,
-) -> Result<Gwei, Error> {
+) -> Result<Gwei> {
     Ok(get_base_reward(state, attesting_index, context)? / context.proposer_reward_quotient)
 }
 
@@ -814,7 +812,7 @@ pub fn get_attestation_component_deltas<
     >,
     attestations: impl Iterator<Item = &'a PendingAttestation<MAX_VALIDATORS_PER_COMMITTEE>>,
     context: &Context,
-) -> Result<(Vec<Gwei>, Vec<Gwei>), Error> {
+) -> Result<(Vec<Gwei>, Vec<Gwei>)> {
     // Helper with shared logic for use by get source, target, and head deltas functions
     let validator_count = state.validators.len();
     let mut rewards = vec![0; validator_count];
@@ -863,7 +861,7 @@ pub fn get_source_deltas<
         PENDING_ATTESTATIONS_BOUND,
     >,
     context: &Context,
-) -> Result<(Vec<Gwei>, Vec<Gwei>), Error> {
+) -> Result<(Vec<Gwei>, Vec<Gwei>)> {
     // Return attester micro-rewards/penalties for source-vote for each validator.
     let previous_epoch = get_previous_epoch(state, context);
     let matching_source_attestations =
@@ -892,7 +890,7 @@ pub fn get_target_deltas<
         PENDING_ATTESTATIONS_BOUND,
     >,
     context: &Context,
-) -> Result<(Vec<Gwei>, Vec<Gwei>), Error> {
+) -> Result<(Vec<Gwei>, Vec<Gwei>)> {
     // Return attester micro-rewards/penalties for target-vote for each validator.
     let previous_epoch = get_previous_epoch(state, context);
     let matching_target_attestations =
@@ -921,7 +919,7 @@ pub fn get_head_deltas<
         PENDING_ATTESTATIONS_BOUND,
     >,
     context: &Context,
-) -> Result<(Vec<Gwei>, Vec<Gwei>), Error> {
+) -> Result<(Vec<Gwei>, Vec<Gwei>)> {
     // Return attester micro-rewards/penalties for head-vote for each validator.
     let previous_epoch = get_previous_epoch(state, context);
     let matching_head_attestations =
@@ -950,7 +948,7 @@ pub fn get_inclusion_delay_deltas<
         PENDING_ATTESTATIONS_BOUND,
     >,
     context: &Context,
-) -> Result<Vec<Gwei>, Error> {
+) -> Result<Vec<Gwei>> {
     // Return proposer and inclusion delay micro-rewards/penalties for each validator.
     let previous_epoch = get_previous_epoch(state, context);
     let validator_count = state.validators.len();
@@ -999,7 +997,7 @@ pub fn get_inactivity_penalty_deltas<
         PENDING_ATTESTATIONS_BOUND,
     >,
     context: &Context,
-) -> Result<Vec<Gwei>, Error> {
+) -> Result<Vec<Gwei>> {
     // Return inactivity reward/penalty deltas for each validator.
     let previous_epoch = get_previous_epoch(state, context);
     let validator_count = state.validators.len();
@@ -1047,7 +1045,7 @@ pub fn get_attestation_deltas<
         PENDING_ATTESTATIONS_BOUND,
     >,
     context: &Context,
-) -> Result<(Vec<Gwei>, Vec<Gwei>), Error> {
+) -> Result<(Vec<Gwei>, Vec<Gwei>)> {
     // Return attestation reward/penalty deltas for each validator.
     let (source_rewards, source_penalties) = get_source_deltas(state, context)?;
     let (target_rewards, target_penalties) = get_target_deltas(state, context)?;
@@ -1091,7 +1089,7 @@ pub fn process_epoch<
         PENDING_ATTESTATIONS_BOUND,
     >,
     context: &Context,
-) -> Result<(), Error> {
+) -> Result<()> {
     process_justification_and_finalization(state, context)?;
     process_rewards_and_penalties(state, context)?;
     process_registry_updates(state, context);
