@@ -10,6 +10,11 @@ mod execution;
 pub mod helpers;
 mod presets;
 
+pub mod state_transition;
+pub use state_transition::{
+    block_processing::*, epoch_processing::*, genesis, helpers::*, slot_processing::*, *,
+};
+
 pub use beacon_block::*;
 pub use beacon_state::*;
 pub use blinded_beacon_block::*;
