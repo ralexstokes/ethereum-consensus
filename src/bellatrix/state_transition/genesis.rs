@@ -1,15 +1,13 @@
-use crate::phase0 as spec;
-
+//! WARNING: This file was derived by the `gen-spec` utility. DO NOT EDIT MANUALLY.
+use crate::bellatrix as spec;
 use crate::primitives::{Gwei, Hash32, GENESIS_EPOCH};
-use crate::state_transition::{Context, Error};
+use crate::state_transition::{Context, Result};
 use spec::{
     get_active_validator_indices, process_deposit, BeaconBlock, BeaconBlockBody, BeaconBlockHeader,
     BeaconState, Deposit, DepositData, Eth1Data, Fork, DEPOSIT_CONTRACT_TREE_DEPTH,
 };
 use ssz_rs::prelude::*;
-
 const DEPOSIT_DATA_LIST_BOUND: usize = 2usize.pow(DEPOSIT_CONTRACT_TREE_DEPTH as u32);
-
 pub fn initialize_beacon_state_from_eth1<
     const SLOTS_PER_HISTORICAL_ROOT: usize,
     const HISTORICAL_ROOTS_LIMIT: usize,
@@ -18,12 +16,16 @@ pub fn initialize_beacon_state_from_eth1<
     const EPOCHS_PER_HISTORICAL_VECTOR: usize,
     const EPOCHS_PER_SLASHINGS_VECTOR: usize,
     const MAX_VALIDATORS_PER_COMMITTEE: usize,
-    const PENDING_ATTESTATIONS_BOUND: usize,
+    const SYNC_COMMITTEE_SIZE: usize,
     const MAX_PROPOSER_SLASHINGS: usize,
     const MAX_ATTESTER_SLASHINGS: usize,
     const MAX_ATTESTATIONS: usize,
     const MAX_DEPOSITS: usize,
     const MAX_VOLUNTARY_EXITS: usize,
+    const BYTES_PER_LOGS_BLOOM: usize,
+    const MAX_EXTRA_DATA_BYTES: usize,
+    const MAX_BYTES_PER_TRANSACTION: usize,
+    const MAX_TRANSACTIONS_PER_PAYLOAD: usize,
 >(
     eth1_block_hash: Hash32,
     eth1_timestamp: u64,
@@ -38,9 +40,12 @@ pub fn initialize_beacon_state_from_eth1<
         EPOCHS_PER_HISTORICAL_VECTOR,
         EPOCHS_PER_SLASHINGS_VECTOR,
         MAX_VALIDATORS_PER_COMMITTEE,
-        PENDING_ATTESTATIONS_BOUND,
+        SYNC_COMMITTEE_SIZE,
+        BYTES_PER_LOGS_BLOOM,
+        MAX_EXTRA_DATA_BYTES,
+        MAX_BYTES_PER_TRANSACTION,
+        MAX_TRANSACTIONS_PER_PAYLOAD,
     >,
-    Error,
 > {
     let fork = Fork {
         previous_version: context.genesis_fork_version,
@@ -59,6 +64,11 @@ pub fn initialize_beacon_state_from_eth1<
         MAX_ATTESTATIONS,
         MAX_DEPOSITS,
         MAX_VOLUNTARY_EXITS,
+        SYNC_COMMITTEE_SIZE,
+        BYTES_PER_LOGS_BLOOM,
+        MAX_EXTRA_DATA_BYTES,
+        MAX_BYTES_PER_TRANSACTION,
+        MAX_TRANSACTIONS_PER_PAYLOAD,
     >::default();
     let body_root = latest_block_body.hash_tree_root()?;
     let latest_block_header = BeaconBlockHeader {
@@ -76,14 +86,12 @@ pub fn initialize_beacon_state_from_eth1<
         randao_mixes,
         ..Default::default()
     };
-
     let mut leaves = List::<DepositData, DEPOSIT_DATA_LIST_BOUND>::default();
     for deposit in deposits.iter_mut() {
         leaves.push(deposit.data.clone());
         state.eth1_data.deposit_root = leaves.hash_tree_root()?;
         process_deposit(&mut state, deposit, context)?;
     }
-
     for i in 0..state.validators.len() {
         let validator = &mut state.validators[i];
         let balance = state.balances[i];
@@ -97,12 +105,9 @@ pub fn initialize_beacon_state_from_eth1<
             validator.activation_epoch = GENESIS_EPOCH;
         }
     }
-
     state.genesis_validators_root = state.validators.hash_tree_root()?;
-
     Ok(state)
 }
-
 pub fn is_valid_genesis_state<
     const SLOTS_PER_HISTORICAL_ROOT: usize,
     const HISTORICAL_ROOTS_LIMIT: usize,
@@ -111,12 +116,16 @@ pub fn is_valid_genesis_state<
     const EPOCHS_PER_HISTORICAL_VECTOR: usize,
     const EPOCHS_PER_SLASHINGS_VECTOR: usize,
     const MAX_VALIDATORS_PER_COMMITTEE: usize,
-    const PENDING_ATTESTATIONS_BOUND: usize,
+    const SYNC_COMMITTEE_SIZE: usize,
     const MAX_PROPOSER_SLASHINGS: usize,
     const MAX_ATTESTER_SLASHINGS: usize,
     const MAX_ATTESTATIONS: usize,
     const MAX_DEPOSITS: usize,
     const MAX_VOLUNTARY_EXITS: usize,
+    const BYTES_PER_LOGS_BLOOM: usize,
+    const MAX_EXTRA_DATA_BYTES: usize,
+    const MAX_BYTES_PER_TRANSACTION: usize,
+    const MAX_TRANSACTIONS_PER_PAYLOAD: usize,
 >(
     state: &BeaconState<
         SLOTS_PER_HISTORICAL_ROOT,
@@ -126,23 +135,24 @@ pub fn is_valid_genesis_state<
         EPOCHS_PER_HISTORICAL_VECTOR,
         EPOCHS_PER_SLASHINGS_VECTOR,
         MAX_VALIDATORS_PER_COMMITTEE,
-        PENDING_ATTESTATIONS_BOUND,
+        SYNC_COMMITTEE_SIZE,
+        BYTES_PER_LOGS_BLOOM,
+        MAX_EXTRA_DATA_BYTES,
+        MAX_BYTES_PER_TRANSACTION,
+        MAX_TRANSACTIONS_PER_PAYLOAD,
     >,
     context: &Context,
 ) -> bool {
     if state.genesis_time < context.min_genesis_time {
         return false;
     }
-
     if get_active_validator_indices(state, GENESIS_EPOCH).len()
         < context.min_genesis_active_validator_count
     {
         return false;
     }
-
     true
 }
-
 pub fn get_genesis_block<
     const SLOTS_PER_HISTORICAL_ROOT: usize,
     const HISTORICAL_ROOTS_LIMIT: usize,
@@ -151,12 +161,16 @@ pub fn get_genesis_block<
     const EPOCHS_PER_HISTORICAL_VECTOR: usize,
     const EPOCHS_PER_SLASHINGS_VECTOR: usize,
     const MAX_VALIDATORS_PER_COMMITTEE: usize,
-    const PENDING_ATTESTATIONS_BOUND: usize,
+    const SYNC_COMMITTEE_SIZE: usize,
     const MAX_PROPOSER_SLASHINGS: usize,
     const MAX_ATTESTER_SLASHINGS: usize,
     const MAX_ATTESTATIONS: usize,
     const MAX_DEPOSITS: usize,
     const MAX_VOLUNTARY_EXITS: usize,
+    const BYTES_PER_LOGS_BLOOM: usize,
+    const MAX_EXTRA_DATA_BYTES: usize,
+    const MAX_BYTES_PER_TRANSACTION: usize,
+    const MAX_TRANSACTIONS_PER_PAYLOAD: usize,
 >(
     genesis_state: &mut BeaconState<
         SLOTS_PER_HISTORICAL_ROOT,
@@ -166,7 +180,11 @@ pub fn get_genesis_block<
         EPOCHS_PER_HISTORICAL_VECTOR,
         EPOCHS_PER_SLASHINGS_VECTOR,
         MAX_VALIDATORS_PER_COMMITTEE,
-        PENDING_ATTESTATIONS_BOUND,
+        SYNC_COMMITTEE_SIZE,
+        BYTES_PER_LOGS_BLOOM,
+        MAX_EXTRA_DATA_BYTES,
+        MAX_BYTES_PER_TRANSACTION,
+        MAX_TRANSACTIONS_PER_PAYLOAD,
     >,
 ) -> Result<
     BeaconBlock<
@@ -176,8 +194,12 @@ pub fn get_genesis_block<
         MAX_ATTESTATIONS,
         MAX_DEPOSITS,
         MAX_VOLUNTARY_EXITS,
+        SYNC_COMMITTEE_SIZE,
+        BYTES_PER_LOGS_BLOOM,
+        MAX_EXTRA_DATA_BYTES,
+        MAX_BYTES_PER_TRANSACTION,
+        MAX_TRANSACTIONS_PER_PAYLOAD,
     >,
-    Error,
 > {
     Ok(BeaconBlock {
         state_root: genesis_state.hash_tree_root()?,

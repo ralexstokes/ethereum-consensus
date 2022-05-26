@@ -1,5 +1,5 @@
 test:
-    cargo test
+    cargo test --all-features
 build-integration-tests:
     #!/usr/bin/env sh
     TESTS_TAG=v1.1.10
@@ -11,12 +11,16 @@ build-integration-tests:
     rm -f *tar.gz
 run-integration-tests:
     cargo test --test '*'
-fmt:
-    cargo fmt
-lint: fmt
-    cargo clippy
-build:
-    cargo build
-run-ci: lint build test
 clean-tests:
     rm -rf consensus-spec-tests
+fmt:
+    cargo fmt --all-features
+lint: fmt
+    cargo clippy --all-features
+build:
+    cargo build --all-features
+gen-spec:
+    cargo run --features gen-spec --bin gen-spec
+    cargo fix --allow-dirty
+    cargo fmt
+run-ci: lint build test

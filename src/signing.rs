@@ -1,5 +1,4 @@
 use crate::crypto::SecretKey;
-use crate::phase0::compute_signing_root;
 use crate::primitives::{BlsPublicKey, BlsSignature, Domain, Root};
 use crate::state_transition::Error;
 use ssz_rs::prelude::*;
@@ -8,6 +7,19 @@ use ssz_rs::prelude::*;
 pub struct SigningData {
     pub object_root: Root,
     pub domain: Domain,
+}
+
+pub fn compute_signing_root<T: SimpleSerialize>(
+    ssz_object: &mut T,
+    domain: Domain,
+) -> Result<Root, Error> {
+    let object_root = ssz_object.hash_tree_root()?;
+
+    let mut s = SigningData {
+        object_root,
+        domain,
+    };
+    s.hash_tree_root().map_err(Error::Merkleization)
 }
 
 pub fn sign_with_domain<T: SimpleSerialize>(
