@@ -25,7 +25,7 @@ Each fork supports a compile-time "preset", with two common presets `mainnet` an
 These modules can be found under each fork module in the `presets` module.
 
 The generic types are exposed but most users will want to access each fork's logic via one of the presets. See
-[Examples][#examples] for further details.
+[Examples](#examples) for further details.
 
 An important thing to note is that the `state_transition` module of each fork (after the `phase0` fork) is generated
 by a code-generation utility in this crate called `gen-spec`. This utility specializes each fork based on the prior
