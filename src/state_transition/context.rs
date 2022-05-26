@@ -243,4 +243,20 @@ impl Context {
             })
         }
     }
+
+    pub fn inactivity_penalty_quotient(&self, current_epoch: Epoch) -> Result<u64> {
+        if current_epoch < self.fork_schedule.altair {
+            Ok(self.inactivity_penalty_quotient)
+        } else if current_epoch < self.fork_schedule.bellatrix {
+            Ok(self.inactivity_penalty_quotient_altair)
+        } else if current_epoch < Epoch::MAX {
+            Ok(self.inactivity_penalty_quotient_bellatrix)
+        } else {
+            // satisfy compiler with error arm...
+            Err(Error::UnknownFork {
+                fork_schedule: self.fork_schedule.clone(),
+                requested: current_epoch,
+            })
+        }
+    }
 }
