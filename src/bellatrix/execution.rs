@@ -4,7 +4,7 @@ use ssz_rs::prelude::*;
 
 pub type Transaction<const MAX_BYTES_PER_TRANSACTION: usize> = ByteList<MAX_BYTES_PER_TRANSACTION>;
 
-#[derive(Default, Debug, SimpleSerialize)]
+#[derive(Default, Debug, SimpleSerialize, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct ExecutionPayload<
     const BYTES_PER_LOGS_BLOOM: usize,
@@ -32,7 +32,7 @@ pub struct ExecutionPayload<
     pub transactions: List<Transaction<MAX_BYTES_PER_TRANSACTION>, MAX_TRANSACTIONS_PER_PAYLOAD>,
 }
 
-#[derive(Default, Debug, Clone, SimpleSerialize)]
+#[derive(Default, Debug, Clone, SimpleSerialize, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct ExecutionPayloadHeader<
     const BYTES_PER_LOGS_BLOOM: usize,
