@@ -5,6 +5,8 @@ use ethereum_consensus::state_transition::{Context, Validation};
 
 fn main() {
     let context = Context::for_mainnet();
+
+    // phase0 transition
     let mut state = phase0::BeaconState::default();
     let mut signed_block = phase0::SignedBeaconBlock::default();
     signed_block.message.slot = 1;
@@ -15,6 +17,7 @@ fn main() {
     let _ = phase0::state_transition(&mut state, &mut signed_block, Validation::Enabled, &context);
     dbg!(state.fork);
 
+    // altair transition
     let mut state = altair::BeaconState::default();
     let mut signed_block = altair::SignedBeaconBlock::default();
     state.slot = 32;
@@ -26,7 +29,16 @@ fn main() {
     let _ = altair::state_transition(&mut state, &mut signed_block, Validation::Enabled, &context);
     dbg!(state.fork);
 
-    dbg!(altair::SyncCommittee::default());
-    dbg!(bellatrix::ExecutionPayload::default());
-    dbg!(bellatrix::ExecutionPayloadHeader::default());
+    // bellatrix transition
+    let mut state = bellatrix::BeaconState::default();
+    let mut signed_block = bellatrix::SignedBeaconBlock::default();
+    state.slot = 32;
+    signed_block.message.slot = 33;
+
+    let current_epoch = bellatrix::get_current_epoch(&state, &context);
+    dbg!(current_epoch);
+
+    let _ =
+        bellatrix::state_transition(&mut state, &mut signed_block, Validation::Enabled, &context);
+    dbg!(state.fork);
 }
