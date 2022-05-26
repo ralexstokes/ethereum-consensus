@@ -78,3 +78,31 @@ pub trait ExecutionEngine<
         >,
     ) -> state_transition::Result<()>;
 }
+
+pub struct NoOpExecutionEngine;
+
+impl<
+        const BYTES_PER_LOGS_BLOOM: usize,
+        const MAX_EXTRA_DATA_BYTES: usize,
+        const MAX_BYTES_PER_TRANSACTION: usize,
+        const MAX_TRANSACTIONS_PER_PAYLOAD: usize,
+    >
+    ExecutionEngine<
+        BYTES_PER_LOGS_BLOOM,
+        MAX_EXTRA_DATA_BYTES,
+        MAX_BYTES_PER_TRANSACTION,
+        MAX_TRANSACTIONS_PER_PAYLOAD,
+    > for NoOpExecutionEngine
+{
+    fn notify_new_payload(
+        &self,
+        _execution_payload: &ExecutionPayload<
+            BYTES_PER_LOGS_BLOOM,
+            MAX_EXTRA_DATA_BYTES,
+            MAX_BYTES_PER_TRANSACTION,
+            MAX_TRANSACTIONS_PER_PAYLOAD,
+        >,
+    ) -> state_transition::Result<()> {
+        Ok(())
+    }
+}
