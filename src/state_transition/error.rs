@@ -1,5 +1,6 @@
 use crate::phase0::{AttestationData, BeaconBlockHeader, Checkpoint};
-use crate::primitives::{BlsSignature, Epoch, Root, Slot, ValidatorIndex};
+use crate::primitives::{BlsSignature, Bytes32, Epoch, Hash32, Root, Slot, ValidatorIndex};
+use crate::state_transition::ForkSchedule;
 use ssz_rs::prelude::*;
 use thiserror::Error;
 
@@ -27,8 +28,10 @@ pub enum Error {
     },
     #[error("overflow")]
     Overflow,
+    #[error("underflow")]
+    Underflow,
     #[error("{0}")]
-    InvalidBlock(Box<InvalidBlock>),
+    InvalidBlock(#[from] Box<InvalidBlock>),
     #[error("an invalid transition to a past slot {requested} from slot {current}")]
     TransitionToPreviousSlot { current: Slot, requested: Slot },
     #[error("invalid state root")]
@@ -41,32 +44,43 @@ pub enum Error {
         previous: Epoch,
         current: Epoch,
     },
+    #[error(
+    "the requested epoch {requested} refers to an unknown fork according to the schedule {fork_schedule:?}"
+    )]
+    UnknownFork {
+        fork_schedule: ForkSchedule,
+        requested: Epoch,
+    },
 }
 
 #[derive(Debug, Error)]
 pub enum InvalidBlock {
     #[error("invalid beacon block header: {0}")]
-    Header(InvalidBeaconBlockHeader),
+    Header(#[from] InvalidBeaconBlockHeader),
     #[error("invalid operation: {0}")]
-    InvalidOperation(InvalidOperation),
+    InvalidOperation(#[from] InvalidOperation),
 }
 
 #[derive(Debug, Error)]
 pub enum InvalidOperation {
     #[error("invalid attestation: {0}")]
-    Attestation(InvalidAttestation),
+    Attestation(#[from] InvalidAttestation),
     #[error("invalid indexed attestation: {0}")]
-    IndexedAttestation(InvalidIndexedAttestation),
+    IndexedAttestation(#[from] InvalidIndexedAttestation),
     #[error("invalid deposit: {0}")]
-    Deposit(InvalidDeposit),
+    Deposit(#[from] InvalidDeposit),
     #[error("invalid randao (Bls signature): {0:?}")]
     Randao(BlsSignature),
     #[error("invalid proposer slashing: {0}")]
-    ProposerSlashing(InvalidProposerSlashing),
+    ProposerSlashing(#[from] InvalidProposerSlashing),
     #[error("invalid attester slashing: {0}")]
-    AttesterSlashing(InvalidAttesterSlashing),
+    AttesterSlashing(#[from] InvalidAttesterSlashing),
     #[error("invalid voluntary exit: {0}")]
-    VoluntaryExit(InvalidVoluntaryExit),
+    VoluntaryExit(#[from] InvalidVoluntaryExit),
+    #[error("invalid sync aggregate: {0}")]
+    SyncAggregate(#[from] InvalidSyncAggregate),
+    #[error("invalid execution payload: {0}")]
+    ExecutionPayload(#[from] InvalidExecutionPayload),
 }
 
 #[derive(Debug, Error)]
@@ -187,6 +201,23 @@ pub enum InvalidVoluntaryExit {
     },
     #[error("voluntary exit has invalid signature: {0:?}")]
     InvalidSignature(BlsSignature),
+}
+
+#[derive(Debug, Error)]
+#[error("TODO: fill out")]
+pub enum InvalidSyncAggregate {}
+
+#[derive(Debug, Error)]
+pub enum InvalidExecutionPayload {
+    #[error("expected parent hash {expected} but block has parent hash {provided}")]
+    InvalidParentHash { provided: Hash32, expected: Hash32 },
+    #[error("expected randao value {expected} but block has randao value {provided}")]
+    InvalidPrevRandao {
+        provided: Bytes32,
+        expected: Bytes32,
+    },
+    #[error("expected timestamp {expected} but block has timestamp {provided}")]
+    InvalidTimestamp { provided: u64, expected: u64 },
 }
 
 pub(crate) fn invalid_header_error(error: InvalidBeaconBlockHeader) -> Error {

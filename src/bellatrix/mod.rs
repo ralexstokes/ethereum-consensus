@@ -9,6 +9,7 @@ pub mod epoch_processing;
 mod execution;
 pub mod helpers;
 mod presets;
+pub mod state_transition_bellatrix;
 
 pub mod state_transition;
 pub use state_transition::{
@@ -20,6 +21,7 @@ pub use beacon_state::*;
 pub use blinded_beacon_block::*;
 pub use execution::*;
 pub use presets::Preset;
+pub use state_transition_bellatrix::state_transition;
 
 pub use crate::altair::SyncAggregate;
 pub use crate::phase0::{

@@ -1,5 +1,5 @@
 use crate::configs::Config;
-use crate::primitives::{Epoch, ExecutionAddress, Gwei, Version, U256};
+use crate::primitives::{Epoch, ExecutionAddress, Gwei, Version, FAR_FUTURE_EPOCH, U256};
 
 pub const MIN_GENESIS_ACTIVE_VALIDATOR_COUNT: usize = 16384;
 pub const MIN_GENESIS_TIME: u64 = 1606824000;
@@ -13,7 +13,7 @@ pub const ETH1_FOLLOW_DISTANCE: u64 = 2048;
 pub const EJECTION_BALANCE: Gwei = 16 * 10u64.pow(9);
 pub const MIN_PER_EPOCH_CHURN_LIMIT: u64 = 4;
 pub const CHURN_LIMIT_QUOTIENT: u64 = 65536;
-pub const TERMINAL_BLOCK_HASH_ACTIVATION_EPOCH: Epoch = 18446744073709551615;
+pub const TERMINAL_BLOCK_HASH_ACTIVATION_EPOCH: Epoch = FAR_FUTURE_EPOCH;
 pub const ALTAIR_FORK_VERSION: Version = [1, 0, 0, 0];
 pub const ALTAIR_FORK_EPOCH: Epoch = 74240;
 pub const BELLATRIX_FORK_VERSION: Version = [2, 0, 0, 0];

@@ -14,7 +14,7 @@ run-integration-tests:
 clean-tests:
     rm -rf consensus-spec-tests
 fmt:
-    cargo fmt --all-features
+    cargo fmt
 lint: fmt
     cargo clippy --all-features
 build:

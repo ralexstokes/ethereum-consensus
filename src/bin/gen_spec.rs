@@ -72,7 +72,7 @@ impl Generator {
 
         // identify functions we need to import from
         // an earlier module outside of the source module
-        self.visit_file(&mut base);
+        self.visit_file(&base);
 
         // the target module can provide "overrides" that should
         // take preference over functions defined in the source module
@@ -143,36 +143,27 @@ impl<'ast> Visit<'ast> for Generator {
     fn visit_file(&mut self, node: &'ast syn::File) {
         if matches!(self.pass, Pass::IdentifyResolutions) {
             for item in &node.items {
-                match item {
-                    Item::Use(node) => match &node.tree {
-                        UseTree::Path(node) => {
-                            if node.ident.to_string() == "crate" {
-                                match &*node.tree {
-                                    UseTree::Path(node) => {
-                                        // if the import is `use crate::{source_fork}::...` then
-                                        // identify as something we need to import to patch downstream
-                                        if &node.ident.to_string() == &self.source_fork {
-                                            let mut fn_to_resolve =
-                                                node.to_token_stream().to_string();
-                                            fn_to_resolve.retain(|c| !c.is_whitespace());
-                                            let parts =
-                                                fn_to_resolve.split("::").collect::<Vec<_>>();
-                                            let (fn_name, path_parts) = parts.split_last().unwrap();
-                                            let target_module = path_parts.last().unwrap().clone();
-                                            let entry = self
-                                                .fns_to_resolve
-                                                .entry(target_module.to_string())
-                                                .or_default();
-                                            entry.insert(fn_name.to_string());
-                                        }
-                                    }
-                                    _ => {}
+                if let Item::Use(node) = item {
+                    if let UseTree::Path(node) = &node.tree {
+                        if node.ident == "crate" {
+                            if let UseTree::Path(node) = &*node.tree {
+                                // if the import is `use crate::{source_fork}::...` then
+                                // identify as something we need to import to patch downstream
+                                if node.ident == self.source_fork {
+                                    let mut fn_to_resolve = node.to_token_stream().to_string();
+                                    fn_to_resolve.retain(|c| !c.is_whitespace());
+                                    let parts = fn_to_resolve.split("::").collect::<Vec<_>>();
+                                    let (fn_name, path_parts) = parts.split_last().unwrap();
+                                    let target_module = path_parts.last().unwrap();
+                                    let entry = self
+                                        .fns_to_resolve
+                                        .entry(target_module.to_string())
+                                        .or_default();
+                                    entry.insert(fn_name.to_string());
                                 }
                             }
                         }
-                        _ => {}
-                    },
-                    _ => {}
+                    }
                 }
             }
         }
@@ -182,60 +173,48 @@ impl<'ast> Visit<'ast> for Generator {
 
 impl VisitMut for Generator {
     fn visit_signature_mut(&mut self, node: &mut Signature) {
-        match self.pass {
-            Pass::FixGenerics => {
-                if self.source_fork == "altair" && !node.generics.params.is_empty() {
-                    for bound in BELLATRIX_BEACON_STATE_BOUNDS {
-                        let param: ConstParam =
-                            syn::parse_str(&format!("const {bound}: usize")).unwrap();
-                        node.generics.params.push(param.into());
-                    }
+        if let Pass::FixGenerics = self.pass {
+            if self.source_fork == "altair" && !node.generics.params.is_empty() {
+                for bound in BELLATRIX_BEACON_STATE_BOUNDS {
+                    let param: ConstParam =
+                        syn::parse_str(&format!("const {bound}: usize")).unwrap();
+                    node.generics.params.push(param.into());
                 }
             }
-            _ => {}
         }
         syn::visit_mut::visit_signature_mut(self, node);
     }
 
     fn visit_use_group_mut(&mut self, node: &mut UseGroup) {
-        match self.pass {
-            Pass::FixImports => {
-                let filtered = node
-                    .items
-                    .iter()
-                    .cloned()
-                    .filter(|item| match item {
-                        UseTree::Name(node) => {
-                            let ident = node.ident.to_string();
-                            !self.imports_to_drop.contains(&ident)
-                        }
-                        _ => true,
-                    })
-                    .collect::<Vec<_>>();
-                node.items = Punctuated::<UseTree, Comma>::from_iter(filtered);
-            }
-            _ => {}
+        if let Pass::FixImports = self.pass {
+            let filtered = node
+                .items
+                .iter()
+                .cloned()
+                .filter(|item| match item {
+                    UseTree::Name(node) => {
+                        let ident = node.ident.to_string();
+                        !self.imports_to_drop.contains(&ident)
+                    }
+                    _ => true,
+                })
+                .collect::<Vec<_>>();
+            node.items = Punctuated::<UseTree, Comma>::from_iter(filtered);
         }
         syn::visit_mut::visit_use_group_mut(self, node);
     }
 
     fn visit_use_path_mut(&mut self, node: &mut UsePath) {
-        match self.pass {
-            Pass::FixImports => {
-                if node.ident.to_string() == "spec" {
-                    match &mut *node.tree {
-                        UseTree::Group(node) => {
-                            for addition in self.imports_to_add.iter() {
-                                let arg: Ident = syn::parse_str(addition).unwrap();
-                                let arg = UseName { ident: arg };
-                                node.items.push(arg.into());
-                            }
-                        }
-                        _ => {}
+        if let Pass::FixImports = self.pass {
+            if node.ident == "spec" {
+                if let UseTree::Group(node) = &mut *node.tree {
+                    for addition in self.imports_to_add.iter() {
+                        let arg: Ident = syn::parse_str(addition).unwrap();
+                        let arg = UseName { ident: arg };
+                        node.items.push(arg.into());
                     }
                 }
             }
-            _ => {}
         }
         syn::visit_mut::visit_use_path_mut(self, node);
     }
@@ -244,65 +223,50 @@ impl VisitMut for Generator {
         &mut self,
         node: &mut AngleBracketedGenericArguments,
     ) {
-        match self.pass {
-            Pass::FixGenerics => {
-                if self.extend_for_block && self.source_fork == "phase0" {
-                    let arg: Type = syn::parse_str("SYNC_COMMITTEE_SIZE").unwrap();
+        if let Pass::FixGenerics = self.pass {
+            if self.extend_for_block && self.source_fork == "phase0" {
+                let arg: Type = syn::parse_str("SYNC_COMMITTEE_SIZE").unwrap();
+                node.args.push(GenericArgument::Type(arg));
+            } else if self.extend_for_state && self.source_fork == "altair" {
+                for bound in BELLATRIX_BEACON_STATE_BOUNDS {
+                    let arg: Type = syn::parse_str(bound).unwrap();
                     node.args.push(GenericArgument::Type(arg));
-                } else if self.extend_for_state && self.source_fork == "altair" {
-                    for bound in BELLATRIX_BEACON_STATE_BOUNDS {
-                        let arg: Type = syn::parse_str(bound).unwrap();
-                        node.args.push(GenericArgument::Type(arg));
-                    }
                 }
             }
-            _ => {}
         }
         syn::visit_mut::visit_angle_bracketed_generic_arguments_mut(self, node);
     }
 
     // `sed` in `syn`
     fn visit_ident_mut(&mut self, node: &mut Ident) {
-        match self.pass {
-            Pass::FixGenerics => {
-                let target_ident: Ident = syn::parse_str(&ATTESTATION_BOUND_IDENT).unwrap();
-                if node == &target_ident {
-                    let replacement: Ident = syn::parse_str(&SYNC_COMMITTEE_SIZE_IDENT).unwrap();
-                    *node = replacement;
-                }
+        if let Pass::FixGenerics = self.pass {
+            let target_ident: Ident = syn::parse_str(ATTESTATION_BOUND_IDENT).unwrap();
+            if node == &target_ident {
+                let replacement: Ident = syn::parse_str(SYNC_COMMITTEE_SIZE_IDENT).unwrap();
+                *node = replacement;
             }
-            _ => {}
         }
         syn::visit_mut::visit_ident_mut(self, node);
     }
 
     fn visit_path_segment_mut(&mut self, node: &mut PathSegment) {
-        match self.pass {
-            Pass::FixGenerics => {
-                let ident = node.ident.to_string();
-                if ident.contains("BeaconBlock") {
-                    match &mut node.arguments {
-                        PathArguments::AngleBracketed(args) => {
-                            self.extend_for_block = true;
-                            self.extend_for_state = true;
-                            self.visit_angle_bracketed_generic_arguments_mut(args);
-                            self.extend_for_block = false;
-                            self.extend_for_state = false;
-                        }
-                        _ => {}
-                    }
-                } else if ident.contains("BeaconState") {
-                    match &mut node.arguments {
-                        PathArguments::AngleBracketed(args) => {
-                            self.extend_for_state = true;
-                            self.visit_angle_bracketed_generic_arguments_mut(args);
-                            self.extend_for_state = false;
-                        }
-                        _ => {}
-                    }
+        if let Pass::FixGenerics = self.pass {
+            let ident = node.ident.to_string();
+            if ident.contains("BeaconBlock") {
+                if let PathArguments::AngleBracketed(args) = &mut node.arguments {
+                    self.extend_for_block = true;
+                    self.extend_for_state = true;
+                    self.visit_angle_bracketed_generic_arguments_mut(args);
+                    self.extend_for_block = false;
+                    self.extend_for_state = false;
+                }
+            } else if ident.contains("BeaconState") {
+                if let PathArguments::AngleBracketed(args) = &mut node.arguments {
+                    self.extend_for_state = true;
+                    self.visit_angle_bracketed_generic_arguments_mut(args);
+                    self.extend_for_state = false;
                 }
             }
-            _ => {}
         }
         syn::visit_mut::visit_path_segment_mut(self, node);
     }
@@ -348,32 +312,27 @@ impl VisitMut for Generator {
                                 None
                             }
                         }
-                        Item::Use(node) => match &node.tree {
-                            UseTree::Path(node) => {
+                        Item::Use(node) => {
+                            if let UseTree::Path(node) = &node.tree {
                                 // NOTE: this could probably be cleaned up and
                                 // combined with the "resolutions" phase but
                                 // it works for now
-                                if node.ident.to_string() == "crate" {
-                                    match &*node.tree {
-                                        UseTree::Path(node) => {
-                                            if &node.ident.to_string() == &self.source_fork {
-                                                return Some(i);
-                                            }
+                                if node.ident == "crate" {
+                                    if let UseTree::Path(node) = &*node.tree {
+                                        if node.ident == self.source_fork {
+                                            return Some(i);
                                         }
-                                        _ => {}
                                     }
                                 }
-                                None
+                                return None;
                             }
-                            _ => None,
-                        },
+                            None
+                        }
                         _ => None,
                     })
                     .collect::<Vec<_>>();
-                let mut removed = 0;
-                for index in indices_to_remove {
+                for (removed, index) in indices_to_remove.iter().enumerate() {
                     node.items.remove(index - removed);
-                    removed += 1;
                 }
             }
             Pass::FixGenerics => {}
@@ -385,16 +344,27 @@ impl VisitMut for Generator {
                     .skip_while(|(_, item)| !matches!(item, Item::Use(..)))
                     .skip_while(|(_, item)| matches!(item, Item::Use(..)))
                     .map(|(i, _)| i);
-                let insertion_index = iter.next().unwrap();
-                for (offset, ident) in self.overrides.iter().enumerate() {
+                if let Some(insertion_index) = iter.next() {
+                    for (offset, ident) in self.overrides.iter().enumerate() {
+                        let target_fork = &self.target_fork;
+                        let module = self.module.split("::").last().unwrap();
+                        let use_item: ItemUse = syn::parse_str(&format!(
+                            "pub use crate::{target_fork}::{module}::{ident};"
+                        ))
+                        .unwrap();
+                        node.items
+                            .insert(insertion_index + offset, Item::Use(use_item));
+                    }
+                } else if self.overrides.len() == 1 && self.overrides.remove("state_transition") {
+                    // a bit kludgy but so far this means we are replacing the function
+                    // `state_transition` inside a `state_transition/mod.rs` file
                     let target_fork = &self.target_fork;
-                    let module = self.module.split("::").last().unwrap();
+                    let ident = "state_transition";
                     let use_item: ItemUse = syn::parse_str(&format!(
-                        "pub use crate::{target_fork}::{module}::{ident};"
+                        "pub use crate::{target_fork}::state_transition_{target_fork}::{ident};"
                     ))
                     .unwrap();
-                    node.items
-                        .insert(insertion_index + offset, Item::Use(use_item.into()));
+                    node.items.push(use_item.into());
                 }
             }
             Pass::Finalize => {
@@ -434,6 +404,9 @@ impl VisitMut for Generator {
     }
 }
 
+type Patch = HashSet<String>;
+type Patches = (Patch, Patch, Patch);
+
 fn main() {
     let root = Path::new("./src");
     let source_modules_to_gen = vec![
@@ -445,47 +418,46 @@ fn main() {
         "state_transition/slot_processing",
     ];
 
-    let mut edits: HashMap<&'static str, (HashSet<String>, HashSet<String>, HashSet<String>)> =
-        HashMap::from_iter([
+    let mut edits: HashMap<&'static str, Patches> = HashMap::from_iter([
+        (
+            "altair",
             (
-                "altair",
-                (
-                    HashSet::from_iter(
-                        [
-                            "get_unslashed_attesting_indices",
-                            "get_matching_source_attestations",
-                            "get_matching_target_attestations",
-                            "get_matching_head_attestations",
-                            "get_source_deltas",
-                            "get_target_deltas",
-                            "get_head_deltas",
-                            "get_inclusion_delay_deltas",
-                            "get_inactivity_penalty_deltas",
-                            "get_attestation_deltas",
-                            "get_attestation_component_deltas",
-                            "get_attesting_balance",
-                            "process_participation_record_updates",
-                        ]
+                HashSet::from_iter(
+                    [
+                        "get_unslashed_attesting_indices",
+                        "get_matching_source_attestations",
+                        "get_matching_target_attestations",
+                        "get_matching_head_attestations",
+                        "get_source_deltas",
+                        "get_target_deltas",
+                        "get_head_deltas",
+                        "get_inclusion_delay_deltas",
+                        "get_inactivity_penalty_deltas",
+                        "get_attestation_deltas",
+                        "get_attestation_component_deltas",
+                        "get_attesting_balance",
+                        "process_participation_record_updates",
+                    ]
+                    .into_iter()
+                    .map(String::from),
+                ),
+                HashSet::from_iter(["PendingAttestation"].into_iter().map(String::from)),
+                HashSet::new(),
+            ),
+        ),
+        (
+            "bellatrix",
+            (
+                HashSet::new(),
+                HashSet::new(),
+                HashSet::from_iter(
+                    ["SyncAggregate", "ParticipationFlags"]
                         .into_iter()
                         .map(String::from),
-                    ),
-                    HashSet::from_iter(["PendingAttestation"].into_iter().map(String::from)),
-                    HashSet::new(),
                 ),
             ),
-            (
-                "bellatrix",
-                (
-                    HashSet::new(),
-                    HashSet::new(),
-                    HashSet::from_iter(
-                        ["SyncAggregate", "ParticipationFlags"]
-                            .into_iter()
-                            .map(String::from),
-                    ),
-                ),
-            ),
-        ]);
+        ),
+    ]);
 
     let forks_to_gen = vec!["phase0", "altair", "bellatrix"];
 
@@ -513,7 +485,7 @@ fn main() {
                 root: root.into(),
                 source_fork: source_fork.to_string(),
                 target_fork: target_fork.to_string(),
-                module: module.replace("/", "::"),
+                module: module.replace('/', "::"),
                 source_path,
                 dest_path,
                 modification_path,

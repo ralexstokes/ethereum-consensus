@@ -946,3 +946,41 @@ pub fn initiate_validator_exit<
     state.validators[index].withdrawable_epoch =
         state.validators[index].exit_epoch + context.min_validator_withdrawability_delay;
 }
+pub fn get_eligible_validator_indices<
+    'a,
+    const SLOTS_PER_HISTORICAL_ROOT: usize,
+    const HISTORICAL_ROOTS_LIMIT: usize,
+    const ETH1_DATA_VOTES_BOUND: usize,
+    const VALIDATOR_REGISTRY_LIMIT: usize,
+    const EPOCHS_PER_HISTORICAL_VECTOR: usize,
+    const EPOCHS_PER_SLASHINGS_VECTOR: usize,
+    const MAX_VALIDATORS_PER_COMMITTEE: usize,
+    const SYNC_COMMITTEE_SIZE: usize,
+>(
+    state: &'a BeaconState<
+        SLOTS_PER_HISTORICAL_ROOT,
+        HISTORICAL_ROOTS_LIMIT,
+        ETH1_DATA_VOTES_BOUND,
+        VALIDATOR_REGISTRY_LIMIT,
+        EPOCHS_PER_HISTORICAL_VECTOR,
+        EPOCHS_PER_SLASHINGS_VECTOR,
+        MAX_VALIDATORS_PER_COMMITTEE,
+        SYNC_COMMITTEE_SIZE,
+    >,
+    context: &Context,
+) -> impl Iterator<Item = ValidatorIndex> + 'a {
+    let previous_epoch = get_previous_epoch(state, context);
+    state
+        .validators
+        .iter()
+        .enumerate()
+        .filter_map(move |(i, validator)| {
+            if is_active_validator(validator, previous_epoch)
+                || (validator.slashed && previous_epoch + 1 < validator.withdrawable_epoch)
+            {
+                Some(i)
+            } else {
+                None
+            }
+        })
+}
