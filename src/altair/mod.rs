@@ -35,9 +35,9 @@ pub mod mainnet {
 
 pub mod minimal {}
 
-pub const TIMELY_SOURCE_FLAG_INDEX: u8 = 0;
-pub const TIMELY_TARGET_FLAG_INDEX: u8 = 1;
-pub const TIMELY_HEAD_FLAG_INDEX: u8 = 2;
+pub const TIMELY_SOURCE_FLAG_INDEX: usize = 0;
+pub const TIMELY_TARGET_FLAG_INDEX: usize = 1;
+pub const TIMELY_HEAD_FLAG_INDEX: usize = 2;
 pub const TIMELY_SOURCE_WEIGHT: u64 = 14;
 pub const TIMELY_TARGET_WEIGHT: u64 = 26;
 pub const TIMELY_HEAD_WEIGHT: u64 = 14;
