@@ -329,8 +329,9 @@ pub fn process_slashings<
 ) -> Result<()> {
     let epoch = get_current_epoch(state, context);
     let total_balance = get_total_active_balance(state, context)?;
+    let proportional_slashing_multiplier = context.proportional_slashing_multiplier(epoch)?;
     let adjusted_total_slashing_balance = Gwei::min(
-        state.slashings.iter().sum::<Gwei>() * context.proportional_slashing_multiplier,
+        state.slashings.iter().sum::<Gwei>() * proportional_slashing_multiplier,
         total_balance,
     );
 

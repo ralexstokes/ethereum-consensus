@@ -228,6 +228,22 @@ impl Context {
         }
     }
 
+    pub fn inactivity_penalty_quotient(&self, current_epoch: Epoch) -> Result<u64> {
+        if current_epoch < self.fork_schedule.altair {
+            Ok(self.inactivity_penalty_quotient)
+        } else if current_epoch < self.fork_schedule.bellatrix {
+            Ok(self.inactivity_penalty_quotient_altair)
+        } else if current_epoch < Epoch::MAX {
+            Ok(self.inactivity_penalty_quotient_bellatrix)
+        } else {
+            // satisfy compiler with error arm...
+            Err(Error::UnknownFork {
+                fork_schedule: self.fork_schedule.clone(),
+                requested: current_epoch,
+            })
+        }
+    }
+
     pub fn min_slashing_penalty_quotient(&self, current_epoch: Epoch) -> Result<u64> {
         if current_epoch < self.fork_schedule.altair {
             Ok(self.min_slashing_penalty_quotient)
@@ -244,13 +260,13 @@ impl Context {
         }
     }
 
-    pub fn inactivity_penalty_quotient(&self, current_epoch: Epoch) -> Result<u64> {
+    pub fn proportional_slashing_multiplier(&self, current_epoch: Epoch) -> Result<u64> {
         if current_epoch < self.fork_schedule.altair {
-            Ok(self.inactivity_penalty_quotient)
+            Ok(self.proportional_slashing_multiplier)
         } else if current_epoch < self.fork_schedule.bellatrix {
-            Ok(self.inactivity_penalty_quotient_altair)
+            Ok(self.proportional_slashing_multiplier_altair)
         } else if current_epoch < Epoch::MAX {
-            Ok(self.inactivity_penalty_quotient_bellatrix)
+            Ok(self.proportional_slashing_multiplier_bellatrix)
         } else {
             // satisfy compiler with error arm...
             Err(Error::UnknownFork {
