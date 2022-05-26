@@ -1,6 +1,6 @@
 use crate::phase0::{AttestationData, BeaconBlockHeader, Checkpoint};
 use crate::primitives::{BlsSignature, Bytes32, Epoch, Hash32, Root, Slot, ValidatorIndex};
-use crate::state_transition::ForkSchedule;
+use crate::state_transition::{ForkSchedule, Forks};
 use ssz_rs::prelude::*;
 use thiserror::Error;
 
@@ -50,6 +50,13 @@ pub enum Error {
     UnknownFork {
         fork_schedule: ForkSchedule,
         requested: Epoch,
+    },
+    #[error(
+        "transition requested from a later fork {destination_fork:?} to an earlier fork {source_fork:?}"
+    )]
+    IncompatibleForks {
+        source_fork: Forks,
+        destination_fork: Forks,
     },
 }
 
