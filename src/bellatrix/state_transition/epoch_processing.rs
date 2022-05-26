@@ -1,5 +1,7 @@
 //! WARNING: This file was derived by the `gen-spec` utility. DO NOT EDIT MANUALLY.
 use crate::bellatrix as spec;
+pub use crate::bellatrix::epoch_processing::process_epoch;
+pub use crate::bellatrix::epoch_processing::process_slashings;
 use crate::primitives::{Epoch, Gwei, ValidatorIndex};
 use crate::state_transition::{Context, Result};
 use integer_sqrt::IntegerSquareRoot;
@@ -10,9 +12,6 @@ use spec::{
     Checkpoint, HistoricalBatchAccumulator, BASE_REWARDS_PER_EPOCH, JUSTIFICATION_BITS_LENGTH,
 };
 use ssz_rs::prelude::*;
-
-pub use crate::bellatrix::epoch_processing::process_epoch;
-pub use crate::bellatrix::epoch_processing::process_slashings;
 pub fn process_registry_updates<
     const SLOTS_PER_HISTORICAL_ROOT: usize,
     const HISTORICAL_ROOTS_LIMIT: usize,

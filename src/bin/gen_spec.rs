@@ -344,16 +344,27 @@ impl VisitMut for Generator {
                     .skip_while(|(_, item)| !matches!(item, Item::Use(..)))
                     .skip_while(|(_, item)| matches!(item, Item::Use(..)))
                     .map(|(i, _)| i);
-                let insertion_index = iter.next().unwrap();
-                for (offset, ident) in self.overrides.iter().enumerate() {
+                if let Some(insertion_index) = iter.next() {
+                    for (offset, ident) in self.overrides.iter().enumerate() {
+                        let target_fork = &self.target_fork;
+                        let module = self.module.split("::").last().unwrap();
+                        let use_item: ItemUse = syn::parse_str(&format!(
+                            "pub use crate::{target_fork}::{module}::{ident};"
+                        ))
+                        .unwrap();
+                        node.items
+                            .insert(insertion_index + offset, Item::Use(use_item));
+                    }
+                } else if self.overrides.len() == 1 && self.overrides.remove("state_transition") {
+                    // a bit kludgy but so far this means we are replacing the function
+                    // `state_transition` inside a `state_transition/mod.rs` file
                     let target_fork = &self.target_fork;
-                    let module = self.module.split("::").last().unwrap();
+                    let ident = "state_transition";
                     let use_item: ItemUse = syn::parse_str(&format!(
-                        "pub use crate::{target_fork}::{module}::{ident};"
+                        "pub use crate::{target_fork}::state_transition_{target_fork}::{ident};"
                     ))
                     .unwrap();
-                    node.items
-                        .insert(insertion_index + offset, Item::Use(use_item));
+                    node.items.push(use_item.into());
                 }
             }
             Pass::Finalize => {
@@ -448,7 +459,7 @@ fn main() {
         ),
     ]);
 
-    let forks_to_gen = vec!["phase0", "altair", "bellatrix"];
+    let forks_to_gen = vec![/*"phase0",*/ "altair", "bellatrix"];
 
     for fork_pair in forks_to_gen.windows(2) {
         let (source_fork, target_fork) = (fork_pair[0], fork_pair[1]);

@@ -9,6 +9,7 @@ pub mod epoch_processing;
 mod execution;
 pub mod helpers;
 mod presets;
+pub mod state_transition_bellatrix;
 
 pub mod state_transition;
 pub use state_transition::{
