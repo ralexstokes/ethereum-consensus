@@ -8,7 +8,7 @@ build-integration-tests:
     wget https://github.com/ethereum/${REPO_NAME}/releases/download/${TESTS_TAG}/general.tar.gz
     mkdir ${REPO_NAME}
     tar -xzf general.tar.gz -C ${REPO_NAME}
-
+    rm -f *tar.gz
 run-integration-tests:
     cargo test --test '*'
 fmt:
