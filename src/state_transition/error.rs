@@ -1,5 +1,6 @@
 use crate::phase0::{AttestationData, BeaconBlockHeader, Checkpoint};
 use crate::primitives::{BlsSignature, Epoch, Root, Slot, ValidatorIndex};
+use crate::state_transition::ForkSchedule;
 use ssz_rs::prelude::*;
 use thiserror::Error;
 
@@ -27,6 +28,8 @@ pub enum Error {
     },
     #[error("overflow")]
     Overflow,
+    #[error("underflow")]
+    Underflow,
     #[error("{0}")]
     InvalidBlock(Box<InvalidBlock>),
     #[error("an invalid transition to a past slot {requested} from slot {current}")]
@@ -40,6 +43,13 @@ pub enum Error {
         requested: Epoch,
         previous: Epoch,
         current: Epoch,
+    },
+    #[error(
+    "the requested epoch {requested} refers to an unknown fork according to the schedule {fork_schedule:?}"
+    )]
+    UnknownFork {
+        fork_schedule: ForkSchedule,
+        requested: Epoch,
     },
 }
 
