@@ -3,12 +3,13 @@
 
 use crate::altair as spec;
 
-use crate::primitives::{ParticipationFlags, ValidatorIndex};
+use crate::primitives::{Epoch, Gwei, ParticipationFlags, ValidatorIndex};
 use crate::state_transition::{Context, Result};
 use spec::{
-    decrease_balance, get_beacon_proposer_index, get_current_epoch, increase_balance,
-    initiate_validator_exit, BeaconState,
+    decrease_balance, get_beacon_proposer_index, get_current_epoch, get_eligible_validator_indices,
+    get_previous_epoch, increase_balance, initiate_validator_exit, BeaconState,
 };
+use std::collections::HashSet;
 
 pub fn add_flag(flags: ParticipationFlags, flag_index: u8) -> ParticipationFlags {
     // Return a new ``ParticipationFlags`` adding ``flag_index`` to ``flags``
@@ -142,9 +143,11 @@ pub fn get_unslashed_participating_indices<
         MAX_VALIDATORS_PER_COMMITTEE,
         SYNC_COMMITTEE_SIZE,
     >,
+    _flag_index: usize,
+    _epoch: Epoch,
     _context: &Context,
-) -> Result<()> {
-    Ok(())
+) -> Result<HashSet<ValidatorIndex>> {
+    Ok(Default::default())
 }
 
 pub fn get_attestation_participation_flag_indices<
@@ -207,7 +210,7 @@ pub fn get_inactivity_penalty_deltas<
     const MAX_VALIDATORS_PER_COMMITTEE: usize,
     const SYNC_COMMITTEE_SIZE: usize,
 >(
-    _state: &BeaconState<
+    state: &BeaconState<
         SLOTS_PER_HISTORICAL_ROOT,
         HISTORICAL_ROOTS_LIMIT,
         ETH1_DATA_VOTES_BOUND,
@@ -217,9 +220,30 @@ pub fn get_inactivity_penalty_deltas<
         MAX_VALIDATORS_PER_COMMITTEE,
         SYNC_COMMITTEE_SIZE,
     >,
-    _context: &Context,
-) -> Result<()> {
-    Ok(())
+    context: &Context,
+) -> Result<(Vec<Gwei>, Vec<Gwei>)> {
+    let validator_count = state.validators.len();
+    let rewards = vec![0; validator_count];
+    let mut penalties = vec![0; validator_count];
+    let previous_epoch = get_previous_epoch(state, context);
+    // NOTE: direct imports to simplify forward code gen of these constants
+    let matching_target_indices = get_unslashed_participating_indices(
+        state,
+        crate::altair::TIMELY_TARGET_FLAG_INDEX,
+        previous_epoch,
+        context,
+    )?;
+    let current_epoch = get_current_epoch(state, context);
+    let inactivity_penalty_quotient = context.inactivity_penalty_quotient(current_epoch)?;
+    for i in get_eligible_validator_indices(state, context) {
+        if !matching_target_indices.contains(&i) {
+            let penalty_numerator =
+                state.validators[i].effective_balance * state.inactivity_scores[i];
+            let penalty_denominator = context.inactivity_score_bias * inactivity_penalty_quotient;
+            penalties[i] += penalty_numerator / penalty_denominator;
+        }
+    }
+    Ok((rewards, penalties))
 }
 
 pub fn slash_validator<

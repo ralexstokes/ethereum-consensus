@@ -5,9 +5,9 @@ use crate::state_transition::{Context, Error, Result};
 use integer_sqrt::IntegerSquareRoot;
 use spec::{
     compute_activation_exit_epoch, decrease_balance, get_attesting_indices, get_block_root,
-    get_block_root_at_slot, get_current_epoch, get_previous_epoch, get_randao_mix,
-    get_total_active_balance, get_total_balance, get_validator_churn_limit, increase_balance,
-    initiate_validator_exit, is_active_validator, is_eligible_for_activation,
+    get_block_root_at_slot, get_current_epoch, get_eligible_validator_indices, get_previous_epoch,
+    get_randao_mix, get_total_active_balance, get_total_balance, get_validator_churn_limit,
+    increase_balance, initiate_validator_exit, is_active_validator, is_eligible_for_activation,
     is_eligible_for_activation_queue, BeaconState, Checkpoint, HistoricalBatchAccumulator,
     PendingAttestation, BASE_REWARDS_PER_EPOCH, JUSTIFICATION_BITS_LENGTH,
 };
@@ -748,45 +748,6 @@ pub fn is_in_inactivity_leak<
     context: &Context,
 ) -> bool {
     get_finality_delay(state, context) > context.min_epochs_to_inactivity_penalty
-}
-
-pub fn get_eligible_validator_indices<
-    'a,
-    const SLOTS_PER_HISTORICAL_ROOT: usize,
-    const HISTORICAL_ROOTS_LIMIT: usize,
-    const ETH1_DATA_VOTES_BOUND: usize,
-    const VALIDATOR_REGISTRY_LIMIT: usize,
-    const EPOCHS_PER_HISTORICAL_VECTOR: usize,
-    const EPOCHS_PER_SLASHINGS_VECTOR: usize,
-    const MAX_VALIDATORS_PER_COMMITTEE: usize,
-    const PENDING_ATTESTATIONS_BOUND: usize,
->(
-    state: &'a BeaconState<
-        SLOTS_PER_HISTORICAL_ROOT,
-        HISTORICAL_ROOTS_LIMIT,
-        ETH1_DATA_VOTES_BOUND,
-        VALIDATOR_REGISTRY_LIMIT,
-        EPOCHS_PER_HISTORICAL_VECTOR,
-        EPOCHS_PER_SLASHINGS_VECTOR,
-        MAX_VALIDATORS_PER_COMMITTEE,
-        PENDING_ATTESTATIONS_BOUND,
-    >,
-    context: &Context,
-) -> impl Iterator<Item = ValidatorIndex> + 'a {
-    let previous_epoch = get_previous_epoch(state, context);
-    state
-        .validators
-        .iter()
-        .enumerate()
-        .filter_map(move |(i, validator)| {
-            if is_active_validator(validator, previous_epoch)
-                || (validator.slashed && previous_epoch + 1 < validator.withdrawable_epoch)
-            {
-                Some(i)
-            } else {
-                None
-            }
-        })
 }
 
 pub fn get_attestation_component_deltas<

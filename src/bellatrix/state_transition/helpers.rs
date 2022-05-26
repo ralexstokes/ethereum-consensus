@@ -1,7 +1,6 @@
 //! WARNING: This file was derived by the `gen-spec` utility. DO NOT EDIT MANUALLY.
 use crate::bellatrix as spec;
 pub use crate::bellatrix::helpers::compute_timestamp_at_slot;
-pub use crate::bellatrix::helpers::get_inactivity_penalty_deltas;
 pub use crate::bellatrix::helpers::is_execution_enabled;
 pub use crate::bellatrix::helpers::is_merge_transition_block;
 pub use crate::bellatrix::helpers::is_merge_transition_complete;
@@ -1128,6 +1127,52 @@ pub fn initiate_validator_exit<
     state.validators[index].withdrawable_epoch =
         state.validators[index].exit_epoch + context.min_validator_withdrawability_delay;
 }
+pub fn get_eligible_validator_indices<
+    'a,
+    const SLOTS_PER_HISTORICAL_ROOT: usize,
+    const HISTORICAL_ROOTS_LIMIT: usize,
+    const ETH1_DATA_VOTES_BOUND: usize,
+    const VALIDATOR_REGISTRY_LIMIT: usize,
+    const EPOCHS_PER_HISTORICAL_VECTOR: usize,
+    const EPOCHS_PER_SLASHINGS_VECTOR: usize,
+    const MAX_VALIDATORS_PER_COMMITTEE: usize,
+    const SYNC_COMMITTEE_SIZE: usize,
+    const BYTES_PER_LOGS_BLOOM: usize,
+    const MAX_EXTRA_DATA_BYTES: usize,
+    const MAX_BYTES_PER_TRANSACTION: usize,
+    const MAX_TRANSACTIONS_PER_PAYLOAD: usize,
+>(
+    state: &'a BeaconState<
+        SLOTS_PER_HISTORICAL_ROOT,
+        HISTORICAL_ROOTS_LIMIT,
+        ETH1_DATA_VOTES_BOUND,
+        VALIDATOR_REGISTRY_LIMIT,
+        EPOCHS_PER_HISTORICAL_VECTOR,
+        EPOCHS_PER_SLASHINGS_VECTOR,
+        MAX_VALIDATORS_PER_COMMITTEE,
+        SYNC_COMMITTEE_SIZE,
+        BYTES_PER_LOGS_BLOOM,
+        MAX_EXTRA_DATA_BYTES,
+        MAX_BYTES_PER_TRANSACTION,
+        MAX_TRANSACTIONS_PER_PAYLOAD,
+    >,
+    context: &Context,
+) -> impl Iterator<Item = ValidatorIndex> + 'a {
+    let previous_epoch = get_previous_epoch(state, context);
+    state
+        .validators
+        .iter()
+        .enumerate()
+        .filter_map(move |(i, validator)| {
+            if is_active_validator(validator, previous_epoch)
+                || (validator.slashed && previous_epoch + 1 < validator.withdrawable_epoch)
+            {
+                Some(i)
+            } else {
+                None
+            }
+        })
+}
 pub fn add_flag(flags: ParticipationFlags, flag_index: u8) -> ParticipationFlags {
     let flag = 2u8.pow(flag_index as u32);
     flags | flag
@@ -1292,9 +1337,11 @@ pub fn get_unslashed_participating_indices<
         MAX_BYTES_PER_TRANSACTION,
         MAX_TRANSACTIONS_PER_PAYLOAD,
     >,
+    _flag_index: usize,
+    _epoch: Epoch,
     _context: &Context,
-) -> Result<()> {
-    Ok(())
+) -> Result<HashSet<ValidatorIndex>> {
+    Ok(Default::default())
 }
 pub fn get_attestation_participation_flag_indices<
     const SLOTS_PER_HISTORICAL_ROOT: usize,
@@ -1359,6 +1406,58 @@ pub fn get_flag_index_deltas<
     _context: &Context,
 ) -> Result<()> {
     Ok(())
+}
+pub fn get_inactivity_penalty_deltas<
+    const SLOTS_PER_HISTORICAL_ROOT: usize,
+    const HISTORICAL_ROOTS_LIMIT: usize,
+    const ETH1_DATA_VOTES_BOUND: usize,
+    const VALIDATOR_REGISTRY_LIMIT: usize,
+    const EPOCHS_PER_HISTORICAL_VECTOR: usize,
+    const EPOCHS_PER_SLASHINGS_VECTOR: usize,
+    const MAX_VALIDATORS_PER_COMMITTEE: usize,
+    const SYNC_COMMITTEE_SIZE: usize,
+    const BYTES_PER_LOGS_BLOOM: usize,
+    const MAX_EXTRA_DATA_BYTES: usize,
+    const MAX_BYTES_PER_TRANSACTION: usize,
+    const MAX_TRANSACTIONS_PER_PAYLOAD: usize,
+>(
+    state: &BeaconState<
+        SLOTS_PER_HISTORICAL_ROOT,
+        HISTORICAL_ROOTS_LIMIT,
+        ETH1_DATA_VOTES_BOUND,
+        VALIDATOR_REGISTRY_LIMIT,
+        EPOCHS_PER_HISTORICAL_VECTOR,
+        EPOCHS_PER_SLASHINGS_VECTOR,
+        MAX_VALIDATORS_PER_COMMITTEE,
+        SYNC_COMMITTEE_SIZE,
+        BYTES_PER_LOGS_BLOOM,
+        MAX_EXTRA_DATA_BYTES,
+        MAX_BYTES_PER_TRANSACTION,
+        MAX_TRANSACTIONS_PER_PAYLOAD,
+    >,
+    context: &Context,
+) -> Result<(Vec<Gwei>, Vec<Gwei>)> {
+    let validator_count = state.validators.len();
+    let rewards = vec![0; validator_count];
+    let mut penalties = vec![0; validator_count];
+    let previous_epoch = get_previous_epoch(state, context);
+    let matching_target_indices = get_unslashed_participating_indices(
+        state,
+        crate::altair::TIMELY_TARGET_FLAG_INDEX,
+        previous_epoch,
+        context,
+    )?;
+    let current_epoch = get_current_epoch(state, context);
+    let inactivity_penalty_quotient = context.inactivity_penalty_quotient(current_epoch)?;
+    for i in get_eligible_validator_indices(state, context) {
+        if !matching_target_indices.contains(&i) {
+            let penalty_numerator =
+                state.validators[i].effective_balance * state.inactivity_scores[i];
+            let penalty_denominator = context.inactivity_score_bias * inactivity_penalty_quotient;
+            penalties[i] += penalty_numerator / penalty_denominator;
+        }
+    }
+    Ok((rewards, penalties))
 }
 pub fn slash_validator<
     const SLOTS_PER_HISTORICAL_ROOT: usize,
