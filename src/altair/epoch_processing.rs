@@ -2,9 +2,10 @@
 #![allow(dead_code)]
 #![allow(unused_imports)]
 
-use crate::altair::BeaconState;
-use crate::state_transition::{Context, Result};
+use crate::altair as spec;
 
+use crate::state_transition::{Context, Result};
+use spec::BeaconState;
 
 pub fn process_justification_and_finalization<
     const SLOTS_PER_HISTORICAL_ROOT: usize,
