@@ -37,15 +37,15 @@ pub struct BeaconState<
     pub randao_mixes: Vector<Bytes32, EPOCHS_PER_HISTORICAL_VECTOR>,
     #[serde(with = "crate::serde::collection_over_string")]
     pub slashings: Vector<Gwei, EPOCHS_PER_SLASHINGS_VECTOR>,
-    // TODO serde?
+    #[serde(with = "crate::serde::collection_over_string")]
     pub previous_epoch_participation: List<ParticipationFlags, VALIDATOR_REGISTRY_LIMIT>,
-    // TODO serde?
+    #[serde(with = "crate::serde::collection_over_string")]
     pub current_epoch_participation: List<ParticipationFlags, VALIDATOR_REGISTRY_LIMIT>,
     pub justification_bits: Bitvector<JUSTIFICATION_BITS_LENGTH>,
     pub previous_justified_checkpoint: Checkpoint,
     pub current_justified_checkpoint: Checkpoint,
     pub finalized_checkpoint: Checkpoint,
-    // TODO fix serde
+    #[serde(with = "crate::serde::collection_over_string")]
     pub inactivity_scores: List<u64, VALIDATOR_REGISTRY_LIMIT>,
     pub current_sync_committee: SyncCommittee<SYNC_COMMITTEE_SIZE>,
     pub next_sync_committee: SyncCommittee<SYNC_COMMITTEE_SIZE>,
