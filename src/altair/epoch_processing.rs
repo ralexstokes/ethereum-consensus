@@ -5,7 +5,7 @@
 use crate::altair as spec;
 
 use crate::state_transition::{Context, Result};
-use spec::BeaconState;
+use spec::{process_slashings, BeaconState};
 
 pub fn process_justification_and_finalization<
     const SLOTS_PER_HISTORICAL_ROOT: usize,
@@ -58,31 +58,6 @@ pub fn process_inactivity_updates<
 }
 
 pub fn process_rewards_and_penalties<
-    const SLOTS_PER_HISTORICAL_ROOT: usize,
-    const HISTORICAL_ROOTS_LIMIT: usize,
-    const ETH1_DATA_VOTES_BOUND: usize,
-    const VALIDATOR_REGISTRY_LIMIT: usize,
-    const EPOCHS_PER_HISTORICAL_VECTOR: usize,
-    const EPOCHS_PER_SLASHINGS_VECTOR: usize,
-    const MAX_VALIDATORS_PER_COMMITTEE: usize,
-    const SYNC_COMMITTEE_SIZE: usize,
->(
-    _state: &mut BeaconState<
-        SLOTS_PER_HISTORICAL_ROOT,
-        HISTORICAL_ROOTS_LIMIT,
-        ETH1_DATA_VOTES_BOUND,
-        VALIDATOR_REGISTRY_LIMIT,
-        EPOCHS_PER_HISTORICAL_VECTOR,
-        EPOCHS_PER_SLASHINGS_VECTOR,
-        MAX_VALIDATORS_PER_COMMITTEE,
-        SYNC_COMMITTEE_SIZE,
-    >,
-    _context: &Context,
-) -> Result<()> {
-    Ok(())
-}
-
-pub fn process_slashings<
     const SLOTS_PER_HISTORICAL_ROOT: usize,
     const HISTORICAL_ROOTS_LIMIT: usize,
     const ETH1_DATA_VOTES_BOUND: usize,

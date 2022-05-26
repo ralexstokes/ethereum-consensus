@@ -459,7 +459,7 @@ fn main() {
         ),
     ]);
 
-    let forks_to_gen = vec![/*"phase0",*/ "altair", "bellatrix"];
+    let forks_to_gen = vec!["phase0", "altair", "bellatrix"];
 
     for fork_pair in forks_to_gen.windows(2) {
         let (source_fork, target_fork) = (fork_pair[0], fork_pair[1]);
