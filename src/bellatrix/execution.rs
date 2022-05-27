@@ -66,7 +66,8 @@ pub trait ExecutionEngine<
     const MAX_EXTRA_DATA_BYTES: usize,
     const MAX_BYTES_PER_TRANSACTION: usize,
     const MAX_TRANSACTIONS_PER_PAYLOAD: usize,
->
+> where
+    Self: Clone,
 {
     fn notify_new_payload(
         &self,
@@ -79,6 +80,7 @@ pub trait ExecutionEngine<
     ) -> state_transition::Result<()>;
 }
 
+#[derive(Clone)]
 pub struct NoOpExecutionEngine;
 
 impl<

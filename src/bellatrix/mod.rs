@@ -21,7 +21,7 @@ pub use beacon_state::*;
 pub use blinded_beacon_block::*;
 pub use execution::*;
 pub use presets::Preset;
-pub use state_transition_bellatrix::state_transition;
+pub use state_transition_bellatrix::*;
 
 pub use crate::altair::SyncAggregate;
 pub use crate::phase0::{

@@ -83,7 +83,7 @@ pub type Attestation = phase0::Attestation<MAX_VALIDATORS_PER_COMMITTEE>;
 
 pub const ETH1_DATA_VOTES_BOUND: usize =
     phase0::get_eth1_data_votes_bound(EPOCHS_PER_ETH1_VOTING_PERIOD, SLOTS_PER_EPOCH as usize);
-const PENDING_ATTESTATIONS_BOUND: usize =
+pub const PENDING_ATTESTATIONS_BOUND: usize =
     phase0::get_pending_attestations_bound(MAX_ATTESTATIONS, SLOTS_PER_EPOCH as usize);
 
 pub type BeaconState = phase0::BeaconState<

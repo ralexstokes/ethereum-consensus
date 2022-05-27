@@ -11,6 +11,13 @@ pub struct ForkSchedule {
     pub bellatrix: Epoch,
 }
 
+#[derive(Debug)]
+pub enum Forks {
+    Phase0,
+    Altair,
+    Bellatrix,
+}
+
 #[derive(Debug, Default)]
 pub struct Context {
     pub fork_schedule: ForkSchedule,

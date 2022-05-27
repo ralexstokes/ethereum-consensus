@@ -25,6 +25,11 @@ pub const JUSTIFICATION_BITS_LENGTH: usize = 4;
 
 pub mod mainnet {
     pub use super::presets::mainnet::*;
+
+    pub fn genesis_state() -> BeaconState {
+        // TODO return actual genesis state
+        BeaconState::default()
+    }
 }
 
 pub mod minimal {}
