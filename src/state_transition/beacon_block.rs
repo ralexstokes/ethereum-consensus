@@ -19,39 +19,45 @@ pub enum SignedBeaconBlock<
     const MAX_TRANSACTIONS_PER_PAYLOAD: usize,
 > {
     Phase0(
-        phase0::SignedBeaconBlock<
-            MAX_PROPOSER_SLASHINGS,
-            MAX_VALIDATORS_PER_COMMITTEE,
-            MAX_ATTESTER_SLASHINGS,
-            MAX_ATTESTATIONS,
-            MAX_DEPOSITS,
-            MAX_VOLUNTARY_EXITS,
+        Box<
+            phase0::SignedBeaconBlock<
+                MAX_PROPOSER_SLASHINGS,
+                MAX_VALIDATORS_PER_COMMITTEE,
+                MAX_ATTESTER_SLASHINGS,
+                MAX_ATTESTATIONS,
+                MAX_DEPOSITS,
+                MAX_VOLUNTARY_EXITS,
+            >,
         >,
     ),
     Altair(
-        altair::SignedBeaconBlock<
-            MAX_PROPOSER_SLASHINGS,
-            MAX_VALIDATORS_PER_COMMITTEE,
-            MAX_ATTESTER_SLASHINGS,
-            MAX_ATTESTATIONS,
-            MAX_DEPOSITS,
-            MAX_VOLUNTARY_EXITS,
-            SYNC_COMMITTEE_SIZE,
+        Box<
+            altair::SignedBeaconBlock<
+                MAX_PROPOSER_SLASHINGS,
+                MAX_VALIDATORS_PER_COMMITTEE,
+                MAX_ATTESTER_SLASHINGS,
+                MAX_ATTESTATIONS,
+                MAX_DEPOSITS,
+                MAX_VOLUNTARY_EXITS,
+                SYNC_COMMITTEE_SIZE,
+            >,
         >,
     ),
     Bellatrix(
-        bellatrix::SignedBeaconBlock<
-            MAX_PROPOSER_SLASHINGS,
-            MAX_VALIDATORS_PER_COMMITTEE,
-            MAX_ATTESTER_SLASHINGS,
-            MAX_ATTESTATIONS,
-            MAX_DEPOSITS,
-            MAX_VOLUNTARY_EXITS,
-            SYNC_COMMITTEE_SIZE,
-            BYTES_PER_LOGS_BLOOM,
-            MAX_EXTRA_DATA_BYTES,
-            MAX_BYTES_PER_TRANSACTION,
-            MAX_TRANSACTIONS_PER_PAYLOAD,
+        Box<
+            bellatrix::SignedBeaconBlock<
+                MAX_PROPOSER_SLASHINGS,
+                MAX_VALIDATORS_PER_COMMITTEE,
+                MAX_ATTESTER_SLASHINGS,
+                MAX_ATTESTATIONS,
+                MAX_DEPOSITS,
+                MAX_VOLUNTARY_EXITS,
+                SYNC_COMMITTEE_SIZE,
+                BYTES_PER_LOGS_BLOOM,
+                MAX_EXTRA_DATA_BYTES,
+                MAX_BYTES_PER_TRANSACTION,
+                MAX_TRANSACTIONS_PER_PAYLOAD,
+            >,
         >,
     ),
 }
@@ -103,7 +109,7 @@ impl<
             MAX_VOLUNTARY_EXITS,
         >,
     ) -> Self {
-        Self::Phase0(block)
+        Self::Phase0(Box::new(block))
     }
 }
 
@@ -156,7 +162,7 @@ impl<
             SYNC_COMMITTEE_SIZE,
         >,
     ) -> Self {
-        Self::Altair(block)
+        Self::Altair(Box::new(block))
     }
 }
 
@@ -217,6 +223,6 @@ impl<
             MAX_TRANSACTIONS_PER_PAYLOAD,
         >,
     ) -> Self {
-        Self::Bellatrix(block)
+        Self::Bellatrix(Box::new(block))
     }
 }

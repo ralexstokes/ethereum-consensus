@@ -21,43 +21,49 @@ pub enum BeaconState<
     const MAX_TRANSACTIONS_PER_PAYLOAD: usize,
 > {
     Phase0(
-        phase0::BeaconState<
-            SLOTS_PER_HISTORICAL_ROOT,
-            HISTORICAL_ROOTS_LIMIT,
-            ETH1_DATA_VOTES_BOUND,
-            VALIDATOR_REGISTRY_LIMIT,
-            EPOCHS_PER_HISTORICAL_VECTOR,
-            EPOCHS_PER_SLASHINGS_VECTOR,
-            MAX_VALIDATORS_PER_COMMITTEE,
-            PENDING_ATTESTATIONS_BOUND,
+        Box<
+            phase0::BeaconState<
+                SLOTS_PER_HISTORICAL_ROOT,
+                HISTORICAL_ROOTS_LIMIT,
+                ETH1_DATA_VOTES_BOUND,
+                VALIDATOR_REGISTRY_LIMIT,
+                EPOCHS_PER_HISTORICAL_VECTOR,
+                EPOCHS_PER_SLASHINGS_VECTOR,
+                MAX_VALIDATORS_PER_COMMITTEE,
+                PENDING_ATTESTATIONS_BOUND,
+            >,
         >,
     ),
     Altair(
-        altair::BeaconState<
-            SLOTS_PER_HISTORICAL_ROOT,
-            HISTORICAL_ROOTS_LIMIT,
-            ETH1_DATA_VOTES_BOUND,
-            VALIDATOR_REGISTRY_LIMIT,
-            EPOCHS_PER_HISTORICAL_VECTOR,
-            EPOCHS_PER_SLASHINGS_VECTOR,
-            MAX_VALIDATORS_PER_COMMITTEE,
-            SYNC_COMMITTEE_SIZE,
+        Box<
+            altair::BeaconState<
+                SLOTS_PER_HISTORICAL_ROOT,
+                HISTORICAL_ROOTS_LIMIT,
+                ETH1_DATA_VOTES_BOUND,
+                VALIDATOR_REGISTRY_LIMIT,
+                EPOCHS_PER_HISTORICAL_VECTOR,
+                EPOCHS_PER_SLASHINGS_VECTOR,
+                MAX_VALIDATORS_PER_COMMITTEE,
+                SYNC_COMMITTEE_SIZE,
+            >,
         >,
     ),
     Bellatrix(
-        bellatrix::BeaconState<
-            SLOTS_PER_HISTORICAL_ROOT,
-            HISTORICAL_ROOTS_LIMIT,
-            ETH1_DATA_VOTES_BOUND,
-            VALIDATOR_REGISTRY_LIMIT,
-            EPOCHS_PER_HISTORICAL_VECTOR,
-            EPOCHS_PER_SLASHINGS_VECTOR,
-            MAX_VALIDATORS_PER_COMMITTEE,
-            SYNC_COMMITTEE_SIZE,
-            BYTES_PER_LOGS_BLOOM,
-            MAX_EXTRA_DATA_BYTES,
-            MAX_BYTES_PER_TRANSACTION,
-            MAX_TRANSACTIONS_PER_PAYLOAD,
+        Box<
+            bellatrix::BeaconState<
+                SLOTS_PER_HISTORICAL_ROOT,
+                HISTORICAL_ROOTS_LIMIT,
+                ETH1_DATA_VOTES_BOUND,
+                VALIDATOR_REGISTRY_LIMIT,
+                EPOCHS_PER_HISTORICAL_VECTOR,
+                EPOCHS_PER_SLASHINGS_VECTOR,
+                MAX_VALIDATORS_PER_COMMITTEE,
+                SYNC_COMMITTEE_SIZE,
+                BYTES_PER_LOGS_BLOOM,
+                MAX_EXTRA_DATA_BYTES,
+                MAX_BYTES_PER_TRANSACTION,
+                MAX_TRANSACTIONS_PER_PAYLOAD,
+            >,
         >,
     ),
 }
@@ -117,7 +123,7 @@ impl<
             PENDING_ATTESTATIONS_BOUND,
         >,
     ) -> Self {
-        Self::Phase0(state)
+        Self::Phase0(Box::new(state))
     }
 }
 
@@ -176,7 +182,7 @@ impl<
             SYNC_COMMITTEE_SIZE,
         >,
     ) -> Self {
-        Self::Altair(state)
+        Self::Altair(Box::new(state))
     }
 }
 
@@ -243,6 +249,6 @@ impl<
             MAX_TRANSACTIONS_PER_PAYLOAD,
         >,
     ) -> Self {
-        Self::Bellatrix(state)
+        Self::Bellatrix(Box::new(state))
     }
 }
