@@ -81,10 +81,7 @@ impl Client {
         Ok(response)
     }
 
-    pub async fn post<
-        T: serde::Serialize + serde::de::DeserializeOwned,
-        U: serde::Serialize + serde::de::DeserializeOwned,
-    >(
+    pub async fn post<T: serde::Serialize, U: serde::Serialize + serde::de::DeserializeOwned>(
         &self,
         path: &str,
         argument: &T,
@@ -96,7 +93,7 @@ impl Client {
         }
     }
 
-    pub async fn http_post<T: serde::Serialize + serde::de::DeserializeOwned>(
+    pub async fn http_post<T: serde::Serialize>(
         &self,
         path: &str,
         argument: &T,
