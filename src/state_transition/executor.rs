@@ -219,12 +219,16 @@ impl<
                 let fork_slot = self.context.altair_fork_epoch * self.context.slots_per_epoch;
                 phase0::process_slots(state, fork_slot, &self.context)?;
                 let mut state = altair::BeaconState::from(&**state);
-                altair::state_transition_block_in_slot(
-                    &mut state,
-                    signed_block,
-                    validation,
-                    &self.context,
-                )?;
+                if signed_block.message.slot == state.slot {
+                    altair::state_transition_block_in_slot(
+                        &mut state,
+                        signed_block,
+                        validation,
+                        &self.context,
+                    )?;
+                } else {
+                    altair::state_transition(&mut state, signed_block, validation, &self.context)?;
+                }
                 self.state = state.into();
                 Ok(())
             }
@@ -264,14 +268,23 @@ impl<
                 let fork_slot = self.context.bellatrix_fork_epoch * self.context.slots_per_epoch;
                 altair::process_slots(&mut state, fork_slot, &self.context)?;
                 let mut state = bellatrix::BeaconState::from(&state);
-
-                bellatrix::state_transition_block_in_slot(
-                    &mut state,
-                    signed_block,
-                    self.execution_engine.clone(),
-                    validation,
-                    &self.context,
-                )?;
+                if signed_block.message.slot == state.slot {
+                    bellatrix::state_transition_block_in_slot(
+                        &mut state,
+                        signed_block,
+                        self.execution_engine.clone(),
+                        validation,
+                        &self.context,
+                    )?;
+                } else {
+                    bellatrix::state_transition(
+                        &mut state,
+                        signed_block,
+                        self.execution_engine.clone(),
+                        validation,
+                        &self.context,
+                    )?;
+                }
                 self.state = state.into();
                 Ok(())
             }
@@ -279,13 +292,23 @@ impl<
                 let fork_slot = self.context.bellatrix_fork_epoch * self.context.slots_per_epoch;
                 altair::process_slots(state, fork_slot, &self.context)?;
                 let mut state = bellatrix::BeaconState::from(&**state);
-                bellatrix::state_transition_block_in_slot(
-                    &mut state,
-                    signed_block,
-                    self.execution_engine.clone(),
-                    validation,
-                    &self.context,
-                )?;
+                if signed_block.message.slot == state.slot {
+                    bellatrix::state_transition_block_in_slot(
+                        &mut state,
+                        signed_block,
+                        self.execution_engine.clone(),
+                        validation,
+                        &self.context,
+                    )?;
+                } else {
+                    bellatrix::state_transition(
+                        &mut state,
+                        signed_block,
+                        self.execution_engine.clone(),
+                        validation,
+                        &self.context,
+                    )?;
+                }
                 self.state = state.into();
                 Ok(())
             }
