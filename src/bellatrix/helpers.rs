@@ -1,7 +1,3 @@
-// TODO remove once impl is added
-#![allow(dead_code)]
-#![allow(unused_variables)]
-
 use crate::bellatrix as spec;
 
 use crate::primitives::{Slot, GENESIS_SLOT};

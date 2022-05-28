@@ -3,10 +3,8 @@ use crate::bellatrix::ExecutionPayloadHeader;
 use crate::phase0::{
     BeaconBlockHeader, Checkpoint, Eth1Data, Fork, Validator, JUSTIFICATION_BITS_LENGTH,
 };
-use crate::primitives::{Bytes32, Gwei, Root, Slot};
+use crate::primitives::{Bytes32, Gwei, ParticipationFlags, Root, Slot};
 use ssz_rs::prelude::*;
-
-pub type ParticipationFlags = u8;
 
 #[derive(Default, Debug, SimpleSerialize, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]

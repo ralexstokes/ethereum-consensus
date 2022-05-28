@@ -30,6 +30,7 @@ pub use crate::phase0::{
     IndexedAttestation, ProposerSlashing, SignedVoluntaryExit, Validator, BASE_REWARDS_PER_EPOCH,
     DEPOSIT_CONTRACT_TREE_DEPTH, JUSTIFICATION_BITS_LENGTH,
 };
+pub use crate::primitives::ParticipationFlags;
 
 pub mod mainnet {
     pub use super::presets::mainnet::*;
