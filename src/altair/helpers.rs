@@ -3,12 +3,16 @@
 
 use crate::altair as spec;
 
+use crate::crypto::{ hash, eth_aggregate_pubkeys};
 use crate::primitives::{Epoch, Gwei, ParticipationFlags, ValidatorIndex};
-use crate::state_transition::{Context, Result};
+use crate::state_transition::{Context, Error, Result};
+use crate::domains::DomainType;
 use spec::{
     decrease_balance, get_beacon_proposer_index, get_current_epoch, get_eligible_validator_indices,
-    get_previous_epoch, increase_balance, initiate_validator_exit, BeaconState,
+    get_previous_epoch, increase_balance, initiate_validator_exit, BeaconState, sync::SyncCommittee as SyncCommittee, get_active_validator_indices, get_seed, compute_shuffled_index, get_total_active_balance
 };
+use ssz_rs::{List, Vector};
+use integer_sqrt::IntegerSquareRoot;
 use std::collections::HashSet;
 
 pub fn add_flag(flags: ParticipationFlags, flag_index: u8) -> ParticipationFlags {
@@ -33,7 +37,7 @@ pub fn get_next_sync_committee_indices<
     const MAX_VALIDATORS_PER_COMMITTEE: usize,
     const SYNC_COMMITTEE_SIZE: usize,
 >(
-    _state: &BeaconState<
+    state: &BeaconState<
         SLOTS_PER_HISTORICAL_ROOT,
         HISTORICAL_ROOTS_LIMIT,
         ETH1_DATA_VOTES_BOUND,
@@ -43,9 +47,34 @@ pub fn get_next_sync_committee_indices<
         MAX_VALIDATORS_PER_COMMITTEE,
         SYNC_COMMITTEE_SIZE,
     >,
-    _context: &Context,
-) -> Result<()> {
-    Ok(())
+    context: &Context,
+) -> Result<Vec<ValidatorIndex>> {
+    // Return the sync committee indices, with possible duplicates, for the next sync committee.
+    let epoch = get_current_epoch(state, context) + 1;
+    let max_random_byte = u8::MAX as u64;
+    let active_validator_indices = get_active_validator_indices(state, epoch);
+    let active_validator_count = active_validator_indices.len();
+    let seed = get_seed(state, epoch, DomainType::SyncCommittee, context);
+    let i = 0;
+    // @dev used `Vec` instead of `List`, which requires size to be known upon init
+    let mut sync_committee_indices = Vec::<ValidatorIndex>::new();    
+    // @dev need to validate this is correct for `hash`
+    let mut hash_input = [0u8; 40];
+    hash_input[..32].copy_from_slice(seed.as_ref());
+    while sync_committee_indices.len() < context.sync_committee_size {
+        let shuffled_index = compute_shuffled_index(i % active_validator_count, active_validator_count, &seed, context)?;
+        let candidate_index = active_validator_indices[shuffled_index];
+
+        let i_bytes: [u8; 8] = (i / 32).to_le_bytes();
+        hash_input[32..].copy_from_slice(&i_bytes);
+        let random_byte = hash(hash_input).as_ref()[(i % 32)] as u64;
+        let effective_balance = state.validators[candidate_index].effective_balance;
+
+        if effective_balance * max_random_byte >= context.max_effective_balance * random_byte {
+            sync_committee_indices.push(candidate_index);
+        }
+    }
+    Ok(sync_committee_indices)
 }
 
 pub fn get_next_sync_committee<
@@ -58,7 +87,7 @@ pub fn get_next_sync_committee<
     const MAX_VALIDATORS_PER_COMMITTEE: usize,
     const SYNC_COMMITTEE_SIZE: usize,
 >(
-    _state: &BeaconState<
+    state: &BeaconState<
         SLOTS_PER_HISTORICAL_ROOT,
         HISTORICAL_ROOTS_LIMIT,
         ETH1_DATA_VOTES_BOUND,
@@ -68,9 +97,34 @@ pub fn get_next_sync_committee<
         MAX_VALIDATORS_PER_COMMITTEE,
         SYNC_COMMITTEE_SIZE,
     >,
-    _context: &Context,
-) -> Result<()> {
-    Ok(())
+    context: &Context,
+) -> Result<SyncCommittee<SYNC_COMMITTEE_SIZE>> {
+    // Return the next sync committee, with possible pubkey duplicates.
+    let indices = get_next_sync_committee_indices(state, context)?;
+    let public_keys = state
+        .validators
+        .iter()
+        .enumerate()
+        .filter_map(|(i, v)| {
+            if indices.contains(&i) {
+                Some(&v.public_key)
+            } else {
+                None
+            }
+        })
+        .collect::<Vec<_>>();
+    // @dev not sure if the impl of `eth_aggregate_pubkeys` is needed or correct
+    // also, not sure if `expect` is desired here
+    let aggregate_public_key = eth_aggregate_pubkeys(&public_keys).expect("validator public_keys should be aggregated into aggregate_public_key");
+    
+    // @dev ran into trouble here so just cloned() the validator's public_key
+    // couldn't figure out how to properly coerce/convert `public_keys` Vec to ssz_rs::Vector
+    let pks_vector = Vector::<_, SYNC_COMMITTEE_SIZE>::from_iter(public_keys.iter().map(|&pk| pk.clone()));
+
+    Ok(SyncCommittee::<SYNC_COMMITTEE_SIZE> {
+        public_keys: pks_vector,
+        aggregate_public_key
+    })
 }
 
 pub fn get_base_reward_per_increment<
@@ -83,7 +137,7 @@ pub fn get_base_reward_per_increment<
     const MAX_VALIDATORS_PER_COMMITTEE: usize,
     const SYNC_COMMITTEE_SIZE: usize,
 >(
-    _state: &BeaconState<
+    state: &BeaconState<
         SLOTS_PER_HISTORICAL_ROOT,
         HISTORICAL_ROOTS_LIMIT,
         ETH1_DATA_VOTES_BOUND,
@@ -93,9 +147,9 @@ pub fn get_base_reward_per_increment<
         MAX_VALIDATORS_PER_COMMITTEE,
         SYNC_COMMITTEE_SIZE,
     >,
-    _context: &Context,
-) -> Result<()> {
-    Ok(())
+    context: &Context,
+) -> Result<Gwei> {
+    Ok(context.effective_balance_increment * context.base_reward_factor / get_total_active_balance(state, context)?.integer_sqrt())
 }
 
 pub fn get_base_reward<
@@ -108,7 +162,7 @@ pub fn get_base_reward<
     const MAX_VALIDATORS_PER_COMMITTEE: usize,
     const SYNC_COMMITTEE_SIZE: usize,
 >(
-    _state: &BeaconState<
+    state: &BeaconState<
         SLOTS_PER_HISTORICAL_ROOT,
         HISTORICAL_ROOTS_LIMIT,
         ETH1_DATA_VOTES_BOUND,
@@ -118,9 +172,12 @@ pub fn get_base_reward<
         MAX_VALIDATORS_PER_COMMITTEE,
         SYNC_COMMITTEE_SIZE,
     >,
-    _context: &Context,
-) -> Result<()> {
-    Ok(())
+    index: ValidatorIndex,
+    context: &Context,
+) -> Result<Gwei> {
+    // Return the base reward for the validator defined by `index` with respect to the current `state`
+    let increments = state.validators[index].effective_balance / context.effective_balance_increment;
+    Ok(increments * get_base_reward_per_increment(state, context)?)
 }
 
 pub fn get_unslashed_participating_indices<
@@ -133,7 +190,7 @@ pub fn get_unslashed_participating_indices<
     const MAX_VALIDATORS_PER_COMMITTEE: usize,
     const SYNC_COMMITTEE_SIZE: usize,
 >(
-    _state: &BeaconState<
+    state: &BeaconState<
         SLOTS_PER_HISTORICAL_ROOT,
         HISTORICAL_ROOTS_LIMIT,
         ETH1_DATA_VOTES_BOUND,
@@ -143,10 +200,39 @@ pub fn get_unslashed_participating_indices<
         MAX_VALIDATORS_PER_COMMITTEE,
         SYNC_COMMITTEE_SIZE,
     >,
-    _flag_index: usize,
-    _epoch: Epoch,
-    _context: &Context,
+    flag_index: usize,
+    epoch: Epoch,
+    context: &Context,
 ) -> Result<HashSet<ValidatorIndex>> {
+    // Return the set of validator indices that are both active and unslashed for the given `flag_index` and `epoch`
+    let previous_epoch = get_previous_epoch(state, context);
+    let current_epoch = get_current_epoch(state, context);
+    if previous_epoch != epoch && current_epoch != epoch {
+        return Err(Error::InvalidEpoch {
+            requested: epoch,
+            previous: previous_epoch,
+            current: current_epoch,
+        });
+    }
+
+    let epoch_participation: &List<u8, VALIDATOR_REGISTRY_LIMIT>;
+    if epoch == current_epoch {
+        epoch_participation = &state.current_epoch_participation;
+    } else {
+        epoch_participation = &state.previous_epoch_participation;
+    }
+    let active_validator_indices = get_active_validator_indices(state, epoch);
+    let participating_indices = active_validator_indices.iter().filter_map(|&i | {
+        if has_flag(epoch_participation[i], flag_index as u8) {
+            Some(i)
+        } else {
+            None
+        }
+    })
+    .collect::<Vec<_>>();
+
+    // TODO -- return set(filter(lambda index: not state.validators[index].slashed, participating_indices))
+
     Ok(Default::default())
 }
 
