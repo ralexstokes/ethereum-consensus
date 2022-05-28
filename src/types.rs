@@ -26,13 +26,10 @@ pub enum StateId {
     Root(Root),
 }
 
-
 #[derive(Serialize, Deserialize)]
 pub struct RootData {
     pub root: Root,
 }
-
-
 
 #[derive(Serialize, Deserialize)]
 pub enum BlockId {

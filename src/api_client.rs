@@ -125,9 +125,7 @@ impl Client {
         };
 
         let path = format!("eth/v1/beacon/states/{}/root", &stub);
-
         let root: Value<RootData> = self.get(&path).await?;
-
         Ok(root.data.root)
     }
 
