@@ -6,6 +6,7 @@ use ethereum_consensus::primitives::{
     Version,
 };
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
+use std::fmt;
 
 #[derive(Serialize, Deserialize)]
 pub struct GenesisDetails {
@@ -24,6 +25,20 @@ pub enum StateId {
     Justified,
     Slot(Slot),
     Root(Root),
+}
+
+impl fmt::Display for StateId {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        let printable = match *self {
+            StateId::Finalized => "finalized",
+            StateId::Justified => "justified",
+            StateId::Head => "head",
+            StateId::Genesis => "genesis",
+            StateId::Slot(_) => "not yet implemented",
+            StateId::Root(_) => "not yet implemented",
+        };
+        write!(f, "{}", printable)
+    }
 }
 
 #[derive(Serialize, Deserialize)]

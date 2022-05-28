@@ -6,9 +6,9 @@ use crate::types::{
     ApiResult, AttestationDuty, BalanceSummary, BeaconHeaderSummary, BeaconProposerRegistration,
     BlockId, CommitteeDescriptor, CommitteeFilter, CommitteeSummary, EventTopic,
     FinalityCheckpoints, GenesisDetails, HealthStatus, NetworkIdentity, PeerDescription,
-    PeerDescriptor, PeerSummary, ProposerDuty, PubkeyOrIndex, StateId, SyncCommitteeDescriptor,
-    SyncCommitteeDuty, SyncCommitteeSummary, SyncStatus, ValidatorDescriptor, ValidatorSummary,
-    Value, RootData
+    PeerDescriptor, PeerSummary, ProposerDuty, PubkeyOrIndex, RootData, StateId,
+    SyncCommitteeDescriptor, SyncCommitteeDuty, SyncCommitteeSummary, SyncStatus,
+    ValidatorDescriptor, ValidatorSummary, Value,
 };
 use ethereum_consensus::altair::mainnet::{
     SignedContributionAndProof, SyncCommitteeContribution, SyncCommitteeMessage,
@@ -113,35 +113,15 @@ impl Client {
     }
 
     pub async fn get_state_root(&self, state_id: StateId) -> Result<Root, Error> {
-        let mut stub = "";
+        let path = format!("eth/v1/beacon/states/{state_id}/root");
 
-        match state_id {
-            StateId::Finalized => stub = "finalized",
-            StateId::Head => stub = "head",
-            StateId::Genesis => stub = "genesis",
-            StateId::Root(_) => stub = "not implemented",
-            StateId::Slot(_) => stub = "not implemented",
-            StateId::Justified => stub = "justified",
-        };
-
-        let path = format!("eth/v1/beacon/states/{}/root", &stub);
         let root: Value<RootData> = self.get(&path).await?;
+
         Ok(root.data.root)
     }
 
     pub async fn get_fork(&self, state_id: StateId) -> Result<Fork, Error> {
-        let mut stub = "";
-
-        match state_id {
-            StateId::Finalized => stub = "finalized",
-            StateId::Head => stub = "head",
-            StateId::Genesis => stub = "genesis",
-            StateId::Root(_) => stub = "not implemented",
-            StateId::Slot(_) => stub = "not implemented",
-            StateId::Justified => stub = "justified",
-        };
-
-        let path = format!("eth/v1/beacon/states/{}/fork", &stub);
+        let path = format!("eth/v1/beacon/states/{state_id}/fork");
         let result: Value<Fork> = self.get(&path).await?;
         Ok(result.data)
     }
