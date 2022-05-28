@@ -46,6 +46,7 @@ pub async fn api_error_or_ok(response: reqwest::Response) -> Result<(), Error> {
     }
 }
 
+#[derive(Clone)]
 pub struct Client {
     http: reqwest::Client,
     endpoint: Url,
