@@ -5,7 +5,7 @@ use ssz_rs::prelude::*;
 
 pub type Transaction<const MAX_BYTES_PER_TRANSACTION: usize> = ByteList<MAX_BYTES_PER_TRANSACTION>;
 
-#[derive(Default, Debug, SimpleSerialize, PartialEq, Eq)]
+#[derive(Default, Debug, Clone, SimpleSerialize, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct ExecutionPayload<
     const BYTES_PER_LOGS_BLOOM: usize,

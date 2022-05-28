@@ -2,7 +2,7 @@ use crate::altair::SyncCommittee;
 use crate::phase0::BeaconBlockHeader;
 use ssz_rs::prelude::*;
 
-#[derive(Default, Debug, SimpleSerialize)]
+#[derive(Default, Debug, Clone, SimpleSerialize)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct Snapshot<const SYNC_COMMITTEE_SIZE: usize> {
     pub header: BeaconBlockHeader,

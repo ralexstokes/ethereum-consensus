@@ -3,6 +3,7 @@ use ssz_rs::prelude::Bitvector;
 
 pub const SYNC_COMMITTEE_SUBNET_COUNT: usize = 4;
 
+#[derive(Debug, Default, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct SyncCommitteeMessage {
     #[serde(with = "crate::serde::as_string")]
@@ -17,6 +18,7 @@ pub(super) const fn get_sync_subcommittee_size(sync_committee_size: usize) -> us
     sync_committee_size / SYNC_COMMITTEE_SUBNET_COUNT
 }
 
+#[derive(Debug, Default, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct SyncCommitteeContribution<const SYNC_SUBCOMMITTEE_SIZE: usize> {
     #[serde(with = "crate::serde::as_string")]
@@ -28,6 +30,7 @@ pub struct SyncCommitteeContribution<const SYNC_SUBCOMMITTEE_SIZE: usize> {
     pub signature: BlsSignature,
 }
 
+#[derive(Debug, Default, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct ContributionAndProof<const SYNC_SUBCOMMITTEE_SIZE: usize> {
     #[serde(with = "crate::serde::as_string")]
@@ -36,6 +39,7 @@ pub struct ContributionAndProof<const SYNC_SUBCOMMITTEE_SIZE: usize> {
     pub selection_proof: BlsSignature,
 }
 
+#[derive(Debug, Default, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct SignedContributionAndProof<const SYNC_SUBCOMMITTEE_SIZE: usize> {
     pub message: ContributionAndProof<SYNC_SUBCOMMITTEE_SIZE>,

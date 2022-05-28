@@ -5,7 +5,7 @@ use crate::phase0::{
 use crate::primitives::{BlsSignature, Bytes32, Root, Slot, ValidatorIndex};
 use ssz_rs::prelude::*;
 
-#[derive(Default, Debug, SimpleSerialize)]
+#[derive(Default, Debug, Clone, SimpleSerialize)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct BeaconBlockBody<
     const MAX_PROPOSER_SLASHINGS: usize,
@@ -28,7 +28,7 @@ pub struct BeaconBlockBody<
     pub sync_aggregate: SyncAggregate<SYNC_COMMITTEE_SIZE>,
 }
 
-#[derive(Default, Debug, SimpleSerialize)]
+#[derive(Default, Debug, Clone, SimpleSerialize)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct BeaconBlock<
     const MAX_PROPOSER_SLASHINGS: usize,
@@ -56,7 +56,7 @@ pub struct BeaconBlock<
     >,
 }
 
-#[derive(Default, Debug, SimpleSerialize)]
+#[derive(Default, Debug, Clone, SimpleSerialize)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct SignedBeaconBlock<
     const MAX_PROPOSER_SLASHINGS: usize,

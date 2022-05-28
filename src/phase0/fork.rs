@@ -12,7 +12,7 @@ pub struct Fork {
     pub epoch: Epoch,
 }
 
-#[derive(Default, Debug, SimpleSerialize)]
+#[derive(Default, Debug, SimpleSerialize, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct ForkData {
     #[serde(with = "crate::serde::as_hex")]

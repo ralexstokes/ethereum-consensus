@@ -22,7 +22,7 @@ pub struct Validator {
     pub withdrawable_epoch: Epoch,
 }
 
-#[derive(Default, Debug, SimpleSerialize)]
+#[derive(Default, Debug, SimpleSerialize, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct AggregateAndProof<const MAX_VALIDATORS_PER_COMMITTEE: usize> {
     #[serde(with = "crate::serde::as_string")]
@@ -31,7 +31,7 @@ pub struct AggregateAndProof<const MAX_VALIDATORS_PER_COMMITTEE: usize> {
     pub selection_proof: BlsSignature,
 }
 
-#[derive(Default, Debug, SimpleSerialize)]
+#[derive(Default, Debug, SimpleSerialize, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct SignedAggregateAndProof<const MAX_VALIDATORS_PER_COMMITTEE: usize> {
     pub message: AggregateAndProof<MAX_VALIDATORS_PER_COMMITTEE>,
