@@ -93,8 +93,10 @@ pub fn eth_aggregate_pubkeys(pks: &[&PublicKey]) -> Result<PublicKey, Error> {
         return Err(Error::EmptyInput);
     }
     let v: Vec<&blst_core::PublicKey> = pks.iter().map(|pk| &pk.0).collect();
-    
-    blst_core::AggregatePublicKey::aggregate(&v, true).map(|agg_pk| PublicKey(agg_pk.to_public_key())).map_err(|e| BLSTError::from(e).into())
+
+    blst_core::AggregatePublicKey::aggregate(&v, true)
+        .map(|agg_pk| PublicKey(agg_pk.to_public_key()))
+        .map_err(|e| BLSTError::from(e).into())
 }
 
 #[derive(Clone, Default)]
