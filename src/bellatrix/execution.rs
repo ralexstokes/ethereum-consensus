@@ -1,6 +1,6 @@
 use crate::primitives::{Bytes32, ExecutionAddress, Hash32, Root, U256};
 use crate::ssz::{ByteList, ByteVector};
-use crate::state_transition;
+use crate::state_transition::{self, Error};
 use ssz_rs::prelude::*;
 
 pub type Transaction<const MAX_BYTES_PER_TRANSACTION: usize> = ByteList<MAX_BYTES_PER_TRANSACTION>;
@@ -59,6 +59,67 @@ pub struct ExecutionPayloadHeader<
     pub base_fee_per_gas: U256,
     pub block_hash: Hash32,
     pub transactions_root: Root,
+}
+
+impl<
+        'a,
+        const BYTES_PER_LOGS_BLOOM: usize,
+        const MAX_EXTRA_DATA_BYTES: usize,
+        const MAX_BYTES_PER_TRANSACTION: usize,
+        const MAX_TRANSACTIONS_PER_PAYLOAD: usize,
+    >
+    TryFrom<
+        &'a mut ExecutionPayload<
+            BYTES_PER_LOGS_BLOOM,
+            MAX_EXTRA_DATA_BYTES,
+            MAX_BYTES_PER_TRANSACTION,
+            MAX_TRANSACTIONS_PER_PAYLOAD,
+        >,
+    >
+    for ExecutionPayloadHeader<
+        BYTES_PER_LOGS_BLOOM,
+        MAX_EXTRA_DATA_BYTES,
+        MAX_BYTES_PER_TRANSACTION,
+        MAX_TRANSACTIONS_PER_PAYLOAD,
+    >
+{
+    type Error = Error;
+
+    fn try_from(
+        payload: &'a mut ExecutionPayload<
+            BYTES_PER_LOGS_BLOOM,
+            MAX_EXTRA_DATA_BYTES,
+            MAX_BYTES_PER_TRANSACTION,
+            MAX_TRANSACTIONS_PER_PAYLOAD,
+        >,
+    ) -> Result<
+        ExecutionPayloadHeader<
+            BYTES_PER_LOGS_BLOOM,
+            MAX_EXTRA_DATA_BYTES,
+            MAX_BYTES_PER_TRANSACTION,
+            MAX_TRANSACTIONS_PER_PAYLOAD,
+        >,
+        Self::Error,
+    > {
+        let transactions_root = payload.transactions.hash_tree_root()?;
+
+        Ok(ExecutionPayloadHeader {
+            parent_hash: payload.parent_hash.clone(),
+            fee_recipient: payload.fee_recipient.clone(),
+            state_root: payload.state_root.clone(),
+            receipts_root: payload.receipts_root.clone(),
+            logs_bloom: payload.logs_bloom.clone(),
+            prev_randao: payload.prev_randao.clone(),
+            block_number: payload.block_number,
+            gas_limit: payload.gas_limit,
+            gas_used: payload.gas_used,
+            timestamp: payload.timestamp,
+            extra_data: payload.extra_data.clone(),
+            base_fee_per_gas: payload.base_fee_per_gas.clone(),
+            block_hash: payload.block_hash.clone(),
+            transactions_root,
+        })
+    }
 }
 
 pub trait ExecutionEngine<
