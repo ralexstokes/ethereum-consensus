@@ -123,8 +123,13 @@ impl Client {
         Ok(result.data)
     }
 
-    pub async fn get_finality_checkpoints(id: StateId) -> Result<FinalityCheckpoints, Error> {
-        unimplemented!("")
+    pub async fn get_finality_checkpoints(
+        &self,
+        id: StateId,
+    ) -> Result<FinalityCheckpoints, Error> {
+        let path = format!("eth/v1/beacon/states/{id}/finality_checkpoints");
+        let result: Value<FinalityCheckpoints> = self.get(&path).await?;
+        Ok(result.data)
     }
 
     pub async fn get_validators(
