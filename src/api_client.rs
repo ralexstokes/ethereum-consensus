@@ -114,9 +114,7 @@ impl Client {
 
     pub async fn get_state_root(&self, state_id: StateId) -> Result<Root, Error> {
         let path = format!("eth/v1/beacon/states/{state_id}/root");
-
         let root: Value<RootData> = self.get(&path).await?;
-
         Ok(root.data.root)
     }
 

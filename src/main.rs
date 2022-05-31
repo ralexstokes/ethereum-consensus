@@ -18,7 +18,6 @@ async fn main() {
     let ep = fk.epoch;
 
     println!("\nroot:\n{:?}\n", root.unwrap());
-
     println!("fork.previous_version = {:?}", pv);
     println!("fork.current_version = {:?}", cv);
     println!("fork.epoch = {:?}", ep);
