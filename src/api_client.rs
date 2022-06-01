@@ -134,10 +134,13 @@ impl Client {
     }
 
     pub async fn get_validator(
-        id: StateId,
+        &self,
+        state_id: StateId,
         validator_id: PubkeyOrIndex,
     ) -> Result<ValidatorSummary, Error> {
-        unimplemented!("")
+        let path = format!("eth/v1/beacon/states/{state_id}/validators/{validator_id}");
+        let result: Value<ValidatorSummary> = self.get(&path).await?;
+        Ok(result.data)
     }
 
     pub async fn get_balances(

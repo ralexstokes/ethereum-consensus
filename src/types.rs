@@ -69,6 +69,7 @@ pub struct FinalityCheckpoints {
 }
 
 #[derive(Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
 pub enum ValidatorStatus {
     PendingInitialized,
     PendingQueued,
@@ -89,6 +90,16 @@ pub enum ValidatorStatus {
 pub enum PubkeyOrIndex {
     Pubkey(BlsPublicKey),
     Index(ValidatorIndex),
+}
+
+impl fmt::Display for PubkeyOrIndex {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        let printable = match *self {
+            PubkeyOrIndex::Pubkey(ref pk) => pk.to_string(),
+            PubkeyOrIndex::Index(i) => i.to_string(),
+        };
+        write!(f, "{}", printable)
+    }
 }
 
 pub struct ValidatorDescriptor {
