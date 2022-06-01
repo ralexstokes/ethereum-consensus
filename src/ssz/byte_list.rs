@@ -66,3 +66,18 @@ impl<const N: usize> DerefMut for ByteList<N> {
         &mut self.0
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_byte_list_serde() {
+        let list = ByteList::<32>::try_from([255u8, 255u8].as_ref()).unwrap();
+        let encoding = ssz_rs::serialize(&list).unwrap();
+        assert_eq!(encoding, [255, 255]);
+
+        let recovered_list = ByteList::<32>::deserialize(&encoding).unwrap();
+        assert_eq!(list, recovered_list);
+    }
+}
