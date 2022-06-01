@@ -34,8 +34,8 @@ impl fmt::Display for StateId {
             StateId::Justified => "justified",
             StateId::Head => "head",
             StateId::Genesis => "genesis",
-            StateId::Slot(_) => "not yet implemented",
-            StateId::Root(_) => "not yet implemented",
+            StateId::Slot(slot) => return write!(f, "{}", slot),
+            StateId::Root(root) => return write!(f, "{}", root),
         };
         write!(f, "{}", printable)
     }
