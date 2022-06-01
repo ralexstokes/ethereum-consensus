@@ -6,8 +6,9 @@ use crate::types::{
     ApiResult, AttestationDuty, BalanceSummary, BeaconHeaderSummary, BeaconProposerRegistration,
     BlockId, CommitteeDescriptor, CommitteeFilter, CommitteeSummary, EventTopic,
     FinalityCheckpoints, GenesisDetails, HealthStatus, NetworkIdentity, PeerDescription,
-    PeerDescriptor, PeerSummary, ProposerDuty, PubkeyOrIndex, StateId, SyncCommitteeDescriptor,
-    SyncCommitteeDuty, SyncCommitteeSummary, SyncStatus, ValidatorDescriptor, ValidatorSummary,
+    PeerDescriptor, PeerSummary, ProposerDuty, PubkeyOrIndex, RootData, StateId,
+    SyncCommitteeDescriptor, SyncCommitteeDuty, SyncCommitteeSummary, SyncStatus,
+    ValidatorDescriptor, ValidatorSummary, Value,
 };
 use ethereum_consensus::altair::mainnet::{
     SignedContributionAndProof, SyncCommitteeContribution, SyncCommitteeMessage,
@@ -109,12 +110,16 @@ impl Client {
         self.get("/eth/v1/beacon/genesis").await
     }
 
-    pub async fn get_state_root(id: StateId) -> Result<Root, Error> {
-        unimplemented!("")
+    pub async fn get_state_root(&self, state_id: StateId) -> Result<Root, Error> {
+        let path = format!("eth/v1/beacon/states/{state_id}/root");
+        let root: Value<RootData> = self.get(&path).await?;
+        Ok(root.data.root)
     }
 
-    pub async fn get_fork(id: StateId) -> Result<Fork, Error> {
-        unimplemented!("")
+    pub async fn get_fork(&self, state_id: StateId) -> Result<Fork, Error> {
+        let path = format!("eth/v1/beacon/states/{state_id}/fork");
+        let result: Value<Fork> = self.get(&path).await?;
+        Ok(result.data)
     }
 
     pub async fn get_finality_checkpoints(id: StateId) -> Result<FinalityCheckpoints, Error> {
