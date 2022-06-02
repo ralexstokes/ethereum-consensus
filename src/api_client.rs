@@ -7,8 +7,8 @@ use crate::types::{
     BlockId, CommitteeDescriptor, CommitteeFilter, CommitteeSummary, EventTopic,
     FinalityCheckpoints, GenesisDetails, HealthStatus, NetworkIdentity, PeerDescription,
     PeerDescriptor, PeerSummary, ProposerDuty, PubkeyOrIndex, RootData, StateId,
-    SyncCommitteeDescriptor, SyncCommitteeDuty, SyncCommitteeSummary, SyncStatus,
-    ValidatorDescriptor, ValidatorSummary, Value,
+    SyncCommitteeDescriptor, SyncCommitteeDuty, SyncCommitteeSummary, SyncStatus, ValidatorStatus,
+    ValidatorSummary, Value,
 };
 use ethereum_consensus::altair::mainnet::{
     SignedContributionAndProof, SyncCommitteeContribution, SyncCommitteeMessage,
@@ -24,6 +24,7 @@ use ethereum_consensus::primitives::{
     Bytes32, ChainId, CommitteeIndex, Coordinate, Epoch, ExecutionAddress, RandaoReveal, Root,
     Slot, ValidatorIndex,
 };
+use itertools::Itertools;
 use std::collections::HashMap;
 use thiserror::Error;
 use url::{ParseError, Url};
@@ -127,10 +128,29 @@ impl Client {
     }
 
     pub async fn get_validators(
-        id: StateId,
-        filters: &[ValidatorDescriptor],
+        &self,
+        state_id: StateId,
+        validator_ids: &[PubkeyOrIndex],
+        filters: &[ValidatorStatus],
     ) -> Result<Vec<ValidatorSummary>, Error> {
-        unimplemented!("")
+        let path = format!("eth/v1/beacon/states/{state_id}/validators");
+        let target = self.endpoint.join(&path)?;
+        let mut request = self.http.get(target);
+        if !validator_ids.is_empty() {
+            let validator_ids = validator_ids.iter().join(", ");
+            request = request.query(&[("id", validator_ids)]);
+        }
+        if !filters.is_empty() {
+            let filters = filters.iter().join(", ");
+            request = request.query(&[("status", filters)]);
+        }
+        let response = request.send().await?;
+
+        let result: ApiResult<Value<Vec<ValidatorSummary>>> = response.json().await?;
+        match result {
+            ApiResult::Ok(result) => Ok(result.data),
+            ApiResult::Err(err) => Err(err.into()),
+        }
     }
 
     pub async fn get_validator(
