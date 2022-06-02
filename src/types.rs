@@ -68,7 +68,7 @@ pub struct FinalityCheckpoints {
     pub finalized: Checkpoint,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum ValidatorStatus {
     PendingInitialized,
@@ -80,13 +80,34 @@ pub enum ValidatorStatus {
     ExitedSlashed,
     WithdrawalPossible,
     WithdrawalDone,
-    // TODO what are these?
     Active,
     Pending,
     Exited,
     Withdrawal,
 }
 
+impl fmt::Display for ValidatorStatus {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        let printable = match *self {
+            Self::PendingInitialized => "pending_initialized",
+            Self::PendingQueued => "pending_queued",
+            Self::ActiveOngoing => "active_ongoing",
+            Self::ActiveExiting => "active_exiting",
+            Self::ActiveSlashed => "active_slashed",
+            Self::ExitedUnslashed => "exited_unslashed",
+            Self::ExitedSlashed => "exited_slashed",
+            Self::WithdrawalPossible => "withdrawal_possible",
+            Self::WithdrawalDone => "withdrawal_done",
+            Self::Active => "active",
+            Self::Pending => "pending",
+            Self::Exited => "exited",
+            Self::Withdrawal => "withdrawal",
+        };
+        write!(f, "{}", printable)
+    }
+}
+
+#[derive(Debug)]
 pub enum PubkeyOrIndex {
     Pubkey(BlsPublicKey),
     Index(ValidatorIndex),
@@ -95,19 +116,26 @@ pub enum PubkeyOrIndex {
 impl fmt::Display for PubkeyOrIndex {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let printable = match *self {
-            PubkeyOrIndex::Pubkey(ref pk) => pk.to_string(),
-            PubkeyOrIndex::Index(i) => i.to_string(),
+            Self::Pubkey(ref pk) => pk.to_string(),
+            Self::Index(i) => i.to_string(),
         };
         write!(f, "{}", printable)
     }
 }
 
-pub struct ValidatorDescriptor {
-    pub pubkey_or_index: PubkeyOrIndex,
-    pub status: ValidatorStatus,
+impl From<ValidatorIndex> for PubkeyOrIndex {
+    fn from(index: ValidatorIndex) -> Self {
+        Self::Index(index)
+    }
 }
 
-#[derive(Serialize, Deserialize)]
+impl From<BlsPublicKey> for PubkeyOrIndex {
+    fn from(public_key: BlsPublicKey) -> Self {
+        Self::Pubkey(public_key)
+    }
+}
+
+#[derive(Debug, Serialize, Deserialize)]
 pub struct ValidatorSummary {
     #[serde(with = "crate::serde::as_string")]
     pub index: ValidatorIndex,
