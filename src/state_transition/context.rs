@@ -18,7 +18,7 @@ pub enum Forks {
     Bellatrix,
 }
 
-#[derive(Debug, Default)]
+#[derive(Debug, Default, Clone)]
 pub struct Context {
     pub fork_schedule: ForkSchedule,
 
