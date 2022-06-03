@@ -212,7 +212,10 @@ pub enum InvalidVoluntaryExit {
 
 #[derive(Debug, Error)]
 #[error("TODO: fill out")]
-pub enum InvalidSyncAggregate {}
+pub enum InvalidSyncAggregate {
+    #[error("invalid sync committee aggregate signature {signature} signing over previous slot block root {root}")]
+    InvalidSignature { signature: BlsSignature, root: Node },
+}
 
 #[derive(Debug, Error)]
 pub enum InvalidExecutionPayload {
