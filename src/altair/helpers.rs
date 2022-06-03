@@ -274,7 +274,7 @@ pub fn get_attestation_participation_flag_indices<
         MAX_VALIDATORS_PER_COMMITTEE,
         SYNC_COMMITTEE_SIZE,
     >,
-    data: AttestationData,
+    data: &AttestationData,
     inclusion_delay: u64,
     context: &Context,
 ) -> Result<Vec<usize>> {
@@ -291,7 +291,7 @@ pub fn get_attestation_participation_flag_indices<
         return Err(invalid_operation_error(InvalidOperation::Attestation(
             InvalidAttestation::InvalidSource {
                 expected: justified_checkpoint.clone(),
-                source_checkpoint: data.source,
+                source_checkpoint: data.source.clone(),
                 current: get_current_epoch(state, context),
             },
         )));
