@@ -68,7 +68,7 @@ pub struct FinalityCheckpoints {
     pub finalized: Checkpoint,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum ValidatorStatus {
     PendingInitialized,
