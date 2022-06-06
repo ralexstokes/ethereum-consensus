@@ -2,6 +2,8 @@
 use crate::configs;
 use crate::phase0 as presets;
 use crate::primitives::{Epoch, Slot};
+use std::ops::Deref;
+use std::sync::Arc;
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
 pub const MAINNET_GENESIS_TIME: u64 = 1606824023;
@@ -25,7 +27,18 @@ impl TimeProvider for SystemTimeProvider {
     }
 }
 
-pub struct Clock<T: TimeProvider> {
+#[derive(Clone)]
+pub struct Clock<T: TimeProvider>(Arc<Inner<T>>);
+
+impl<T: TimeProvider> Deref for Clock<T> {
+    type Target = Inner<T>;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
+pub struct Inner<T: TimeProvider> {
     genesis_time: u64,
     seconds_per_slot: u64,
     slots_per_epoch: Slot,
@@ -60,12 +73,13 @@ impl<T: TimeProvider> Clock<T> {
         slots_per_epoch: Slot,
         time_provider: T,
     ) -> Self {
-        Self {
+        let inner = Inner {
             genesis_time,
             seconds_per_slot,
             slots_per_epoch,
             time_provider,
-        }
+        };
+        Self(Arc::new(inner))
     }
 
     fn get_current_time(&self) -> u64 {
