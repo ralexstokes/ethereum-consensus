@@ -19,6 +19,7 @@ pub trait TimeProvider {
     fn get_current_time(&self) -> u64;
 }
 
+#[derive(Clone)]
 pub struct SystemTimeProvider;
 
 impl TimeProvider for SystemTimeProvider {
