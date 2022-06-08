@@ -5,6 +5,7 @@ mod beacon_block;
 mod beacon_state;
 pub mod block_processing;
 pub mod epoch_processing;
+pub mod genesis;
 pub mod helpers;
 pub mod light_client;
 mod presets;
@@ -13,7 +14,7 @@ mod validator;
 
 pub mod state_transition;
 pub use state_transition::{
-    block_processing::*, epoch_processing::*, genesis, helpers::*, slot_processing::*, *,
+    block_processing::*, epoch_processing::*, genesis::*, helpers::*, slot_processing::*, *,
 };
 
 pub use beacon_block::*;

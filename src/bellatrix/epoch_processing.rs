@@ -49,7 +49,7 @@ pub fn process_epoch<
     process_slashings_reset(state, context);
     process_randao_mixes_reset(state, context);
     process_historical_roots_update(state, context)?;
-    process_participation_flag_updates(state, context)?;
+    process_participation_flag_updates(state)?;
     process_sync_committee_updates(state, context)?;
     Ok(())
 }

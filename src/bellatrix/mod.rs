@@ -7,13 +7,14 @@ mod blinded_beacon_block;
 pub mod block_processing;
 pub mod epoch_processing;
 mod execution;
+pub mod genesis;
 pub mod helpers;
 mod presets;
 pub mod state_transition_bellatrix;
 
 pub mod state_transition;
 pub use state_transition::{
-    block_processing::*, epoch_processing::*, genesis, helpers::*, slot_processing::*, *,
+    block_processing::*, epoch_processing::*, genesis::*, helpers::*, slot_processing::*, *,
 };
 
 pub use beacon_block::*;

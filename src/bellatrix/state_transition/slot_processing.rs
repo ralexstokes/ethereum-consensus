@@ -2,7 +2,7 @@
 use crate::bellatrix as spec;
 use crate::primitives::Slot;
 use crate::state_transition::{Context, Error, Result};
-use spec::{process_epoch, BeaconState};
+use spec::{process_epoch, BeaconState, ParticipationFlags, SyncAggregate};
 use ssz_rs::prelude::*;
 pub fn process_slots<
     const SLOTS_PER_HISTORICAL_ROOT: usize,
