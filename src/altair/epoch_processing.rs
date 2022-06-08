@@ -9,8 +9,7 @@ use spec::{
     increase_balance, is_in_inactivity_leak, process_effective_balance_updates,
     process_eth1_data_reset, process_historical_roots_update, process_randao_mixes_reset,
     process_registry_updates, process_slashings, process_slashings_reset,
-    weigh_justification_and_finalization, BeaconState, PARTICIPATION_FLAG_WEIGHTS,
-    TIMELY_TARGET_FLAG_INDEX,
+    weigh_justification_and_finalization, BeaconState,
 };
 use std::mem;
 
@@ -45,13 +44,13 @@ pub fn process_justification_and_finalization<
 
     let previous_indices = get_unslashed_participating_indices(
         state,
-        TIMELY_TARGET_FLAG_INDEX,
+        crate::altair::TIMELY_TARGET_FLAG_INDEX,
         get_previous_epoch(state, context),
         context,
     )?;
     let current_indices = get_unslashed_participating_indices(
         state,
-        TIMELY_TARGET_FLAG_INDEX,
+        crate::altair::TIMELY_TARGET_FLAG_INDEX,
         get_previous_epoch(state, context),
         context,
     )?;
@@ -101,7 +100,7 @@ pub fn process_inactivity_updates<
         // Increase the inactivity score of inactive validators
         if get_unslashed_participating_indices(
             state,
-            TIMELY_TARGET_FLAG_INDEX,
+            crate::altair::TIMELY_TARGET_FLAG_INDEX,
             get_previous_epoch(state, context),
             context,
         )?
@@ -148,11 +147,12 @@ pub fn process_rewards_and_penalties<
     }
 
     let mut deltas = Vec::new();
-    for flag_index in 0..PARTICIPATION_FLAG_WEIGHTS.len() {
+    for flag_index in 0..crate::altair::PARTICIPATION_FLAG_WEIGHTS.len() {
         let flag_index_delta = get_flag_index_deltas(state, flag_index, context)?;
         deltas.push(flag_index_delta);
     }
-    deltas.push(get_inactivity_penalty_deltas(state, context)?);
+    let mut inactivity_penalty_deltas = vec![get_inactivity_penalty_deltas(state, context)?];
+    deltas.append(&mut inactivity_penalty_deltas);
     for (rewards, penalties) in deltas.iter() {
         for index in 0..state.validators.len() {
             increase_balance(state, index, rewards[index]);
@@ -185,6 +185,8 @@ pub fn process_participation_flag_updates<
 ) -> Result<()> {
     let current_participation = mem::take(&mut state.current_epoch_participation);
     state.previous_epoch_participation = current_participation;
+    // @dev intention is to set `rotate_participation` to a `List` of u8 values of length state's validators
+    // But, if `current_epoch_participation` is of length `VALIDATOR_REGISTRY_LIMIT` -- does this pose an issue?
     let rotate_participation = vec![ParticipationFlags::default(); state.validators.len()];
     state.current_epoch_participation = rotate_participation
         .try_into()
