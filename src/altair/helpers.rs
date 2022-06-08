@@ -1,6 +1,6 @@
 use crate::altair as spec;
 
-use crate::crypto::{eth_aggregate_pubkeys, hash};
+use crate::crypto::{eth_aggregate_public_keys, hash};
 use crate::domains::DomainType;
 use crate::primitives::{Epoch, Gwei, ParticipationFlags, ValidatorIndex};
 use crate::state_transition::{
@@ -12,8 +12,8 @@ use spec::{
     get_beacon_proposer_index, get_block_root, get_block_root_at_slot, get_current_epoch,
     get_eligible_validator_indices, get_previous_epoch, get_seed, get_total_active_balance,
     get_total_balance, increase_balance, initiate_validator_exit, is_in_inactivity_leak,
-    sync::SyncCommittee, AttestationData, BeaconState, PROPOSER_WEIGHT, TIMELY_TARGET_FLAG_INDEX,
-    WEIGHT_DENOMINATOR,
+    sync::SyncCommittee, AttestationData, BeaconState, PARTICIPATION_FLAG_WEIGHTS, PROPOSER_WEIGHT,
+    TIMELY_HEAD_FLAG_INDEX, TIMELY_SOURCE_FLAG_INDEX, TIMELY_TARGET_FLAG_INDEX, WEIGHT_DENOMINATOR,
 };
 use ssz_rs::Vector;
 use std::collections::HashSet;
@@ -60,7 +60,6 @@ pub fn get_next_sync_committee_indices<
     let seed = get_seed(state, epoch, DomainType::SyncCommittee, context);
     let i = 0;
     let mut sync_committee_indices = Vec::<ValidatorIndex>::new();
-    // @dev need to validate this is correct for `hash`
     let mut hash_input = [0u8; 40];
     hash_input[..32].copy_from_slice(seed.as_ref());
     while sync_committee_indices.len() < context.sync_committee_size {
@@ -120,13 +119,9 @@ pub fn get_next_sync_committee<
             }
         })
         .collect::<Vec<_>>();
-    // @dev not sure if the impl of `eth_aggregate_pubkeys` is needed or correct
-    // also, not sure if `expect` is desired here
-    let aggregate_public_key = eth_aggregate_pubkeys(&public_keys)
+    // @dev WIP fixing error return issue if using `?` instead of `expect` as well as `clone`
+    let aggregate_public_key = eth_aggregate_public_keys(&public_keys)
         .expect("validator public_keys should be aggregated into aggregate_public_key");
-
-    // @dev ran into trouble here so just cloned() the validator's public_key
-    // couldn't figure out how to properly coerce/convert `public_keys` Vec to ssz_rs::Vector
     let pks_vector =
         Vector::<_, SYNC_COMMITTEE_SIZE>::from_iter(public_keys.iter().map(|&pk| pk.clone()));
 
@@ -303,13 +298,13 @@ pub fn get_attestation_participation_flag_indices<
 
     let mut participation_flag_indices = Vec::new();
     if is_matching_source && inclusion_delay <= context.slots_per_epoch.integer_sqrt() {
-        participation_flag_indices.push(crate::altair::TIMELY_SOURCE_FLAG_INDEX);
+        participation_flag_indices.push(TIMELY_SOURCE_FLAG_INDEX);
     }
     if is_matching_target && inclusion_delay <= context.slots_per_epoch {
-        participation_flag_indices.push(crate::altair::TIMELY_TARGET_FLAG_INDEX);
+        participation_flag_indices.push(TIMELY_TARGET_FLAG_INDEX);
     }
     if is_matching_head && inclusion_delay == context.min_attestation_inclusion_delay {
-        participation_flag_indices.push(crate::altair::TIMELY_HEAD_FLAG_INDEX);
+        participation_flag_indices.push(TIMELY_HEAD_FLAG_INDEX);
     }
 
     Ok(participation_flag_indices)
@@ -345,7 +340,7 @@ pub fn get_flag_index_deltas<
     let previous_epoch = get_previous_epoch(state, context);
     let unslashed_participating_indices =
         get_unslashed_participating_indices(state, flag_index, previous_epoch, context)?;
-    let weight = crate::altair::PARTICIPATION_FLAG_WEIGHTS[flag_index];
+    let weight = PARTICIPATION_FLAG_WEIGHTS[flag_index];
     let unslashed_participating_balance =
         get_total_balance(state, &unslashed_participating_indices, context)?;
     let unslashed_participating_increments =
@@ -357,10 +352,9 @@ pub fn get_flag_index_deltas<
         if unslashed_participating_indices.contains(&index) {
             if !is_in_inactivity_leak(state, context) {
                 let reward_numerator = base_reward * weight * unslashed_participating_increments;
-                rewards[index] +=
-                    reward_numerator / (active_increments * crate::altair::WEIGHT_DENOMINATOR);
-            } else if flag_index != crate::altair::TIMELY_HEAD_FLAG_INDEX {
-                penalties[index] += base_reward * weight / crate::altair::WEIGHT_DENOMINATOR;
+                rewards[index] += reward_numerator / (active_increments * WEIGHT_DENOMINATOR);
+            } else if flag_index != TIMELY_HEAD_FLAG_INDEX {
+                penalties[index] += base_reward * weight / WEIGHT_DENOMINATOR;
             }
         }
     }
