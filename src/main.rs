@@ -8,17 +8,12 @@ async fn main() {
     let url: Url = Url::parse(s).unwrap();
     let client = Client::new(url);
 
-    let root = client.get_state_root(StateId::Finalized).await;
-    let fork = client.get_fork(StateId::Finalized).await;
+    let checkpoints = client
+        .get_finality_checkpoints(StateId::Finalized)
+        .await
+        .unwrap();
 
-    // unwrap fork and extract fields
-    let fk = fork.unwrap();
-    let pv = fk.previous_version;
-    let cv = fk.current_version;
-    let ep = fk.epoch;
-
-    println!("\nroot:\n{:?}\n", root.unwrap());
-    println!("fork.previous_version = {:?}", pv);
-    println!("fork.current_version = {:?}", cv);
-    println!("fork.epoch = {:?}", ep);
+    println!("previous checkpoint: {:?}", checkpoints.previous_justified);
+    println!("current checkpoint: {:?}", checkpoints.current_justified);
+    println!("finalized checkpoint: {:?}", checkpoints.finalized);
 }
