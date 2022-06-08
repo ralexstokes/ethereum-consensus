@@ -1,5 +1,7 @@
 use crate::phase0::{AttestationData, BeaconBlockHeader, Checkpoint};
-use crate::primitives::{BlsSignature, Bytes32, Epoch, Hash32, Root, Slot, ValidatorIndex};
+use crate::primitives::{
+    BlsPublicKey, BlsSignature, Bytes32, Epoch, Hash32, Root, Slot, ValidatorIndex,
+};
 use crate::state_transition::{ForkSchedule, Forks};
 use ssz_rs::prelude::*;
 use thiserror::Error;
@@ -16,6 +18,8 @@ pub enum Error {
     OutOfBounds { requested: usize, bound: usize },
     #[error("invalid signature")]
     InvalidSignature,
+    #[error("invalid public key")]
+    InvalidPublicKey,
     #[error("collection cannot be empty")]
     CollectionCannotBeEmpty,
     #[error("given index {index} is greater than the total amount of indices {total}")]
@@ -86,6 +90,8 @@ pub enum InvalidOperation {
     VoluntaryExit(#[from] InvalidVoluntaryExit),
     #[error("invalid sync aggregate: {0}")]
     SyncAggregate(#[from] InvalidSyncAggregate),
+    #[error("invalid sync committee: {0}")]
+    SyncCommittee(#[from] InvalidSyncCommittee),
     #[error("invalid execution payload: {0}")]
     ExecutionPayload(#[from] InvalidExecutionPayload),
 }
@@ -211,10 +217,15 @@ pub enum InvalidVoluntaryExit {
 }
 
 #[derive(Debug, Error)]
-#[error("TODO: fill out")]
 pub enum InvalidSyncAggregate {
     #[error("invalid sync committee aggregate signature {signature} signing over previous slot block root {root}")]
     InvalidSignature { signature: BlsSignature, root: Node },
+}
+
+#[derive(Debug, Error)]
+pub enum InvalidSyncCommittee {
+    #[error("invalid aggregated public key for sync committee")]
+    InvalidPublicKey,
 }
 
 #[derive(Debug, Error)]
