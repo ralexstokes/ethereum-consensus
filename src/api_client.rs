@@ -8,7 +8,7 @@ use crate::types::{
     FinalityCheckpoints, GenesisDetails, HealthStatus, NetworkIdentity, PeerDescription,
     PeerDescriptor, PeerSummary, ProposerDuty, PubkeyOrIndex, RootData, StateId,
     SyncCommitteeDescriptor, SyncCommitteeDuty, SyncCommitteeSummary, SyncStatus, ValidatorStatus,
-    ValidatorSummary, Value,
+    ValidatorSummary, Value, VersionData,
 };
 use ethereum_consensus::altair::mainnet::{
     SignedContributionAndProof, SyncCommitteeContribution, SyncCommitteeMessage,
@@ -325,8 +325,9 @@ impl Client {
         unimplemented!("")
     }
 
-    pub async fn get_node_version() -> Result<String, Error> {
-        unimplemented!("")
+    pub async fn get_node_version(self) -> Result<String, Error> {
+        let result: Value<VersionData> = self.get("eth/v1/node/version").await?;
+        Ok(result.data.version)
     }
 
     pub async fn get_sync_status() -> Result<SyncStatus, Error> {

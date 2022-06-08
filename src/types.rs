@@ -9,6 +9,11 @@ use serde::{de::DeserializeOwned, Deserialize, Serialize};
 use std::fmt;
 
 #[derive(Serialize, Deserialize)]
+pub struct VersionData {
+    pub version: String,
+}
+
+#[derive(Serialize, Deserialize)]
 pub struct GenesisDetails {
     #[serde(with = "crate::serde::as_string")]
     pub genesis_time: u64,
