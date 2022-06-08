@@ -1,3 +1,7 @@
+// TODO remove once impl is added
+#![allow(dead_code)]
+#![allow(unused_mut)]
+#![allow(unused_variables)]
 use crate::altair as spec;
 
 use crate::crypto::fast_aggregate_verify;
@@ -14,14 +18,12 @@ use spec::{
     get_base_reward_per_increment, get_beacon_committee, get_beacon_proposer_index,
     get_block_root_at_slot, get_committee_count_per_slot, get_current_epoch, get_domain,
     get_indexed_attestation, get_previous_epoch, get_total_active_balance,
-    get_validator_from_deposit, has_flag, helpers::get_base_reward, increase_balance,
-    is_valid_indexed_attestation, process_block_header, process_eth1_data, process_operations,
-    process_randao, Attestation, BeaconBlock, BeaconState, Deposit, DepositMessage, SyncAggregate,
-    DEPOSIT_CONTRACT_TREE_DEPTH, PARTICIPATION_FLAG_WEIGHTS, PROPOSER_WEIGHT, SYNC_REWARD_WEIGHT,
-    WEIGHT_DENOMINATOR,
+    get_validator_from_deposit, has_flag, increase_balance, is_valid_indexed_attestation,
+    process_block_header, process_eth1_data, process_operations, process_randao, Attestation,
+    BeaconBlock, BeaconState, Deposit, DepositMessage, SyncAggregate,
 };
 use ssz_rs::prelude::*;
-use std::collections::{HashMap, HashSet};
+use std::collections::HashSet;
 use std::iter::zip;
 
 pub fn process_attestation<
@@ -124,54 +126,37 @@ pub fn process_attestation<
     let attesting_indices =
         get_attesting_indices(state, data, &attestation.aggregation_bits, context)?;
 
-    // @dev Create immutable reference to `{current_or_previous}_epoch_participation`
     let epoch_participation = if is_current {
-        &state.current_epoch_participation
-    } else {
-        &state.previous_epoch_participation
-    };
-
-    let mut proposer_reward_numerator = 0;
-    // @dev Use `participation_accumulator` to accumalate `index` and `ParticipationFlags` (via `add_flags`).
-    // Then, use this HashMap later in `set_epoch_participation` to achieve overwrite of the
-    // corresponding `{current_or_previous}_epoch_participation`'s flag.
-    // Replacement for the python code below, which would occur inside the loop's `if` statement:
-    // epoch_participation[index] = add_flag(epoch_participation[index], flag_index as u8);
-    let mut participation_accumulator = HashMap::<usize, ParticipationFlags>::default();
-    for index in attesting_indices {
-        for (flag_index, weight) in PARTICIPATION_FLAG_WEIGHTS.iter().enumerate() {
-            if participation_flag_indices.contains(&flag_index)
-                && !has_flag(epoch_participation[index], flag_index as u8)
-            {
-                participation_accumulator.insert(
-                    index,
-                    add_flag(epoch_participation[index], flag_index as u8),
-                );
-                // epoch_participation[index] = add_flag(epoch_participation[index], flag_index as u8);
-                // @dev explicit import of `get_base_reward` to disambiguate instead of `spec` import
-                // also, this is where the issue with mutable vs immutable borrow occurs
-
-                proposer_reward_numerator += get_base_reward(state, index, context)? * weight;
-            }
-        }
-    }
-
-    // @dev Create mutable reference to `{current_or_previous}_epoch_participation`
-    let set_epoch_participation = if is_current {
         &mut state.current_epoch_participation
     } else {
         &mut state.previous_epoch_participation
     };
-    // @dev Update flags in `set_epoch_participation` to corresponding values in `participation_accumulator`
-    for i in 0..set_epoch_participation.len() {
-        set_epoch_participation[i] = *participation_accumulator
-            .get(&i)
-            .expect("index in epoch participation should exist");
+
+    let mut proposer_reward_numerator = 0;
+    // @dev this is where I start having trouble
+    // the `get_base_reward` below borrows state as immutable, but `epoch_participation` above borrows as mutable
+    for index in attesting_indices {
+        for (flag_index, weight) in crate::altair::PARTICIPATION_FLAG_WEIGHTS.iter().enumerate() {
+            // if flag_index in participation_flag_indices and not has_flag(epoch_participation[index], flag_index):
+            if participation_flag_indices.contains(&flag_index)
+                && !has_flag(epoch_participation[index], flag_index as u8)
+            {
+                epoch_participation[index] = add_flag(epoch_participation[index], flag_index as u8);
+                // @dev explicit import of `get_base_reward` to disambiguate instead of `spec` import
+                // also, this is where the issue with mutable vs immutable borrow occurs
+                /*
+                proposer_reward_numerator +=
+                    crate::altair::helpers::get_base_reward(state, index, context)? * weight;
+                */
+            }
+        }
     }
 
     // Reward proposer
-    let proposer_reward_denominator =
-        (WEIGHT_DENOMINATOR - PROPOSER_WEIGHT) * WEIGHT_DENOMINATOR / PROPOSER_WEIGHT;
+    let proposer_reward_denominator = (crate::altair::WEIGHT_DENOMINATOR
+        - crate::altair::PROPOSER_WEIGHT)
+        * crate::altair::WEIGHT_DENOMINATOR
+        / crate::altair::PROPOSER_WEIGHT;
     let proposer_reward = proposer_reward_numerator / proposer_reward_denominator;
     increase_balance(
         state,
@@ -210,7 +195,7 @@ pub fn process_deposit<
         .map(|node| Node::from_bytes(node.as_ref().try_into().unwrap()))
         .collect::<Vec<_>>();
     let leaf = deposit.data.hash_tree_root()?;
-    let depth = DEPOSIT_CONTRACT_TREE_DEPTH + 1;
+    let depth = crate::altair::DEPOSIT_CONTRACT_TREE_DEPTH + 1;
     let index = state.eth1_deposit_index as usize;
     let root = &state.eth1_data.deposit_root;
     if !is_valid_merkle_branch(&leaf, branch.iter(), depth, index, root) {
@@ -337,24 +322,21 @@ pub fn process_sync_aggregate<
         get_total_active_balance(state, context)? / context.effective_balance_increment;
     let total_base_rewards =
         get_base_reward_per_increment(state, context)? * total_active_increments;
-    let max_participant_rewards =
-        total_base_rewards * SYNC_REWARD_WEIGHT / WEIGHT_DENOMINATOR / context.slots_per_epoch;
+    let max_participant_rewards = total_base_rewards * crate::altair::SYNC_REWARD_WEIGHT
+        / crate::altair::WEIGHT_DENOMINATOR
+        / context.slots_per_epoch;
     let participant_reward = max_participant_rewards / context.sync_committee_size as u64;
-    let proposer_reward =
-        participant_reward * PROPOSER_WEIGHT / (WEIGHT_DENOMINATOR - PROPOSER_WEIGHT);
+    let proposer_reward = participant_reward * crate::altair::PROPOSER_WEIGHT
+        / (crate::altair::WEIGHT_DENOMINATOR - crate::altair::PROPOSER_WEIGHT);
 
     // Apply participant and proposer rewards
-    let all_public_keys = state
-        .validators
-        .iter()
-        .enumerate()
-        .map(|(i, v)| (&v.public_key, i))
-        .collect::<HashMap<&BlsPublicKey, usize>>();
+    // @dev usage of clone here
+    let mut all_public_keys = state.validators.iter().map(|v| v.public_key.clone());
     let mut committee_indices: Vec<ValidatorIndex> = Vec::default();
     for public_key in state.current_sync_committee.public_keys.iter() {
         committee_indices.push(
-            *all_public_keys
-                .get(public_key)
+            all_public_keys
+                .position(|pk| pk == *public_key)
                 .expect("validator public_key should exist"),
         );
     }
