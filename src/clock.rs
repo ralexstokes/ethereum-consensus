@@ -6,6 +6,10 @@ use std::ops::Deref;
 use std::sync::Arc;
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
+pub fn convert_timestamp_to_slot(timestamp: u64, genesis_time: u64, seconds_per_slot: u64) -> Slot {
+    (timestamp - genesis_time) / seconds_per_slot
+}
+
 pub const MAINNET_GENESIS_TIME: u64 = 1606824023;
 
 pub fn get_current_unix_time_in_secs() -> u64 {
