@@ -169,14 +169,32 @@ impl Client {
     }
 
     pub async fn get_balances(
+        &self,
         id: StateId,
         filters: &[PubkeyOrIndex],
     ) -> Result<Vec<BalanceSummary>, Error> {
-        unimplemented!("")
+        let path = format!("eth/v1/beacon/states/{id}/validator_balances");
+        let target = self.endpoint.join(&path)?;
+        let mut request = self.http.get(target);
+
+        if !filters.is_empty() {
+            let filters = filters.iter().join(", ");
+            request = request.query(&[("id", filters)]);
+        }
+        let response = request.send().await?;
+
+        let result: ApiResult<Value<Vec<BalanceSummary>>> = response.json().await?;
+        match result {
+            ApiResult::Ok(result) => Ok(result.data),
+            ApiResult::Err(err) => Err(err.into()),
+        }
     }
 
-    pub async fn get_all_committees(id: StateId) -> Result<Vec<CommitteeSummary>, Error> {
-        unimplemented!("")
+    pub async fn get_all_committees(&self, id: StateId) -> Result<Vec<CommitteeSummary>, Error> {
+        let result: Value<Vec<CommitteeSummary>> = self
+            .get(&format!("eth/v1/beacon/states/{id}/committees"))
+            .await?;
+        Ok(result.data)
     }
 
     pub async fn get_committees(
