@@ -60,6 +60,18 @@ pub enum BlockId {
     Slot(Slot),
     Root(Root),
 }
+impl fmt::Display for BlockId {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        let printable = match *self {
+            BlockId::Finalized => "finalized",
+            BlockId::Head => "head",
+            BlockId::Genesis => "genesis",
+            BlockId::Slot(slot) => return write!(f, "{}", slot),
+            BlockId::Root(root) => return write!(f, "{}", root),
+        };
+        write!(f, "{}", printable)
+    }
+}
 
 impl fmt::Display for BlockId {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
