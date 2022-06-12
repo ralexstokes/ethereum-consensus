@@ -245,12 +245,15 @@ impl Client {
     }
 
     // v2 endpoint
-    pub async fn get_beacon_block(id: BlockId) -> Result<SignedBeaconBlock, Error> {
-        unimplemented!("")
+    pub async fn get_beacon_block(&self, id: BlockId) -> Result<SignedBeaconBlock, Error> {
+        let result: Value<SignedBeaconBlock> =
+            self.get(&format!("eth/v2/beacon/blocks/{id}")).await?;
+        Ok(result.data)
     }
 
-    pub async fn get_beacon_block_root(id: BlockId) -> Result<Root, Error> {
-        unimplemented!("")
+    pub async fn get_beacon_block_root(&self, id: BlockId) -> Result<Root, Error> {
+        let result: Value<RootData> = self.get(&format!("eth/v1/beacon/blocks/{id}/root")).await?;
+        Ok(result.data.root)
     }
 
     pub async fn get_attestations_from_beacon_block(
