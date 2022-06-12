@@ -6,6 +6,7 @@ use ethereum_consensus::primitives::{
     Version,
 };
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
+use std::collections::HashMap;
 use std::fmt;
 
 #[derive(Serialize, Deserialize)]
@@ -325,13 +326,8 @@ pub struct BeaconProposerRegistration {
 #[serde(bound = "T: Serialize + serde::de::DeserializeOwned")]
 pub struct Value<T: Serialize + DeserializeOwned> {
     pub data: T,
-}
-
-#[derive(Serialize, Deserialize, Debug)]
-#[serde(bound = "T: Serialize + serde::de::DeserializeOwned")]
-pub struct VersionedValue<T: Serialize + DeserializeOwned> {
-    pub version: ConsensusVersion,
-    pub data: T,
+    #[serde(flatten)]
+    pub meta: HashMap<String, serde_json::Value>,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
