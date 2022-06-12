@@ -112,7 +112,8 @@ impl Client {
 
     /* beacon namespace */
     pub async fn get_genesis_details(&self) -> Result<GenesisDetails, Error> {
-        self.get("/eth/v1/beacon/genesis").await
+        let details: Value<GenesisDetails> = self.get("/eth/v1/beacon/genesis").await?;
+        Ok(details.data)
     }
 
     pub async fn get_state_root(&self, state_id: StateId) -> Result<Root, Error> {
