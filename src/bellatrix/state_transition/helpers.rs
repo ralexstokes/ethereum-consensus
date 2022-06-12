@@ -16,7 +16,7 @@ use crate::state_transition::{
 };
 use spec::{
     Attestation, AttestationData, BeaconState, ForkData, IndexedAttestation, ParticipationFlags,
-    SignedBeaconBlock, Validator,
+    SignedBeaconBlock, Validator, PROPOSER_WEIGHT, TIMELY_TARGET_FLAG_INDEX, WEIGHT_DENOMINATOR,
 };
 use ssz_rs::prelude::*;
 use std::cmp;
@@ -1443,7 +1443,7 @@ pub fn get_inactivity_penalty_deltas<
     let previous_epoch = get_previous_epoch(state, context);
     let matching_target_indices = get_unslashed_participating_indices(
         state,
-        crate::altair::TIMELY_TARGET_FLAG_INDEX,
+        TIMELY_TARGET_FLAG_INDEX,
         previous_epoch,
         context,
     )?;
@@ -1510,8 +1510,7 @@ pub fn slash_validator<
     let whistleblower_index = whistleblower_index.unwrap_or(proposer_index);
     let whistleblower_reward =
         state.validators[slashed_index].effective_balance / context.whistleblower_reward_quotient;
-    let proposer_reward_scaling_factor =
-        crate::altair::PROPOSER_WEIGHT / crate::altair::WEIGHT_DENOMINATOR;
+    let proposer_reward_scaling_factor = PROPOSER_WEIGHT / WEIGHT_DENOMINATOR;
     let proposer_reward = whistleblower_reward * proposer_reward_scaling_factor;
     increase_balance(state, proposer_index, proposer_reward);
     increase_balance(
