@@ -435,9 +435,13 @@ impl Client {
     }
 
     pub async fn prepare_proposers(
+        &self,
         registrations: &[BeaconProposerRegistration],
     ) -> Result<(), Error> {
-        Ok(())
+        let response = self
+            .http_post("/eth/v1/validator/prepare_beacon_proposer", &registrations)
+            .await?;
+        api_error_or_ok(response).await
     }
 
     // endpoint for builder registrations
