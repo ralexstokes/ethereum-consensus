@@ -6,7 +6,7 @@ use crate::types::{
     ApiResult, AttestationDuty, BalanceSummary, BeaconHeaderSummary, BeaconProposerRegistration,
     BlockId, CommitteeDescriptor, CommitteeFilter, CommitteeSummary, EventTopic,
     FinalityCheckpoints, GenesisDetails, HealthStatus, NetworkIdentity, PeerDescription,
-    PeerDescriptor, PeerSummary, ProposerDuty, PubkeyOrIndex, RootData, StateId,
+    PeerDescriptor, PeerSummary, ProposerDuty, PublicKeyOrIndex, RootData, StateId,
     SyncCommitteeDescriptor, SyncCommitteeDuty, SyncCommitteeSummary, SyncStatus, ValidatorStatus,
     ValidatorSummary, Value, VersionData,
 };
@@ -139,7 +139,7 @@ impl Client {
     pub async fn get_validators(
         &self,
         state_id: StateId,
-        validator_ids: &[PubkeyOrIndex],
+        validator_ids: &[PublicKeyOrIndex],
         filters: &[ValidatorStatus],
     ) -> Result<Vec<ValidatorSummary>, Error> {
         let path = format!("eth/v1/beacon/states/{state_id}/validators");
@@ -165,7 +165,7 @@ impl Client {
     pub async fn get_validator(
         &self,
         state_id: StateId,
-        validator_id: PubkeyOrIndex,
+        validator_id: PublicKeyOrIndex,
     ) -> Result<ValidatorSummary, Error> {
         let path = format!("eth/v1/beacon/states/{state_id}/validators/{validator_id}");
         let result: Value<ValidatorSummary> = self.get(&path).await?;
@@ -174,7 +174,7 @@ impl Client {
 
     pub async fn get_balances(
         id: StateId,
-        filters: &[PubkeyOrIndex],
+        filters: &[PublicKeyOrIndex],
     ) -> Result<Vec<BalanceSummary>, Error> {
         unimplemented!("")
     }

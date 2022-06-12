@@ -114,30 +114,30 @@ impl fmt::Display for ValidatorStatus {
 }
 
 #[derive(Debug)]
-pub enum PubkeyOrIndex {
-    Pubkey(BlsPublicKey),
+pub enum PublicKeyOrIndex {
+    PublicKey(BlsPublicKey),
     Index(ValidatorIndex),
 }
 
-impl fmt::Display for PubkeyOrIndex {
+impl fmt::Display for PublicKeyOrIndex {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let printable = match *self {
-            Self::Pubkey(ref pk) => pk.to_string(),
+            Self::PublicKey(ref pk) => pk.to_string(),
             Self::Index(i) => i.to_string(),
         };
         write!(f, "{}", printable)
     }
 }
 
-impl From<ValidatorIndex> for PubkeyOrIndex {
+impl From<ValidatorIndex> for PublicKeyOrIndex {
     fn from(index: ValidatorIndex) -> Self {
         Self::Index(index)
     }
 }
 
-impl From<BlsPublicKey> for PubkeyOrIndex {
+impl From<BlsPublicKey> for PublicKeyOrIndex {
     fn from(public_key: BlsPublicKey) -> Self {
-        Self::Pubkey(public_key)
+        Self::PublicKey(public_key)
     }
 }
 
@@ -268,7 +268,8 @@ pub enum HealthStatus {
 
 #[derive(Serialize, Deserialize)]
 pub struct AttestationDuty {
-    pub pubkey: BlsPublicKey,
+    #[serde(rename = "pubkey")]
+    pub public_key: BlsPublicKey,
     #[serde(with = "crate::serde::as_string")]
     pub validator_index: ValidatorIndex,
     #[serde(with = "crate::serde::as_string")]
@@ -285,7 +286,8 @@ pub struct AttestationDuty {
 
 #[derive(Serialize, Deserialize)]
 pub struct ProposerDuty {
-    pub pubkey: BlsPublicKey,
+    #[serde(rename = "pubkey")]
+    pub public_key: BlsPublicKey,
     #[serde(with = "crate::serde::as_string")]
     pub validator_index: ValidatorIndex,
     #[serde(with = "crate::serde::as_string")]
@@ -294,7 +296,8 @@ pub struct ProposerDuty {
 
 #[derive(Serialize, Deserialize)]
 pub struct SyncCommitteeDuty {
-    pub pubkey: BlsPublicKey,
+    #[serde(rename = "pubkey")]
+    pub public_key: BlsPublicKey,
     #[serde(with = "crate::serde::as_string")]
     pub validator_index: ValidatorIndex,
     #[serde(with = "crate::serde::collection_over_string")]
