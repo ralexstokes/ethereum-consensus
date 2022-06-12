@@ -451,9 +451,15 @@ fn main() {
                 HashSet::new(),
                 HashSet::new(),
                 HashSet::from_iter(
-                    ["SyncAggregate", "ParticipationFlags"]
-                        .into_iter()
-                        .map(String::from),
+                    [
+                        "SyncAggregate",
+                        "ParticipationFlags",
+                        "TIMELY_TARGET_FLAG_INDEX",
+                        "WEIGHT_DENOMINATOR",
+                        "PROPOSER_WEIGHT",
+                    ]
+                    .into_iter()
+                    .map(String::from),
                 ),
             ),
         ),

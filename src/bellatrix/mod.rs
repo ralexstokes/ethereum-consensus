@@ -23,7 +23,9 @@ pub use execution::*;
 pub use presets::Preset;
 pub use state_transition_bellatrix::*;
 
-pub use crate::altair::SyncAggregate;
+pub use crate::altair::{
+    SyncAggregate, PROPOSER_WEIGHT, TIMELY_TARGET_FLAG_INDEX, WEIGHT_DENOMINATOR,
+};
 pub use crate::phase0::{
     Attestation, AttestationData, AttesterSlashing, BeaconBlockHeader, Checkpoint, Deposit,
     DepositData, DepositMessage, Eth1Data, Fork, ForkData, HistoricalBatchAccumulator,
