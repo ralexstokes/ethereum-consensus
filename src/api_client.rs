@@ -37,6 +37,10 @@ pub enum Error {
     Http(#[from] reqwest::Error),
     #[error("error from API: {0}")]
     Api(#[from] ApiError),
+    #[error("missing expected data in response: {0}")]
+    MissingExpectedData(String),
+    #[error("json error: {0}")]
+    Json(#[from] serde_json::Error),
 }
 
 pub async fn api_error_or_ok(response: reqwest::Response) -> Result<(), Error> {
@@ -346,8 +350,17 @@ impl Client {
         unimplemented!("")
     }
 
-    pub async fn get_proposer_duties(epoch: Epoch) -> Result<(Root, Vec<ProposerDuty>), Error> {
-        unimplemented!("")
+    pub async fn get_proposer_duties(
+        &self,
+        epoch: Epoch,
+    ) -> Result<(Root, Vec<ProposerDuty>), Error> {
+        let endpoint = format!("eth/v1/validator/duties/proposer/{epoch}");
+        let mut result: Value<Vec<ProposerDuty>> = self.get(&endpoint).await?;
+        let dependent_root_value = result.meta.remove("dependent_root").ok_or_else(|| {
+            Error::MissingExpectedData("missing `dependent_root` in response".to_string())
+        })?;
+        let dependent_root: Root = serde_json::from_value(dependent_root_value)?;
+        Ok((dependent_root, result.data))
     }
 
     pub async fn get_sync_committee_duties(
