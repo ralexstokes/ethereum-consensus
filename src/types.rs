@@ -284,7 +284,7 @@ pub struct AttestationDuty {
     pub slot: Slot,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct ProposerDuty {
     #[serde(rename = "pubkey")]
     pub public_key: BlsPublicKey,
