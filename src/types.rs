@@ -318,7 +318,7 @@ pub struct SyncCommitteeDescriptor {
     pub until_epoch: Epoch,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct BeaconProposerRegistration {
     #[serde(with = "crate::serde::as_string")]
     pub validator_index: ValidatorIndex,
