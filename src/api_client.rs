@@ -257,16 +257,35 @@ impl Client {
     }
 
     pub async fn get_attestations_from_beacon_block(
+        &self,
         id: BlockId,
     ) -> Result<Vec<Attestation>, Error> {
-        unimplemented!("")
+        let result: Value<Vec<Attestation>> = self
+            .get(&format!("eth/v1/beacon/blocks/{id}/attestations"))
+            .await?;
+        Ok(result.data)
     }
 
     pub async fn get_attestations_from_pool(
+        &self,
         slot: Option<Slot>,
         committee_index: Option<CommitteeIndex>,
     ) -> Result<Vec<Attestation>, Error> {
-        unimplemented!("")
+        let path = "eth/v1/beacon/pool/attestations";
+        let target = self.endpoint.join(path)?;
+        let mut request = self.http.get(target);
+        if let Some(slot) = slot {
+            request = request.query(&[("slot", slot)]);
+        }
+        if let Some(committee_index) = committee_index {
+            request = request.query(&[("committe_index", committee_index)]);
+        }
+        let response = request.send().await?;
+        let result: ApiResult<Value<Vec<Attestation>>> = response.json().await?;
+        match result {
+            ApiResult::Ok(result) => Ok(result.data),
+            ApiResult::Err(err) => Err(err.into()),
+        }
     }
 
     pub async fn post_attestations(attestations: &[Attestation]) -> Result<(), Error> {
