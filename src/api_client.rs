@@ -257,7 +257,7 @@ impl Client {
     }
 
     pub async fn get_attestations_from_beacon_block(
-        self,
+        &self,
         id: BlockId,
     ) -> Result<Vec<Attestation>, Error> {
         let result: Value<Vec<Attestation>> = self
@@ -267,21 +267,18 @@ impl Client {
     }
 
     pub async fn get_attestations_from_pool(
-        self,
+        &self,
         slot: Option<Slot>,
         committee_index: Option<CommitteeIndex>,
     ) -> Result<Vec<Attestation>, Error> {
-        let path: String = "eth/v1/beacon/pool/attestations".to_string();
-        let target = self.endpoint.join(&path)?;
+        let path = "eth/v1/beacon/pool/attestations";
+        let target = self.endpoint.join(path)?;
         let mut request = self.http.get(target);
-
-        if slot.and(committee_index).is_some() {
-            request = request.query(&[("slot", slot.unwrap())]);
-            request = request.query(&[("committee_index", committee_index.unwrap())]);
-        } else if slot.is_some() && committee_index.is_none() {
-            request = request.query(&[("slot", slot.unwrap())]);
-        } else if slot.is_none() && committee_index.is_some() {
-            request = request.query(&[("committee_index", committee_index.unwrap())]);
+        if let Some(slot) = slot {
+            request = request.query(&[("slot", slot)]);
+        }
+        if let Some(committee_index) = committee_index {
+            request = request.query(&[("committe_index", committee_index)]);
         }
         let response = request.send().await?;
         let result: ApiResult<Value<Vec<Attestation>>> = response.json().await?;
