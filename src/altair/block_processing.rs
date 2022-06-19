@@ -120,53 +120,27 @@ pub fn process_attestation<
     )?;
 
     // Update epoch participation flags
-    // @dev deviate from the order of the spec to avoid immutable borrow after mutable borrow
     let attesting_indices =
         get_attesting_indices(state, data, &attestation.aggregation_bits, context)?;
-
-    // @dev Create immutable reference to `{current_or_previous}_epoch_participation`
-    let epoch_participation = if is_current {
-        &state.current_epoch_participation
-    } else {
-        &state.previous_epoch_participation
-    };
-
     let mut proposer_reward_numerator = 0;
-    // @dev Use `participation_accumulator` to accumalate `index` and `ParticipationFlags` (via `add_flags`).
-    // Then, use this HashMap later in `set_epoch_participation` to achieve overwrite of the
-    // corresponding `{current_or_previous}_epoch_participation`'s flag.
-    // Replacement for the python code below, which would occur inside the loop's `if` statement:
-    // epoch_participation[index] = add_flag(epoch_participation[index], flag_index as u8);
-    let mut participation_accumulator = HashMap::<usize, ParticipationFlags>::default();
     for index in attesting_indices {
         for (flag_index, weight) in PARTICIPATION_FLAG_WEIGHTS.iter().enumerate() {
-            if participation_flag_indices.contains(&flag_index)
-                && !has_flag(epoch_participation[index], flag_index as u8)
+            if is_current {
+                if participation_flag_indices.contains(&flag_index)
+                    && !has_flag(state.current_epoch_participation[index], flag_index as u8)
+                {
+                    state.current_epoch_participation[index] =
+                        add_flag(state.current_epoch_participation[index], flag_index as u8);
+                    proposer_reward_numerator += get_base_reward(state, index, context)? * weight;
+                }
+            } else if participation_flag_indices.contains(&flag_index)
+                && !has_flag(state.previous_epoch_participation[index], flag_index as u8)
             {
-                participation_accumulator.insert(
-                    index,
-                    add_flag(epoch_participation[index], flag_index as u8),
-                );
-                // epoch_participation[index] = add_flag(epoch_participation[index], flag_index as u8);
-                // @dev explicit import of `get_base_reward` to disambiguate instead of `spec` import
-                // also, this is where the issue with mutable vs immutable borrow occurs
-
+                state.current_epoch_participation[index] =
+                    add_flag(state.previous_epoch_participation[index], flag_index as u8);
                 proposer_reward_numerator += get_base_reward(state, index, context)? * weight;
             }
         }
-    }
-
-    // @dev Create mutable reference to `{current_or_previous}_epoch_participation`
-    let set_epoch_participation = if is_current {
-        &mut state.current_epoch_participation
-    } else {
-        &mut state.previous_epoch_participation
-    };
-    // @dev Update flags in `set_epoch_participation` to corresponding values in `participation_accumulator`
-    for i in 0..set_epoch_participation.len() {
-        set_epoch_participation[i] = *participation_accumulator
-            .get(&i)
-            .expect("index in epoch participation should exist");
     }
 
     // Reward proposer
