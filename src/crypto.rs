@@ -86,7 +86,9 @@ pub fn fast_aggregate_verify(pks: &[&PublicKey], msg: &[u8], signature: &Signatu
     res == BLST_ERROR::BLST_SUCCESS
 }
 
-pub fn eth_aggregate_public_keys(pks: &[&PublicKey]) -> Result<PublicKey, Error> {
+pub fn eth_aggregate_public_keys<const N: usize>(
+    pks: &Vector<PublicKey, N>,
+) -> Result<PublicKey, Error> {
     // Return the aggregate public key for the public keys in `pks`
     if pks.is_empty() {
         return Err(Error::EmptyInput);

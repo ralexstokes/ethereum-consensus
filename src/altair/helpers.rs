@@ -113,20 +113,16 @@ pub fn get_next_sync_committee<
         .enumerate()
         .filter_map(|(i, v)| {
             if indices.contains(&i) {
-                Some(&v.public_key)
+                Some(v.public_key.clone())
             } else {
                 None
             }
         })
-        .collect::<Vec<_>>();
-    // @dev WIP fixing error return issue if using `?` instead of `expect` as well as `clone`
-    let aggregate_public_key = eth_aggregate_public_keys(&public_keys)
-        .expect("validator public_keys should be aggregated into aggregate_public_key");
-    let pks_vector =
-        Vector::<_, SYNC_COMMITTEE_SIZE>::from_iter(public_keys.iter().map(|&pk| pk.clone()));
+        .collect::<Vector<_, SYNC_COMMITTEE_SIZE>>();
+    let aggregate_public_key = eth_aggregate_public_keys(&public_keys)?;
 
     Ok(SyncCommittee::<SYNC_COMMITTEE_SIZE> {
-        public_keys: pks_vector,
+        public_keys,
         aggregate_public_key,
     })
 }
@@ -452,6 +448,7 @@ pub fn slash_validator<
 
     let whistleblower_reward =
         state.validators[slashed_index].effective_balance / context.whistleblower_reward_quotient;
+    // NOTE: direct imports to simplify forward code gen of these constants
     let proposer_reward_scaling_factor = PROPOSER_WEIGHT / WEIGHT_DENOMINATOR;
     let proposer_reward = whistleblower_reward * proposer_reward_scaling_factor;
     increase_balance(state, proposer_index, proposer_reward);

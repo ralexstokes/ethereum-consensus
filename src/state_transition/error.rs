@@ -1,3 +1,4 @@
+use crate::crypto::Error as CryptoError;
 use crate::phase0::{AttestationData, BeaconBlockHeader, Checkpoint};
 use crate::primitives::{BlsSignature, Bytes32, Epoch, Hash32, Root, Slot, ValidatorIndex};
 use crate::state_transition::{ForkSchedule, Forks};
@@ -12,6 +13,8 @@ pub enum Error {
     Merkleization(#[from] MerkleizationError),
     #[error("{0}")]
     SimpleSerialize(#[from] SimpleSerializeError),
+    #[error("{0}")]
+    Crypto(#[from] CryptoError),
     #[error("requested element {requested} but collection only has {bound} elements")]
     OutOfBounds { requested: usize, bound: usize },
     #[error("invalid signature")]
