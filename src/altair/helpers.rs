@@ -211,6 +211,7 @@ pub fn get_unslashed_participating_indices<
     // Return the set of validator indices that are both active and unslashed for the given ``flag_index`` and ``epoch``
     let previous_epoch = get_previous_epoch(state, context);
     let current_epoch = get_current_epoch(state, context);
+    let is_current = epoch == current_epoch;
     if previous_epoch != epoch && current_epoch != epoch {
         return Err(Error::InvalidEpoch {
             requested: epoch,
@@ -219,16 +220,17 @@ pub fn get_unslashed_participating_indices<
         });
     }
 
-    let epoch_participation = if epoch == current_epoch {
-        &state.current_epoch_participation
-    } else {
-        &state.previous_epoch_participation
-    };
     let active_validator_indices = get_active_validator_indices(state, epoch);
     let participating_indices = active_validator_indices
         .iter()
         .filter_map(|&i| {
-            if has_flag(epoch_participation[i], flag_index as u8) {
+            if is_current {
+                if has_flag(state.current_epoch_participation[i], flag_index as u8) {
+                    Some(i)
+                } else {
+                    None
+                }
+            } else if has_flag(state.previous_epoch_participation[i], flag_index as u8) {
                 Some(i)
             } else {
                 None
