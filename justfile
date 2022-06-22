@@ -1,18 +1,21 @@
 test:
-    cargo test --all-features
-build-integration-tests:
+    cargo test
+download-integration-tests: clean-integration-tests
     #!/usr/bin/env sh
     TESTS_TAG=v1.1.10
     REPO_NAME=consensus-spec-tests
-    OUTPUT_DIR=./${REPO_NAME}
-    wget https://github.com/ethereum/${REPO_NAME}/releases/download/${TESTS_TAG}/general.tar.gz
+    CONFIGS="general minimal mainnet"
     mkdir ${REPO_NAME}
-    tar -xzf general.tar.gz -C ${REPO_NAME}
+    for config in ${CONFIGS}
+    do
+        wget https://github.com/ethereum/${REPO_NAME}/releases/download/${TESTS_TAG}/${config}.tar.gz
+        tar -xzf ${config}.tar.gz -C ${REPO_NAME}
+    done
     rm -f *tar.gz
-run-integration-tests:
-    cargo test --test '*'
-clean-tests:
+clean-integration-tests:
     rm -rf consensus-spec-tests
+run-integration-tests:
+    cargo test --features 'spec-tests' --test '*'
 fmt:
     cargo fmt
 lint: fmt
@@ -22,5 +25,8 @@ build:
 gen-spec:
     cargo run --features gen-spec --bin gen-spec
     cargo fix --allow-dirty
+    cargo fmt
+gen-tests:
+    cargo run --features gen-tests --bin gen-tests
     cargo fmt
 run-ci: lint build test
