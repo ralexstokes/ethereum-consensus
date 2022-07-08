@@ -196,27 +196,45 @@ impl Client {
     }
 
     pub async fn get_all_committees(&self, id: StateId) -> Result<Vec<CommitteeSummary>, Error> {
-        let result: Value<Vec<CommitteeSummary>> = self
-            .get(&format!("eth/v1/beacon/states/{id}/committees"))
-            .await?;
-        Ok(result.data)
+        let result: Vec<CommitteeSummary> =
+            self.get_committees(id, CommitteeFilter::default()).await?;
+        Ok(result)
     }
 
     pub async fn get_committees(
+        &self,
         id: StateId,
         filter: CommitteeFilter,
     ) -> Result<Vec<CommitteeSummary>, Error> {
-        unimplemented!("")
+        let path = format!("eth/v1/beacon/states/{id}/committees");
+        let target = self.endpoint.join(&path)?;
+        let mut request = self.http.get(target);
+        if let Some(epoch) = filter.epoch {
+            request = request.query(&[("epoch", epoch)]);
+        }
+        if let Some(index) = filter.index {
+            request = request.query(&[("index", index)]);
+        }
+        if let Some(slot) = filter.slot {
+            request = request.query(&[("slot", slot)]);
+        }
+        let response = request.send().await?;
+        let result: ApiResult<Value<Vec<CommitteeSummary>>> = response.json().await?;
+        match result {
+            ApiResult::Ok(result) => Ok(result.data),
+            ApiResult::Err(err) => Err(err.into()),
+        }
     }
 
     pub async fn get_sync_committees(
+        &self,
         id: StateId,
         epoch: Option<Epoch>,
     ) -> Result<Vec<SyncCommitteeSummary>, Error> {
         unimplemented!("")
     }
 
-    pub async fn get_beacon_header_at_head() -> Result<BeaconHeaderSummary, Error> {
+    pub async fn get_beacon_header_at_head(&self) -> Result<BeaconHeaderSummary, Error> {
         unimplemented!("")
     }
 
