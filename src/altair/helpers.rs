@@ -450,7 +450,6 @@ pub fn slash_validator<
 
     let whistleblower_reward =
         state.validators[slashed_index].effective_balance / context.whistleblower_reward_quotient;
-    // NOTE: direct imports to simplify forward code gen of these constants
     let proposer_reward_scaling_factor = PROPOSER_WEIGHT / WEIGHT_DENOMINATOR;
     let proposer_reward = whistleblower_reward * proposer_reward_scaling_factor;
     increase_balance(state, proposer_index, proposer_reward);
