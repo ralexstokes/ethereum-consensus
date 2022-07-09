@@ -201,7 +201,7 @@ pub fn process_deposit<
 
     // NOTE: deviate from the order of the spec to avoid mutations
     // that would need to be rolled back upon failure
-    let public_key = deposit.data.public_key.clone();
+    let public_key = &deposit.data.public_key;
     let amount = deposit.data.amount;
     let validator_public_keys: HashSet<&BlsPublicKey> =
         HashSet::from_iter(state.validators.iter().map(|v| &v.public_key));
