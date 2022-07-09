@@ -223,7 +223,7 @@ pub fn get_unslashed_participating_indices<
     let active_validator_indices = get_active_validator_indices(state, epoch);
     let participating_indices = active_validator_indices
         .iter()
-        .filter_map(|&i| {
+        .filter(|&i| {
             if is_current {
                 if has_flag(state.current_epoch_participation[i], flag_index as u8) {
                     Some(i)
