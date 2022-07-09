@@ -225,7 +225,7 @@ pub fn process_deposit<
             state
                 .current_epoch_participation
                 .push(ParticipationFlags::default());
-            state.inactivity_scores.push(u64::default())
+            state.inactivity_scores.push(0)
         } else {
             return Err(invalid_operation_error(InvalidOperation::Deposit(
                 InvalidDeposit::InvalidSignature(deposit.data.signature.clone()),
