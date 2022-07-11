@@ -172,6 +172,7 @@ pub struct BalanceSummary {
     pub balance: Gwei,
 }
 
+#[derive(Default)]
 pub struct CommitteeFilter {
     pub epoch: Option<Epoch>,
     pub index: Option<CommitteeIndex>,
