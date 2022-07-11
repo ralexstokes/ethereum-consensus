@@ -18,13 +18,13 @@ use spec::{
 use ssz_rs::Vector;
 use std::collections::HashSet;
 
-pub fn add_flag(flags: ParticipationFlags, flag_index: u8) -> ParticipationFlags {
+pub fn add_flag(flags: ParticipationFlags, flag_index: usize) -> ParticipationFlags {
     // Return a new ``ParticipationFlags`` adding ``flag_index`` to ``flags``
     let flag = 2u8.pow(flag_index as u32);
     flags | flag
 }
 
-pub fn has_flag(flags: ParticipationFlags, flag_index: u8) -> bool {
+pub fn has_flag(flags: ParticipationFlags, flag_index: usize) -> bool {
     // Return whether ``flags`` has ``flag_index`` set
     let flag = 2u8.pow(flag_index as u32);
     flags & flag == flag
@@ -51,15 +51,15 @@ pub fn get_next_sync_committee_indices<
         SYNC_COMMITTEE_SIZE,
     >,
     context: &Context,
-) -> Result<Vec<ValidatorIndex>> {
+) -> Result<HashSet<ValidatorIndex>> {
     // Return the sync committee indices, with possible duplicates, for the next sync committee.
     let epoch = get_current_epoch(state, context) + 1;
     let max_random_byte = u8::MAX as u64;
     let active_validator_indices = get_active_validator_indices(state, epoch);
     let active_validator_count = active_validator_indices.len();
     let seed = get_seed(state, epoch, DomainType::SyncCommittee, context);
-    let i = 0;
-    let mut sync_committee_indices = Vec::<ValidatorIndex>::new();
+    let mut i = 0;
+    let mut sync_committee_indices = HashSet::new();
     let mut hash_input = [0u8; 40];
     hash_input[..32].copy_from_slice(seed.as_ref());
     while sync_committee_indices.len() < context.sync_committee_size {
@@ -77,8 +77,9 @@ pub fn get_next_sync_committee_indices<
         let effective_balance = state.validators[candidate_index].effective_balance;
 
         if effective_balance * max_random_byte >= context.max_effective_balance * random_byte {
-            sync_committee_indices.push(candidate_index);
+            sync_committee_indices.insert(candidate_index);
         }
+        i += 1;
     }
     Ok(sync_committee_indices)
 }
@@ -184,6 +185,7 @@ pub fn get_base_reward<
     Ok(increments * get_base_reward_per_increment(state, context)?)
 }
 
+// Return the set of validator indices that are both active and unslashed for the given ``flag_index`` and ``epoch``
 pub fn get_unslashed_participating_indices<
     const SLOTS_PER_HISTORICAL_ROOT: usize,
     const HISTORICAL_ROOTS_LIMIT: usize,
@@ -208,7 +210,6 @@ pub fn get_unslashed_participating_indices<
     epoch: Epoch,
     context: &Context,
 ) -> Result<HashSet<ValidatorIndex>> {
-    // Return the set of validator indices that are both active and unslashed for the given ``flag_index`` and ``epoch``
     let previous_epoch = get_previous_epoch(state, context);
     let current_epoch = get_current_epoch(state, context);
     let is_current = epoch == current_epoch;
@@ -220,31 +221,20 @@ pub fn get_unslashed_participating_indices<
         });
     }
 
-    let active_validator_indices = get_active_validator_indices(state, epoch);
-    let participating_indices = active_validator_indices
-        .iter()
+    let epoch_participation = if is_current {
+        &state.current_epoch_participation
+    } else {
+        &state.previous_epoch_participation
+    };
+
+    Ok(get_active_validator_indices(state, epoch)
+        .into_iter()
         .filter(|&i| {
-            if is_current {
-                if has_flag(state.current_epoch_participation[i], flag_index as u8) {
-                    Some(i)
-                } else {
-                    None
-                }
-            } else if has_flag(state.previous_epoch_participation[i], flag_index as u8) {
-                Some(i)
-            } else {
-                None
-            }
+            let did_participate = has_flag(epoch_participation[i], flag_index);
+            let not_slashed = state.validators[i].slashed;
+            did_participate && not_slashed
         })
-        .collect::<Vec<_>>();
-    let unslashed_particpating_indices = state
-        .validators
-        .iter()
-        .enumerate()
-        .filter_map(|(i, v)| if !v.slashed { Some(i) } else { None })
-        .filter(|i| participating_indices.contains(i))
-        .collect::<HashSet<_>>();
-    Ok(unslashed_particpating_indices)
+        .collect::<HashSet<_>>())
 }
 
 pub fn get_attestation_participation_flag_indices<

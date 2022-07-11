@@ -214,11 +214,12 @@ pub fn process_sync_committee_updates<
     >,
     context: &Context,
 ) -> Result<()> {
-    let next_sync_committee = mem::take(&mut state.next_sync_committee);
     let next_epoch = get_current_epoch(state, context) + 1;
     if next_epoch % context.epochs_per_sync_committee_period == 0 {
-        state.current_sync_committee = next_sync_committee;
-        state.next_sync_committee = get_next_sync_committee(state, context)?;
+        let next_sync_committee = get_next_sync_committee(state, context)?;
+        let current_sync_committee =
+            mem::replace(&mut state.next_sync_committee, next_sync_committee);
+        state.current_sync_committee = current_sync_committee;
     }
     Ok(())
 }

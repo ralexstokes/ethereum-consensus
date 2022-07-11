@@ -113,7 +113,7 @@ pub fn process_attestation<
         get_attestation_participation_flag_indices(state, data, inclusion_delay, context)?;
 
     // Verify signature
-    let _ = is_valid_indexed_attestation(
+    is_valid_indexed_attestation(
         state,
         &mut get_indexed_attestation(state, attestation, context)?,
         context,
@@ -127,17 +127,17 @@ pub fn process_attestation<
         for (flag_index, weight) in PARTICIPATION_FLAG_WEIGHTS.iter().enumerate() {
             if is_current {
                 if participation_flag_indices.contains(&flag_index)
-                    && !has_flag(state.current_epoch_participation[index], flag_index as u8)
+                    && !has_flag(state.current_epoch_participation[index], flag_index)
                 {
                     state.current_epoch_participation[index] =
-                        add_flag(state.current_epoch_participation[index], flag_index as u8);
+                        add_flag(state.current_epoch_participation[index], flag_index);
                     proposer_reward_numerator += get_base_reward(state, index, context)? * weight;
                 }
             } else if participation_flag_indices.contains(&flag_index)
-                && !has_flag(state.previous_epoch_participation[index], flag_index as u8)
+                && !has_flag(state.previous_epoch_participation[index], flag_index)
             {
                 state.current_epoch_participation[index] =
-                    add_flag(state.previous_epoch_participation[index], flag_index as u8);
+                    add_flag(state.previous_epoch_participation[index], flag_index);
                 proposer_reward_numerator += get_base_reward(state, index, context)? * weight;
             }
         }
@@ -235,7 +235,7 @@ pub fn process_deposit<
         let index = state
             .validators
             .iter()
-            .position(|v| v.public_key == public_key)
+            .position(|v| &v.public_key == public_key)
             .unwrap();
 
         increase_balance(state, index, amount);
