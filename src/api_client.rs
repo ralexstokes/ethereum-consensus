@@ -196,9 +196,7 @@ impl Client {
     }
 
     pub async fn get_all_committees(&self, id: StateId) -> Result<Vec<CommitteeSummary>, Error> {
-        let result: Vec<CommitteeSummary> =
-            self.get_committees(id, CommitteeFilter::default()).await?;
-        Ok(result)
+        self.get_committees(id, CommitteeFilter::default()).await
     }
 
     pub async fn get_committees(
