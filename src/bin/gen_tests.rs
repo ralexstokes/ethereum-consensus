@@ -1,5 +1,6 @@
 use convert_case::{Case, Casing};
 use std::collections::HashMap;
+use std::fmt::Write;
 use std::fs;
 use std::path::{Component, Path, PathBuf};
 use walkdir::{DirEntry, Error, WalkDir};
@@ -68,7 +69,7 @@ fn generate_module_decl_src<'a>(modules: impl Iterator<Item = &'a String>) -> St
     let mut src = String::new();
     for module in modules {
         let module = prefix_if_starts_with_reserved(module);
-        src += &format!("mod {};\n", module);
+        writeln!(src, "mod {};", module).unwrap();
     }
     src
 }
