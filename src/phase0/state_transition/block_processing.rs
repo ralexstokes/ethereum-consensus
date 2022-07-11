@@ -134,9 +134,9 @@ pub fn process_attester_slashing<
         )));
     }
 
-    let _ = is_valid_indexed_attestation(state, attestation_1, context)?;
+    is_valid_indexed_attestation(state, attestation_1, context)?;
 
-    let _ = is_valid_indexed_attestation(state, attestation_2, context)?;
+    is_valid_indexed_attestation(state, attestation_2, context)?;
 
     let indices_1: HashSet<ValidatorIndex> =
         HashSet::from_iter(attestation_1.attesting_indices.iter().cloned());
@@ -251,7 +251,7 @@ pub fn process_attestation<
 
     // NOTE: swap order of these wrt the spec to avoid mutation
     // to the state that would need to be undone
-    let _ = is_valid_indexed_attestation(
+    is_valid_indexed_attestation(
         state,
         &mut get_indexed_attestation(state, attestation, context)?,
         context,
