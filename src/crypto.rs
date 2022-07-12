@@ -86,6 +86,18 @@ pub fn fast_aggregate_verify(pks: &[&PublicKey], msg: &[u8], signature: &Signatu
     res == BLST_ERROR::BLST_SUCCESS
 }
 
+// Return the aggregate public key for the public keys in `pks`
+pub fn eth_aggregate_public_keys(pks: &[PublicKey]) -> Result<PublicKey, Error> {
+    if pks.is_empty() {
+        return Err(Error::EmptyInput);
+    }
+    let v: Vec<&blst_core::PublicKey> = pks.iter().map(|pk| &pk.0).collect();
+
+    blst_core::AggregatePublicKey::aggregate(&v, true)
+        .map(|agg_pk| PublicKey(agg_pk.to_public_key()))
+        .map_err(|e| BLSTError::from(e).into())
+}
+
 #[derive(Clone, Default)]
 #[cfg_attr(feature = "serde", derive(serde::Deserialize))]
 #[cfg_attr(feature = "serde", serde(try_from = "String"))]
