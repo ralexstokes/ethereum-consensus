@@ -1,18 +1,47 @@
 use crate::altair as spec;
 
-use crate::primitives::{ParticipationFlags, GENESIS_EPOCH};
+use crate::primitives::{Gwei, ParticipationFlags, ValidatorIndex, GENESIS_EPOCH};
 use crate::state_transition::{Context, Result};
 use spec::{
-    decrease_balance, get_current_epoch, get_eligible_validator_indices, get_flag_index_deltas,
-    get_inactivity_penalty_deltas, get_next_sync_committee, get_previous_epoch,
-    get_total_active_balance, get_total_balance, get_unslashed_participating_indices,
-    increase_balance, is_in_inactivity_leak, process_effective_balance_updates,
-    process_eth1_data_reset, process_historical_roots_update, process_randao_mixes_reset,
-    process_registry_updates, process_slashings, process_slashings_reset,
-    weigh_justification_and_finalization, BeaconState, PARTICIPATION_FLAG_WEIGHTS,
-    TIMELY_TARGET_FLAG_INDEX,
+    decrease_balance, get_base_reward_per_increment, get_current_epoch,
+    get_eligible_validator_indices, get_flag_index_deltas, get_inactivity_penalty_deltas,
+    get_next_sync_committee, get_previous_epoch, get_total_active_balance, get_total_balance,
+    get_unslashed_participating_indices, increase_balance, is_in_inactivity_leak,
+    process_effective_balance_updates, process_eth1_data_reset, process_historical_roots_update,
+    process_randao_mixes_reset, process_registry_updates, process_slashings,
+    process_slashings_reset, weigh_justification_and_finalization, BeaconState,
+    PARTICIPATION_FLAG_WEIGHTS, TIMELY_TARGET_FLAG_INDEX,
 };
 use std::mem;
+
+pub fn get_base_reward<
+    const SLOTS_PER_HISTORICAL_ROOT: usize,
+    const HISTORICAL_ROOTS_LIMIT: usize,
+    const ETH1_DATA_VOTES_BOUND: usize,
+    const VALIDATOR_REGISTRY_LIMIT: usize,
+    const EPOCHS_PER_HISTORICAL_VECTOR: usize,
+    const EPOCHS_PER_SLASHINGS_VECTOR: usize,
+    const MAX_VALIDATORS_PER_COMMITTEE: usize,
+    const SYNC_COMMITTEE_SIZE: usize,
+>(
+    state: &BeaconState<
+        SLOTS_PER_HISTORICAL_ROOT,
+        HISTORICAL_ROOTS_LIMIT,
+        ETH1_DATA_VOTES_BOUND,
+        VALIDATOR_REGISTRY_LIMIT,
+        EPOCHS_PER_HISTORICAL_VECTOR,
+        EPOCHS_PER_SLASHINGS_VECTOR,
+        MAX_VALIDATORS_PER_COMMITTEE,
+        SYNC_COMMITTEE_SIZE,
+    >,
+    index: ValidatorIndex,
+    context: &Context,
+) -> Result<Gwei> {
+    // Return the base reward for the validator defined by ``index`` with respect to the current `state`
+    let increments =
+        state.validators[index].effective_balance / context.effective_balance_increment;
+    Ok(increments * get_base_reward_per_increment(state, context)?)
+}
 
 pub fn process_justification_and_finalization<
     const SLOTS_PER_HISTORICAL_ROOT: usize,

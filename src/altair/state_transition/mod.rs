@@ -1,14 +1,15 @@
 //! WARNING: This file was derived by the `gen-spec` utility. DO NOT EDIT MANUALLY.
 pub mod block_processing;
 pub mod epoch_processing;
-pub mod genesis;
 pub mod helpers;
 pub mod slot_processing;
 use crate::altair as spec;
-use crate::state_transition::{Context, Error, Result, Validation};
-use spec::{process_block, process_slots, verify_block_signature};
+use crate::state_transition::{Result, Context, Error, Validation};
 use ssz_rs::prelude::*;
-pub fn state_transition_block_in_slot<
+use spec::{
+    SignedBeaconBlock, BeaconState, process_slots, verify_block_signature, process_block,
+};
+pub fn state_transition<
     const SLOTS_PER_HISTORICAL_ROOT: usize,
     const HISTORICAL_ROOTS_LIMIT: usize,
     const ETH1_DATA_VOTES_BOUND: usize,
@@ -16,14 +17,14 @@ pub fn state_transition_block_in_slot<
     const EPOCHS_PER_HISTORICAL_VECTOR: usize,
     const EPOCHS_PER_SLASHINGS_VECTOR: usize,
     const MAX_VALIDATORS_PER_COMMITTEE: usize,
-    const SYNC_COMMITTEE_SIZE: usize,
     const MAX_PROPOSER_SLASHINGS: usize,
     const MAX_ATTESTER_SLASHINGS: usize,
     const MAX_ATTESTATIONS: usize,
     const MAX_DEPOSITS: usize,
     const MAX_VOLUNTARY_EXITS: usize,
+    const SYNC_COMMITTEE_SIZE: usize,
 >(
-    state: &mut spec::BeaconState<
+    state: &mut BeaconState<
         SLOTS_PER_HISTORICAL_ROOT,
         HISTORICAL_ROOTS_LIMIT,
         ETH1_DATA_VOTES_BOUND,
@@ -33,7 +34,47 @@ pub fn state_transition_block_in_slot<
         MAX_VALIDATORS_PER_COMMITTEE,
         SYNC_COMMITTEE_SIZE,
     >,
-    signed_block: &mut spec::SignedBeaconBlock<
+    signed_block: &mut SignedBeaconBlock<
+        MAX_PROPOSER_SLASHINGS,
+        MAX_VALIDATORS_PER_COMMITTEE,
+        MAX_ATTESTER_SLASHINGS,
+        MAX_ATTESTATIONS,
+        MAX_DEPOSITS,
+        MAX_VOLUNTARY_EXITS,
+        SYNC_COMMITTEE_SIZE,
+    >,
+    validation: Validation,
+    context: &Context,
+) -> Result<()> {
+    process_slots(state, signed_block.message.slot, context)?;
+    state_transition_block_in_slot(state, signed_block, validation, context)
+}
+pub fn state_transition_block_in_slot<
+    const SLOTS_PER_HISTORICAL_ROOT: usize,
+    const HISTORICAL_ROOTS_LIMIT: usize,
+    const ETH1_DATA_VOTES_BOUND: usize,
+    const VALIDATOR_REGISTRY_LIMIT: usize,
+    const EPOCHS_PER_HISTORICAL_VECTOR: usize,
+    const EPOCHS_PER_SLASHINGS_VECTOR: usize,
+    const MAX_VALIDATORS_PER_COMMITTEE: usize,
+    const MAX_PROPOSER_SLASHINGS: usize,
+    const MAX_ATTESTER_SLASHINGS: usize,
+    const MAX_ATTESTATIONS: usize,
+    const MAX_DEPOSITS: usize,
+    const MAX_VOLUNTARY_EXITS: usize,
+    const SYNC_COMMITTEE_SIZE: usize,
+>(
+    state: &mut BeaconState<
+        SLOTS_PER_HISTORICAL_ROOT,
+        HISTORICAL_ROOTS_LIMIT,
+        ETH1_DATA_VOTES_BOUND,
+        VALIDATOR_REGISTRY_LIMIT,
+        EPOCHS_PER_HISTORICAL_VECTOR,
+        EPOCHS_PER_SLASHINGS_VECTOR,
+        MAX_VALIDATORS_PER_COMMITTEE,
+        SYNC_COMMITTEE_SIZE,
+    >,
+    signed_block: &mut SignedBeaconBlock<
         MAX_PROPOSER_SLASHINGS,
         MAX_VALIDATORS_PER_COMMITTEE,
         MAX_ATTESTER_SLASHINGS,
@@ -59,44 +100,4 @@ pub fn state_transition_block_in_slot<
     } else {
         Ok(())
     }
-}
-pub fn state_transition<
-    const SLOTS_PER_HISTORICAL_ROOT: usize,
-    const HISTORICAL_ROOTS_LIMIT: usize,
-    const ETH1_DATA_VOTES_BOUND: usize,
-    const VALIDATOR_REGISTRY_LIMIT: usize,
-    const EPOCHS_PER_HISTORICAL_VECTOR: usize,
-    const EPOCHS_PER_SLASHINGS_VECTOR: usize,
-    const MAX_VALIDATORS_PER_COMMITTEE: usize,
-    const SYNC_COMMITTEE_SIZE: usize,
-    const MAX_PROPOSER_SLASHINGS: usize,
-    const MAX_ATTESTER_SLASHINGS: usize,
-    const MAX_ATTESTATIONS: usize,
-    const MAX_DEPOSITS: usize,
-    const MAX_VOLUNTARY_EXITS: usize,
->(
-    state: &mut spec::BeaconState<
-        SLOTS_PER_HISTORICAL_ROOT,
-        HISTORICAL_ROOTS_LIMIT,
-        ETH1_DATA_VOTES_BOUND,
-        VALIDATOR_REGISTRY_LIMIT,
-        EPOCHS_PER_HISTORICAL_VECTOR,
-        EPOCHS_PER_SLASHINGS_VECTOR,
-        MAX_VALIDATORS_PER_COMMITTEE,
-        SYNC_COMMITTEE_SIZE,
-    >,
-    signed_block: &mut spec::SignedBeaconBlock<
-        MAX_PROPOSER_SLASHINGS,
-        MAX_VALIDATORS_PER_COMMITTEE,
-        MAX_ATTESTER_SLASHINGS,
-        MAX_ATTESTATIONS,
-        MAX_DEPOSITS,
-        MAX_VOLUNTARY_EXITS,
-        SYNC_COMMITTEE_SIZE,
-    >,
-    validation: Validation,
-    context: &Context,
-) -> Result<()> {
-    process_slots(state, signed_block.message.slot, context)?;
-    state_transition_block_in_slot(state, signed_block, validation, context)
 }
