@@ -58,7 +58,7 @@ pub fn get_next_sync_committee_indices<
     let active_validator_indices = get_active_validator_indices(state, epoch);
     let active_validator_count = active_validator_indices.len();
     let seed = get_seed(state, epoch, DomainType::SyncCommittee, context);
-    let mut i = 0;
+    let mut i: usize = 0;
     let mut sync_committee_indices = HashSet::new();
     let mut hash_input = [0u8; 40];
     hash_input[..32].copy_from_slice(seed.as_ref());
@@ -71,7 +71,7 @@ pub fn get_next_sync_committee_indices<
         )?;
         let candidate_index = active_validator_indices[shuffled_index];
 
-        let i_bytes: [u8; 8] = (i / 32).to_le_bytes();
+        let i_bytes: [u8; 8] = ((i / 32) as u64).to_le_bytes();
         hash_input[32..].copy_from_slice(&i_bytes);
         let random_byte = hash(hash_input).as_ref()[(i % 32)] as u64;
         let effective_balance = state.validators[candidate_index].effective_balance;
