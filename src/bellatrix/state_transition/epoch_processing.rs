@@ -654,7 +654,6 @@ pub fn process_participation_flag_updates<
         MAX_BYTES_PER_TRANSACTION,
         MAX_TRANSACTIONS_PER_PAYLOAD,
     >,
-    _context: &Context,
 ) -> Result<()> {
     Ok(())
 }
