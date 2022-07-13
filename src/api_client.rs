@@ -25,7 +25,6 @@ use ethereum_consensus::primitives::{
     Slot, ValidatorIndex,
 };
 use itertools::Itertools;
-use reqwest::StatusCode;
 use std::collections::HashMap;
 use thiserror::Error;
 use url::{ParseError, Url};
