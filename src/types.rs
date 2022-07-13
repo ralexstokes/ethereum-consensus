@@ -273,24 +273,12 @@ pub struct SyncStatus {
     pub is_syncing: bool,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Debug)]
 pub enum HealthStatus {
     Ready,
     Syncing,
     NotInitialized,
     Unknown,
-}
-
-impl fmt::Display for HealthStatus {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        let printable = match *self {
-            HealthStatus::Ready => "Ready",
-            HealthStatus::Syncing => "Syncing",
-            HealthStatus::NotInitialized => "Not Initialized",
-            HealthStatus::Unknown => "Unknown",
-        };
-        write!(f, "{}", printable)
-    }
 }
 
 #[derive(Serialize, Deserialize)]

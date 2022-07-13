@@ -401,11 +401,10 @@ impl Client {
         let target = self.endpoint.join(path)?;
         let request = self.http.get(target);
         let response = request.send().await?;
-        let status: u16 = StatusCode::as_u16(&response.status());
-        let result = match status {
-            200 => HealthStatus::Ready,
-            206 => HealthStatus::Syncing,
-            503 => HealthStatus::NotInitialized,
+        let result = match response.status() {
+            http::StatusCode::OK => HealthStatus::Ready,
+            http::StatusCode::PARTIAL_CONTENT => HealthStatus::Syncing,
+            http::StatusCode::SERVICE_UNAVAILABLE => HealthStatus::NotInitialized,
             _ => HealthStatus::Unknown,
         };
         Ok(result)
