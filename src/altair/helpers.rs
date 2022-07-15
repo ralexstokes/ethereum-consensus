@@ -8,11 +8,11 @@ use crate::state_transition::{
 };
 use integer_sqrt::IntegerSquareRoot;
 use spec::{
-    compute_shuffled_index, decrease_balance, get_active_validator_indices,
+    compute_shuffled_index, decrease_balance, get_active_validator_indices, get_base_reward,
     get_beacon_proposer_index, get_block_root, get_block_root_at_slot, get_current_epoch,
     get_eligible_validator_indices, get_previous_epoch, get_seed, get_total_active_balance,
     get_total_balance, increase_balance, initiate_validator_exit, is_in_inactivity_leak,
-    sync::SyncCommittee, AttestationData, BeaconState, PARTICIPATION_FLAG_WEIGHTS, PROPOSER_WEIGHT,
+    AttestationData, BeaconState, SyncCommittee, PARTICIPATION_FLAG_WEIGHTS, PROPOSER_WEIGHT,
     TIMELY_HEAD_FLAG_INDEX, TIMELY_SOURCE_FLAG_INDEX, TIMELY_TARGET_FLAG_INDEX, WEIGHT_DENOMINATOR,
 };
 use ssz_rs::Vector;
@@ -154,35 +154,6 @@ pub fn get_base_reward_per_increment<
         context.effective_balance_increment * context.base_reward_factor
             / get_total_active_balance(state, context)?.integer_sqrt(),
     )
-}
-
-pub fn get_base_reward<
-    const SLOTS_PER_HISTORICAL_ROOT: usize,
-    const HISTORICAL_ROOTS_LIMIT: usize,
-    const ETH1_DATA_VOTES_BOUND: usize,
-    const VALIDATOR_REGISTRY_LIMIT: usize,
-    const EPOCHS_PER_HISTORICAL_VECTOR: usize,
-    const EPOCHS_PER_SLASHINGS_VECTOR: usize,
-    const MAX_VALIDATORS_PER_COMMITTEE: usize,
-    const SYNC_COMMITTEE_SIZE: usize,
->(
-    state: &BeaconState<
-        SLOTS_PER_HISTORICAL_ROOT,
-        HISTORICAL_ROOTS_LIMIT,
-        ETH1_DATA_VOTES_BOUND,
-        VALIDATOR_REGISTRY_LIMIT,
-        EPOCHS_PER_HISTORICAL_VECTOR,
-        EPOCHS_PER_SLASHINGS_VECTOR,
-        MAX_VALIDATORS_PER_COMMITTEE,
-        SYNC_COMMITTEE_SIZE,
-    >,
-    index: ValidatorIndex,
-    context: &Context,
-) -> Result<Gwei> {
-    // Return the base reward for the validator defined by ``index`` with respect to the current `state`
-    let increments =
-        state.validators[index].effective_balance / context.effective_balance_increment;
-    Ok(increments * get_base_reward_per_increment(state, context)?)
 }
 
 // Return the set of validator indices that are both active and unslashed for the given ``flag_index`` and ``epoch``

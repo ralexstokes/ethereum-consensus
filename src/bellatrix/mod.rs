@@ -9,11 +9,11 @@ pub mod epoch_processing;
 mod execution;
 pub mod helpers;
 mod presets;
-pub mod state_transition_bellatrix;
+mod state_transition_bellatrix;
 
 pub mod state_transition;
 pub use state_transition::{
-    block_processing::*, epoch_processing::*, genesis, helpers::*, slot_processing::*, *,
+    block_processing::*, epoch_processing::*, helpers::*, slot_processing::*, *,
 };
 
 pub use beacon_block::*;
@@ -24,7 +24,8 @@ pub use presets::Preset;
 pub use state_transition_bellatrix::*;
 
 pub use crate::altair::{
-    SyncAggregate, PROPOSER_WEIGHT, TIMELY_TARGET_FLAG_INDEX, WEIGHT_DENOMINATOR,
+    SyncAggregate, SyncCommittee, PARTICIPATION_FLAG_WEIGHTS, PROPOSER_WEIGHT, SYNC_REWARD_WEIGHT,
+    TIMELY_HEAD_FLAG_INDEX, TIMELY_SOURCE_FLAG_INDEX, TIMELY_TARGET_FLAG_INDEX, WEIGHT_DENOMINATOR,
 };
 pub use crate::phase0::{
     Attestation, AttestationData, AttesterSlashing, BeaconBlockHeader, Checkpoint, Deposit,

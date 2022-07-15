@@ -4,6 +4,9 @@ pub use crate::altair::block_processing::process_attestation;
 pub use crate::altair::block_processing::process_block;
 pub use crate::altair::block_processing::process_deposit;
 pub use crate::altair::block_processing::process_sync_aggregate;
+use ssz_rs::prelude::*;
+use std::collections::HashSet;
+
 use crate::crypto::hash;
 use crate::primitives::{Bytes32, DomainType, Gwei, ValidatorIndex, FAR_FUTURE_EPOCH};
 use crate::signing::compute_signing_root;
@@ -20,8 +23,278 @@ use spec::{
     BeaconBlock, BeaconBlockBody, BeaconBlockHeader, BeaconState, Deposit, ProposerSlashing,
     SignedVoluntaryExit, Validator,
 };
-use ssz_rs::prelude::*;
-use std::collections::HashSet;
+pub fn get_validator_from_deposit(deposit: &Deposit, context: &Context) -> Validator {
+    let amount = deposit.data.amount;
+    let effective_balance = Gwei::min(
+        amount - amount % context.effective_balance_increment,
+        context.max_effective_balance,
+    );
+    Validator {
+        public_key: deposit.data.public_key.clone(),
+        withdrawal_credentials: deposit.data.withdrawal_credentials.clone(),
+        effective_balance,
+        activation_eligibility_epoch: FAR_FUTURE_EPOCH,
+        activation_epoch: FAR_FUTURE_EPOCH,
+        exit_epoch: FAR_FUTURE_EPOCH,
+        withdrawable_epoch: FAR_FUTURE_EPOCH,
+        ..Default::default()
+    }
+}
+pub fn process_attester_slashing<
+    const SLOTS_PER_HISTORICAL_ROOT: usize,
+    const HISTORICAL_ROOTS_LIMIT: usize,
+    const ETH1_DATA_VOTES_BOUND: usize,
+    const VALIDATOR_REGISTRY_LIMIT: usize,
+    const EPOCHS_PER_HISTORICAL_VECTOR: usize,
+    const EPOCHS_PER_SLASHINGS_VECTOR: usize,
+    const MAX_VALIDATORS_PER_COMMITTEE: usize,
+    const SYNC_COMMITTEE_SIZE: usize,
+>(
+    state: &mut BeaconState<
+        SLOTS_PER_HISTORICAL_ROOT,
+        HISTORICAL_ROOTS_LIMIT,
+        ETH1_DATA_VOTES_BOUND,
+        VALIDATOR_REGISTRY_LIMIT,
+        EPOCHS_PER_HISTORICAL_VECTOR,
+        EPOCHS_PER_SLASHINGS_VECTOR,
+        MAX_VALIDATORS_PER_COMMITTEE,
+        SYNC_COMMITTEE_SIZE,
+    >,
+    attester_slashing: &mut AttesterSlashing<MAX_VALIDATORS_PER_COMMITTEE>,
+    context: &Context,
+) -> Result<()> {
+    let attestation_1 = &mut attester_slashing.attestation_1;
+    let attestation_2 = &mut attester_slashing.attestation_2;
+    if !is_slashable_attestation_data(&attestation_1.data, &attestation_2.data) {
+        return Err(invalid_operation_error(InvalidOperation::AttesterSlashing(
+            InvalidAttesterSlashing::NotSlashable(
+                Box::new(attestation_1.data.clone()),
+                Box::new(attestation_2.data.clone()),
+            ),
+        )));
+    }
+    is_valid_indexed_attestation(state, attestation_1, context)?;
+    is_valid_indexed_attestation(state, attestation_2, context)?;
+    let indices_1: HashSet<ValidatorIndex> =
+        HashSet::from_iter(attestation_1.attesting_indices.iter().cloned());
+    let indices_2 = HashSet::from_iter(attestation_2.attesting_indices.iter().cloned());
+    let mut indices = indices_1
+        .intersection(&indices_2)
+        .cloned()
+        .collect::<Vec<_>>();
+    indices.sort_unstable();
+    let mut slashed_any = false;
+    let current_epoch = get_current_epoch(state, context);
+    for &index in &indices {
+        if is_slashable_validator(&state.validators[index], current_epoch) {
+            slash_validator(state, index, None, context)?;
+            slashed_any = true;
+        }
+    }
+    if !slashed_any {
+        Err(invalid_operation_error(InvalidOperation::AttesterSlashing(
+            InvalidAttesterSlashing::NoSlashings(indices),
+        )))
+    } else {
+        Ok(())
+    }
+}
+pub fn process_block_header<
+    const SLOTS_PER_HISTORICAL_ROOT: usize,
+    const HISTORICAL_ROOTS_LIMIT: usize,
+    const ETH1_DATA_VOTES_BOUND: usize,
+    const VALIDATOR_REGISTRY_LIMIT: usize,
+    const EPOCHS_PER_HISTORICAL_VECTOR: usize,
+    const EPOCHS_PER_SLASHINGS_VECTOR: usize,
+    const MAX_VALIDATORS_PER_COMMITTEE: usize,
+    const MAX_PROPOSER_SLASHINGS: usize,
+    const MAX_ATTESTER_SLASHINGS: usize,
+    const MAX_ATTESTATIONS: usize,
+    const MAX_DEPOSITS: usize,
+    const MAX_VOLUNTARY_EXITS: usize,
+    const SYNC_COMMITTEE_SIZE: usize,
+>(
+    state: &mut BeaconState<
+        SLOTS_PER_HISTORICAL_ROOT,
+        HISTORICAL_ROOTS_LIMIT,
+        ETH1_DATA_VOTES_BOUND,
+        VALIDATOR_REGISTRY_LIMIT,
+        EPOCHS_PER_HISTORICAL_VECTOR,
+        EPOCHS_PER_SLASHINGS_VECTOR,
+        MAX_VALIDATORS_PER_COMMITTEE,
+        SYNC_COMMITTEE_SIZE,
+    >,
+    block: &mut BeaconBlock<
+        MAX_PROPOSER_SLASHINGS,
+        MAX_VALIDATORS_PER_COMMITTEE,
+        MAX_ATTESTER_SLASHINGS,
+        MAX_ATTESTATIONS,
+        MAX_DEPOSITS,
+        MAX_VOLUNTARY_EXITS,
+        SYNC_COMMITTEE_SIZE,
+    >,
+    context: &Context,
+) -> Result<()> {
+    if block.slot != state.slot {
+        return Err(invalid_header_error(
+            InvalidBeaconBlockHeader::StateSlotMismatch {
+                state_slot: state.slot,
+                block_slot: block.slot,
+            },
+        ));
+    }
+    if block.slot <= state.latest_block_header.slot {
+        return Err(invalid_header_error(
+            InvalidBeaconBlockHeader::OlderThanLatestBlockHeader {
+                block_slot: block.slot,
+                latest_block_header_slot: state.latest_block_header.slot,
+            },
+        ));
+    }
+    let proposer_index = get_beacon_proposer_index(state, context)?;
+    if block.proposer_index != proposer_index {
+        return Err(invalid_header_error(
+            InvalidBeaconBlockHeader::ProposerIndexMismatch {
+                block_proposer_index: block.proposer_index,
+                proposer_index,
+            },
+        ));
+    }
+    let expected_parent_root = state.latest_block_header.hash_tree_root()?;
+    if block.parent_root != expected_parent_root {
+        return Err(invalid_header_error(
+            InvalidBeaconBlockHeader::ParentBlockRootMismatch {
+                expected: expected_parent_root,
+                provided: block.parent_root,
+            },
+        ));
+    }
+    state.latest_block_header = BeaconBlockHeader {
+        slot: block.slot,
+        proposer_index: block.proposer_index,
+        parent_root: block.parent_root,
+        body_root: block.body.hash_tree_root()?,
+        ..Default::default()
+    };
+    let proposer = &state.validators[block.proposer_index];
+    if proposer.slashed {
+        return Err(invalid_header_error(
+            InvalidBeaconBlockHeader::ProposerSlashed(proposer_index),
+        ));
+    }
+    Ok(())
+}
+pub fn process_eth1_data<
+    const SLOTS_PER_HISTORICAL_ROOT: usize,
+    const HISTORICAL_ROOTS_LIMIT: usize,
+    const ETH1_DATA_VOTES_BOUND: usize,
+    const VALIDATOR_REGISTRY_LIMIT: usize,
+    const EPOCHS_PER_HISTORICAL_VECTOR: usize,
+    const EPOCHS_PER_SLASHINGS_VECTOR: usize,
+    const MAX_VALIDATORS_PER_COMMITTEE: usize,
+    const MAX_PROPOSER_SLASHINGS: usize,
+    const MAX_ATTESTER_SLASHINGS: usize,
+    const MAX_ATTESTATIONS: usize,
+    const MAX_DEPOSITS: usize,
+    const MAX_VOLUNTARY_EXITS: usize,
+    const SYNC_COMMITTEE_SIZE: usize,
+>(
+    state: &mut BeaconState<
+        SLOTS_PER_HISTORICAL_ROOT,
+        HISTORICAL_ROOTS_LIMIT,
+        ETH1_DATA_VOTES_BOUND,
+        VALIDATOR_REGISTRY_LIMIT,
+        EPOCHS_PER_HISTORICAL_VECTOR,
+        EPOCHS_PER_SLASHINGS_VECTOR,
+        MAX_VALIDATORS_PER_COMMITTEE,
+        SYNC_COMMITTEE_SIZE,
+    >,
+    body: &BeaconBlockBody<
+        MAX_PROPOSER_SLASHINGS,
+        MAX_VALIDATORS_PER_COMMITTEE,
+        MAX_ATTESTER_SLASHINGS,
+        MAX_ATTESTATIONS,
+        MAX_DEPOSITS,
+        MAX_VOLUNTARY_EXITS,
+        SYNC_COMMITTEE_SIZE,
+    >,
+    context: &Context,
+) {
+    state.eth1_data_votes.push(body.eth1_data.clone());
+    let votes_count = state
+        .eth1_data_votes
+        .iter()
+        .filter(|&vote| *vote == body.eth1_data)
+        .count() as u64;
+    if votes_count * 2 > context.epochs_per_eth1_voting_period * context.slots_per_epoch {
+        state.eth1_data = body.eth1_data.clone();
+    }
+}
+pub fn process_operations<
+    const SLOTS_PER_HISTORICAL_ROOT: usize,
+    const HISTORICAL_ROOTS_LIMIT: usize,
+    const ETH1_DATA_VOTES_BOUND: usize,
+    const VALIDATOR_REGISTRY_LIMIT: usize,
+    const EPOCHS_PER_HISTORICAL_VECTOR: usize,
+    const EPOCHS_PER_SLASHINGS_VECTOR: usize,
+    const MAX_VALIDATORS_PER_COMMITTEE: usize,
+    const MAX_PROPOSER_SLASHINGS: usize,
+    const MAX_ATTESTER_SLASHINGS: usize,
+    const MAX_ATTESTATIONS: usize,
+    const MAX_DEPOSITS: usize,
+    const MAX_VOLUNTARY_EXITS: usize,
+    const SYNC_COMMITTEE_SIZE: usize,
+>(
+    state: &mut BeaconState<
+        SLOTS_PER_HISTORICAL_ROOT,
+        HISTORICAL_ROOTS_LIMIT,
+        ETH1_DATA_VOTES_BOUND,
+        VALIDATOR_REGISTRY_LIMIT,
+        EPOCHS_PER_HISTORICAL_VECTOR,
+        EPOCHS_PER_SLASHINGS_VECTOR,
+        MAX_VALIDATORS_PER_COMMITTEE,
+        SYNC_COMMITTEE_SIZE,
+    >,
+    body: &mut BeaconBlockBody<
+        MAX_PROPOSER_SLASHINGS,
+        MAX_VALIDATORS_PER_COMMITTEE,
+        MAX_ATTESTER_SLASHINGS,
+        MAX_ATTESTATIONS,
+        MAX_DEPOSITS,
+        MAX_VOLUNTARY_EXITS,
+        SYNC_COMMITTEE_SIZE,
+    >,
+    context: &Context,
+) -> Result<()> {
+    let expected_deposit_count = usize::min(
+        context.max_deposits,
+        (state.eth1_data.deposit_count - state.eth1_deposit_index) as usize,
+    );
+    if body.deposits.len() != expected_deposit_count {
+        return Err(invalid_operation_error(InvalidOperation::Deposit(
+            InvalidDeposit::IncorrectCount {
+                expected: expected_deposit_count,
+                count: body.deposits.len(),
+            },
+        )));
+    }
+    body.proposer_slashings
+        .iter_mut()
+        .try_for_each(|op| process_proposer_slashing(state, op, context))?;
+    body.attester_slashings
+        .iter_mut()
+        .try_for_each(|op| process_attester_slashing(state, op, context))?;
+    body.attestations
+        .iter()
+        .try_for_each(|op| process_attestation(state, op, context))?;
+    body.deposits
+        .iter_mut()
+        .try_for_each(|op| process_deposit(state, op, context))?;
+    body.voluntary_exits
+        .iter_mut()
+        .try_for_each(|op| process_voluntary_exit(state, op, context))?;
+    Ok(())
+}
 pub fn process_proposer_slashing<
     const SLOTS_PER_HISTORICAL_ROOT: usize,
     const HISTORICAL_ROOTS_LIMIT: usize,
@@ -90,7 +363,7 @@ pub fn process_proposer_slashing<
     }
     slash_validator(state, proposer_index, None, context)
 }
-pub fn process_attester_slashing<
+pub fn process_randao<
     const SLOTS_PER_HISTORICAL_ROOT: usize,
     const HISTORICAL_ROOTS_LIMIT: usize,
     const ETH1_DATA_VOTES_BOUND: usize,
@@ -98,6 +371,11 @@ pub fn process_attester_slashing<
     const EPOCHS_PER_HISTORICAL_VECTOR: usize,
     const EPOCHS_PER_SLASHINGS_VECTOR: usize,
     const MAX_VALIDATORS_PER_COMMITTEE: usize,
+    const MAX_PROPOSER_SLASHINGS: usize,
+    const MAX_ATTESTER_SLASHINGS: usize,
+    const MAX_ATTESTATIONS: usize,
+    const MAX_DEPOSITS: usize,
+    const MAX_VOLUNTARY_EXITS: usize,
     const SYNC_COMMITTEE_SIZE: usize,
 >(
     state: &mut BeaconState<
@@ -110,61 +388,37 @@ pub fn process_attester_slashing<
         MAX_VALIDATORS_PER_COMMITTEE,
         SYNC_COMMITTEE_SIZE,
     >,
-    attester_slashing: &mut AttesterSlashing<MAX_VALIDATORS_PER_COMMITTEE>,
+    body: &BeaconBlockBody<
+        MAX_PROPOSER_SLASHINGS,
+        MAX_VALIDATORS_PER_COMMITTEE,
+        MAX_ATTESTER_SLASHINGS,
+        MAX_ATTESTATIONS,
+        MAX_DEPOSITS,
+        MAX_VOLUNTARY_EXITS,
+        SYNC_COMMITTEE_SIZE,
+    >,
     context: &Context,
 ) -> Result<()> {
-    let attestation_1 = &mut attester_slashing.attestation_1;
-    let attestation_2 = &mut attester_slashing.attestation_2;
-    if !is_slashable_attestation_data(&attestation_1.data, &attestation_2.data) {
-        return Err(invalid_operation_error(InvalidOperation::AttesterSlashing(
-            InvalidAttesterSlashing::NotSlashable(
-                Box::new(attestation_1.data.clone()),
-                Box::new(attestation_2.data.clone()),
-            ),
+    let mut epoch = get_current_epoch(state, context);
+    let proposer_index = get_beacon_proposer_index(state, context)?;
+    let proposer = &state.validators[proposer_index];
+    let domain = get_domain(state, DomainType::Randao, Some(epoch), context)?;
+    let signing_root = compute_signing_root(&mut epoch, domain)?;
+    if !body
+        .randao_reveal
+        .verify(&proposer.public_key, signing_root.as_bytes())
+    {
+        return Err(invalid_operation_error(InvalidOperation::Randao(
+            body.randao_reveal.clone(),
         )));
     }
-    is_valid_indexed_attestation(state, attestation_1, context)?;
-    is_valid_indexed_attestation(state, attestation_2, context)?;
-    let indices_1: HashSet<ValidatorIndex> =
-        HashSet::from_iter(attestation_1.attesting_indices.iter().cloned());
-    let indices_2 = HashSet::from_iter(attestation_2.attesting_indices.iter().cloned());
-    let mut indices = indices_1
-        .intersection(&indices_2)
-        .cloned()
-        .collect::<Vec<_>>();
-    indices.sort_unstable();
-    let mut slashed_any = false;
-    let current_epoch = get_current_epoch(state, context);
-    for &index in &indices {
-        if is_slashable_validator(&state.validators[index], current_epoch) {
-            slash_validator(state, index, None, context)?;
-            slashed_any = true;
-        }
-    }
-    if !slashed_any {
-        Err(invalid_operation_error(InvalidOperation::AttesterSlashing(
-            InvalidAttesterSlashing::NoSlashings(indices),
-        )))
-    } else {
-        Ok(())
-    }
-}
-pub fn get_validator_from_deposit(deposit: &Deposit, context: &Context) -> Validator {
-    let amount = deposit.data.amount;
-    let effective_balance = Gwei::min(
-        amount - amount % context.effective_balance_increment,
-        context.max_effective_balance,
+    let mix = xor(
+        get_randao_mix(state, epoch),
+        &hash(body.randao_reveal.as_bytes()),
     );
-    Validator {
-        public_key: deposit.data.public_key.clone(),
-        withdrawal_credentials: deposit.data.withdrawal_credentials.clone(),
-        effective_balance,
-        activation_eligibility_epoch: FAR_FUTURE_EPOCH,
-        activation_epoch: FAR_FUTURE_EPOCH,
-        exit_epoch: FAR_FUTURE_EPOCH,
-        withdrawable_epoch: FAR_FUTURE_EPOCH,
-        ..Default::default()
-    }
+    let mix_index = epoch % context.epochs_per_historical_vector;
+    state.randao_mixes[mix_index as usize] = mix;
+    Ok(())
 }
 pub fn process_voluntary_exit<
     const SLOTS_PER_HISTORICAL_ROOT: usize,
@@ -241,91 +495,6 @@ pub fn process_voluntary_exit<
     initiate_validator_exit(state, voluntary_exit.validator_index, context);
     Ok(())
 }
-pub fn process_block_header<
-    const SLOTS_PER_HISTORICAL_ROOT: usize,
-    const HISTORICAL_ROOTS_LIMIT: usize,
-    const ETH1_DATA_VOTES_BOUND: usize,
-    const VALIDATOR_REGISTRY_LIMIT: usize,
-    const EPOCHS_PER_HISTORICAL_VECTOR: usize,
-    const EPOCHS_PER_SLASHINGS_VECTOR: usize,
-    const MAX_VALIDATORS_PER_COMMITTEE: usize,
-    const SYNC_COMMITTEE_SIZE: usize,
-    const MAX_PROPOSER_SLASHINGS: usize,
-    const MAX_ATTESTER_SLASHINGS: usize,
-    const MAX_ATTESTATIONS: usize,
-    const MAX_DEPOSITS: usize,
-    const MAX_VOLUNTARY_EXITS: usize,
->(
-    state: &mut BeaconState<
-        SLOTS_PER_HISTORICAL_ROOT,
-        HISTORICAL_ROOTS_LIMIT,
-        ETH1_DATA_VOTES_BOUND,
-        VALIDATOR_REGISTRY_LIMIT,
-        EPOCHS_PER_HISTORICAL_VECTOR,
-        EPOCHS_PER_SLASHINGS_VECTOR,
-        MAX_VALIDATORS_PER_COMMITTEE,
-        SYNC_COMMITTEE_SIZE,
-    >,
-    block: &mut BeaconBlock<
-        MAX_PROPOSER_SLASHINGS,
-        MAX_VALIDATORS_PER_COMMITTEE,
-        MAX_ATTESTER_SLASHINGS,
-        MAX_ATTESTATIONS,
-        MAX_DEPOSITS,
-        MAX_VOLUNTARY_EXITS,
-        SYNC_COMMITTEE_SIZE,
-    >,
-    context: &Context,
-) -> Result<()> {
-    if block.slot != state.slot {
-        return Err(invalid_header_error(
-            InvalidBeaconBlockHeader::StateSlotMismatch {
-                state_slot: state.slot,
-                block_slot: block.slot,
-            },
-        ));
-    }
-    if block.slot <= state.latest_block_header.slot {
-        return Err(invalid_header_error(
-            InvalidBeaconBlockHeader::OlderThanLatestBlockHeader {
-                block_slot: block.slot,
-                latest_block_header_slot: state.latest_block_header.slot,
-            },
-        ));
-    }
-    let proposer_index = get_beacon_proposer_index(state, context)?;
-    if block.proposer_index != proposer_index {
-        return Err(invalid_header_error(
-            InvalidBeaconBlockHeader::ProposerIndexMismatch {
-                block_proposer_index: block.proposer_index,
-                proposer_index,
-            },
-        ));
-    }
-    let expected_parent_root = state.latest_block_header.hash_tree_root()?;
-    if block.parent_root != expected_parent_root {
-        return Err(invalid_header_error(
-            InvalidBeaconBlockHeader::ParentBlockRootMismatch {
-                expected: expected_parent_root,
-                provided: block.parent_root,
-            },
-        ));
-    }
-    state.latest_block_header = BeaconBlockHeader {
-        slot: block.slot,
-        proposer_index: block.proposer_index,
-        parent_root: block.parent_root,
-        body_root: block.body.hash_tree_root()?,
-        ..Default::default()
-    };
-    let proposer = &state.validators[block.proposer_index];
-    if proposer.slashed {
-        return Err(invalid_header_error(
-            InvalidBeaconBlockHeader::ProposerSlashed(proposer_index),
-        ));
-    }
-    Ok(())
-}
 pub fn xor(a: &Bytes32, b: &Bytes32) -> Bytes32 {
     let inner = a
         .iter()
@@ -333,172 +502,4 @@ pub fn xor(a: &Bytes32, b: &Bytes32) -> Bytes32 {
         .map(|(a, b)| a ^ b)
         .collect::<Vector<u8, 32>>();
     ByteVector::<32>(inner)
-}
-pub fn process_randao<
-    const SLOTS_PER_HISTORICAL_ROOT: usize,
-    const HISTORICAL_ROOTS_LIMIT: usize,
-    const ETH1_DATA_VOTES_BOUND: usize,
-    const VALIDATOR_REGISTRY_LIMIT: usize,
-    const EPOCHS_PER_HISTORICAL_VECTOR: usize,
-    const EPOCHS_PER_SLASHINGS_VECTOR: usize,
-    const MAX_VALIDATORS_PER_COMMITTEE: usize,
-    const SYNC_COMMITTEE_SIZE: usize,
-    const MAX_PROPOSER_SLASHINGS: usize,
-    const MAX_ATTESTER_SLASHINGS: usize,
-    const MAX_ATTESTATIONS: usize,
-    const MAX_DEPOSITS: usize,
-    const MAX_VOLUNTARY_EXITS: usize,
->(
-    state: &mut BeaconState<
-        SLOTS_PER_HISTORICAL_ROOT,
-        HISTORICAL_ROOTS_LIMIT,
-        ETH1_DATA_VOTES_BOUND,
-        VALIDATOR_REGISTRY_LIMIT,
-        EPOCHS_PER_HISTORICAL_VECTOR,
-        EPOCHS_PER_SLASHINGS_VECTOR,
-        MAX_VALIDATORS_PER_COMMITTEE,
-        SYNC_COMMITTEE_SIZE,
-    >,
-    body: &BeaconBlockBody<
-        MAX_PROPOSER_SLASHINGS,
-        MAX_VALIDATORS_PER_COMMITTEE,
-        MAX_ATTESTER_SLASHINGS,
-        MAX_ATTESTATIONS,
-        MAX_DEPOSITS,
-        MAX_VOLUNTARY_EXITS,
-        SYNC_COMMITTEE_SIZE,
-    >,
-    context: &Context,
-) -> Result<()> {
-    let mut epoch = get_current_epoch(state, context);
-    let proposer_index = get_beacon_proposer_index(state, context)?;
-    let proposer = &state.validators[proposer_index];
-    let domain = get_domain(state, DomainType::Randao, Some(epoch), context)?;
-    let signing_root = compute_signing_root(&mut epoch, domain)?;
-    if !body
-        .randao_reveal
-        .verify(&proposer.public_key, signing_root.as_bytes())
-    {
-        return Err(invalid_operation_error(InvalidOperation::Randao(
-            body.randao_reveal.clone(),
-        )));
-    }
-    let mix = xor(
-        get_randao_mix(state, epoch),
-        &hash(body.randao_reveal.as_bytes()),
-    );
-    let mix_index = epoch % context.epochs_per_historical_vector;
-    state.randao_mixes[mix_index as usize] = mix;
-    Ok(())
-}
-pub fn process_eth1_data<
-    const SLOTS_PER_HISTORICAL_ROOT: usize,
-    const HISTORICAL_ROOTS_LIMIT: usize,
-    const ETH1_DATA_VOTES_BOUND: usize,
-    const VALIDATOR_REGISTRY_LIMIT: usize,
-    const EPOCHS_PER_HISTORICAL_VECTOR: usize,
-    const EPOCHS_PER_SLASHINGS_VECTOR: usize,
-    const MAX_VALIDATORS_PER_COMMITTEE: usize,
-    const SYNC_COMMITTEE_SIZE: usize,
-    const MAX_PROPOSER_SLASHINGS: usize,
-    const MAX_ATTESTER_SLASHINGS: usize,
-    const MAX_ATTESTATIONS: usize,
-    const MAX_DEPOSITS: usize,
-    const MAX_VOLUNTARY_EXITS: usize,
->(
-    state: &mut BeaconState<
-        SLOTS_PER_HISTORICAL_ROOT,
-        HISTORICAL_ROOTS_LIMIT,
-        ETH1_DATA_VOTES_BOUND,
-        VALIDATOR_REGISTRY_LIMIT,
-        EPOCHS_PER_HISTORICAL_VECTOR,
-        EPOCHS_PER_SLASHINGS_VECTOR,
-        MAX_VALIDATORS_PER_COMMITTEE,
-        SYNC_COMMITTEE_SIZE,
-    >,
-    body: &BeaconBlockBody<
-        MAX_PROPOSER_SLASHINGS,
-        MAX_VALIDATORS_PER_COMMITTEE,
-        MAX_ATTESTER_SLASHINGS,
-        MAX_ATTESTATIONS,
-        MAX_DEPOSITS,
-        MAX_VOLUNTARY_EXITS,
-        SYNC_COMMITTEE_SIZE,
-    >,
-    context: &Context,
-) {
-    state.eth1_data_votes.push(body.eth1_data.clone());
-    let votes_count = state
-        .eth1_data_votes
-        .iter()
-        .filter(|&vote| *vote == body.eth1_data)
-        .count() as u64;
-    if votes_count * 2 > context.epochs_per_eth1_voting_period * context.slots_per_epoch {
-        state.eth1_data = body.eth1_data.clone();
-    }
-}
-pub fn process_operations<
-    const SLOTS_PER_HISTORICAL_ROOT: usize,
-    const HISTORICAL_ROOTS_LIMIT: usize,
-    const ETH1_DATA_VOTES_BOUND: usize,
-    const VALIDATOR_REGISTRY_LIMIT: usize,
-    const EPOCHS_PER_HISTORICAL_VECTOR: usize,
-    const EPOCHS_PER_SLASHINGS_VECTOR: usize,
-    const MAX_VALIDATORS_PER_COMMITTEE: usize,
-    const SYNC_COMMITTEE_SIZE: usize,
-    const MAX_PROPOSER_SLASHINGS: usize,
-    const MAX_ATTESTER_SLASHINGS: usize,
-    const MAX_ATTESTATIONS: usize,
-    const MAX_DEPOSITS: usize,
-    const MAX_VOLUNTARY_EXITS: usize,
->(
-    state: &mut BeaconState<
-        SLOTS_PER_HISTORICAL_ROOT,
-        HISTORICAL_ROOTS_LIMIT,
-        ETH1_DATA_VOTES_BOUND,
-        VALIDATOR_REGISTRY_LIMIT,
-        EPOCHS_PER_HISTORICAL_VECTOR,
-        EPOCHS_PER_SLASHINGS_VECTOR,
-        MAX_VALIDATORS_PER_COMMITTEE,
-        SYNC_COMMITTEE_SIZE,
-    >,
-    body: &mut BeaconBlockBody<
-        MAX_PROPOSER_SLASHINGS,
-        MAX_VALIDATORS_PER_COMMITTEE,
-        MAX_ATTESTER_SLASHINGS,
-        MAX_ATTESTATIONS,
-        MAX_DEPOSITS,
-        MAX_VOLUNTARY_EXITS,
-        SYNC_COMMITTEE_SIZE,
-    >,
-    context: &Context,
-) -> Result<()> {
-    let expected_deposit_count = usize::min(
-        context.max_deposits,
-        (state.eth1_data.deposit_count - state.eth1_deposit_index) as usize,
-    );
-    if body.deposits.len() != expected_deposit_count {
-        return Err(invalid_operation_error(InvalidOperation::Deposit(
-            InvalidDeposit::IncorrectCount {
-                expected: expected_deposit_count,
-                count: body.deposits.len(),
-            },
-        )));
-    }
-    body.proposer_slashings
-        .iter_mut()
-        .try_for_each(|op| process_proposer_slashing(state, op, context))?;
-    body.attester_slashings
-        .iter_mut()
-        .try_for_each(|op| process_attester_slashing(state, op, context))?;
-    body.attestations
-        .iter()
-        .try_for_each(|op| process_attestation(state, op, context))?;
-    body.deposits
-        .iter_mut()
-        .try_for_each(|op| process_deposit(state, op, context))?;
-    body.voluntary_exits
-        .iter_mut()
-        .try_for_each(|op| process_voluntary_exit(state, op, context))?;
-    Ok(())
 }

@@ -13,7 +13,7 @@ mod validator;
 
 pub mod state_transition;
 pub use state_transition::{
-    block_processing::*, epoch_processing::*, genesis, helpers::*, slot_processing::*, *,
+    block_processing::*, epoch_processing::*, helpers::*, slot_processing::*, *,
 };
 
 pub use beacon_block::*;

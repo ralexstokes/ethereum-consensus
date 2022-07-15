@@ -1,18 +1,460 @@
 //! WARNING: This file was derived by the `gen-spec` utility. DO NOT EDIT MANUALLY.
 use crate::bellatrix as spec;
-use crate::primitives::{Epoch, Gwei, ValidatorIndex};
+pub use crate::bellatrix::epoch_processing::process_epoch;
+use crate::primitives::{Epoch, Gwei, ParticipationFlags, ValidatorIndex, GENESIS_EPOCH};
 use crate::state_transition::{Context, Result};
-use integer_sqrt::IntegerSquareRoot;
+use spec::get_inactivity_penalty_deltas;
 use spec::{
-    compute_activation_exit_epoch, decrease_balance, get_block_root, get_current_epoch,
-    get_previous_epoch, get_randao_mix, get_total_active_balance, get_validator_churn_limit,
-    initiate_validator_exit, is_active_validator, is_eligible_for_activation,
+    compute_activation_exit_epoch, decrease_balance, get_base_reward_per_increment, get_block_root,
+    get_current_epoch, get_eligible_validator_indices, get_flag_index_deltas,
+    get_next_sync_committee, get_previous_epoch, get_randao_mix, get_total_active_balance,
+    get_total_balance, get_unslashed_participating_indices, get_validator_churn_limit,
+    increase_balance, initiate_validator_exit, is_active_validator, is_eligible_for_activation,
     is_eligible_for_activation_queue, BeaconState, Checkpoint, HistoricalBatchAccumulator,
-    BASE_REWARDS_PER_EPOCH, JUSTIFICATION_BITS_LENGTH,
+    JUSTIFICATION_BITS_LENGTH, PARTICIPATION_FLAG_WEIGHTS, TIMELY_TARGET_FLAG_INDEX,
 };
 use ssz_rs::prelude::*;
-
-pub use crate::bellatrix::epoch_processing::process_epoch;
+use std::mem;
+pub fn get_base_reward<
+    const SLOTS_PER_HISTORICAL_ROOT: usize,
+    const HISTORICAL_ROOTS_LIMIT: usize,
+    const ETH1_DATA_VOTES_BOUND: usize,
+    const VALIDATOR_REGISTRY_LIMIT: usize,
+    const EPOCHS_PER_HISTORICAL_VECTOR: usize,
+    const EPOCHS_PER_SLASHINGS_VECTOR: usize,
+    const MAX_VALIDATORS_PER_COMMITTEE: usize,
+    const SYNC_COMMITTEE_SIZE: usize,
+    const BYTES_PER_LOGS_BLOOM: usize,
+    const MAX_EXTRA_DATA_BYTES: usize,
+    const MAX_BYTES_PER_TRANSACTION: usize,
+    const MAX_TRANSACTIONS_PER_PAYLOAD: usize,
+>(
+    state: &BeaconState<
+        SLOTS_PER_HISTORICAL_ROOT,
+        HISTORICAL_ROOTS_LIMIT,
+        ETH1_DATA_VOTES_BOUND,
+        VALIDATOR_REGISTRY_LIMIT,
+        EPOCHS_PER_HISTORICAL_VECTOR,
+        EPOCHS_PER_SLASHINGS_VECTOR,
+        MAX_VALIDATORS_PER_COMMITTEE,
+        SYNC_COMMITTEE_SIZE,
+        BYTES_PER_LOGS_BLOOM,
+        MAX_EXTRA_DATA_BYTES,
+        MAX_BYTES_PER_TRANSACTION,
+        MAX_TRANSACTIONS_PER_PAYLOAD,
+    >,
+    index: ValidatorIndex,
+    context: &Context,
+) -> Result<Gwei> {
+    let increments =
+        state.validators[index].effective_balance / context.effective_balance_increment;
+    Ok(increments * get_base_reward_per_increment(state, context)?)
+}
+pub fn get_finality_delay<
+    const SLOTS_PER_HISTORICAL_ROOT: usize,
+    const HISTORICAL_ROOTS_LIMIT: usize,
+    const ETH1_DATA_VOTES_BOUND: usize,
+    const VALIDATOR_REGISTRY_LIMIT: usize,
+    const EPOCHS_PER_HISTORICAL_VECTOR: usize,
+    const EPOCHS_PER_SLASHINGS_VECTOR: usize,
+    const MAX_VALIDATORS_PER_COMMITTEE: usize,
+    const SYNC_COMMITTEE_SIZE: usize,
+    const BYTES_PER_LOGS_BLOOM: usize,
+    const MAX_EXTRA_DATA_BYTES: usize,
+    const MAX_BYTES_PER_TRANSACTION: usize,
+    const MAX_TRANSACTIONS_PER_PAYLOAD: usize,
+>(
+    state: &BeaconState<
+        SLOTS_PER_HISTORICAL_ROOT,
+        HISTORICAL_ROOTS_LIMIT,
+        ETH1_DATA_VOTES_BOUND,
+        VALIDATOR_REGISTRY_LIMIT,
+        EPOCHS_PER_HISTORICAL_VECTOR,
+        EPOCHS_PER_SLASHINGS_VECTOR,
+        MAX_VALIDATORS_PER_COMMITTEE,
+        SYNC_COMMITTEE_SIZE,
+        BYTES_PER_LOGS_BLOOM,
+        MAX_EXTRA_DATA_BYTES,
+        MAX_BYTES_PER_TRANSACTION,
+        MAX_TRANSACTIONS_PER_PAYLOAD,
+    >,
+    context: &Context,
+) -> Epoch {
+    get_previous_epoch(state, context) - state.finalized_checkpoint.epoch
+}
+pub fn get_proposer_reward<
+    const SLOTS_PER_HISTORICAL_ROOT: usize,
+    const HISTORICAL_ROOTS_LIMIT: usize,
+    const ETH1_DATA_VOTES_BOUND: usize,
+    const VALIDATOR_REGISTRY_LIMIT: usize,
+    const EPOCHS_PER_HISTORICAL_VECTOR: usize,
+    const EPOCHS_PER_SLASHINGS_VECTOR: usize,
+    const MAX_VALIDATORS_PER_COMMITTEE: usize,
+    const SYNC_COMMITTEE_SIZE: usize,
+    const BYTES_PER_LOGS_BLOOM: usize,
+    const MAX_EXTRA_DATA_BYTES: usize,
+    const MAX_BYTES_PER_TRANSACTION: usize,
+    const MAX_TRANSACTIONS_PER_PAYLOAD: usize,
+>(
+    state: &BeaconState<
+        SLOTS_PER_HISTORICAL_ROOT,
+        HISTORICAL_ROOTS_LIMIT,
+        ETH1_DATA_VOTES_BOUND,
+        VALIDATOR_REGISTRY_LIMIT,
+        EPOCHS_PER_HISTORICAL_VECTOR,
+        EPOCHS_PER_SLASHINGS_VECTOR,
+        MAX_VALIDATORS_PER_COMMITTEE,
+        SYNC_COMMITTEE_SIZE,
+        BYTES_PER_LOGS_BLOOM,
+        MAX_EXTRA_DATA_BYTES,
+        MAX_BYTES_PER_TRANSACTION,
+        MAX_TRANSACTIONS_PER_PAYLOAD,
+    >,
+    attesting_index: ValidatorIndex,
+    context: &Context,
+) -> Result<Gwei> {
+    Ok(get_base_reward(state, attesting_index, context)? / context.proposer_reward_quotient)
+}
+pub fn is_in_inactivity_leak<
+    const SLOTS_PER_HISTORICAL_ROOT: usize,
+    const HISTORICAL_ROOTS_LIMIT: usize,
+    const ETH1_DATA_VOTES_BOUND: usize,
+    const VALIDATOR_REGISTRY_LIMIT: usize,
+    const EPOCHS_PER_HISTORICAL_VECTOR: usize,
+    const EPOCHS_PER_SLASHINGS_VECTOR: usize,
+    const MAX_VALIDATORS_PER_COMMITTEE: usize,
+    const SYNC_COMMITTEE_SIZE: usize,
+    const BYTES_PER_LOGS_BLOOM: usize,
+    const MAX_EXTRA_DATA_BYTES: usize,
+    const MAX_BYTES_PER_TRANSACTION: usize,
+    const MAX_TRANSACTIONS_PER_PAYLOAD: usize,
+>(
+    state: &BeaconState<
+        SLOTS_PER_HISTORICAL_ROOT,
+        HISTORICAL_ROOTS_LIMIT,
+        ETH1_DATA_VOTES_BOUND,
+        VALIDATOR_REGISTRY_LIMIT,
+        EPOCHS_PER_HISTORICAL_VECTOR,
+        EPOCHS_PER_SLASHINGS_VECTOR,
+        MAX_VALIDATORS_PER_COMMITTEE,
+        SYNC_COMMITTEE_SIZE,
+        BYTES_PER_LOGS_BLOOM,
+        MAX_EXTRA_DATA_BYTES,
+        MAX_BYTES_PER_TRANSACTION,
+        MAX_TRANSACTIONS_PER_PAYLOAD,
+    >,
+    context: &Context,
+) -> bool {
+    get_finality_delay(state, context) > context.min_epochs_to_inactivity_penalty
+}
+pub fn process_effective_balance_updates<
+    const SLOTS_PER_HISTORICAL_ROOT: usize,
+    const HISTORICAL_ROOTS_LIMIT: usize,
+    const ETH1_DATA_VOTES_BOUND: usize,
+    const VALIDATOR_REGISTRY_LIMIT: usize,
+    const EPOCHS_PER_HISTORICAL_VECTOR: usize,
+    const EPOCHS_PER_SLASHINGS_VECTOR: usize,
+    const MAX_VALIDATORS_PER_COMMITTEE: usize,
+    const SYNC_COMMITTEE_SIZE: usize,
+    const BYTES_PER_LOGS_BLOOM: usize,
+    const MAX_EXTRA_DATA_BYTES: usize,
+    const MAX_BYTES_PER_TRANSACTION: usize,
+    const MAX_TRANSACTIONS_PER_PAYLOAD: usize,
+>(
+    state: &mut BeaconState<
+        SLOTS_PER_HISTORICAL_ROOT,
+        HISTORICAL_ROOTS_LIMIT,
+        ETH1_DATA_VOTES_BOUND,
+        VALIDATOR_REGISTRY_LIMIT,
+        EPOCHS_PER_HISTORICAL_VECTOR,
+        EPOCHS_PER_SLASHINGS_VECTOR,
+        MAX_VALIDATORS_PER_COMMITTEE,
+        SYNC_COMMITTEE_SIZE,
+        BYTES_PER_LOGS_BLOOM,
+        MAX_EXTRA_DATA_BYTES,
+        MAX_BYTES_PER_TRANSACTION,
+        MAX_TRANSACTIONS_PER_PAYLOAD,
+    >,
+    context: &Context,
+) {
+    let hysteresis_increment = context.effective_balance_increment / context.hysteresis_quotient;
+    let downward_threshold = hysteresis_increment * context.hysteresis_downward_multiplier;
+    let upward_threshold = hysteresis_increment * context.hysteresis_upward_multiplier;
+    for i in 0..state.validators.len() {
+        let validator = &mut state.validators[i];
+        let balance = state.balances[i];
+        if balance + downward_threshold < validator.effective_balance
+            || validator.effective_balance + upward_threshold < balance
+        {
+            validator.effective_balance = Gwei::min(
+                balance - balance % context.effective_balance_increment,
+                context.max_effective_balance,
+            );
+        }
+    }
+}
+pub fn process_eth1_data_reset<
+    const SLOTS_PER_HISTORICAL_ROOT: usize,
+    const HISTORICAL_ROOTS_LIMIT: usize,
+    const ETH1_DATA_VOTES_BOUND: usize,
+    const VALIDATOR_REGISTRY_LIMIT: usize,
+    const EPOCHS_PER_HISTORICAL_VECTOR: usize,
+    const EPOCHS_PER_SLASHINGS_VECTOR: usize,
+    const MAX_VALIDATORS_PER_COMMITTEE: usize,
+    const SYNC_COMMITTEE_SIZE: usize,
+    const BYTES_PER_LOGS_BLOOM: usize,
+    const MAX_EXTRA_DATA_BYTES: usize,
+    const MAX_BYTES_PER_TRANSACTION: usize,
+    const MAX_TRANSACTIONS_PER_PAYLOAD: usize,
+>(
+    state: &mut BeaconState<
+        SLOTS_PER_HISTORICAL_ROOT,
+        HISTORICAL_ROOTS_LIMIT,
+        ETH1_DATA_VOTES_BOUND,
+        VALIDATOR_REGISTRY_LIMIT,
+        EPOCHS_PER_HISTORICAL_VECTOR,
+        EPOCHS_PER_SLASHINGS_VECTOR,
+        MAX_VALIDATORS_PER_COMMITTEE,
+        SYNC_COMMITTEE_SIZE,
+        BYTES_PER_LOGS_BLOOM,
+        MAX_EXTRA_DATA_BYTES,
+        MAX_BYTES_PER_TRANSACTION,
+        MAX_TRANSACTIONS_PER_PAYLOAD,
+    >,
+    context: &Context,
+) {
+    let next_epoch = get_current_epoch(state, context) + 1;
+    if next_epoch % context.epochs_per_eth1_voting_period == 0 {
+        state.eth1_data_votes.clear();
+    }
+}
+pub fn process_historical_roots_update<
+    const SLOTS_PER_HISTORICAL_ROOT: usize,
+    const HISTORICAL_ROOTS_LIMIT: usize,
+    const ETH1_DATA_VOTES_BOUND: usize,
+    const VALIDATOR_REGISTRY_LIMIT: usize,
+    const EPOCHS_PER_HISTORICAL_VECTOR: usize,
+    const EPOCHS_PER_SLASHINGS_VECTOR: usize,
+    const MAX_VALIDATORS_PER_COMMITTEE: usize,
+    const SYNC_COMMITTEE_SIZE: usize,
+    const BYTES_PER_LOGS_BLOOM: usize,
+    const MAX_EXTRA_DATA_BYTES: usize,
+    const MAX_BYTES_PER_TRANSACTION: usize,
+    const MAX_TRANSACTIONS_PER_PAYLOAD: usize,
+>(
+    state: &mut BeaconState<
+        SLOTS_PER_HISTORICAL_ROOT,
+        HISTORICAL_ROOTS_LIMIT,
+        ETH1_DATA_VOTES_BOUND,
+        VALIDATOR_REGISTRY_LIMIT,
+        EPOCHS_PER_HISTORICAL_VECTOR,
+        EPOCHS_PER_SLASHINGS_VECTOR,
+        MAX_VALIDATORS_PER_COMMITTEE,
+        SYNC_COMMITTEE_SIZE,
+        BYTES_PER_LOGS_BLOOM,
+        MAX_EXTRA_DATA_BYTES,
+        MAX_BYTES_PER_TRANSACTION,
+        MAX_TRANSACTIONS_PER_PAYLOAD,
+    >,
+    context: &Context,
+) -> Result<()> {
+    let next_epoch = get_current_epoch(state, context) + 1;
+    let epochs_per_historical_root = context.slots_per_historical_root / context.slots_per_epoch;
+    if next_epoch % epochs_per_historical_root == 0 {
+        let mut historical_batch = HistoricalBatchAccumulator {
+            block_roots_root: state.block_roots.hash_tree_root()?,
+            state_roots_root: state.state_roots.hash_tree_root()?,
+        };
+        state
+            .historical_roots
+            .push(historical_batch.hash_tree_root()?)
+    }
+    Ok(())
+}
+pub fn process_inactivity_updates<
+    const SLOTS_PER_HISTORICAL_ROOT: usize,
+    const HISTORICAL_ROOTS_LIMIT: usize,
+    const ETH1_DATA_VOTES_BOUND: usize,
+    const VALIDATOR_REGISTRY_LIMIT: usize,
+    const EPOCHS_PER_HISTORICAL_VECTOR: usize,
+    const EPOCHS_PER_SLASHINGS_VECTOR: usize,
+    const MAX_VALIDATORS_PER_COMMITTEE: usize,
+    const SYNC_COMMITTEE_SIZE: usize,
+    const BYTES_PER_LOGS_BLOOM: usize,
+    const MAX_EXTRA_DATA_BYTES: usize,
+    const MAX_BYTES_PER_TRANSACTION: usize,
+    const MAX_TRANSACTIONS_PER_PAYLOAD: usize,
+>(
+    state: &mut BeaconState<
+        SLOTS_PER_HISTORICAL_ROOT,
+        HISTORICAL_ROOTS_LIMIT,
+        ETH1_DATA_VOTES_BOUND,
+        VALIDATOR_REGISTRY_LIMIT,
+        EPOCHS_PER_HISTORICAL_VECTOR,
+        EPOCHS_PER_SLASHINGS_VECTOR,
+        MAX_VALIDATORS_PER_COMMITTEE,
+        SYNC_COMMITTEE_SIZE,
+        BYTES_PER_LOGS_BLOOM,
+        MAX_EXTRA_DATA_BYTES,
+        MAX_BYTES_PER_TRANSACTION,
+        MAX_TRANSACTIONS_PER_PAYLOAD,
+    >,
+    context: &Context,
+) -> Result<()> {
+    let current_epoch = get_current_epoch(state, context);
+    if current_epoch == GENESIS_EPOCH {
+        return Ok(());
+    }
+    let eligible_validator_indices =
+        get_eligible_validator_indices(state, context).collect::<Vec<_>>();
+    for index in eligible_validator_indices {
+        if get_unslashed_participating_indices(
+            state,
+            TIMELY_TARGET_FLAG_INDEX,
+            get_previous_epoch(state, context),
+            context,
+        )?
+        .contains(&index)
+        {
+            state.inactivity_scores[index] -= u64::min(1, state.inactivity_scores[index]);
+        } else {
+            state.inactivity_scores[index] += context.inactivity_score_bias;
+        }
+        if !is_in_inactivity_leak(state, context) {
+            state.inactivity_scores[index] -= u64::min(1, state.inactivity_scores[index]);
+        }
+    }
+    Ok(())
+}
+pub fn process_justification_and_finalization<
+    const SLOTS_PER_HISTORICAL_ROOT: usize,
+    const HISTORICAL_ROOTS_LIMIT: usize,
+    const ETH1_DATA_VOTES_BOUND: usize,
+    const VALIDATOR_REGISTRY_LIMIT: usize,
+    const EPOCHS_PER_HISTORICAL_VECTOR: usize,
+    const EPOCHS_PER_SLASHINGS_VECTOR: usize,
+    const MAX_VALIDATORS_PER_COMMITTEE: usize,
+    const SYNC_COMMITTEE_SIZE: usize,
+    const BYTES_PER_LOGS_BLOOM: usize,
+    const MAX_EXTRA_DATA_BYTES: usize,
+    const MAX_BYTES_PER_TRANSACTION: usize,
+    const MAX_TRANSACTIONS_PER_PAYLOAD: usize,
+>(
+    state: &mut BeaconState<
+        SLOTS_PER_HISTORICAL_ROOT,
+        HISTORICAL_ROOTS_LIMIT,
+        ETH1_DATA_VOTES_BOUND,
+        VALIDATOR_REGISTRY_LIMIT,
+        EPOCHS_PER_HISTORICAL_VECTOR,
+        EPOCHS_PER_SLASHINGS_VECTOR,
+        MAX_VALIDATORS_PER_COMMITTEE,
+        SYNC_COMMITTEE_SIZE,
+        BYTES_PER_LOGS_BLOOM,
+        MAX_EXTRA_DATA_BYTES,
+        MAX_BYTES_PER_TRANSACTION,
+        MAX_TRANSACTIONS_PER_PAYLOAD,
+    >,
+    context: &Context,
+) -> Result<()> {
+    let current_epoch = get_current_epoch(state, context);
+    if current_epoch <= GENESIS_EPOCH + 1 {
+        return Ok(());
+    }
+    let previous_indices = get_unslashed_participating_indices(
+        state,
+        TIMELY_TARGET_FLAG_INDEX,
+        get_previous_epoch(state, context),
+        context,
+    )?;
+    let current_indices = get_unslashed_participating_indices(
+        state,
+        TIMELY_TARGET_FLAG_INDEX,
+        get_previous_epoch(state, context),
+        context,
+    )?;
+    let total_active_balance = get_total_active_balance(state, context)?;
+    let previous_target_balance = get_total_balance(state, &previous_indices, context)?;
+    let current_target_balance = get_total_balance(state, &current_indices, context)?;
+    weigh_justification_and_finalization(
+        state,
+        total_active_balance,
+        previous_target_balance,
+        current_target_balance,
+        context,
+    )
+}
+pub fn process_participation_flag_updates<
+    const SLOTS_PER_HISTORICAL_ROOT: usize,
+    const HISTORICAL_ROOTS_LIMIT: usize,
+    const ETH1_DATA_VOTES_BOUND: usize,
+    const VALIDATOR_REGISTRY_LIMIT: usize,
+    const EPOCHS_PER_HISTORICAL_VECTOR: usize,
+    const EPOCHS_PER_SLASHINGS_VECTOR: usize,
+    const MAX_VALIDATORS_PER_COMMITTEE: usize,
+    const SYNC_COMMITTEE_SIZE: usize,
+    const BYTES_PER_LOGS_BLOOM: usize,
+    const MAX_EXTRA_DATA_BYTES: usize,
+    const MAX_BYTES_PER_TRANSACTION: usize,
+    const MAX_TRANSACTIONS_PER_PAYLOAD: usize,
+>(
+    state: &mut BeaconState<
+        SLOTS_PER_HISTORICAL_ROOT,
+        HISTORICAL_ROOTS_LIMIT,
+        ETH1_DATA_VOTES_BOUND,
+        VALIDATOR_REGISTRY_LIMIT,
+        EPOCHS_PER_HISTORICAL_VECTOR,
+        EPOCHS_PER_SLASHINGS_VECTOR,
+        MAX_VALIDATORS_PER_COMMITTEE,
+        SYNC_COMMITTEE_SIZE,
+        BYTES_PER_LOGS_BLOOM,
+        MAX_EXTRA_DATA_BYTES,
+        MAX_BYTES_PER_TRANSACTION,
+        MAX_TRANSACTIONS_PER_PAYLOAD,
+    >,
+) -> Result<()> {
+    let current_participation = mem::take(&mut state.current_epoch_participation);
+    state.previous_epoch_participation = current_participation;
+    let rotate_participation = vec![ParticipationFlags::default(); state.validators.len()];
+    state.current_epoch_participation = rotate_participation
+        .try_into()
+        .expect("should convert from Vec to List");
+    Ok(())
+}
+pub fn process_randao_mixes_reset<
+    const SLOTS_PER_HISTORICAL_ROOT: usize,
+    const HISTORICAL_ROOTS_LIMIT: usize,
+    const ETH1_DATA_VOTES_BOUND: usize,
+    const VALIDATOR_REGISTRY_LIMIT: usize,
+    const EPOCHS_PER_HISTORICAL_VECTOR: usize,
+    const EPOCHS_PER_SLASHINGS_VECTOR: usize,
+    const MAX_VALIDATORS_PER_COMMITTEE: usize,
+    const SYNC_COMMITTEE_SIZE: usize,
+    const BYTES_PER_LOGS_BLOOM: usize,
+    const MAX_EXTRA_DATA_BYTES: usize,
+    const MAX_BYTES_PER_TRANSACTION: usize,
+    const MAX_TRANSACTIONS_PER_PAYLOAD: usize,
+>(
+    state: &mut BeaconState<
+        SLOTS_PER_HISTORICAL_ROOT,
+        HISTORICAL_ROOTS_LIMIT,
+        ETH1_DATA_VOTES_BOUND,
+        VALIDATOR_REGISTRY_LIMIT,
+        EPOCHS_PER_HISTORICAL_VECTOR,
+        EPOCHS_PER_SLASHINGS_VECTOR,
+        MAX_VALIDATORS_PER_COMMITTEE,
+        SYNC_COMMITTEE_SIZE,
+        BYTES_PER_LOGS_BLOOM,
+        MAX_EXTRA_DATA_BYTES,
+        MAX_BYTES_PER_TRANSACTION,
+        MAX_TRANSACTIONS_PER_PAYLOAD,
+    >,
+    context: &Context,
+) {
+    let current_epoch = get_current_epoch(state, context);
+    let next_epoch = current_epoch + 1;
+    let mix_index = next_epoch % context.epochs_per_historical_vector;
+    state.randao_mixes[mix_index as usize] = get_randao_mix(state, current_epoch).clone();
+}
 pub fn process_registry_updates<
     const SLOTS_PER_HISTORICAL_ROOT: usize,
     const HISTORICAL_ROOTS_LIMIT: usize,
@@ -81,6 +523,54 @@ pub fn process_registry_updates<
         validator.activation_epoch = activation_exit_epoch;
     }
 }
+pub fn process_rewards_and_penalties<
+    const SLOTS_PER_HISTORICAL_ROOT: usize,
+    const HISTORICAL_ROOTS_LIMIT: usize,
+    const ETH1_DATA_VOTES_BOUND: usize,
+    const VALIDATOR_REGISTRY_LIMIT: usize,
+    const EPOCHS_PER_HISTORICAL_VECTOR: usize,
+    const EPOCHS_PER_SLASHINGS_VECTOR: usize,
+    const MAX_VALIDATORS_PER_COMMITTEE: usize,
+    const SYNC_COMMITTEE_SIZE: usize,
+    const BYTES_PER_LOGS_BLOOM: usize,
+    const MAX_EXTRA_DATA_BYTES: usize,
+    const MAX_BYTES_PER_TRANSACTION: usize,
+    const MAX_TRANSACTIONS_PER_PAYLOAD: usize,
+>(
+    state: &mut BeaconState<
+        SLOTS_PER_HISTORICAL_ROOT,
+        HISTORICAL_ROOTS_LIMIT,
+        ETH1_DATA_VOTES_BOUND,
+        VALIDATOR_REGISTRY_LIMIT,
+        EPOCHS_PER_HISTORICAL_VECTOR,
+        EPOCHS_PER_SLASHINGS_VECTOR,
+        MAX_VALIDATORS_PER_COMMITTEE,
+        SYNC_COMMITTEE_SIZE,
+        BYTES_PER_LOGS_BLOOM,
+        MAX_EXTRA_DATA_BYTES,
+        MAX_BYTES_PER_TRANSACTION,
+        MAX_TRANSACTIONS_PER_PAYLOAD,
+    >,
+    context: &Context,
+) -> Result<()> {
+    let current_epoch = get_current_epoch(state, context);
+    if current_epoch == GENESIS_EPOCH {
+        return Ok(());
+    }
+    let mut deltas = Vec::new();
+    for flag_index in 0..PARTICIPATION_FLAG_WEIGHTS.len() {
+        let flag_index_delta = get_flag_index_deltas(state, flag_index, context)?;
+        deltas.push(flag_index_delta);
+    }
+    deltas.push(get_inactivity_penalty_deltas(state, context)?);
+    for (rewards, penalties) in deltas.iter() {
+        for index in 0..state.validators.len() {
+            increase_balance(state, index, rewards[index]);
+            decrease_balance(state, index, penalties[index]);
+        }
+    }
+    Ok(())
+}
 pub fn process_slashings<
     const SLOTS_PER_HISTORICAL_ROOT: usize,
     const HISTORICAL_ROOTS_LIMIT: usize,
@@ -132,87 +622,6 @@ pub fn process_slashings<
     }
     Ok(())
 }
-pub fn process_eth1_data_reset<
-    const SLOTS_PER_HISTORICAL_ROOT: usize,
-    const HISTORICAL_ROOTS_LIMIT: usize,
-    const ETH1_DATA_VOTES_BOUND: usize,
-    const VALIDATOR_REGISTRY_LIMIT: usize,
-    const EPOCHS_PER_HISTORICAL_VECTOR: usize,
-    const EPOCHS_PER_SLASHINGS_VECTOR: usize,
-    const MAX_VALIDATORS_PER_COMMITTEE: usize,
-    const SYNC_COMMITTEE_SIZE: usize,
-    const BYTES_PER_LOGS_BLOOM: usize,
-    const MAX_EXTRA_DATA_BYTES: usize,
-    const MAX_BYTES_PER_TRANSACTION: usize,
-    const MAX_TRANSACTIONS_PER_PAYLOAD: usize,
->(
-    state: &mut BeaconState<
-        SLOTS_PER_HISTORICAL_ROOT,
-        HISTORICAL_ROOTS_LIMIT,
-        ETH1_DATA_VOTES_BOUND,
-        VALIDATOR_REGISTRY_LIMIT,
-        EPOCHS_PER_HISTORICAL_VECTOR,
-        EPOCHS_PER_SLASHINGS_VECTOR,
-        MAX_VALIDATORS_PER_COMMITTEE,
-        SYNC_COMMITTEE_SIZE,
-        BYTES_PER_LOGS_BLOOM,
-        MAX_EXTRA_DATA_BYTES,
-        MAX_BYTES_PER_TRANSACTION,
-        MAX_TRANSACTIONS_PER_PAYLOAD,
-    >,
-    context: &Context,
-) {
-    let next_epoch = get_current_epoch(state, context) + 1;
-    if next_epoch % context.epochs_per_eth1_voting_period == 0 {
-        state.eth1_data_votes.clear();
-    }
-}
-pub fn process_effective_balance_updates<
-    const SLOTS_PER_HISTORICAL_ROOT: usize,
-    const HISTORICAL_ROOTS_LIMIT: usize,
-    const ETH1_DATA_VOTES_BOUND: usize,
-    const VALIDATOR_REGISTRY_LIMIT: usize,
-    const EPOCHS_PER_HISTORICAL_VECTOR: usize,
-    const EPOCHS_PER_SLASHINGS_VECTOR: usize,
-    const MAX_VALIDATORS_PER_COMMITTEE: usize,
-    const SYNC_COMMITTEE_SIZE: usize,
-    const BYTES_PER_LOGS_BLOOM: usize,
-    const MAX_EXTRA_DATA_BYTES: usize,
-    const MAX_BYTES_PER_TRANSACTION: usize,
-    const MAX_TRANSACTIONS_PER_PAYLOAD: usize,
->(
-    state: &mut BeaconState<
-        SLOTS_PER_HISTORICAL_ROOT,
-        HISTORICAL_ROOTS_LIMIT,
-        ETH1_DATA_VOTES_BOUND,
-        VALIDATOR_REGISTRY_LIMIT,
-        EPOCHS_PER_HISTORICAL_VECTOR,
-        EPOCHS_PER_SLASHINGS_VECTOR,
-        MAX_VALIDATORS_PER_COMMITTEE,
-        SYNC_COMMITTEE_SIZE,
-        BYTES_PER_LOGS_BLOOM,
-        MAX_EXTRA_DATA_BYTES,
-        MAX_BYTES_PER_TRANSACTION,
-        MAX_TRANSACTIONS_PER_PAYLOAD,
-    >,
-    context: &Context,
-) {
-    let hysteresis_increment = context.effective_balance_increment / context.hysteresis_quotient;
-    let downward_threshold = hysteresis_increment * context.hysteresis_downward_multiplier;
-    let upward_threshold = hysteresis_increment * context.hysteresis_upward_multiplier;
-    for i in 0..state.validators.len() {
-        let validator = &mut state.validators[i];
-        let balance = state.balances[i];
-        if balance + downward_threshold < validator.effective_balance
-            || validator.effective_balance + upward_threshold < balance
-        {
-            validator.effective_balance = Gwei::min(
-                balance - balance % context.effective_balance_increment,
-                context.max_effective_balance,
-            );
-        }
-    }
-}
 pub fn process_slashings_reset<
     const SLOTS_PER_HISTORICAL_ROOT: usize,
     const HISTORICAL_ROOTS_LIMIT: usize,
@@ -247,42 +656,7 @@ pub fn process_slashings_reset<
     let slashings_index = next_epoch % context.epochs_per_slashings_vector;
     state.slashings[slashings_index as usize] = 0;
 }
-pub fn process_randao_mixes_reset<
-    const SLOTS_PER_HISTORICAL_ROOT: usize,
-    const HISTORICAL_ROOTS_LIMIT: usize,
-    const ETH1_DATA_VOTES_BOUND: usize,
-    const VALIDATOR_REGISTRY_LIMIT: usize,
-    const EPOCHS_PER_HISTORICAL_VECTOR: usize,
-    const EPOCHS_PER_SLASHINGS_VECTOR: usize,
-    const MAX_VALIDATORS_PER_COMMITTEE: usize,
-    const SYNC_COMMITTEE_SIZE: usize,
-    const BYTES_PER_LOGS_BLOOM: usize,
-    const MAX_EXTRA_DATA_BYTES: usize,
-    const MAX_BYTES_PER_TRANSACTION: usize,
-    const MAX_TRANSACTIONS_PER_PAYLOAD: usize,
->(
-    state: &mut BeaconState<
-        SLOTS_PER_HISTORICAL_ROOT,
-        HISTORICAL_ROOTS_LIMIT,
-        ETH1_DATA_VOTES_BOUND,
-        VALIDATOR_REGISTRY_LIMIT,
-        EPOCHS_PER_HISTORICAL_VECTOR,
-        EPOCHS_PER_SLASHINGS_VECTOR,
-        MAX_VALIDATORS_PER_COMMITTEE,
-        SYNC_COMMITTEE_SIZE,
-        BYTES_PER_LOGS_BLOOM,
-        MAX_EXTRA_DATA_BYTES,
-        MAX_BYTES_PER_TRANSACTION,
-        MAX_TRANSACTIONS_PER_PAYLOAD,
-    >,
-    context: &Context,
-) {
-    let current_epoch = get_current_epoch(state, context);
-    let next_epoch = current_epoch + 1;
-    let mix_index = next_epoch % context.epochs_per_historical_vector;
-    state.randao_mixes[mix_index as usize] = get_randao_mix(state, current_epoch).clone();
-}
-pub fn process_historical_roots_update<
+pub fn process_sync_committee_updates<
     const SLOTS_PER_HISTORICAL_ROOT: usize,
     const HISTORICAL_ROOTS_LIMIT: usize,
     const ETH1_DATA_VOTES_BOUND: usize,
@@ -313,15 +687,11 @@ pub fn process_historical_roots_update<
     context: &Context,
 ) -> Result<()> {
     let next_epoch = get_current_epoch(state, context) + 1;
-    let epochs_per_historical_root = context.slots_per_historical_root / context.slots_per_epoch;
-    if next_epoch % epochs_per_historical_root == 0 {
-        let mut historical_batch = HistoricalBatchAccumulator {
-            block_roots_root: state.block_roots.hash_tree_root()?,
-            state_roots_root: state.state_roots.hash_tree_root()?,
-        };
-        state
-            .historical_roots
-            .push(historical_batch.hash_tree_root()?)
+    if next_epoch % context.epochs_per_sync_committee_period == 0 {
+        let next_sync_committee = get_next_sync_committee(state, context)?;
+        let current_sync_committee =
+            mem::replace(&mut state.next_sync_committee, next_sync_committee);
+        state.current_sync_committee = current_sync_committee;
     }
     Ok(())
 }
@@ -394,298 +764,5 @@ pub fn weigh_justification_and_finalization<
     if bits[0..2].all() && old_current_justified_checkpoint.epoch + 1 == current_epoch {
         state.finalized_checkpoint = old_current_justified_checkpoint;
     }
-    Ok(())
-}
-pub fn get_base_reward<
-    const SLOTS_PER_HISTORICAL_ROOT: usize,
-    const HISTORICAL_ROOTS_LIMIT: usize,
-    const ETH1_DATA_VOTES_BOUND: usize,
-    const VALIDATOR_REGISTRY_LIMIT: usize,
-    const EPOCHS_PER_HISTORICAL_VECTOR: usize,
-    const EPOCHS_PER_SLASHINGS_VECTOR: usize,
-    const MAX_VALIDATORS_PER_COMMITTEE: usize,
-    const SYNC_COMMITTEE_SIZE: usize,
-    const BYTES_PER_LOGS_BLOOM: usize,
-    const MAX_EXTRA_DATA_BYTES: usize,
-    const MAX_BYTES_PER_TRANSACTION: usize,
-    const MAX_TRANSACTIONS_PER_PAYLOAD: usize,
->(
-    state: &BeaconState<
-        SLOTS_PER_HISTORICAL_ROOT,
-        HISTORICAL_ROOTS_LIMIT,
-        ETH1_DATA_VOTES_BOUND,
-        VALIDATOR_REGISTRY_LIMIT,
-        EPOCHS_PER_HISTORICAL_VECTOR,
-        EPOCHS_PER_SLASHINGS_VECTOR,
-        MAX_VALIDATORS_PER_COMMITTEE,
-        SYNC_COMMITTEE_SIZE,
-        BYTES_PER_LOGS_BLOOM,
-        MAX_EXTRA_DATA_BYTES,
-        MAX_BYTES_PER_TRANSACTION,
-        MAX_TRANSACTIONS_PER_PAYLOAD,
-    >,
-    index: ValidatorIndex,
-    context: &Context,
-) -> Result<Gwei> {
-    let total_balance = get_total_active_balance(state, context)?;
-    let effective_balance = state.validators[index].effective_balance;
-    Ok(effective_balance * context.base_reward_factor
-        / total_balance.integer_sqrt()
-        / BASE_REWARDS_PER_EPOCH)
-}
-pub fn get_proposer_reward<
-    const SLOTS_PER_HISTORICAL_ROOT: usize,
-    const HISTORICAL_ROOTS_LIMIT: usize,
-    const ETH1_DATA_VOTES_BOUND: usize,
-    const VALIDATOR_REGISTRY_LIMIT: usize,
-    const EPOCHS_PER_HISTORICAL_VECTOR: usize,
-    const EPOCHS_PER_SLASHINGS_VECTOR: usize,
-    const MAX_VALIDATORS_PER_COMMITTEE: usize,
-    const SYNC_COMMITTEE_SIZE: usize,
-    const BYTES_PER_LOGS_BLOOM: usize,
-    const MAX_EXTRA_DATA_BYTES: usize,
-    const MAX_BYTES_PER_TRANSACTION: usize,
-    const MAX_TRANSACTIONS_PER_PAYLOAD: usize,
->(
-    state: &BeaconState<
-        SLOTS_PER_HISTORICAL_ROOT,
-        HISTORICAL_ROOTS_LIMIT,
-        ETH1_DATA_VOTES_BOUND,
-        VALIDATOR_REGISTRY_LIMIT,
-        EPOCHS_PER_HISTORICAL_VECTOR,
-        EPOCHS_PER_SLASHINGS_VECTOR,
-        MAX_VALIDATORS_PER_COMMITTEE,
-        SYNC_COMMITTEE_SIZE,
-        BYTES_PER_LOGS_BLOOM,
-        MAX_EXTRA_DATA_BYTES,
-        MAX_BYTES_PER_TRANSACTION,
-        MAX_TRANSACTIONS_PER_PAYLOAD,
-    >,
-    attesting_index: ValidatorIndex,
-    context: &Context,
-) -> Result<Gwei> {
-    Ok(get_base_reward(state, attesting_index, context)? / context.proposer_reward_quotient)
-}
-pub fn get_finality_delay<
-    const SLOTS_PER_HISTORICAL_ROOT: usize,
-    const HISTORICAL_ROOTS_LIMIT: usize,
-    const ETH1_DATA_VOTES_BOUND: usize,
-    const VALIDATOR_REGISTRY_LIMIT: usize,
-    const EPOCHS_PER_HISTORICAL_VECTOR: usize,
-    const EPOCHS_PER_SLASHINGS_VECTOR: usize,
-    const MAX_VALIDATORS_PER_COMMITTEE: usize,
-    const SYNC_COMMITTEE_SIZE: usize,
-    const BYTES_PER_LOGS_BLOOM: usize,
-    const MAX_EXTRA_DATA_BYTES: usize,
-    const MAX_BYTES_PER_TRANSACTION: usize,
-    const MAX_TRANSACTIONS_PER_PAYLOAD: usize,
->(
-    state: &BeaconState<
-        SLOTS_PER_HISTORICAL_ROOT,
-        HISTORICAL_ROOTS_LIMIT,
-        ETH1_DATA_VOTES_BOUND,
-        VALIDATOR_REGISTRY_LIMIT,
-        EPOCHS_PER_HISTORICAL_VECTOR,
-        EPOCHS_PER_SLASHINGS_VECTOR,
-        MAX_VALIDATORS_PER_COMMITTEE,
-        SYNC_COMMITTEE_SIZE,
-        BYTES_PER_LOGS_BLOOM,
-        MAX_EXTRA_DATA_BYTES,
-        MAX_BYTES_PER_TRANSACTION,
-        MAX_TRANSACTIONS_PER_PAYLOAD,
-    >,
-    context: &Context,
-) -> Epoch {
-    get_previous_epoch(state, context) - state.finalized_checkpoint.epoch
-}
-pub fn is_in_inactivity_leak<
-    const SLOTS_PER_HISTORICAL_ROOT: usize,
-    const HISTORICAL_ROOTS_LIMIT: usize,
-    const ETH1_DATA_VOTES_BOUND: usize,
-    const VALIDATOR_REGISTRY_LIMIT: usize,
-    const EPOCHS_PER_HISTORICAL_VECTOR: usize,
-    const EPOCHS_PER_SLASHINGS_VECTOR: usize,
-    const MAX_VALIDATORS_PER_COMMITTEE: usize,
-    const SYNC_COMMITTEE_SIZE: usize,
-    const BYTES_PER_LOGS_BLOOM: usize,
-    const MAX_EXTRA_DATA_BYTES: usize,
-    const MAX_BYTES_PER_TRANSACTION: usize,
-    const MAX_TRANSACTIONS_PER_PAYLOAD: usize,
->(
-    state: &BeaconState<
-        SLOTS_PER_HISTORICAL_ROOT,
-        HISTORICAL_ROOTS_LIMIT,
-        ETH1_DATA_VOTES_BOUND,
-        VALIDATOR_REGISTRY_LIMIT,
-        EPOCHS_PER_HISTORICAL_VECTOR,
-        EPOCHS_PER_SLASHINGS_VECTOR,
-        MAX_VALIDATORS_PER_COMMITTEE,
-        SYNC_COMMITTEE_SIZE,
-        BYTES_PER_LOGS_BLOOM,
-        MAX_EXTRA_DATA_BYTES,
-        MAX_BYTES_PER_TRANSACTION,
-        MAX_TRANSACTIONS_PER_PAYLOAD,
-    >,
-    context: &Context,
-) -> bool {
-    get_finality_delay(state, context) > context.min_epochs_to_inactivity_penalty
-}
-pub fn process_justification_and_finalization<
-    const SLOTS_PER_HISTORICAL_ROOT: usize,
-    const HISTORICAL_ROOTS_LIMIT: usize,
-    const ETH1_DATA_VOTES_BOUND: usize,
-    const VALIDATOR_REGISTRY_LIMIT: usize,
-    const EPOCHS_PER_HISTORICAL_VECTOR: usize,
-    const EPOCHS_PER_SLASHINGS_VECTOR: usize,
-    const MAX_VALIDATORS_PER_COMMITTEE: usize,
-    const SYNC_COMMITTEE_SIZE: usize,
-    const BYTES_PER_LOGS_BLOOM: usize,
-    const MAX_EXTRA_DATA_BYTES: usize,
-    const MAX_BYTES_PER_TRANSACTION: usize,
-    const MAX_TRANSACTIONS_PER_PAYLOAD: usize,
->(
-    _state: &mut BeaconState<
-        SLOTS_PER_HISTORICAL_ROOT,
-        HISTORICAL_ROOTS_LIMIT,
-        ETH1_DATA_VOTES_BOUND,
-        VALIDATOR_REGISTRY_LIMIT,
-        EPOCHS_PER_HISTORICAL_VECTOR,
-        EPOCHS_PER_SLASHINGS_VECTOR,
-        MAX_VALIDATORS_PER_COMMITTEE,
-        SYNC_COMMITTEE_SIZE,
-        BYTES_PER_LOGS_BLOOM,
-        MAX_EXTRA_DATA_BYTES,
-        MAX_BYTES_PER_TRANSACTION,
-        MAX_TRANSACTIONS_PER_PAYLOAD,
-    >,
-    _context: &Context,
-) -> Result<()> {
-    Ok(())
-}
-pub fn process_inactivity_updates<
-    const SLOTS_PER_HISTORICAL_ROOT: usize,
-    const HISTORICAL_ROOTS_LIMIT: usize,
-    const ETH1_DATA_VOTES_BOUND: usize,
-    const VALIDATOR_REGISTRY_LIMIT: usize,
-    const EPOCHS_PER_HISTORICAL_VECTOR: usize,
-    const EPOCHS_PER_SLASHINGS_VECTOR: usize,
-    const MAX_VALIDATORS_PER_COMMITTEE: usize,
-    const SYNC_COMMITTEE_SIZE: usize,
-    const BYTES_PER_LOGS_BLOOM: usize,
-    const MAX_EXTRA_DATA_BYTES: usize,
-    const MAX_BYTES_PER_TRANSACTION: usize,
-    const MAX_TRANSACTIONS_PER_PAYLOAD: usize,
->(
-    _state: &mut BeaconState<
-        SLOTS_PER_HISTORICAL_ROOT,
-        HISTORICAL_ROOTS_LIMIT,
-        ETH1_DATA_VOTES_BOUND,
-        VALIDATOR_REGISTRY_LIMIT,
-        EPOCHS_PER_HISTORICAL_VECTOR,
-        EPOCHS_PER_SLASHINGS_VECTOR,
-        MAX_VALIDATORS_PER_COMMITTEE,
-        SYNC_COMMITTEE_SIZE,
-        BYTES_PER_LOGS_BLOOM,
-        MAX_EXTRA_DATA_BYTES,
-        MAX_BYTES_PER_TRANSACTION,
-        MAX_TRANSACTIONS_PER_PAYLOAD,
-    >,
-    _context: &Context,
-) -> Result<()> {
-    Ok(())
-}
-pub fn process_rewards_and_penalties<
-    const SLOTS_PER_HISTORICAL_ROOT: usize,
-    const HISTORICAL_ROOTS_LIMIT: usize,
-    const ETH1_DATA_VOTES_BOUND: usize,
-    const VALIDATOR_REGISTRY_LIMIT: usize,
-    const EPOCHS_PER_HISTORICAL_VECTOR: usize,
-    const EPOCHS_PER_SLASHINGS_VECTOR: usize,
-    const MAX_VALIDATORS_PER_COMMITTEE: usize,
-    const SYNC_COMMITTEE_SIZE: usize,
-    const BYTES_PER_LOGS_BLOOM: usize,
-    const MAX_EXTRA_DATA_BYTES: usize,
-    const MAX_BYTES_PER_TRANSACTION: usize,
-    const MAX_TRANSACTIONS_PER_PAYLOAD: usize,
->(
-    _state: &mut BeaconState<
-        SLOTS_PER_HISTORICAL_ROOT,
-        HISTORICAL_ROOTS_LIMIT,
-        ETH1_DATA_VOTES_BOUND,
-        VALIDATOR_REGISTRY_LIMIT,
-        EPOCHS_PER_HISTORICAL_VECTOR,
-        EPOCHS_PER_SLASHINGS_VECTOR,
-        MAX_VALIDATORS_PER_COMMITTEE,
-        SYNC_COMMITTEE_SIZE,
-        BYTES_PER_LOGS_BLOOM,
-        MAX_EXTRA_DATA_BYTES,
-        MAX_BYTES_PER_TRANSACTION,
-        MAX_TRANSACTIONS_PER_PAYLOAD,
-    >,
-    _context: &Context,
-) -> Result<()> {
-    Ok(())
-}
-pub fn process_participation_flag_updates<
-    const SLOTS_PER_HISTORICAL_ROOT: usize,
-    const HISTORICAL_ROOTS_LIMIT: usize,
-    const ETH1_DATA_VOTES_BOUND: usize,
-    const VALIDATOR_REGISTRY_LIMIT: usize,
-    const EPOCHS_PER_HISTORICAL_VECTOR: usize,
-    const EPOCHS_PER_SLASHINGS_VECTOR: usize,
-    const MAX_VALIDATORS_PER_COMMITTEE: usize,
-    const SYNC_COMMITTEE_SIZE: usize,
-    const BYTES_PER_LOGS_BLOOM: usize,
-    const MAX_EXTRA_DATA_BYTES: usize,
-    const MAX_BYTES_PER_TRANSACTION: usize,
-    const MAX_TRANSACTIONS_PER_PAYLOAD: usize,
->(
-    _state: &mut BeaconState<
-        SLOTS_PER_HISTORICAL_ROOT,
-        HISTORICAL_ROOTS_LIMIT,
-        ETH1_DATA_VOTES_BOUND,
-        VALIDATOR_REGISTRY_LIMIT,
-        EPOCHS_PER_HISTORICAL_VECTOR,
-        EPOCHS_PER_SLASHINGS_VECTOR,
-        MAX_VALIDATORS_PER_COMMITTEE,
-        SYNC_COMMITTEE_SIZE,
-        BYTES_PER_LOGS_BLOOM,
-        MAX_EXTRA_DATA_BYTES,
-        MAX_BYTES_PER_TRANSACTION,
-        MAX_TRANSACTIONS_PER_PAYLOAD,
-    >,
-) -> Result<()> {
-    Ok(())
-}
-pub fn process_sync_committee_updates<
-    const SLOTS_PER_HISTORICAL_ROOT: usize,
-    const HISTORICAL_ROOTS_LIMIT: usize,
-    const ETH1_DATA_VOTES_BOUND: usize,
-    const VALIDATOR_REGISTRY_LIMIT: usize,
-    const EPOCHS_PER_HISTORICAL_VECTOR: usize,
-    const EPOCHS_PER_SLASHINGS_VECTOR: usize,
-    const MAX_VALIDATORS_PER_COMMITTEE: usize,
-    const SYNC_COMMITTEE_SIZE: usize,
-    const BYTES_PER_LOGS_BLOOM: usize,
-    const MAX_EXTRA_DATA_BYTES: usize,
-    const MAX_BYTES_PER_TRANSACTION: usize,
-    const MAX_TRANSACTIONS_PER_PAYLOAD: usize,
->(
-    _state: &mut BeaconState<
-        SLOTS_PER_HISTORICAL_ROOT,
-        HISTORICAL_ROOTS_LIMIT,
-        ETH1_DATA_VOTES_BOUND,
-        VALIDATOR_REGISTRY_LIMIT,
-        EPOCHS_PER_HISTORICAL_VECTOR,
-        EPOCHS_PER_SLASHINGS_VECTOR,
-        MAX_VALIDATORS_PER_COMMITTEE,
-        SYNC_COMMITTEE_SIZE,
-        BYTES_PER_LOGS_BLOOM,
-        MAX_EXTRA_DATA_BYTES,
-        MAX_BYTES_PER_TRANSACTION,
-        MAX_TRANSACTIONS_PER_PAYLOAD,
-    >,
-    _context: &Context,
-) -> Result<()> {
     Ok(())
 }

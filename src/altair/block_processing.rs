@@ -10,15 +10,14 @@ use crate::state_transition::{
 };
 use spec::{
     add_flag, compute_domain, compute_epoch_at_slot, decrease_balance,
-    get_attestation_participation_flag_indices, get_attesting_indices,
+    get_attestation_participation_flag_indices, get_attesting_indices, get_base_reward,
     get_base_reward_per_increment, get_beacon_committee, get_beacon_proposer_index,
     get_block_root_at_slot, get_committee_count_per_slot, get_current_epoch, get_domain,
     get_indexed_attestation, get_previous_epoch, get_total_active_balance,
-    get_validator_from_deposit, has_flag, helpers::get_base_reward, increase_balance,
-    is_valid_indexed_attestation, process_block_header, process_eth1_data, process_operations,
-    process_randao, Attestation, BeaconBlock, BeaconState, Deposit, DepositMessage, SyncAggregate,
-    DEPOSIT_CONTRACT_TREE_DEPTH, PARTICIPATION_FLAG_WEIGHTS, PROPOSER_WEIGHT, SYNC_REWARD_WEIGHT,
-    WEIGHT_DENOMINATOR,
+    get_validator_from_deposit, has_flag, increase_balance, is_valid_indexed_attestation,
+    process_block_header, process_eth1_data, process_operations, process_randao, Attestation,
+    BeaconBlock, BeaconState, Deposit, DepositMessage, SyncAggregate, DEPOSIT_CONTRACT_TREE_DEPTH,
+    PARTICIPATION_FLAG_WEIGHTS, PROPOSER_WEIGHT, SYNC_REWARD_WEIGHT, WEIGHT_DENOMINATOR,
 };
 use ssz_rs::prelude::*;
 use std::collections::{HashMap, HashSet};
