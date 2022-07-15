@@ -18,18 +18,19 @@ use spec::{
 use ssz_rs::Vector;
 use std::collections::HashSet;
 
+// Return a new ``ParticipationFlags`` adding ``flag_index`` to ``flags``
 pub fn add_flag(flags: ParticipationFlags, flag_index: usize) -> ParticipationFlags {
-    // Return a new ``ParticipationFlags`` adding ``flag_index`` to ``flags``
     let flag = 2u8.pow(flag_index as u32);
     flags | flag
 }
 
+// Return whether ``flags`` has ``flag_index`` set
 pub fn has_flag(flags: ParticipationFlags, flag_index: usize) -> bool {
-    // Return whether ``flags`` has ``flag_index`` set
     let flag = 2u8.pow(flag_index as u32);
     flags & flag == flag
 }
 
+// Return the sync committee indices, with possible duplicates, for the next sync committee.
 pub fn get_next_sync_committee_indices<
     const SLOTS_PER_HISTORICAL_ROOT: usize,
     const HISTORICAL_ROOTS_LIMIT: usize,
@@ -52,7 +53,6 @@ pub fn get_next_sync_committee_indices<
     >,
     context: &Context,
 ) -> Result<HashSet<ValidatorIndex>> {
-    // Return the sync committee indices, with possible duplicates, for the next sync committee.
     let epoch = get_current_epoch(state, context) + 1;
     let max_random_byte = u8::MAX as u64;
     let active_validator_indices = get_active_validator_indices(state, epoch);
@@ -84,6 +84,7 @@ pub fn get_next_sync_committee_indices<
     Ok(sync_committee_indices)
 }
 
+// Return the next sync committee, with possible pubkey duplicates.
 pub fn get_next_sync_committee<
     const SLOTS_PER_HISTORICAL_ROOT: usize,
     const HISTORICAL_ROOTS_LIMIT: usize,
@@ -106,7 +107,6 @@ pub fn get_next_sync_committee<
     >,
     context: &Context,
 ) -> Result<SyncCommittee<SYNC_COMMITTEE_SIZE>> {
-    // Return the next sync committee, with possible pubkey duplicates.
     let indices = get_next_sync_committee_indices(state, context)?;
     let public_keys = state
         .validators
@@ -208,6 +208,7 @@ pub fn get_unslashed_participating_indices<
         .collect::<HashSet<_>>())
 }
 
+// Return the flag indices that are satisfied by an attestation.
 pub fn get_attestation_participation_flag_indices<
     const SLOTS_PER_HISTORICAL_ROOT: usize,
     const HISTORICAL_ROOTS_LIMIT: usize,
@@ -232,14 +233,12 @@ pub fn get_attestation_participation_flag_indices<
     inclusion_delay: u64,
     context: &Context,
 ) -> Result<Vec<usize>> {
-    // Return the flag indices that are satisfied by an attestation.
     let justified_checkpoint = if data.target.epoch == get_current_epoch(state, context) {
         &state.current_justified_checkpoint
     } else {
         &state.previous_justified_checkpoint
     };
 
-    // Matching roots
     let is_matching_source = data.source == *justified_checkpoint;
     if !is_matching_source {
         return Err(invalid_operation_error(InvalidOperation::Attestation(
@@ -269,6 +268,7 @@ pub fn get_attestation_participation_flag_indices<
     Ok(participation_flag_indices)
 }
 
+// Return the deltas for a given ``flag_index`` by scanning through the participation flags.
 pub fn get_flag_index_deltas<
     const SLOTS_PER_HISTORICAL_ROOT: usize,
     const HISTORICAL_ROOTS_LIMIT: usize,
@@ -292,7 +292,6 @@ pub fn get_flag_index_deltas<
     flag_index: usize,
     context: &Context,
 ) -> Result<(Vec<Gwei>, Vec<Gwei>)> {
-    // Return the deltas for a given ``flag_index`` by scanning through the participation flags.
     let validator_count = state.validators.len();
     let mut rewards = vec![0; validator_count];
     let mut penalties = vec![0; validator_count];

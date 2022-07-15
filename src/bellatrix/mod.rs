@@ -4,14 +4,14 @@
 mod beacon_block;
 mod beacon_state;
 mod blinded_beacon_block;
-pub mod block_processing;
-pub mod epoch_processing;
+mod block_processing;
+mod epoch_processing;
 mod execution;
-pub mod helpers;
+mod helpers;
 mod presets;
 mod state_transition_bellatrix;
 
-pub mod state_transition;
+mod state_transition;
 pub use state_transition::{
     block_processing::*, epoch_processing::*, helpers::*, slot_processing::*, *,
 };
@@ -33,7 +33,6 @@ pub use crate::phase0::{
     IndexedAttestation, ProposerSlashing, SignedVoluntaryExit, Validator, BASE_REWARDS_PER_EPOCH,
     DEPOSIT_CONTRACT_TREE_DEPTH, JUSTIFICATION_BITS_LENGTH,
 };
-pub use crate::primitives::ParticipationFlags;
 
 pub mod mainnet {
     pub use super::presets::mainnet::*;
