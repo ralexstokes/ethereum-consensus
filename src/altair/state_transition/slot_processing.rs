@@ -1,9 +1,9 @@
 //! WARNING: This file was derived by the `gen-spec` utility. DO NOT EDIT MANUALLY.
 use crate::altair as spec;
-use spec::{process_epoch, BeaconState};
 use crate::primitives::Slot;
+use crate::state_transition::{Context, Error, Result};
+use spec::{process_epoch, BeaconState};
 use ssz_rs::prelude::*;
-use crate::state_transition::{Result, Context, Error};
 pub fn process_slot<
     const SLOTS_PER_HISTORICAL_ROOT: usize,
     const HISTORICAL_ROOTS_LIMIT: usize,

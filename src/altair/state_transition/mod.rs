@@ -4,11 +4,9 @@ pub mod epoch_processing;
 pub mod helpers;
 pub mod slot_processing;
 use crate::altair as spec;
-use crate::state_transition::{Result, Context, Error, Validation};
+use crate::state_transition::{Context, Error, Result, Validation};
+use spec::{process_block, process_slots, verify_block_signature, BeaconState, SignedBeaconBlock};
 use ssz_rs::prelude::*;
-use spec::{
-    SignedBeaconBlock, BeaconState, process_slots, verify_block_signature, process_block,
-};
 pub fn state_transition<
     const SLOTS_PER_HISTORICAL_ROOT: usize,
     const HISTORICAL_ROOTS_LIMIT: usize,
