@@ -14,6 +14,7 @@ use spec::{
 };
 use std::mem;
 
+// Return the base reward for the validator defined by `index` with respect to the current `state`
 pub fn get_base_reward<
     const SLOTS_PER_HISTORICAL_ROOT: usize,
     const HISTORICAL_ROOTS_LIMIT: usize,
@@ -37,7 +38,6 @@ pub fn get_base_reward<
     index: ValidatorIndex,
     context: &Context,
 ) -> Result<Gwei> {
-    // Return the base reward for the validator defined by ``index`` with respect to the current `state`
     let increments =
         state.validators[index].effective_balance / context.effective_balance_increment;
     Ok(increments * get_base_reward_per_increment(state, context)?)
