@@ -112,7 +112,7 @@ impl TestCase for AggregateVerifyHandler {
 #[serde_as]
 #[derive(Debug, Deserialize)]
 struct FastAggregateVerifyInput {
-    pubkeys: Vec<PublicKey>,
+    pubkeys: Vec<String>,
     message: Bytes32,
     #[serde_as(deserialize_as = "DefaultOnError")]
     signature: Option<Signature>,
@@ -137,7 +137,15 @@ impl FastAggregateVerifyHandler {
     }
 
     pub fn run(&self) -> bool {
-        let public_keys = self.test_case.input.pubkeys.iter().collect::<Vec<_>>();
+        let public_keys = &self
+            .test_case
+            .input
+            .pubkeys
+            .iter()
+            .cloned()
+            .map(|repr| PublicKey::try_from(repr).unwrap())
+            .collect::<Vec<_>>();
+        let public_keys = public_keys.iter().collect::<Vec<_>>();
         fast_aggregate_verify(
             &public_keys,
             self.test_case.input.message.as_ref(),
@@ -164,7 +172,8 @@ impl TestCase for FastAggregateVerifyHandler {
             .input
             .pubkeys
             .iter()
-            .any(|k| k == &PublicKey::default())
+            .cloned()
+            .any(|key| PublicKey::try_from(key).is_err())
         {
             return true;
         }
@@ -225,7 +234,8 @@ impl TestCase for SignHandler {
 #[serde_as]
 #[derive(Debug, Deserialize)]
 struct VerifyInput {
-    pubkey: PublicKey,
+    #[serde_as(deserialize_as = "DefaultOnError")]
+    pubkey: Option<PublicKey>,
     message: Bytes32,
     #[serde_as(deserialize_as = "DefaultOnError")]
     signature: Option<Signature>,
@@ -251,7 +261,7 @@ impl VerifyHandler {
 
     fn run(&self) -> bool {
         self.test_case.input.signature.as_ref().unwrap().verify(
-            &self.test_case.input.pubkey,
+            self.test_case.input.pubkey.as_ref().unwrap(),
             self.test_case.input.message.as_ref(),
         )
     }
@@ -268,6 +278,9 @@ impl TestCase for VerifyHandler {
 
     fn verify_failure(&self) -> bool {
         if self.test_case.input.signature.is_none() {
+            return true;
+        }
+        if self.test_case.input.pubkey.is_none() {
             return true;
         }
         !self.run()

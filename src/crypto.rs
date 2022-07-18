@@ -225,7 +225,7 @@ impl TryFrom<&[u8]> for PublicKey {
     type Error = Error;
 
     fn try_from(data: &[u8]) -> Result<Self, Error> {
-        let inner = blst_core::PublicKey::from_bytes(data).map_err(BLSTError::from)?;
+        let inner = blst_core::PublicKey::key_validate(data).map_err(BLSTError::from)?;
         Ok(Self(inner))
     }
 }
@@ -556,9 +556,10 @@ mod tests {
     }
 
     #[test]
+    #[should_panic(expected = "infinity public key")]
     fn infinity_as_public_key() {
         PublicKey::try_from(INFINITY_COMPRESSED_PUBLIC_KEY.as_ref())
-            .expect("can make an infinity-based public key");
+            .expect("can make infinity public key");
     }
 
     #[test]
