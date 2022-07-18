@@ -1,6 +1,7 @@
 use crate::test_utils::{load_yaml, TestCase};
 use ethereum_consensus::crypto::{
-    aggregate, aggregate_verify, fast_aggregate_verify, PublicKey, SecretKey, Signature,
+    aggregate, aggregate_verify, eth_aggregate_public_keys, fast_aggregate_verify, PublicKey,
+    SecretKey, Signature,
 };
 use ethereum_consensus::primitives::Bytes32;
 use ethereum_consensus::serde as eth_serde;
@@ -273,15 +274,44 @@ impl TestCase for VerifyHandler {
     }
 }
 
-pub struct EthAggregatePubkeysHandler;
+#[serde_as]
+#[derive(Debug, Deserialize)]
+struct EthAggregatePubkeysTestCase {
+    #[serde_as(deserialize_as = "DefaultOnError")]
+    input: Vec<PublicKey>,
+    #[serde_as(deserialize_as = "DefaultOnError")]
+    output: Option<PublicKey>,
+}
+
+#[derive(Debug)]
+pub struct EthAggregatePubkeysHandler {
+    test_case: EthAggregatePubkeysTestCase,
+}
 
 impl EthAggregatePubkeysHandler {
     pub fn from(test_case_path: &str) -> Self {
-        Self
+        let path = test_case_path.to_string() + "/data.yaml";
+        let test_case: EthAggregatePubkeysTestCase = load_yaml(&path);
+        Self { test_case }
     }
 
-    pub fn execute(&self) {
-        unimplemented!();
+    pub fn run(&self) -> bool {
+        let aggregate_public_key = eth_aggregate_public_keys(&self.test_case.input).unwrap();
+        &aggregate_public_key == self.test_case.output.as_ref().unwrap()
+    }
+}
+
+impl TestCase for EthAggregatePubkeysHandler {
+    fn should_succeed(&self) -> bool {
+        self.test_case.output.is_some()
+    }
+
+    fn verify_success(&self) -> bool {
+        self.run()
+    }
+
+    fn verify_failure(&self) -> bool {
+        self.test_case.output.is_none()
     }
 }
 
