@@ -98,6 +98,18 @@ pub fn eth_aggregate_public_keys(pks: &[PublicKey]) -> Result<PublicKey, Error> 
         .map_err(|e| BLSTError::from(e).into())
 }
 
+pub fn eth_fast_aggregate_verify(
+    public_keys: &[&PublicKey],
+    message: &[u8],
+    signature: &Signature,
+) -> bool {
+    if public_keys.is_empty() && signature.is_infinity() {
+        true
+    } else {
+        fast_aggregate_verify(public_keys, message, signature)
+    }
+}
+
 #[derive(Clone, Default)]
 #[cfg_attr(feature = "serde", derive(serde::Deserialize))]
 #[cfg_attr(feature = "serde", serde(try_from = "String"))]
@@ -213,7 +225,7 @@ impl TryFrom<&[u8]> for PublicKey {
     type Error = Error;
 
     fn try_from(data: &[u8]) -> Result<Self, Error> {
-        let inner = blst_core::PublicKey::from_bytes(data).map_err(BLSTError::from)?;
+        let inner = blst_core::PublicKey::key_validate(data).map_err(BLSTError::from)?;
         Ok(Self(inner))
     }
 }
@@ -356,6 +368,10 @@ impl Signature {
 
     pub fn as_bytes(&self) -> [u8; 96] {
         self.0.to_bytes()
+    }
+
+    pub fn is_infinity(&self) -> bool {
+        self == &Self::default()
     }
 }
 
@@ -540,9 +556,10 @@ mod tests {
     }
 
     #[test]
+    #[should_panic(expected = "infinity public key")]
     fn infinity_as_public_key() {
         PublicKey::try_from(INFINITY_COMPRESSED_PUBLIC_KEY.as_ref())
-            .expect("can make an infinity-based public key");
+            .expect("can make infinity public key");
     }
 
     #[test]

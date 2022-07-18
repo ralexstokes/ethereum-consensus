@@ -1,6 +1,6 @@
 use crate::altair as spec;
 
-use crate::crypto::fast_aggregate_verify;
+use crate::crypto::eth_fast_aggregate_verify;
 use crate::domains::DomainType;
 use crate::primitives::{BlsPublicKey, ParticipationFlags, ValidatorIndex};
 use crate::signing::compute_signing_root;
@@ -292,7 +292,7 @@ pub fn process_sync_aggregate<
     )?;
     let mut root_at_slot = *get_block_root_at_slot(state, previous_slot)?;
     let signing_root = compute_signing_root(&mut root_at_slot, domain)?;
-    if !fast_aggregate_verify(
+    if !eth_fast_aggregate_verify(
         participant_public_keys.as_slice(),
         signing_root.as_ref(),
         &sync_aggregate.sync_committee_signature,

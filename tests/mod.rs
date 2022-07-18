@@ -1,4 +1,6 @@
 #![cfg(feature = "spec-tests")]
+// TODO remove after impl
+#![allow(unused_imports)]
 
 mod consensus_spec_tests;
 mod spec_test_runners;
