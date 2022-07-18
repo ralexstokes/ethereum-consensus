@@ -98,6 +98,18 @@ pub fn eth_aggregate_public_keys(pks: &[PublicKey]) -> Result<PublicKey, Error> 
         .map_err(|e| BLSTError::from(e).into())
 }
 
+pub fn eth_fast_aggregate_verify(
+    public_keys: &[&PublicKey],
+    message: &[u8],
+    signature: &Signature,
+) -> bool {
+    if public_keys.is_empty() && signature.is_infinity() {
+        true
+    } else {
+        fast_aggregate_verify(public_keys, message, signature)
+    }
+}
+
 #[derive(Clone, Default)]
 #[cfg_attr(feature = "serde", derive(serde::Deserialize))]
 #[cfg_attr(feature = "serde", serde(try_from = "String"))]
@@ -356,6 +368,10 @@ impl Signature {
 
     pub fn as_bytes(&self) -> [u8; 96] {
         self.0.to_bytes()
+    }
+
+    pub fn is_infinity(&self) -> bool {
+        self == &Self::default()
     }
 }
 
