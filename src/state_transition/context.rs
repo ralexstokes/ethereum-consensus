@@ -225,7 +225,11 @@ impl Context {
     }
 
     pub fn for_minimal() -> Self {
-        unimplemented!()
+        let config = &configs::minimal::config();
+        let phase0_preset = &phase0::minimal::PRESET;
+        let altair_preset = &altair::minimal::PRESET;
+        let bellatrix_preset = &bellatrix::minimal::PRESET;
+        Self::from(phase0_preset, altair_preset, bellatrix_preset, config)
     }
 
     pub fn fork_schedule(&self) -> ForkSchedule {
