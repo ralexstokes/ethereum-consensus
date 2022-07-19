@@ -2,7 +2,7 @@
 use crate::bellatrix as spec;
 pub use crate::bellatrix::block_processing::process_block;
 pub use crate::bellatrix::block_processing::process_execution_payload;
-use crate::crypto::{fast_aggregate_verify, hash};
+use crate::crypto::{eth_fast_aggregate_verify, hash};
 use crate::primitives::{
     BlsPublicKey, Bytes32, DomainType, Gwei, ParticipationFlags, ValidatorIndex, FAR_FUTURE_EPOCH,
 };
@@ -761,7 +761,7 @@ pub fn process_sync_aggregate<
     )?;
     let mut root_at_slot = *get_block_root_at_slot(state, previous_slot)?;
     let signing_root = compute_signing_root(&mut root_at_slot, domain)?;
-    if !fast_aggregate_verify(
+    if !eth_fast_aggregate_verify(
         participant_public_keys.as_slice(),
         signing_root.as_ref(),
         &sync_aggregate.sync_committee_signature,

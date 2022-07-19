@@ -661,7 +661,7 @@ impl Spec {
                     "use crate::ssz::ByteVector;",
                     "use crate::signing::compute_signing_root;",
                     "use std::iter::zip;",
-                    "use crate::crypto::{fast_aggregate_verify, hash};",
+                    "use crate::crypto::{eth_fast_aggregate_verify, hash};",
                 ],
             ),
             (
