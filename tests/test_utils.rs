@@ -3,6 +3,7 @@
 use serde::Deserialize;
 use std::fmt;
 use std::fs::File;
+use std::io::Read;
 
 pub trait TestCase: fmt::Debug {
     fn should_succeed(&self) -> bool;
@@ -31,4 +32,15 @@ pub fn load_yaml<T: for<'de> Deserialize<'de>>(path: &str) -> T {
             panic!("{err} from {content} at {path:?}")
         }
     }
+}
+
+pub fn load_snappy_ssz<T: for<'de> Deserialize<'de> + ssz_rs::Deserialize>(path: &str) -> T {
+    let mut data = vec![];
+    let mut file = File::open(&path).expect("File does not exist");
+    file.read_to_end(&mut data).unwrap();
+
+    let mut decoder = snap::raw::Decoder::new();
+    let buffer = decoder.decompress_vec(&mut data).unwrap();
+
+    <T as ssz_rs::Deserialize>::deserialize(&buffer).unwrap()
 }
