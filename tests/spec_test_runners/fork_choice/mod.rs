@@ -1,6 +1,6 @@
-pub struct ExAnteHandler;
+pub struct ExAnteTestCase;
 
-impl ExAnteHandler {
+impl ExAnteTestCase {
     pub fn from(test_case_path: &str) -> Self {
         Self
     }
@@ -10,9 +10,9 @@ impl ExAnteHandler {
     }
 }
 
-pub struct GetHeadHandler;
+pub struct GetHeadTestCase;
 
-impl GetHeadHandler {
+impl GetHeadTestCase {
     pub fn from(test_case_path: &str) -> Self {
         Self
     }
@@ -22,9 +22,9 @@ impl GetHeadHandler {
     }
 }
 
-pub struct OnBlockHandler;
+pub struct OnBlockTestCase;
 
-impl OnBlockHandler {
+impl OnBlockTestCase {
     pub fn from(test_case_path: &str) -> Self {
         Self
     }
@@ -34,9 +34,9 @@ impl OnBlockHandler {
     }
 }
 
-pub struct OnMergeBlockHandler;
+pub struct OnMergeBlockTestCase;
 
-impl OnMergeBlockHandler {
+impl OnMergeBlockTestCase {
     pub fn from(test_case_path: &str) -> Self {
         Self
     }

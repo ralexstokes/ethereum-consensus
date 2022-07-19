@@ -5,6 +5,12 @@ use std::fmt;
 use std::fs::File;
 use std::io::Read;
 
+#[derive(Debug)]
+pub enum Config {
+    Minimal,
+    Mainnet,
+}
+
 pub trait TestCase: fmt::Debug {
     fn should_succeed(&self) -> bool;
 

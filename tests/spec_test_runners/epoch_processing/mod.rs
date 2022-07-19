@@ -1,6 +1,6 @@
-pub struct EffectiveBalanceUpdatesHandler;
+pub struct EffectiveBalanceUpdatesTestCase;
 
-impl EffectiveBalanceUpdatesHandler {
+impl EffectiveBalanceUpdatesTestCase {
     pub fn from(test_case_path: &str) -> Self {
         Self
     }
@@ -10,9 +10,9 @@ impl EffectiveBalanceUpdatesHandler {
     }
 }
 
-pub struct Eth1DataResetHandler;
+pub struct Eth1DataResetTestCase;
 
-impl Eth1DataResetHandler {
+impl Eth1DataResetTestCase {
     pub fn from(test_case_path: &str) -> Self {
         Self
     }
@@ -22,9 +22,9 @@ impl Eth1DataResetHandler {
     }
 }
 
-pub struct HistoricalRootsUpdateHandler;
+pub struct HistoricalRootsUpdateTestCase;
 
-impl HistoricalRootsUpdateHandler {
+impl HistoricalRootsUpdateTestCase {
     pub fn from(test_case_path: &str) -> Self {
         Self
     }
@@ -34,9 +34,9 @@ impl HistoricalRootsUpdateHandler {
     }
 }
 
-pub struct InactivityUpdatesHandler;
+pub struct InactivityUpdatesTestCase;
 
-impl InactivityUpdatesHandler {
+impl InactivityUpdatesTestCase {
     pub fn from(test_case_path: &str) -> Self {
         Self
     }
@@ -46,9 +46,9 @@ impl InactivityUpdatesHandler {
     }
 }
 
-pub struct JustificationAndFinalizationHandler;
+pub struct JustificationAndFinalizationTestCase;
 
-impl JustificationAndFinalizationHandler {
+impl JustificationAndFinalizationTestCase {
     pub fn from(test_case_path: &str) -> Self {
         Self
     }
@@ -58,9 +58,9 @@ impl JustificationAndFinalizationHandler {
     }
 }
 
-pub struct ParticipationRecordUpdatesHandler;
+pub struct ParticipationRecordUpdatesTestCase;
 
-impl ParticipationRecordUpdatesHandler {
+impl ParticipationRecordUpdatesTestCase {
     pub fn from(test_case_path: &str) -> Self {
         Self
     }
@@ -70,9 +70,9 @@ impl ParticipationRecordUpdatesHandler {
     }
 }
 
-pub struct ParticipationFlagUpdatesHandler;
+pub struct ParticipationFlagUpdatesTestCase;
 
-impl ParticipationFlagUpdatesHandler {
+impl ParticipationFlagUpdatesTestCase {
     pub fn from(test_case_path: &str) -> Self {
         Self
     }
@@ -82,9 +82,9 @@ impl ParticipationFlagUpdatesHandler {
     }
 }
 
-pub struct RandaoMixesResetHandler;
+pub struct RandaoMixesResetTestCase;
 
-impl RandaoMixesResetHandler {
+impl RandaoMixesResetTestCase {
     pub fn from(test_case_path: &str) -> Self {
         Self
     }
@@ -94,9 +94,9 @@ impl RandaoMixesResetHandler {
     }
 }
 
-pub struct RegistryUpdatesHandler;
+pub struct RegistryUpdatesTestCase;
 
-impl RegistryUpdatesHandler {
+impl RegistryUpdatesTestCase {
     pub fn from(test_case_path: &str) -> Self {
         Self
     }
@@ -106,9 +106,9 @@ impl RegistryUpdatesHandler {
     }
 }
 
-pub struct RewardsAndPenaltiesHandler;
+pub struct RewardsAndPenaltiesTestCase;
 
-impl RewardsAndPenaltiesHandler {
+impl RewardsAndPenaltiesTestCase {
     pub fn from(test_case_path: &str) -> Self {
         Self
     }
@@ -118,9 +118,9 @@ impl RewardsAndPenaltiesHandler {
     }
 }
 
-pub struct SlashingsHandler;
+pub struct SlashingsTestCase;
 
-impl SlashingsHandler {
+impl SlashingsTestCase {
     pub fn from(test_case_path: &str) -> Self {
         Self
     }
@@ -130,9 +130,9 @@ impl SlashingsHandler {
     }
 }
 
-pub struct SlashingsResetHandler;
+pub struct SlashingsResetTestCase;
 
-impl SlashingsResetHandler {
+impl SlashingsResetTestCase {
     pub fn from(test_case_path: &str) -> Self {
         Self
     }
@@ -142,9 +142,9 @@ impl SlashingsResetHandler {
     }
 }
 
-pub struct SyncCommitteeUpdatesHandler;
+pub struct SyncCommitteeUpdatesTestCase;
 
-impl SyncCommitteeUpdatesHandler {
+impl SyncCommitteeUpdatesTestCase {
     pub fn from(test_case_path: &str) -> Self {
         Self
     }

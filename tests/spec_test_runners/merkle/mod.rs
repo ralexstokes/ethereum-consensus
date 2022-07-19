@@ -1,6 +1,6 @@
-pub struct SingleProofHandler;
+pub struct SingleProofTestCase;
 
-impl SingleProofHandler {
+impl SingleProofTestCase {
     pub fn from(test_case_path: &str) -> Self {
         Self
     }

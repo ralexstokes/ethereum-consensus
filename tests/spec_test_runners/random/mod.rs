@@ -1,6 +1,6 @@
-pub struct RandomHandler;
+pub struct RandomTestCase;
 
-impl RandomHandler {
+impl RandomTestCase {
     pub fn from(test_case_path: &str) -> Self {
         Self
     }

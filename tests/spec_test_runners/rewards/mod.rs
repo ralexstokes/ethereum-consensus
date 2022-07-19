@@ -1,6 +1,6 @@
-pub struct BasicHandler;
+pub struct BasicTestCase;
 
-impl BasicHandler {
+impl BasicTestCase {
     pub fn from(test_case_path: &str) -> Self {
         Self
     }
@@ -10,9 +10,9 @@ impl BasicHandler {
     }
 }
 
-pub struct LeakHandler;
+pub struct LeakTestCase;
 
-impl LeakHandler {
+impl LeakTestCase {
     pub fn from(test_case_path: &str) -> Self {
         Self
     }
@@ -22,9 +22,9 @@ impl LeakHandler {
     }
 }
 
-pub struct RandomHandler;
+pub struct RandomTestCase;
 
-impl RandomHandler {
+impl RandomTestCase {
     pub fn from(test_case_path: &str) -> Self {
         Self
     }

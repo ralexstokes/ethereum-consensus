@@ -1,6 +1,6 @@
-pub struct ForkHandler;
+pub struct ForkTestCase;
 
-impl ForkHandler {
+impl ForkTestCase {
     pub fn from(test_case_path: &str) -> Self {
         Self
     }

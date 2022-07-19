@@ -69,6 +69,11 @@ fn generate_module_decl_src<'a>(modules: impl Iterator<Item = &'a String>) -> St
     let mut src = String::new();
     for module in modules {
         let module = prefix_if_starts_with_reserved(module);
+        let module = if module == "phase_0" {
+            "phase0".to_string()
+        } else {
+            module
+        };
         writeln!(src, "mod {};", module).unwrap();
     }
     src
@@ -96,29 +101,59 @@ fn leaf_dirs(path: &PathBuf) -> impl Iterator<Item = DirEntry> {
         .map(|e| e.unwrap())
 }
 
-fn generate_suite_src(tests: &HashMap<String, String>, runner: &str, handler: &str) -> String {
-    let handler_type = handler.to_case(Case::UpperCamel) + "Handler";
+fn generate_suite_src(
+    tests: &HashMap<String, String>,
+    fork: &str,
+    config: &str,
+    runner: &str,
+    handler: &str,
+    auxilliary_data: &HashMap<&str, HashMap<&str, Auxillary>>,
+) -> String {
+    let mut test_case_type = handler.to_case(Case::UpperCamel) + "TestCase";
     let mut src = format!(
         r#"// WARNING!
 // This file was generated with `gen-tests`. Do NOT edit manually.
 
-use crate::spec_test_runners::{}::{} as TestRunner;
-use crate::test_utils::TestCase;
-
+use crate::spec_test_runners::{}::{};
 "#,
-        runner, handler_type
+        runner, test_case_type
     );
 
-    for (test_case, source_path) in tests {
+    let needs_trait_import = !matches!(runner, "sanity");
+
+    if needs_trait_import {
+        src += "use crate::test_utils::TestCase;\n";
+    }
+
+    let mut needs_spec_import = false;
+    let mut execution_handler = String::new();
+    let mut mut_decl = String::new();
+    if let Some(handler_data) = auxilliary_data.get(runner) {
+        if let Some(data) = handler_data.get(handler) {
+            test_case_type = format!("{}::<{}>", test_case_type, data.test_case_type_generics);
+            execution_handler += &data.execution_handler;
+            mut_decl += "mut";
+            needs_spec_import = true;
+        }
+    }
+
+    if needs_spec_import {
+        writeln!(src, "use ethereum_consensus::{}::{} as spec;", fork, config).unwrap();
+    }
+
+    let mut test_cases = tests.keys().cloned().collect::<Vec<_>>();
+    test_cases.sort();
+    for test_case in &test_cases {
+        let source_path = &tests[test_case];
         let test_src = format!(
             r#"
 #[test]
 fn test_{}() {{
-    let test_case = TestRunner::from("{}");
-    test_case.execute();
+    let {} test_case = {}::from("{}");
+    test_case.execute({});
 }}
 "#,
-            test_case, source_path
+            test_case, mut_decl, test_case_type, source_path, execution_handler,
         );
         src += &test_src;
     }
@@ -126,7 +161,26 @@ fn test_{}() {{
     src
 }
 
+struct Auxillary {
+    test_case_type_generics: String,
+    execution_handler: String,
+}
+
 fn main() {
+    let auxilliary_data = HashMap::from([(
+        "sanity",
+        HashMap::from([(
+            "slots",
+            Auxillary {
+                test_case_type_generics: "spec::BeaconState".to_string(),
+                execution_handler: "|mut state, offset, context| {
+                    let target_slot = state.slot + offset;
+                    spec::process_slots(&mut state, target_slot, context).unwrap();
+                }"
+                .to_string(),
+            },
+        )]),
+    )]);
     let test_root = "consensus-spec-tests/tests";
     let (all_test_cases, collected_test_case_count) = collect_test_cases(test_root).unwrap();
 
@@ -142,15 +196,15 @@ fn main() {
     fs::write(mod_path, module_decl_src).unwrap();
     for (config, tests) in all_test_cases {
         let config = config.to_case(Case::Snake);
-        let target = generated_test_root.join(config);
+        let target = generated_test_root.join(&config);
         fs::create_dir_all(&target).unwrap();
         let module_decl_src = generate_module_decl_src(tests.keys());
         let mut mod_path = target.clone();
         mod_path.push("mod.rs");
         fs::write(mod_path, module_decl_src).unwrap();
         for (fork, tests) in tests {
-            let fork = fork.to_case(Case::Snake);
-            let target = target.join(fork);
+            let fork = fork.to_case(Case::Camel);
+            let target = target.join(&fork);
             fs::create_dir(&target).unwrap();
             let module_decl_src = generate_module_decl_src(tests.keys());
             let mut mod_path = target.clone();
@@ -180,7 +234,14 @@ fn main() {
                         mod_path.push("mod.rs");
                         // NOTE: batch test cases to reduce overall file count
                         // which strains git, IDEs, etc.
-                        let suite_src = generate_suite_src(&tests, &runner, &handler);
+                        let suite_src = generate_suite_src(
+                            &tests,
+                            &fork,
+                            &config,
+                            &runner,
+                            &handler,
+                            &auxilliary_data,
+                        );
                         fs::write(mod_path, suite_src).unwrap();
                     }
                 }

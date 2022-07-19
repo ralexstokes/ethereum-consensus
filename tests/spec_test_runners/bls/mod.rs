@@ -9,36 +9,30 @@ use serde::Deserialize;
 use serde_with::{serde_as, DefaultOnError};
 
 #[derive(Debug, Deserialize)]
-struct AggregateTestCase {
+pub struct AggregateTestCase {
     input: Vec<Signature>,
     output: Option<Signature>,
 }
 
-#[derive(Debug)]
-pub struct AggregateHandler {
-    test_case: AggregateTestCase,
-}
-
-impl AggregateHandler {
+impl AggregateTestCase {
     pub fn from(test_case_path: &str) -> Self {
         let path = test_case_path.to_string() + "/data.yaml";
-        let test_case: AggregateTestCase = load_yaml(&path);
-        Self { test_case }
+        load_yaml(&path)
     }
 }
 
-impl TestCase for AggregateHandler {
+impl TestCase for AggregateTestCase {
     fn should_succeed(&self) -> bool {
-        self.test_case.output.is_some()
+        self.output.is_some()
     }
 
     fn verify_success(&self) -> bool {
-        let aggregation = aggregate(&self.test_case.input).unwrap();
-        self.test_case.output.as_ref().unwrap() == &aggregation
+        let aggregation = aggregate(&self.input).unwrap();
+        self.output.as_ref().unwrap() == &aggregation
     }
 
     fn verify_failure(&self) -> bool {
-        let aggregation = aggregate(&self.test_case.input);
+        let aggregation = aggregate(&self.input);
         aggregation.is_err()
     }
 }
@@ -54,26 +48,19 @@ struct AggregateVerifyInput {
 }
 
 #[derive(Debug, Deserialize)]
-struct AggregateVerifyTestCase {
+pub struct AggregateVerifyTestCase {
     input: AggregateVerifyInput,
     output: bool,
 }
 
-#[derive(Debug)]
-pub struct AggregateVerifyHandler {
-    test_case: AggregateVerifyTestCase,
-}
-
-impl AggregateVerifyHandler {
+impl AggregateVerifyTestCase {
     pub fn from(test_case_path: &str) -> Self {
         let path = test_case_path.to_string() + "/data.yaml";
-        let test_case: AggregateVerifyTestCase = load_yaml(&path);
-        Self { test_case }
+        load_yaml(&path)
     }
 
     pub fn run(&self) -> bool {
         let public_keys = self
-            .test_case
             .input
             .pubkeys
             .iter()
@@ -81,20 +68,19 @@ impl AggregateVerifyHandler {
             .filter_map(|k| k)
             .collect::<Vec<_>>();
         let messages = self
-            .test_case
             .input
             .messages
             .iter()
             .map(|m| m.as_ref())
             .collect::<Vec<_>>();
-        let signature = self.test_case.input.signature.as_ref().unwrap();
+        let signature = self.input.signature.as_ref().unwrap();
         aggregate_verify(&public_keys, &messages, signature)
     }
 }
 
-impl TestCase for AggregateVerifyHandler {
+impl TestCase for AggregateVerifyTestCase {
     fn should_succeed(&self) -> bool {
-        self.test_case.output
+        self.output
     }
 
     fn verify_success(&self) -> bool {
@@ -102,7 +88,7 @@ impl TestCase for AggregateVerifyHandler {
     }
 
     fn verify_failure(&self) -> bool {
-        if self.test_case.input.signature.is_none() {
+        if self.input.signature.is_none() {
             return true;
         }
         !self.run()
@@ -119,26 +105,19 @@ struct FastAggregateVerifyInput {
 }
 
 #[derive(Debug, Deserialize)]
-struct FastAggregateVerifyTestCase {
+pub struct FastAggregateVerifyTestCase {
     input: FastAggregateVerifyInput,
     output: bool,
 }
 
-#[derive(Debug)]
-pub struct FastAggregateVerifyHandler {
-    test_case: FastAggregateVerifyTestCase,
-}
-
-impl FastAggregateVerifyHandler {
+impl FastAggregateVerifyTestCase {
     pub fn from(test_case_path: &str) -> Self {
         let path = test_case_path.to_string() + "/data.yaml";
-        let test_case: FastAggregateVerifyTestCase = load_yaml(&path);
-        Self { test_case }
+        load_yaml(&path)
     }
 
     pub fn run(&self) -> bool {
         let public_keys = &self
-            .test_case
             .input
             .pubkeys
             .iter()
@@ -148,15 +127,15 @@ impl FastAggregateVerifyHandler {
         let public_keys = public_keys.iter().collect::<Vec<_>>();
         fast_aggregate_verify(
             &public_keys,
-            self.test_case.input.message.as_ref(),
-            self.test_case.input.signature.as_ref().unwrap(),
+            self.input.message.as_ref(),
+            self.input.signature.as_ref().unwrap(),
         )
     }
 }
 
-impl TestCase for FastAggregateVerifyHandler {
+impl TestCase for FastAggregateVerifyTestCase {
     fn should_succeed(&self) -> bool {
-        self.test_case.output
+        self.output
     }
 
     fn verify_success(&self) -> bool {
@@ -164,11 +143,10 @@ impl TestCase for FastAggregateVerifyHandler {
     }
 
     fn verify_failure(&self) -> bool {
-        if self.test_case.input.signature.is_none() {
+        if self.input.signature.is_none() {
             return true;
         }
         if self
-            .test_case
             .input
             .pubkeys
             .iter()
@@ -192,42 +170,35 @@ struct SignInput {
 }
 
 #[derive(Debug, Deserialize)]
-struct SignTestCase {
+pub struct SignTestCase {
     input: SignInput,
     output: Option<Signature>,
 }
 
-#[derive(Debug)]
-pub struct SignHandler {
-    test_case: SignTestCase,
-}
-
-impl SignHandler {
+impl SignTestCase {
     pub fn from(test_case_path: &str) -> Self {
         let path = test_case_path.to_string() + "/data.yaml";
-        let test_case: SignTestCase = load_yaml(&path);
-        Self { test_case }
+        load_yaml(&path)
     }
 }
 
-impl TestCase for SignHandler {
+impl TestCase for SignTestCase {
     fn should_succeed(&self) -> bool {
-        self.test_case.output.is_some()
+        self.output.is_some()
     }
 
     fn verify_success(&self) -> bool {
         let signature = self
-            .test_case
             .input
             .privkey
             .as_ref()
             .unwrap()
-            .sign(self.test_case.input.message.as_ref());
-        &signature == self.test_case.output.as_ref().unwrap()
+            .sign(self.input.message.as_ref());
+        &signature == self.output.as_ref().unwrap()
     }
 
     fn verify_failure(&self) -> bool {
-        self.test_case.input.privkey.is_none()
+        self.input.privkey.is_none()
     }
 }
 
@@ -242,34 +213,28 @@ struct VerifyInput {
 }
 
 #[derive(Debug, Deserialize)]
-struct VerifyTestCase {
+pub struct VerifyTestCase {
     input: VerifyInput,
     output: bool,
 }
 
-#[derive(Debug)]
-pub struct VerifyHandler {
-    test_case: VerifyTestCase,
-}
-
-impl VerifyHandler {
+impl VerifyTestCase {
     pub fn from(test_case_path: &str) -> Self {
         let path = test_case_path.to_string() + "/data.yaml";
-        let test_case: VerifyTestCase = load_yaml(&path);
-        Self { test_case }
+        load_yaml(&path)
     }
 
     fn run(&self) -> bool {
-        self.test_case.input.signature.as_ref().unwrap().verify(
-            self.test_case.input.pubkey.as_ref().unwrap(),
-            self.test_case.input.message.as_ref(),
+        self.input.signature.as_ref().unwrap().verify(
+            self.input.pubkey.as_ref().unwrap(),
+            self.input.message.as_ref(),
         )
     }
 }
 
-impl TestCase for VerifyHandler {
+impl TestCase for VerifyTestCase {
     fn should_succeed(&self) -> bool {
-        self.test_case.output
+        self.output
     }
 
     fn verify_success(&self) -> bool {
@@ -277,10 +242,10 @@ impl TestCase for VerifyHandler {
     }
 
     fn verify_failure(&self) -> bool {
-        if self.test_case.input.signature.is_none() {
+        if self.input.signature.is_none() {
             return true;
         }
-        if self.test_case.input.pubkey.is_none() {
+        if self.input.pubkey.is_none() {
             return true;
         }
         !self.run()
@@ -289,34 +254,28 @@ impl TestCase for VerifyHandler {
 
 #[serde_as]
 #[derive(Debug, Deserialize)]
-struct EthAggregatePubkeysTestCase {
+pub struct EthAggregatePubkeysTestCase {
     #[serde_as(deserialize_as = "DefaultOnError")]
     input: Vec<PublicKey>,
     #[serde_as(deserialize_as = "DefaultOnError")]
     output: Option<PublicKey>,
 }
 
-#[derive(Debug)]
-pub struct EthAggregatePubkeysHandler {
-    test_case: EthAggregatePubkeysTestCase,
-}
-
-impl EthAggregatePubkeysHandler {
+impl EthAggregatePubkeysTestCase {
     pub fn from(test_case_path: &str) -> Self {
         let path = test_case_path.to_string() + "/data.yaml";
-        let test_case: EthAggregatePubkeysTestCase = load_yaml(&path);
-        Self { test_case }
+        load_yaml(&path)
     }
 
     pub fn run(&self) -> bool {
-        let aggregate_public_key = eth_aggregate_public_keys(&self.test_case.input).unwrap();
-        &aggregate_public_key == self.test_case.output.as_ref().unwrap()
+        let aggregate_public_key = eth_aggregate_public_keys(&self.input).unwrap();
+        &aggregate_public_key == self.output.as_ref().unwrap()
     }
 }
 
-impl TestCase for EthAggregatePubkeysHandler {
+impl TestCase for EthAggregatePubkeysTestCase {
     fn should_succeed(&self) -> bool {
-        self.test_case.output.is_some()
+        self.output.is_some()
     }
 
     fn verify_success(&self) -> bool {
@@ -324,7 +283,7 @@ impl TestCase for EthAggregatePubkeysHandler {
     }
 
     fn verify_failure(&self) -> bool {
-        self.test_case.output.is_none()
+        self.output.is_none()
     }
 }
 
@@ -340,26 +299,19 @@ struct EthFastAggregateVerifyInput {
 
 #[serde_as]
 #[derive(Debug, Deserialize)]
-struct EthFastAggregateVerifyTestCase {
+pub struct EthFastAggregateVerifyTestCase {
     input: EthFastAggregateVerifyInput,
     output: bool,
 }
 
-#[derive(Debug)]
-pub struct EthFastAggregateVerifyHandler {
-    test_case: EthFastAggregateVerifyTestCase,
-}
-
-impl EthFastAggregateVerifyHandler {
+impl EthFastAggregateVerifyTestCase {
     pub fn from(test_case_path: &str) -> Self {
         let path = test_case_path.to_string() + "/data.yaml";
-        let test_case: EthFastAggregateVerifyTestCase = load_yaml(&path);
-        Self { test_case }
+        load_yaml(&path)
     }
 
     pub fn run(&self) -> bool {
         let public_keys = &self
-            .test_case
             .input
             .public_keys
             .iter()
@@ -367,15 +319,15 @@ impl EthFastAggregateVerifyHandler {
             .map(|repr| PublicKey::try_from(repr).unwrap())
             .collect::<Vec<_>>();
         let public_keys = public_keys.iter().collect::<Vec<_>>();
-        let message = self.test_case.input.message.as_ref();
-        let signature = self.test_case.input.signature.as_ref().unwrap();
+        let message = self.input.message.as_ref();
+        let signature = self.input.signature.as_ref().unwrap();
         eth_fast_aggregate_verify(&public_keys, message, signature)
     }
 }
 
-impl TestCase for EthFastAggregateVerifyHandler {
+impl TestCase for EthFastAggregateVerifyTestCase {
     fn should_succeed(&self) -> bool {
-        self.test_case.output
+        self.output
     }
 
     fn verify_success(&self) -> bool {
@@ -383,11 +335,10 @@ impl TestCase for EthFastAggregateVerifyHandler {
     }
 
     fn verify_failure(&self) -> bool {
-        if self.test_case.input.signature.is_none() {
+        if self.input.signature.is_none() {
             return true;
         }
         if self
-            .test_case
             .input
             .public_keys
             .iter()

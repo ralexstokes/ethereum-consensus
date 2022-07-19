@@ -1,6 +1,6 @@
-pub struct InitializationHandler;
+pub struct InitializationTestCase;
 
-impl InitializationHandler {
+impl InitializationTestCase {
     pub fn from(test_case_path: &str) -> Self {
         Self
     }
@@ -10,9 +10,9 @@ impl InitializationHandler {
     }
 }
 
-pub struct ValidityHandler;
+pub struct ValidityTestCase;
 
-impl ValidityHandler {
+impl ValidityTestCase {
     pub fn from(test_case_path: &str) -> Self {
         Self
     }
