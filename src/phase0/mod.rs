@@ -40,4 +40,6 @@ pub mod mainnet {
     }
 }
 
-pub mod minimal {}
+pub mod minimal {
+    pub use super::presets::minimal::*;
+}
