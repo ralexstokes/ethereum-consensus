@@ -25,7 +25,7 @@ pub struct AttestationData {
     pub target: Checkpoint,
 }
 
-#[derive(Default, Debug, SimpleSerialize, Clone)]
+#[derive(Default, Debug, SimpleSerialize, Clone, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct IndexedAttestation<const MAX_VALIDATORS_PER_COMMITTEE: usize> {
     #[serde(with = "crate::serde::collection_over_string")]
@@ -45,7 +45,7 @@ pub struct PendingAttestation<const MAX_VALIDATORS_PER_COMMITTEE: usize> {
     pub proposer_index: ValidatorIndex,
 }
 
-#[derive(Default, Debug, SimpleSerialize, Clone)]
+#[derive(Default, Debug, SimpleSerialize, Clone, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct Attestation<const MAX_VALIDATORS_PER_COMMITTEE: usize> {
     pub aggregation_bits: Bitlist<MAX_VALIDATORS_PER_COMMITTEE>,
@@ -72,7 +72,7 @@ pub struct DepositMessage {
     pub amount: Gwei,
 }
 
-#[derive(Default, Debug, Clone, SimpleSerialize)]
+#[derive(Default, Debug, Clone, SimpleSerialize, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct DepositData {
     #[serde(rename = "pubkey")]
@@ -83,14 +83,14 @@ pub struct DepositData {
     pub signature: BlsSignature,
 }
 
-#[derive(Default, Debug, SimpleSerialize, Clone)]
+#[derive(Default, Debug, SimpleSerialize, Clone, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct ProposerSlashing {
     pub signed_header_1: SignedBeaconBlockHeader,
     pub signed_header_2: SignedBeaconBlockHeader,
 }
 
-#[derive(Default, Debug, SimpleSerialize, Clone)]
+#[derive(Default, Debug, SimpleSerialize, Clone, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct AttesterSlashing<const MAX_VALIDATORS_PER_COMMITTEE: usize> {
     pub attestation_1: IndexedAttestation<MAX_VALIDATORS_PER_COMMITTEE>,
@@ -103,14 +103,14 @@ const fn get_deposit_proof_length() -> usize {
 
 const DEPOSIT_PROOF_LENGTH: usize = get_deposit_proof_length();
 
-#[derive(Default, Debug, SimpleSerialize, Clone)]
+#[derive(Default, Debug, SimpleSerialize, Clone, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct Deposit {
     pub proof: Vector<Bytes32, DEPOSIT_PROOF_LENGTH>,
     pub data: DepositData,
 }
 
-#[derive(Default, Debug, SimpleSerialize, Clone)]
+#[derive(Default, Debug, SimpleSerialize, Clone, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct VoluntaryExit {
     #[serde(with = "crate::serde::as_string")]
@@ -119,7 +119,7 @@ pub struct VoluntaryExit {
     pub validator_index: ValidatorIndex,
 }
 
-#[derive(Default, Debug, SimpleSerialize, Clone)]
+#[derive(Default, Debug, SimpleSerialize, Clone, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct SignedVoluntaryExit {
     pub message: VoluntaryExit,
