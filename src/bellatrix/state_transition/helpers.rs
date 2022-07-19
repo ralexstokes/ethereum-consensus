@@ -536,7 +536,7 @@ pub fn get_block_root_at_slot<
     >,
     slot: Slot,
 ) -> Result<&Root> {
-    if slot < state.slot || state.slot <= (slot + SLOTS_PER_HISTORICAL_ROOT as Slot) {
+    if slot >= state.slot || state.slot > (slot + SLOTS_PER_HISTORICAL_ROOT as Slot) {
         return Err(Error::SlotOutOfRange {
             requested: slot,
             lower_bound: state.slot - 1,

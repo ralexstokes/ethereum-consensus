@@ -4,13 +4,8 @@ pub use crate::altair::block_processing::process_attestation;
 pub use crate::altair::block_processing::process_block;
 pub use crate::altair::block_processing::process_deposit;
 pub use crate::altair::block_processing::process_sync_aggregate;
-use crate::crypto::hash;
-use crate::primitives::{Bytes32, DomainType, Gwei, ValidatorIndex, FAR_FUTURE_EPOCH};
-use crate::state_transition::{
-    invalid_header_error, invalid_operation_error, Context, InvalidAttesterSlashing,
-    InvalidBeaconBlockHeader, InvalidDeposit, InvalidOperation, InvalidProposerSlashing,
-    InvalidVoluntaryExit, Result,
-};
+use crate::signing::compute_signing_root;
+use crate::ssz::ByteVector;
 use spec::{
     compute_epoch_at_slot, get_beacon_proposer_index, get_current_epoch, get_domain,
     get_randao_mix, initiate_validator_exit, is_active_validator, is_slashable_attestation_data,
@@ -18,11 +13,16 @@ use spec::{
     BeaconBlock, BeaconBlockBody, BeaconBlockHeader, BeaconState, Deposit, ProposerSlashing,
     SignedVoluntaryExit, Validator,
 };
-
-use crate::signing::compute_signing_root;
-use crate::ssz::ByteVector;
 use ssz_rs::prelude::*;
 use std::collections::HashSet;
+
+use crate::crypto::hash;
+use crate::primitives::{Bytes32, DomainType, Gwei, ValidatorIndex, FAR_FUTURE_EPOCH};
+use crate::state_transition::{
+    invalid_header_error, invalid_operation_error, Context, InvalidAttesterSlashing,
+    InvalidBeaconBlockHeader, InvalidDeposit, InvalidOperation, InvalidProposerSlashing,
+    InvalidVoluntaryExit, Result,
+};
 pub fn get_validator_from_deposit(deposit: &Deposit, context: &Context) -> Validator {
     let amount = deposit.data.amount;
     let effective_balance = Gwei::min(
