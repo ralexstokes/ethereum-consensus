@@ -37,3 +37,7 @@ pub use crate::phase0::{
 pub mod mainnet {
     pub use super::presets::mainnet::*;
 }
+
+pub mod minimal {
+    pub use super::presets::minimal::*;
+}
