@@ -2,7 +2,7 @@ use crate::phase0::Attestation;
 use crate::primitives::{BlsPublicKey, BlsSignature, Bytes32, Epoch, Gwei, ValidatorIndex};
 use ssz_rs::prelude::*;
 
-#[derive(Default, Debug, SimpleSerialize, Clone)]
+#[derive(Default, Debug, SimpleSerialize, Clone, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct Validator {
     #[serde(rename = "pubkey")]

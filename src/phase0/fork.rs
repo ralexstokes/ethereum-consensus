@@ -1,7 +1,7 @@
 use crate::primitives::{Epoch, Root, Version};
 use ssz_rs::prelude::*;
 
-#[derive(Default, Debug, SimpleSerialize, Clone)]
+#[derive(Default, Debug, SimpleSerialize, Clone, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct Fork {
     #[serde(with = "crate::serde::as_hex")]

@@ -1,6 +1,6 @@
-pub struct AggregateAndProofHandler;
+pub struct AggregateAndProofTestCase;
 
-impl AggregateAndProofHandler {
+impl AggregateAndProofTestCase {
     pub fn from(test_case_path: &str) -> Self {
         Self
     }
@@ -10,9 +10,9 @@ impl AggregateAndProofHandler {
     }
 }
 
-pub struct AttestationHandler;
+pub struct AttestationTestCase;
 
-impl AttestationHandler {
+impl AttestationTestCase {
     pub fn from(test_case_path: &str) -> Self {
         Self
     }
@@ -22,9 +22,9 @@ impl AttestationHandler {
     }
 }
 
-pub struct AttestationDataHandler;
+pub struct AttestationDataTestCase;
 
-impl AttestationDataHandler {
+impl AttestationDataTestCase {
     pub fn from(test_case_path: &str) -> Self {
         Self
     }
@@ -34,9 +34,9 @@ impl AttestationDataHandler {
     }
 }
 
-pub struct AttesterSlashingHandler;
+pub struct AttesterSlashingTestCase;
 
-impl AttesterSlashingHandler {
+impl AttesterSlashingTestCase {
     pub fn from(test_case_path: &str) -> Self {
         Self
     }
@@ -46,9 +46,9 @@ impl AttesterSlashingHandler {
     }
 }
 
-pub struct BeaconBlockHandler;
+pub struct BeaconBlockTestCase;
 
-impl BeaconBlockHandler {
+impl BeaconBlockTestCase {
     pub fn from(test_case_path: &str) -> Self {
         Self
     }
@@ -58,9 +58,9 @@ impl BeaconBlockHandler {
     }
 }
 
-pub struct BeaconBlockBodyHandler;
+pub struct BeaconBlockBodyTestCase;
 
-impl BeaconBlockBodyHandler {
+impl BeaconBlockBodyTestCase {
     pub fn from(test_case_path: &str) -> Self {
         Self
     }
@@ -70,9 +70,9 @@ impl BeaconBlockBodyHandler {
     }
 }
 
-pub struct BeaconBlockHeaderHandler;
+pub struct BeaconBlockHeaderTestCase;
 
-impl BeaconBlockHeaderHandler {
+impl BeaconBlockHeaderTestCase {
     pub fn from(test_case_path: &str) -> Self {
         Self
     }
@@ -82,9 +82,9 @@ impl BeaconBlockHeaderHandler {
     }
 }
 
-pub struct BeaconStateHandler;
+pub struct BeaconStateTestCase;
 
-impl BeaconStateHandler {
+impl BeaconStateTestCase {
     pub fn from(test_case_path: &str) -> Self {
         Self
     }
@@ -93,21 +93,9 @@ impl BeaconStateHandler {
     }
 }
 
-pub struct CheckpointHandler;
+pub struct CheckpointTestCase;
 
-impl CheckpointHandler {
-    pub fn from(test_case_path: &str) -> Self {
-        Self
-    }
-
-    pub fn execute(&self) {
-        unimplemented!();
-    }
-}
-
-pub struct ContributionAndProofHandler;
-
-impl ContributionAndProofHandler {
+impl CheckpointTestCase {
     pub fn from(test_case_path: &str) -> Self {
         Self
     }
@@ -117,9 +105,9 @@ impl ContributionAndProofHandler {
     }
 }
 
-pub struct DepositHandler;
+pub struct ContributionAndProofTestCase;
 
-impl DepositHandler {
+impl ContributionAndProofTestCase {
     pub fn from(test_case_path: &str) -> Self {
         Self
     }
@@ -129,9 +117,9 @@ impl DepositHandler {
     }
 }
 
-pub struct DepositDataHandler;
+pub struct DepositTestCase;
 
-impl DepositDataHandler {
+impl DepositTestCase {
     pub fn from(test_case_path: &str) -> Self {
         Self
     }
@@ -141,9 +129,9 @@ impl DepositDataHandler {
     }
 }
 
-pub struct DepositMessageHandler;
+pub struct DepositDataTestCase;
 
-impl DepositMessageHandler {
+impl DepositDataTestCase {
     pub fn from(test_case_path: &str) -> Self {
         Self
     }
@@ -153,9 +141,9 @@ impl DepositMessageHandler {
     }
 }
 
-pub struct Eth1BlockHandler;
+pub struct DepositMessageTestCase;
 
-impl Eth1BlockHandler {
+impl DepositMessageTestCase {
     pub fn from(test_case_path: &str) -> Self {
         Self
     }
@@ -165,9 +153,9 @@ impl Eth1BlockHandler {
     }
 }
 
-pub struct Eth1DataHandler;
+pub struct Eth1BlockTestCase;
 
-impl Eth1DataHandler {
+impl Eth1BlockTestCase {
     pub fn from(test_case_path: &str) -> Self {
         Self
     }
@@ -177,9 +165,9 @@ impl Eth1DataHandler {
     }
 }
 
-pub struct ExecutionPayloadHandler;
+pub struct Eth1DataTestCase;
 
-impl ExecutionPayloadHandler {
+impl Eth1DataTestCase {
     pub fn from(test_case_path: &str) -> Self {
         Self
     }
@@ -189,9 +177,9 @@ impl ExecutionPayloadHandler {
     }
 }
 
-pub struct ExecutionPayloadHeaderHandler;
+pub struct ExecutionPayloadTestCase;
 
-impl ExecutionPayloadHeaderHandler {
+impl ExecutionPayloadTestCase {
     pub fn from(test_case_path: &str) -> Self {
         Self
     }
@@ -201,9 +189,9 @@ impl ExecutionPayloadHeaderHandler {
     }
 }
 
-pub struct ForkHandler;
+pub struct ExecutionPayloadHeaderTestCase;
 
-impl ForkHandler {
+impl ExecutionPayloadHeaderTestCase {
     pub fn from(test_case_path: &str) -> Self {
         Self
     }
@@ -213,9 +201,9 @@ impl ForkHandler {
     }
 }
 
-pub struct ForkDataHandler;
+pub struct ForkTestCase;
 
-impl ForkDataHandler {
+impl ForkTestCase {
     pub fn from(test_case_path: &str) -> Self {
         Self
     }
@@ -225,9 +213,9 @@ impl ForkDataHandler {
     }
 }
 
-pub struct HistoricalBatchHandler;
+pub struct ForkDataTestCase;
 
-impl HistoricalBatchHandler {
+impl ForkDataTestCase {
     pub fn from(test_case_path: &str) -> Self {
         Self
     }
@@ -237,9 +225,9 @@ impl HistoricalBatchHandler {
     }
 }
 
-pub struct IndexedAttestationHandler;
+pub struct HistoricalBatchTestCase;
 
-impl IndexedAttestationHandler {
+impl HistoricalBatchTestCase {
     pub fn from(test_case_path: &str) -> Self {
         Self
     }
@@ -249,9 +237,9 @@ impl IndexedAttestationHandler {
     }
 }
 
-pub struct LightClientUpdateHandler;
+pub struct IndexedAttestationTestCase;
 
-impl LightClientUpdateHandler {
+impl IndexedAttestationTestCase {
     pub fn from(test_case_path: &str) -> Self {
         Self
     }
@@ -261,9 +249,9 @@ impl LightClientUpdateHandler {
     }
 }
 
-pub struct PendingAttestationHandler;
+pub struct LightClientUpdateTestCase;
 
-impl PendingAttestationHandler {
+impl LightClientUpdateTestCase {
     pub fn from(test_case_path: &str) -> Self {
         Self
     }
@@ -273,9 +261,9 @@ impl PendingAttestationHandler {
     }
 }
 
-pub struct PowBlockHandler;
+pub struct PendingAttestationTestCase;
 
-impl PowBlockHandler {
+impl PendingAttestationTestCase {
     pub fn from(test_case_path: &str) -> Self {
         Self
     }
@@ -285,9 +273,9 @@ impl PowBlockHandler {
     }
 }
 
-pub struct ProposerSlashingHandler;
+pub struct PowBlockTestCase;
 
-impl ProposerSlashingHandler {
+impl PowBlockTestCase {
     pub fn from(test_case_path: &str) -> Self {
         Self
     }
@@ -297,9 +285,9 @@ impl ProposerSlashingHandler {
     }
 }
 
-pub struct SignedAggregateAndProofHandler;
+pub struct ProposerSlashingTestCase;
 
-impl SignedAggregateAndProofHandler {
+impl ProposerSlashingTestCase {
     pub fn from(test_case_path: &str) -> Self {
         Self
     }
@@ -309,9 +297,9 @@ impl SignedAggregateAndProofHandler {
     }
 }
 
-pub struct SignedBeaconBlockHandler;
+pub struct SignedAggregateAndProofTestCase;
 
-impl SignedBeaconBlockHandler {
+impl SignedAggregateAndProofTestCase {
     pub fn from(test_case_path: &str) -> Self {
         Self
     }
@@ -321,9 +309,9 @@ impl SignedBeaconBlockHandler {
     }
 }
 
-pub struct SignedBeaconBlockHeaderHandler;
+pub struct SignedBeaconBlockTestCase;
 
-impl SignedBeaconBlockHeaderHandler {
+impl SignedBeaconBlockTestCase {
     pub fn from(test_case_path: &str) -> Self {
         Self
     }
@@ -333,9 +321,9 @@ impl SignedBeaconBlockHeaderHandler {
     }
 }
 
-pub struct SignedContributionAndProofHandler;
+pub struct SignedBeaconBlockHeaderTestCase;
 
-impl SignedContributionAndProofHandler {
+impl SignedBeaconBlockHeaderTestCase {
     pub fn from(test_case_path: &str) -> Self {
         Self
     }
@@ -345,9 +333,9 @@ impl SignedContributionAndProofHandler {
     }
 }
 
-pub struct SignedVoluntaryExitHandler;
+pub struct SignedContributionAndProofTestCase;
 
-impl SignedVoluntaryExitHandler {
+impl SignedContributionAndProofTestCase {
     pub fn from(test_case_path: &str) -> Self {
         Self
     }
@@ -357,9 +345,9 @@ impl SignedVoluntaryExitHandler {
     }
 }
 
-pub struct SigningDataHandler;
+pub struct SignedVoluntaryExitTestCase;
 
-impl SigningDataHandler {
+impl SignedVoluntaryExitTestCase {
     pub fn from(test_case_path: &str) -> Self {
         Self
     }
@@ -369,9 +357,9 @@ impl SigningDataHandler {
     }
 }
 
-pub struct SyncAggregateHandler;
+pub struct SigningDataTestCase;
 
-impl SyncAggregateHandler {
+impl SigningDataTestCase {
     pub fn from(test_case_path: &str) -> Self {
         Self
     }
@@ -381,9 +369,9 @@ impl SyncAggregateHandler {
     }
 }
 
-pub struct SyncAggregatorSelectionDataHandler;
+pub struct SyncAggregateTestCase;
 
-impl SyncAggregatorSelectionDataHandler {
+impl SyncAggregateTestCase {
     pub fn from(test_case_path: &str) -> Self {
         Self
     }
@@ -393,9 +381,9 @@ impl SyncAggregatorSelectionDataHandler {
     }
 }
 
-pub struct SyncCommitteeHandler;
+pub struct SyncAggregatorSelectionDataTestCase;
 
-impl SyncCommitteeHandler {
+impl SyncAggregatorSelectionDataTestCase {
     pub fn from(test_case_path: &str) -> Self {
         Self
     }
@@ -405,9 +393,9 @@ impl SyncCommitteeHandler {
     }
 }
 
-pub struct SyncCommitteeContributionHandler;
+pub struct SyncCommitteeTestCase;
 
-impl SyncCommitteeContributionHandler {
+impl SyncCommitteeTestCase {
     pub fn from(test_case_path: &str) -> Self {
         Self
     }
@@ -417,9 +405,9 @@ impl SyncCommitteeContributionHandler {
     }
 }
 
-pub struct SyncCommitteeMessageHandler;
+pub struct SyncCommitteeContributionTestCase;
 
-impl SyncCommitteeMessageHandler {
+impl SyncCommitteeContributionTestCase {
     pub fn from(test_case_path: &str) -> Self {
         Self
     }
@@ -429,9 +417,9 @@ impl SyncCommitteeMessageHandler {
     }
 }
 
-pub struct ValidatorHandler;
+pub struct SyncCommitteeMessageTestCase;
 
-impl ValidatorHandler {
+impl SyncCommitteeMessageTestCase {
     pub fn from(test_case_path: &str) -> Self {
         Self
     }
@@ -441,9 +429,21 @@ impl ValidatorHandler {
     }
 }
 
-pub struct VoluntaryExitHandler;
+pub struct ValidatorTestCase;
 
-impl VoluntaryExitHandler {
+impl ValidatorTestCase {
+    pub fn from(test_case_path: &str) -> Self {
+        Self
+    }
+
+    pub fn execute(&self) {
+        unimplemented!();
+    }
+}
+
+pub struct VoluntaryExitTestCase;
+
+impl VoluntaryExitTestCase {
     pub fn from(test_case_path: &str) -> Self {
         Self
     }

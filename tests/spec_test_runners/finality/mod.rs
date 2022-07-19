@@ -1,6 +1,6 @@
-pub struct FinalityHandler;
+pub struct FinalityTestCase;
 
-impl FinalityHandler {
+impl FinalityTestCase {
     pub fn from(test_case_path: &str) -> Self {
         Self
     }

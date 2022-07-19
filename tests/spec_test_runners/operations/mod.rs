@@ -1,6 +1,6 @@
-pub struct AttestationHandler;
+pub struct AttestationTestCase;
 
-impl AttestationHandler {
+impl AttestationTestCase {
     pub fn from(test_case_path: &str) -> Self {
         Self
     }
@@ -10,9 +10,9 @@ impl AttestationHandler {
     }
 }
 
-pub struct AttesterSlashingHandler;
+pub struct AttesterSlashingTestCase;
 
-impl AttesterSlashingHandler {
+impl AttesterSlashingTestCase {
     pub fn from(test_case_path: &str) -> Self {
         Self
     }
@@ -22,9 +22,9 @@ impl AttesterSlashingHandler {
     }
 }
 
-pub struct BlockHeaderHandler;
+pub struct BlockHeaderTestCase;
 
-impl BlockHeaderHandler {
+impl BlockHeaderTestCase {
     pub fn from(test_case_path: &str) -> Self {
         Self
     }
@@ -34,9 +34,9 @@ impl BlockHeaderHandler {
     }
 }
 
-pub struct DepositHandler;
+pub struct DepositTestCase;
 
-impl DepositHandler {
+impl DepositTestCase {
     pub fn from(test_case_path: &str) -> Self {
         Self
     }
@@ -46,9 +46,9 @@ impl DepositHandler {
     }
 }
 
-pub struct ProposerSlashingHandler;
+pub struct ProposerSlashingTestCase;
 
-impl ProposerSlashingHandler {
+impl ProposerSlashingTestCase {
     pub fn from(test_case_path: &str) -> Self {
         Self
     }
@@ -58,9 +58,9 @@ impl ProposerSlashingHandler {
     }
 }
 
-pub struct VoluntaryExitHandler;
+pub struct VoluntaryExitTestCase;
 
-impl VoluntaryExitHandler {
+impl VoluntaryExitTestCase {
     pub fn from(test_case_path: &str) -> Self {
         Self
     }
@@ -70,9 +70,9 @@ impl VoluntaryExitHandler {
     }
 }
 
-pub struct SyncAggregateHandler;
+pub struct SyncAggregateTestCase;
 
-impl SyncAggregateHandler {
+impl SyncAggregateTestCase {
     pub fn from(test_case_path: &str) -> Self {
         Self
     }
@@ -82,9 +82,9 @@ impl SyncAggregateHandler {
     }
 }
 
-pub struct ExecutionPayloadHandler;
+pub struct ExecutionPayloadTestCase;
 
-impl ExecutionPayloadHandler {
+impl ExecutionPayloadTestCase {
     pub fn from(test_case_path: &str) -> Self {
         Self
     }

@@ -1,6 +1,6 @@
-pub struct CoreHandler;
+pub struct CoreTestCase;
 
-impl CoreHandler {
+impl CoreTestCase {
     pub fn from(test_case_path: &str) -> Self {
         Self
     }
