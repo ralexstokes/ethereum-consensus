@@ -40,7 +40,7 @@ pub fn load_yaml<T: for<'de> Deserialize<'de>>(path: &str) -> T {
     }
 }
 
-pub fn load_snappy_ssz<T: for<'de> Deserialize<'de> + ssz_rs::Deserialize>(path: &str) -> T {
+pub fn load_snappy_ssz<T: ssz_rs::Deserialize>(path: &str) -> T {
     let mut data = vec![];
     let mut file = File::open(&path).expect("File does not exist");
     file.read_to_end(&mut data).unwrap();
