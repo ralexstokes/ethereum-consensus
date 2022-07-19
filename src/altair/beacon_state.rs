@@ -6,7 +6,7 @@ use crate::phase0;
 use crate::primitives::{Bytes32, Gwei, ParticipationFlags, Root, Slot};
 use ssz_rs::prelude::*;
 
-#[derive(Default, Debug, SimpleSerialize, Clone)]
+#[derive(Default, Debug, SimpleSerialize, Clone, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct BeaconState<
     const SLOTS_PER_HISTORICAL_ROOT: usize,

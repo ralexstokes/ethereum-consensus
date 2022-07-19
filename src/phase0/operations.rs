@@ -34,7 +34,7 @@ pub struct IndexedAttestation<const MAX_VALIDATORS_PER_COMMITTEE: usize> {
     pub signature: BlsSignature,
 }
 
-#[derive(Default, Debug, SimpleSerialize, Clone)]
+#[derive(Default, Debug, SimpleSerialize, Clone, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct PendingAttestation<const MAX_VALIDATORS_PER_COMMITTEE: usize> {
     pub aggregation_bits: Bitlist<MAX_VALIDATORS_PER_COMMITTEE>,
