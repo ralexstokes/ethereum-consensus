@@ -252,7 +252,7 @@ pub struct PeerDescription {
     pub direction: ConnectionOrientation,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct PeerSummary {
     #[serde(with = "crate::serde::as_string")]
     pub disconnected: usize,
