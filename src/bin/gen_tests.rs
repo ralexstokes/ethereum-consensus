@@ -210,7 +210,7 @@ fn main() {
                     let target_slot = state.slot + offset;
                     spec::process_slots(state, target_slot, context).unwrap();
                 })"
-                    .to_string())]) ,
+                    .to_string())]),
                 },
             ),
             (
@@ -218,7 +218,7 @@ fn main() {
                 Auxillary {
                     test_case_type_generics: "spec::BeaconState, spec::SignedBeaconBlock"
                         .to_string(),
-                    preamble: HashMap::from_iter([(Spec::Bellatrix, "let execution_engine = spec::NoOpExecutionEngine;".to_string())]) ,
+                    preamble: HashMap::from_iter([(Spec::Bellatrix, "let execution_engine = spec::NoOpExecutionEngine;".to_string())]),
                     execution_handler: HashMap::from_iter([(Spec::Phase0, "execute(|state, blocks, validation, context| {
                         for block in blocks.iter_mut() {
                             spec::state_transition(state, block, validation, context)?;
@@ -234,11 +234,163 @@ fn main() {
                             spec::state_transition(state, block, execution_engine.clone(), validation, context)?;
                         }
                         Ok(())
-                    })".to_string())]) ,
+                    })".to_string())]),
                 },
             ),
-        ]),
-    )]);
+        ])),
+        ("epoch_processing",
+        HashMap::from([
+            (
+                "effective_balance_updates",
+                Auxillary {
+                    test_case_type_generics: "spec::BeaconState".to_string(),
+                    preamble: Default::default(),
+                    execution_handler: HashMap::from_iter([(Spec::All, "execute(|state, context| {
+                        spec::process_effective_balance_updates(state, context);
+                        Ok(())
+                })"
+                    .to_string())]),
+                },
+            ),
+            (
+                "eth_1_data_reset",
+                Auxillary {
+                    test_case_type_generics: "spec::BeaconState".to_string(),
+                    preamble: Default::default(),
+                    execution_handler: HashMap::from_iter([(Spec::All, "execute(|state, context| {
+                        spec::process_eth1_data_reset(state, context);
+                        Ok(())
+                })"
+                    .to_string())]),
+                },
+            ),
+            (
+                "historical_roots_update",
+                Auxillary {
+                    test_case_type_generics: "spec::BeaconState".to_string(),
+                    preamble: Default::default(),
+                    execution_handler: HashMap::from_iter([(Spec::All, "execute(|state, context| {
+                        spec::process_historical_roots_update(state, context)
+                })"
+                    .to_string())]),
+                },
+            ),
+            (
+                "inactivity_updates",
+                Auxillary {
+                    test_case_type_generics: "spec::BeaconState".to_string(),
+                    preamble: Default::default(),
+                    execution_handler: HashMap::from_iter([(Spec::All, "execute(|state, context| {
+                        spec::process_inactivity_updates(state, context)
+                })"
+                    .to_string())]),
+                },
+            ),
+            (
+                "justification_and_finalization",
+                Auxillary {
+                    test_case_type_generics: "spec::BeaconState".to_string(),
+                    preamble: Default::default(),
+                    execution_handler: HashMap::from_iter([(Spec::All, "execute(|state, context| {
+                        spec::process_justification_and_finalization(state, context)
+                })"
+                    .to_string())]),
+                },
+            ),
+            (
+                "participation_record_updates",
+                Auxillary {
+                    test_case_type_generics: "spec::BeaconState".to_string(),
+                    preamble: Default::default(),
+                    execution_handler: HashMap::from_iter([(Spec::All, "execute(|state, context| {
+                        spec::process_participation_record_updates(state);
+                        Ok(())
+                })"
+                    .to_string())]),
+                },
+            ),
+            (
+                "participation_flag_updates",
+                Auxillary {
+                    test_case_type_generics: "spec::BeaconState".to_string(),
+                    preamble: Default::default(),
+                    execution_handler: HashMap::from_iter([(Spec::All, "execute(|state, context| {
+                        spec::process_participation_flag_updates(state)
+                })"
+                    .to_string())]),
+                },
+            ),
+            (
+                "randao_mixes_reset",
+                Auxillary {
+                    test_case_type_generics: "spec::BeaconState".to_string(),
+                    preamble: Default::default(),
+                    execution_handler: HashMap::from_iter([(Spec::All, "execute(|state, context| {
+                        spec::process_randao_mixes_reset(state, context);
+                        Ok(())
+                })"
+                    .to_string())]),
+                },
+            ),
+            (
+                "registry_updates",
+                Auxillary {
+                    test_case_type_generics: "spec::BeaconState".to_string(),
+                    preamble: Default::default(),
+                    execution_handler: HashMap::from_iter([(Spec::All, "execute(|state, context| {
+                        spec::process_registry_updates(state, context);
+                        Ok(())
+                })"
+                    .to_string())]),
+                },
+            ),
+            (
+                "rewards_and_penalties",
+                Auxillary {
+                    test_case_type_generics: "spec::BeaconState".to_string(),
+                    preamble: Default::default(),
+                    execution_handler: HashMap::from_iter([(Spec::All, "execute(|state, context| {
+                        spec::process_rewards_and_penalties(state, context)
+                })"
+                    .to_string())]),
+                },
+            ),
+            (
+                "slashings",
+                Auxillary {
+                    test_case_type_generics: "spec::BeaconState".to_string(),
+                    preamble: Default::default(),
+                    execution_handler: HashMap::from_iter([(Spec::All, "execute(|state, context| {
+                        spec::process_slashings(state, context)
+                })"
+                    .to_string())]),
+                },
+            ),
+            (
+                "slashings_reset",
+                Auxillary {
+                    test_case_type_generics: "spec::BeaconState".to_string(),
+                    preamble: Default::default(),
+                    execution_handler: HashMap::from_iter([(Spec::All, "execute(|state, context| {
+                        spec::process_slashings_reset(state, context);
+                        Ok(())
+                })"
+                    .to_string())]),
+                },
+            ),
+            (
+                "sync_committee_updates",
+                Auxillary {
+                    test_case_type_generics: "spec::BeaconState".to_string(),
+                    preamble: Default::default(),
+                    execution_handler: HashMap::from_iter([(Spec::All, "execute(|state, context| {
+                        spec::process_sync_committee_updates(state, context)
+                })"
+                    .to_string())]),
+                },
+            ),
+        ])),
+    ]);
     let test_root = "consensus-spec-tests/tests";
     let (all_test_cases, collected_test_case_count) = collect_test_cases(test_root).unwrap();
 
