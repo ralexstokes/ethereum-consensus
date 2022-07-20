@@ -24,6 +24,7 @@ use ethereum_consensus::primitives::{
     Bytes32, ChainId, CommitteeIndex, Coordinate, Epoch, ExecutionAddress, RandaoReveal, Root,
     Slot, ValidatorIndex,
 };
+use http::StatusCode;
 use itertools::Itertools;
 use std::collections::HashMap;
 use thiserror::Error;
@@ -401,9 +402,9 @@ impl Client {
         let request = self.http.get(target);
         let response = request.send().await?;
         let result = match response.status() {
-            http::StatusCode::OK => HealthStatus::Ready,
-            http::StatusCode::PARTIAL_CONTENT => HealthStatus::Syncing,
-            http::StatusCode::SERVICE_UNAVAILABLE => HealthStatus::NotInitialized,
+            StatusCode::OK => HealthStatus::Ready,
+            StatusCode::PARTIAL_CONTENT => HealthStatus::Syncing,
+            StatusCode::SERVICE_UNAVAILABLE => HealthStatus::NotInitialized,
             _ => HealthStatus::Unknown,
         };
         Ok(result)
