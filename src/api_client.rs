@@ -24,6 +24,7 @@ use ethereum_consensus::primitives::{
     Bytes32, ChainId, CommitteeIndex, Coordinate, Epoch, ExecutionAddress, RandaoReveal, Root,
     Slot, ValidatorIndex,
 };
+use http::StatusCode;
 use itertools::Itertools;
 use std::collections::HashMap;
 use thiserror::Error;
@@ -395,8 +396,18 @@ impl Client {
         unimplemented!("")
     }
 
-    pub async fn get_health() -> Result<HealthStatus, Error> {
-        unimplemented!("")
+    pub async fn get_health(&self) -> Result<HealthStatus, Error> {
+        let path = "eth/v1/node/health";
+        let target = self.endpoint.join(path)?;
+        let request = self.http.get(target);
+        let response = request.send().await?;
+        let result = match response.status() {
+            StatusCode::OK => HealthStatus::Ready,
+            StatusCode::PARTIAL_CONTENT => HealthStatus::Syncing,
+            StatusCode::SERVICE_UNAVAILABLE => HealthStatus::NotInitialized,
+            _ => HealthStatus::Unknown,
+        };
+        Ok(result)
     }
 
     /* validator namespace */

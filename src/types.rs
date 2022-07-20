@@ -273,11 +273,12 @@ pub struct SyncStatus {
     pub is_syncing: bool,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Debug)]
 pub enum HealthStatus {
     Ready,
     Syncing,
     NotInitialized,
+    Unknown,
 }
 
 #[derive(Serialize, Deserialize)]
