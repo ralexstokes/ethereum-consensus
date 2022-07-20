@@ -3,38 +3,39 @@
 
 use crate::spec_test_runners::epoch_processing::SyncCommitteeUpdatesTestCase;
 use crate::test_utils::TestCase;
+use ethereum_consensus::altair::minimal as spec;
 
 #[test]
 fn test_sync_committees_no_progress_not_boundary() {
-    let  test_case = SyncCommitteeUpdatesTestCase::from("consensus-spec-tests/tests/minimal/altair/epoch_processing/sync_committee_updates/pyspec_tests/sync_committees_no_progress_not_boundary");
+    let mut test_case = SyncCommitteeUpdatesTestCase::<spec::BeaconState>::from("consensus-spec-tests/tests/minimal/altair/epoch_processing/sync_committee_updates/pyspec_tests/sync_committees_no_progress_not_boundary");
 
-    test_case.execute();
+    test_case.execute(|state, context| spec::process_sync_committee_updates(state, context));
 }
 
 #[test]
 fn test_sync_committees_progress_genesis() {
-    let  test_case = SyncCommitteeUpdatesTestCase::from("consensus-spec-tests/tests/minimal/altair/epoch_processing/sync_committee_updates/pyspec_tests/sync_committees_progress_genesis");
+    let mut test_case = SyncCommitteeUpdatesTestCase::<spec::BeaconState>::from("consensus-spec-tests/tests/minimal/altair/epoch_processing/sync_committee_updates/pyspec_tests/sync_committees_progress_genesis");
 
-    test_case.execute();
+    test_case.execute(|state, context| spec::process_sync_committee_updates(state, context));
 }
 
 #[test]
 fn test_sync_committees_progress_misc_balances_genesis() {
-    let  test_case = SyncCommitteeUpdatesTestCase::from("consensus-spec-tests/tests/minimal/altair/epoch_processing/sync_committee_updates/pyspec_tests/sync_committees_progress_misc_balances_genesis");
+    let mut test_case = SyncCommitteeUpdatesTestCase::<spec::BeaconState>::from("consensus-spec-tests/tests/minimal/altair/epoch_processing/sync_committee_updates/pyspec_tests/sync_committees_progress_misc_balances_genesis");
 
-    test_case.execute();
+    test_case.execute(|state, context| spec::process_sync_committee_updates(state, context));
 }
 
 #[test]
 fn test_sync_committees_progress_misc_balances_not_genesis() {
-    let  test_case = SyncCommitteeUpdatesTestCase::from("consensus-spec-tests/tests/minimal/altair/epoch_processing/sync_committee_updates/pyspec_tests/sync_committees_progress_misc_balances_not_genesis");
+    let mut test_case = SyncCommitteeUpdatesTestCase::<spec::BeaconState>::from("consensus-spec-tests/tests/minimal/altair/epoch_processing/sync_committee_updates/pyspec_tests/sync_committees_progress_misc_balances_not_genesis");
 
-    test_case.execute();
+    test_case.execute(|state, context| spec::process_sync_committee_updates(state, context));
 }
 
 #[test]
 fn test_sync_committees_progress_not_genesis() {
-    let  test_case = SyncCommitteeUpdatesTestCase::from("consensus-spec-tests/tests/minimal/altair/epoch_processing/sync_committee_updates/pyspec_tests/sync_committees_progress_not_genesis");
+    let mut test_case = SyncCommitteeUpdatesTestCase::<spec::BeaconState>::from("consensus-spec-tests/tests/minimal/altair/epoch_processing/sync_committee_updates/pyspec_tests/sync_committees_progress_not_genesis");
 
-    test_case.execute();
+    test_case.execute(|state, context| spec::process_sync_committee_updates(state, context));
 }

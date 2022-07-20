@@ -1,9 +1,7 @@
-use crate::test_utils::{load_snappy_ssz, load_yaml, Config, TestCase};
+use crate::test_utils::{load_snappy_ssz, load_yaml, Config};
 use ethereum_consensus::primitives::Slot;
-use ethereum_consensus::serde as eth_serde;
 use ethereum_consensus::state_transition::{Context, Result, Validation};
 use serde::Deserialize;
-use serde_with::{serde_as, DefaultOnError};
 use std::fmt;
 
 #[derive(Debug)]
