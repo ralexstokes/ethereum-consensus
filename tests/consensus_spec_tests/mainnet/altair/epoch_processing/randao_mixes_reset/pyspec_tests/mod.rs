@@ -3,10 +3,14 @@
 
 use crate::spec_test_runners::epoch_processing::RandaoMixesResetTestCase;
 use crate::test_utils::TestCase;
+use ethereum_consensus::altair::mainnet as spec;
 
 #[test]
 fn test_updated_randao_mixes() {
-    let  test_case = RandaoMixesResetTestCase::from("consensus-spec-tests/tests/mainnet/altair/epoch_processing/randao_mixes_reset/pyspec_tests/updated_randao_mixes");
+    let mut test_case = RandaoMixesResetTestCase::<spec::BeaconState>::from("consensus-spec-tests/tests/mainnet/altair/epoch_processing/randao_mixes_reset/pyspec_tests/updated_randao_mixes");
 
-    test_case.execute();
+    test_case.execute(|state, context| {
+        spec::process_randao_mixes_reset(state, context);
+        Ok(())
+    });
 }
