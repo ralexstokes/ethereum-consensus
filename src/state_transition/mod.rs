@@ -11,6 +11,7 @@ pub use context::*;
 pub use error::*;
 pub use executor::*;
 
+#[derive(Clone, Copy)]
 pub enum Validation {
     Enabled,
     Disabled,
