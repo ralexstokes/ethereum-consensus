@@ -265,6 +265,33 @@ fn main() {
                 },
             ),
         ])),
+        ("random",
+        HashMap::from([
+            (
+                "random",
+                Auxillary {
+                    test_case_type_generics: "spec::BeaconState, spec::SignedBeaconBlock"
+                        .to_string(),
+                    preamble: HashMap::from_iter([(Spec::Bellatrix, "let execution_engine = spec::NoOpExecutionEngine;".to_string())]),
+                    execution_handler: HashMap::from_iter([(Spec::Phase0, "execute(|state, blocks, validation, context| {
+                        for block in blocks.iter_mut() {
+                            spec::state_transition(state, block, validation, context)?;
+                        }
+                        Ok(())
+                    })".to_string()), (Spec::Altair, "execute(|state, blocks, validation, context| {
+                        for block in blocks.iter_mut() {
+                            spec::state_transition(state, block, validation, context)?;
+                        }
+                        Ok(())
+                    })".to_string()), (Spec::Bellatrix, "execute(|state, blocks, validation, context| {
+                        for block in blocks.iter_mut() {
+                            spec::state_transition(state, block, execution_engine.clone(), validation, context)?;
+                        }
+                        Ok(())
+                    })".to_string())]),
+                },
+            ),
+        ])),
         ("epoch_processing",
         HashMap::from([
             (
