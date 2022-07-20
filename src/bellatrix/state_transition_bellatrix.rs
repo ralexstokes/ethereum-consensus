@@ -34,7 +34,7 @@ pub fn state_transition_block_in_slot<
         MAX_TRANSACTIONS_PER_PAYLOAD,
     >,
 >(
-    state: &mut spec::BeaconState<
+    state: &mut BeaconState<
         SLOTS_PER_HISTORICAL_ROOT,
         HISTORICAL_ROOTS_LIMIT,
         ETH1_DATA_VOTES_BOUND,
@@ -48,7 +48,7 @@ pub fn state_transition_block_in_slot<
         MAX_BYTES_PER_TRANSACTION,
         MAX_TRANSACTIONS_PER_PAYLOAD,
     >,
-    signed_block: &mut spec::SignedBeaconBlock<
+    signed_block: &mut SignedBeaconBlock<
         MAX_PROPOSER_SLASHINGS,
         MAX_VALIDATORS_PER_COMMITTEE,
         MAX_ATTESTER_SLASHINGS,
