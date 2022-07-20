@@ -9,5 +9,6 @@ fn test_case_0() {
     let test_case = BeaconBlockBodyTestCase::from(
         "consensus-spec-tests/tests/minimal/phase0/ssz_static/BeaconBlockBody/ssz_nil/case_0",
     );
+
     test_case.execute();
 }

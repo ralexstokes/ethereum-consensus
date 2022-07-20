@@ -7,5 +7,6 @@ use crate::test_utils::TestCase;
 #[test]
 fn test_historical_root_accumulator() {
     let  test_case = HistoricalRootsUpdateTestCase::from("consensus-spec-tests/tests/minimal/phase0/epoch_processing/historical_roots_update/pyspec_tests/historical_root_accumulator");
+
     test_case.execute();
 }

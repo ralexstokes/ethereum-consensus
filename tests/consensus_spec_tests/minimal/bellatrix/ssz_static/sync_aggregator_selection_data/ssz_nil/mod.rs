@@ -7,5 +7,6 @@ use crate::test_utils::TestCase;
 #[test]
 fn test_case_0() {
     let  test_case = SyncAggregatorSelectionDataTestCase::from("consensus-spec-tests/tests/minimal/bellatrix/ssz_static/SyncAggregatorSelectionData/ssz_nil/case_0");
+
     test_case.execute();
 }

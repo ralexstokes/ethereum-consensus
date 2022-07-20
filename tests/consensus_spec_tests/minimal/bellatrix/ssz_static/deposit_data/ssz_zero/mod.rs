@@ -9,5 +9,6 @@ fn test_case_0() {
     let test_case = DepositDataTestCase::from(
         "consensus-spec-tests/tests/minimal/bellatrix/ssz_static/DepositData/ssz_zero/case_0",
     );
+
     test_case.execute();
 }

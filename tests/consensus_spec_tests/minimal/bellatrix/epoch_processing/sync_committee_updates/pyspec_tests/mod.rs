@@ -7,29 +7,34 @@ use crate::test_utils::TestCase;
 #[test]
 fn test_sync_committees_no_progress_not_boundary() {
     let  test_case = SyncCommitteeUpdatesTestCase::from("consensus-spec-tests/tests/minimal/bellatrix/epoch_processing/sync_committee_updates/pyspec_tests/sync_committees_no_progress_not_boundary");
+
     test_case.execute();
 }
 
 #[test]
 fn test_sync_committees_progress_genesis() {
     let  test_case = SyncCommitteeUpdatesTestCase::from("consensus-spec-tests/tests/minimal/bellatrix/epoch_processing/sync_committee_updates/pyspec_tests/sync_committees_progress_genesis");
+
     test_case.execute();
 }
 
 #[test]
 fn test_sync_committees_progress_misc_balances_genesis() {
     let  test_case = SyncCommitteeUpdatesTestCase::from("consensus-spec-tests/tests/minimal/bellatrix/epoch_processing/sync_committee_updates/pyspec_tests/sync_committees_progress_misc_balances_genesis");
+
     test_case.execute();
 }
 
 #[test]
 fn test_sync_committees_progress_misc_balances_not_genesis() {
     let  test_case = SyncCommitteeUpdatesTestCase::from("consensus-spec-tests/tests/minimal/bellatrix/epoch_processing/sync_committee_updates/pyspec_tests/sync_committees_progress_misc_balances_not_genesis");
+
     test_case.execute();
 }
 
 #[test]
 fn test_sync_committees_progress_not_genesis() {
     let  test_case = SyncCommitteeUpdatesTestCase::from("consensus-spec-tests/tests/minimal/bellatrix/epoch_processing/sync_committee_updates/pyspec_tests/sync_committees_progress_not_genesis");
+
     test_case.execute();
 }

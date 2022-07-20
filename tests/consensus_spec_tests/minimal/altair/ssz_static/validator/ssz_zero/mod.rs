@@ -9,5 +9,6 @@ fn test_case_0() {
     let test_case = ValidatorTestCase::from(
         "consensus-spec-tests/tests/minimal/altair/ssz_static/Validator/ssz_zero/case_0",
     );
+
     test_case.execute();
 }

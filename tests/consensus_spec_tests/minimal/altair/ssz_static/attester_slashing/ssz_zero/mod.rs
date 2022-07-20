@@ -9,5 +9,6 @@ fn test_case_0() {
     let test_case = AttesterSlashingTestCase::from(
         "consensus-spec-tests/tests/minimal/altair/ssz_static/AttesterSlashing/ssz_zero/case_0",
     );
+
     test_case.execute();
 }

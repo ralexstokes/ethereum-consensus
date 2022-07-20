@@ -7,5 +7,6 @@ use crate::test_utils::TestCase;
 #[test]
 fn test_updated_randao_mixes() {
     let  test_case = RandaoMixesResetTestCase::from("consensus-spec-tests/tests/minimal/bellatrix/epoch_processing/randao_mixes_reset/pyspec_tests/updated_randao_mixes");
+
     test_case.execute();
 }

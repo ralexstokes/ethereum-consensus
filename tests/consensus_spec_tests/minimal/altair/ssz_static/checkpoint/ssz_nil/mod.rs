@@ -9,5 +9,6 @@ fn test_case_0() {
     let test_case = CheckpointTestCase::from(
         "consensus-spec-tests/tests/minimal/altair/ssz_static/Checkpoint/ssz_nil/case_0",
     );
+
     test_case.execute();
 }

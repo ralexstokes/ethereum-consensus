@@ -7,5 +7,6 @@ use crate::test_utils::TestCase;
 #[test]
 fn test_effective_balance_hysteresis() {
     let  test_case = EffectiveBalanceUpdatesTestCase::from("consensus-spec-tests/tests/minimal/phase0/epoch_processing/effective_balance_updates/pyspec_tests/effective_balance_hysteresis");
+
     test_case.execute();
 }
