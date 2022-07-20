@@ -100,6 +100,7 @@ pub type BeaconState = bellatrix::BeaconState<
     MAX_BYTES_PER_TRANSACTION,
     MAX_TRANSACTIONS_PER_PAYLOAD,
 >;
+
 pub type BeaconBlock = bellatrix::BeaconBlock<
     MAX_PROPOSER_SLASHINGS,
     MAX_VALIDATORS_PER_COMMITTEE,
@@ -113,6 +114,7 @@ pub type BeaconBlock = bellatrix::BeaconBlock<
     MAX_BYTES_PER_TRANSACTION,
     MAX_TRANSACTIONS_PER_PAYLOAD,
 >;
+
 pub type SignedBeaconBlock = bellatrix::SignedBeaconBlock<
     MAX_PROPOSER_SLASHINGS,
     MAX_VALIDATORS_PER_COMMITTEE,
@@ -121,6 +123,13 @@ pub type SignedBeaconBlock = bellatrix::SignedBeaconBlock<
     MAX_DEPOSITS,
     MAX_VOLUNTARY_EXITS,
     SYNC_COMMITTEE_SIZE,
+    BYTES_PER_LOGS_BLOOM,
+    MAX_EXTRA_DATA_BYTES,
+    MAX_BYTES_PER_TRANSACTION,
+    MAX_TRANSACTIONS_PER_PAYLOAD,
+>;
+
+pub type NoOpExecutionEngine = bellatrix::NoOpExecutionEngine<
     BYTES_PER_LOGS_BLOOM,
     MAX_EXTRA_DATA_BYTES,
     MAX_BYTES_PER_TRANSACTION,

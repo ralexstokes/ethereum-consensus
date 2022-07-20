@@ -142,7 +142,12 @@ pub trait ExecutionEngine<
 }
 
 #[derive(Clone)]
-pub struct NoOpExecutionEngine;
+pub struct NoOpExecutionEngine<
+    const BYTES_PER_LOGS_BLOOM: usize,
+    const MAX_EXTRA_DATA_BYTES: usize,
+    const MAX_BYTES_PER_TRANSACTION: usize,
+    const MAX_TRANSACTIONS_PER_PAYLOAD: usize,
+>;
 
 impl<
         const BYTES_PER_LOGS_BLOOM: usize,
@@ -155,7 +160,13 @@ impl<
         MAX_EXTRA_DATA_BYTES,
         MAX_BYTES_PER_TRANSACTION,
         MAX_TRANSACTIONS_PER_PAYLOAD,
-    > for NoOpExecutionEngine
+    >
+    for NoOpExecutionEngine<
+        BYTES_PER_LOGS_BLOOM,
+        MAX_EXTRA_DATA_BYTES,
+        MAX_BYTES_PER_TRANSACTION,
+        MAX_TRANSACTIONS_PER_PAYLOAD,
+    >
 {
     fn notify_new_payload(
         &self,
