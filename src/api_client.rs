@@ -383,8 +383,9 @@ impl Client {
         unimplemented!("")
     }
 
-    pub async fn get_peer_count() -> Result<PeerSummary, Error> {
-        unimplemented!("")
+    pub async fn get_peer_summary(&self) -> Result<PeerSummary, Error> {
+        let result: Value<PeerSummary> = self.get("eth/v1/node/peer_count").await?;
+        Ok(result.data)
     }
 
     pub async fn get_node_version(self) -> Result<String, Error> {
