@@ -128,13 +128,34 @@ use crate::spec_test_runners::{}::{};
     let mut needs_spec_import = false;
     let mut execution_handler = String::new();
     let mut mut_decl = String::new();
+    let mut preamble = String::new();
+    let spec = match fork {
+        "phase0" => Spec::Phase0,
+        "altair" => Spec::Altair,
+        "bellatrix" => Spec::Bellatrix,
+        _ => todo!("support other forks"),
+    };
     if let Some(handler_data) = auxilliary_data.get(runner) {
         if let Some(data) = handler_data.get(handler) {
             test_case_type = format!("{}::<{}>", test_case_type, data.test_case_type_generics);
-            execution_handler += &data.execution_handler;
+            if data.execution_handler.len() == 1 && data.execution_handler.contains_key(&Spec::All)
+            {
+                execution_handler += &data.execution_handler[&Spec::All];
+            } else {
+                assert!(data.execution_handler.len() > 1);
+                let handler = &data.execution_handler[&spec];
+                execution_handler += handler;
+            }
             mut_decl += "mut";
+            if let Some(s) = data.preamble.get(&spec) {
+                preamble += s;
+            }
             needs_spec_import = true;
         }
+    }
+
+    if execution_handler.is_empty() {
+        execution_handler += "execute()";
     }
 
     if needs_spec_import {
@@ -150,10 +171,11 @@ use crate::spec_test_runners::{}::{};
 #[test]
 fn test_{}() {{
     let {} test_case = {}::from("{}");
-    test_case.execute({});
+    {}
+    test_case.{};
 }}
 "#,
-            test_case, mut_decl, test_case_type, source_path, execution_handler,
+            test_case, mut_decl, test_case_type, source_path, preamble, execution_handler,
         );
         src += &test_src;
     }
@@ -163,23 +185,59 @@ fn test_{}() {{
 
 struct Auxillary {
     test_case_type_generics: String,
-    execution_handler: String,
+    preamble: HashMap<Spec, String>,
+    execution_handler: HashMap<Spec, String>,
+}
+
+#[derive(Hash, PartialEq, Eq)]
+enum Spec {
+    Phase0,
+    Altair,
+    Bellatrix,
+    All,
 }
 
 fn main() {
     let auxilliary_data = HashMap::from([(
         "sanity",
-        HashMap::from([(
-            "slots",
-            Auxillary {
-                test_case_type_generics: "spec::BeaconState".to_string(),
-                execution_handler: "|mut state, offset, context| {
+        HashMap::from([
+            (
+                "slots",
+                Auxillary {
+                    test_case_type_generics: "spec::BeaconState".to_string(),
+                    preamble: Default::default(),
+                    execution_handler: HashMap::from_iter([(Spec::All, "execute(|state, offset, context| {
                     let target_slot = state.slot + offset;
-                    spec::process_slots(&mut state, target_slot, context).unwrap();
-                }"
-                .to_string(),
-            },
-        )]),
+                    spec::process_slots(state, target_slot, context).unwrap();
+                })"
+                    .to_string())]) ,
+                },
+            ),
+            (
+                "blocks",
+                Auxillary {
+                    test_case_type_generics: "spec::BeaconState, spec::SignedBeaconBlock"
+                        .to_string(),
+                    preamble: HashMap::from_iter([(Spec::Bellatrix, "let execution_engine = spec::NoOpExecutionEngine;".to_string())]) ,
+                    execution_handler: HashMap::from_iter([(Spec::Phase0, "execute(|state, blocks, validation, context| {
+                        for block in blocks.iter_mut() {
+                            spec::state_transition(state, block, validation, context)?;
+                        }
+                        Ok(())
+                    })".to_string()), (Spec::Altair, "execute(|state, blocks, validation, context| {
+                        for block in blocks.iter_mut() {
+                            spec::state_transition(state, block, validation, context)?;
+                        }
+                        Ok(())
+                    })".to_string()), (Spec::Bellatrix, "execute(|state, blocks, validation, context| {
+                        for block in blocks.iter_mut() {
+                            spec::state_transition(state, block, execution_engine.clone(), validation, context)?;
+                        }
+                        Ok(())
+                    })".to_string())]) ,
+                },
+            ),
+        ]),
     )]);
     let test_root = "consensus-spec-tests/tests";
     let (all_test_cases, collected_test_case_count) = collect_test_cases(test_root).unwrap();
