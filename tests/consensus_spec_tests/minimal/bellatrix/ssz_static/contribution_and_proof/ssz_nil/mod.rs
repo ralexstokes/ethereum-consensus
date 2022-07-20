@@ -7,5 +7,6 @@ use crate::test_utils::TestCase;
 #[test]
 fn test_case_0() {
     let  test_case = ContributionAndProofTestCase::from("consensus-spec-tests/tests/minimal/bellatrix/ssz_static/ContributionAndProof/ssz_nil/case_0");
+
     test_case.execute();
 }

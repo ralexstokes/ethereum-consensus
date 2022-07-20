@@ -9,5 +9,6 @@ fn test_case_0() {
     let test_case = Eth1BlockTestCase::from(
         "consensus-spec-tests/tests/minimal/bellatrix/ssz_static/Eth1Block/ssz_nil/case_0",
     );
+
     test_case.execute();
 }

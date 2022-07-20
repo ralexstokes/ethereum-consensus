@@ -7,5 +7,6 @@ use crate::test_utils::TestCase;
 #[test]
 fn test_flush_slashings() {
     let  test_case = SlashingsResetTestCase::from("consensus-spec-tests/tests/minimal/bellatrix/epoch_processing/slashings_reset/pyspec_tests/flush_slashings");
+
     test_case.execute();
 }

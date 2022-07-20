@@ -7,5 +7,6 @@ use crate::test_utils::TestCase;
 #[test]
 fn test_updated_participation_record() {
     let  test_case = ParticipationRecordUpdatesTestCase::from("consensus-spec-tests/tests/minimal/phase0/epoch_processing/participation_record_updates/pyspec_tests/updated_participation_record");
+
     test_case.execute();
 }

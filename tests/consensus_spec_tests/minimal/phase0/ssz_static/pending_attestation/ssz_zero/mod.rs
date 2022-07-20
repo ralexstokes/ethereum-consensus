@@ -9,5 +9,6 @@ fn test_case_0() {
     let test_case = PendingAttestationTestCase::from(
         "consensus-spec-tests/tests/minimal/phase0/ssz_static/PendingAttestation/ssz_zero/case_0",
     );
+
     test_case.execute();
 }

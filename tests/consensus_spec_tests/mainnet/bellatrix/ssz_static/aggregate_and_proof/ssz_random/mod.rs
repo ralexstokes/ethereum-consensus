@@ -7,29 +7,34 @@ use crate::test_utils::TestCase;
 #[test]
 fn test_case_0() {
     let  test_case = AggregateAndProofTestCase::from("consensus-spec-tests/tests/mainnet/bellatrix/ssz_static/AggregateAndProof/ssz_random/case_0");
+
     test_case.execute();
 }
 
 #[test]
 fn test_case_1() {
     let  test_case = AggregateAndProofTestCase::from("consensus-spec-tests/tests/mainnet/bellatrix/ssz_static/AggregateAndProof/ssz_random/case_1");
+
     test_case.execute();
 }
 
 #[test]
 fn test_case_2() {
     let  test_case = AggregateAndProofTestCase::from("consensus-spec-tests/tests/mainnet/bellatrix/ssz_static/AggregateAndProof/ssz_random/case_2");
+
     test_case.execute();
 }
 
 #[test]
 fn test_case_3() {
     let  test_case = AggregateAndProofTestCase::from("consensus-spec-tests/tests/mainnet/bellatrix/ssz_static/AggregateAndProof/ssz_random/case_3");
+
     test_case.execute();
 }
 
 #[test]
 fn test_case_4() {
     let  test_case = AggregateAndProofTestCase::from("consensus-spec-tests/tests/mainnet/bellatrix/ssz_static/AggregateAndProof/ssz_random/case_4");
+
     test_case.execute();
 }

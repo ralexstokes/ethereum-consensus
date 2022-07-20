@@ -9,5 +9,6 @@ fn test_case_0() {
     let test_case = SyncCommitteeTestCase::from(
         "consensus-spec-tests/tests/minimal/bellatrix/ssz_static/SyncCommittee/ssz_zero/case_0",
     );
+
     test_case.execute();
 }

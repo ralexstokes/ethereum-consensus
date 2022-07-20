@@ -7,11 +7,13 @@ use crate::test_utils::TestCase;
 #[test]
 fn test_eth_1_vote_no_reset() {
     let  test_case = Eth1DataResetTestCase::from("consensus-spec-tests/tests/mainnet/altair/epoch_processing/eth1_data_reset/pyspec_tests/eth1_vote_no_reset");
+
     test_case.execute();
 }
 
 #[test]
 fn test_eth_1_vote_reset() {
     let  test_case = Eth1DataResetTestCase::from("consensus-spec-tests/tests/mainnet/altair/epoch_processing/eth1_data_reset/pyspec_tests/eth1_vote_reset");
+
     test_case.execute();
 }

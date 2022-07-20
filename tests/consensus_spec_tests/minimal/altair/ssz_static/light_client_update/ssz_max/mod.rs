@@ -9,5 +9,6 @@ fn test_case_0() {
     let test_case = LightClientUpdateTestCase::from(
         "consensus-spec-tests/tests/minimal/altair/ssz_static/LightClientUpdate/ssz_max/case_0",
     );
+
     test_case.execute();
 }

@@ -9,5 +9,6 @@ fn test_case_0() {
     let test_case = SignedVoluntaryExitTestCase::from(
         "consensus-spec-tests/tests/minimal/phase0/ssz_static/SignedVoluntaryExit/ssz_nil/case_0",
     );
+
     test_case.execute();
 }

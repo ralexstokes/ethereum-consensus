@@ -9,5 +9,6 @@ fn test_case_0() {
     let test_case = IndexedAttestationTestCase::from(
         "consensus-spec-tests/tests/minimal/bellatrix/ssz_static/IndexedAttestation/ssz_max/case_0",
     );
+
     test_case.execute();
 }

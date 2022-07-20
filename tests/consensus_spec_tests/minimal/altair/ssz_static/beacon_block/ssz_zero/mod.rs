@@ -9,5 +9,6 @@ fn test_case_0() {
     let test_case = BeaconBlockTestCase::from(
         "consensus-spec-tests/tests/minimal/altair/ssz_static/BeaconBlock/ssz_zero/case_0",
     );
+
     test_case.execute();
 }

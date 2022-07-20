@@ -9,5 +9,6 @@ fn test_case_0() {
     let test_case = Eth1DataTestCase::from(
         "consensus-spec-tests/tests/minimal/phase0/ssz_static/Eth1Data/ssz_max/case_0",
     );
+
     test_case.execute();
 }

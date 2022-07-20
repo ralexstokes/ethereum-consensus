@@ -9,5 +9,6 @@ fn test_case_0() {
     let test_case = PowBlockTestCase::from(
         "consensus-spec-tests/tests/minimal/bellatrix/ssz_static/PowBlock/ssz_nil/case_0",
     );
+
     test_case.execute();
 }

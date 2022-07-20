@@ -9,5 +9,6 @@ fn test_case_0() {
     let test_case = HistoricalBatchTestCase::from(
         "consensus-spec-tests/tests/minimal/altair/ssz_static/HistoricalBatch/ssz_nil/case_0",
     );
+
     test_case.execute();
 }
