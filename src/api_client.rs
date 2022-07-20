@@ -382,7 +382,7 @@ impl Client {
         unimplemented!("")
     }
 
-    pub async fn get_peer_count(&self) -> Result<PeerSummary, Error> {
+    pub async fn get_peer_summary(&self) -> Result<PeerSummary, Error> {
         let result: Value<PeerSummary> = self.get("eth/v1/node/peer_count").await?;
         Ok(result.data)
     }
