@@ -2,8 +2,8 @@
 // This file was generated with `gen-tests`. Do NOT edit manually.
 
 use crate::spec_test_runners::epoch_processing::InactivityUpdatesTestCase;
-use crate::test_utils::TestCase;
 use ethereum_consensus::altair::minimal as spec;
+use ssz_rs::prelude::*;
 
 #[test]
 fn test_all_zero_inactivity_scores_empty_participation() {

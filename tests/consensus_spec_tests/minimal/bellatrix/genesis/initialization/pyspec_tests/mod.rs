@@ -2,7 +2,6 @@
 // This file was generated with `gen-tests`. Do NOT edit manually.
 
 use crate::spec_test_runners::genesis::InitializationTestCase;
-use crate::test_utils::TestCase;
 
 #[test]
 fn test_initialize_beacon_state_from_eth_1() {

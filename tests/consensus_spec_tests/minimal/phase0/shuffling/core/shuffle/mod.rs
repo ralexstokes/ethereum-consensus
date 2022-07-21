@@ -2,7 +2,6 @@
 // This file was generated with `gen-tests`. Do NOT edit manually.
 
 use crate::spec_test_runners::shuffling::CoreTestCase;
-use crate::test_utils::TestCase;
 
 #[test]
 fn test_shuffle_0_x_01_b_4_f_6_bd_5_d_6_a_06_a_7_b_74_a_8565_ceb_4_f_845_afe_0_ae_96_a_0_ac_05_cf_5_e_86066_bf_7_b_538_ec_0(

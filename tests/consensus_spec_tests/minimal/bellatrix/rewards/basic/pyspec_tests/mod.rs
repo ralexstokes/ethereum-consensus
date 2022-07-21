@@ -2,7 +2,6 @@
 // This file was generated with `gen-tests`. Do NOT edit manually.
 
 use crate::spec_test_runners::rewards::BasicTestCase;
-use crate::test_utils::TestCase;
 
 #[test]
 fn test_all_balances_too_low_for_reward() {

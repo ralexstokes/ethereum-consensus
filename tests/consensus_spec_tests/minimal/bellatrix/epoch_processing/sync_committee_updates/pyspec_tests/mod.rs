@@ -2,8 +2,8 @@
 // This file was generated with `gen-tests`. Do NOT edit manually.
 
 use crate::spec_test_runners::epoch_processing::SyncCommitteeUpdatesTestCase;
-use crate::test_utils::TestCase;
 use ethereum_consensus::bellatrix::minimal as spec;
+use ssz_rs::prelude::*;
 
 #[test]
 fn test_sync_committees_no_progress_not_boundary() {

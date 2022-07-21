@@ -2,7 +2,6 @@
 // This file was generated with `gen-tests`. Do NOT edit manually.
 
 use crate::spec_test_runners::genesis::ValidityTestCase;
-use crate::test_utils::TestCase;
 
 #[test]
 fn test_is_valid_genesis_state_false_invalid_timestamp() {

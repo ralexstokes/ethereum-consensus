@@ -2,7 +2,8 @@
 // This file was generated with `gen-tests`. Do NOT edit manually.
 
 use crate::spec_test_runners::ssz_static::DepositTestCase;
-use crate::test_utils::TestCase;
+use ethereum_consensus::bellatrix::minimal as spec;
+use ssz_rs::prelude::*;
 
 #[test]
 fn test_case_0() {
@@ -10,7 +11,12 @@ fn test_case_0() {
         "consensus-spec-tests/tests/minimal/bellatrix/ssz_static/Deposit/ssz_one/case_0",
     );
 
-    test_case.execute();
+    test_case.execute(|encoding| {
+        let mut data: spec::Deposit = ssz_rs::deserialize(encoding).unwrap();
+        let serialized = ssz_rs::serialize(&data).unwrap();
+        let root = data.hash_tree_root().unwrap();
+        (serialized, root)
+    });
 }
 
 #[test]
@@ -19,7 +25,12 @@ fn test_case_1() {
         "consensus-spec-tests/tests/minimal/bellatrix/ssz_static/Deposit/ssz_one/case_1",
     );
 
-    test_case.execute();
+    test_case.execute(|encoding| {
+        let mut data: spec::Deposit = ssz_rs::deserialize(encoding).unwrap();
+        let serialized = ssz_rs::serialize(&data).unwrap();
+        let root = data.hash_tree_root().unwrap();
+        (serialized, root)
+    });
 }
 
 #[test]
@@ -28,7 +39,12 @@ fn test_case_10() {
         "consensus-spec-tests/tests/minimal/bellatrix/ssz_static/Deposit/ssz_one/case_10",
     );
 
-    test_case.execute();
+    test_case.execute(|encoding| {
+        let mut data: spec::Deposit = ssz_rs::deserialize(encoding).unwrap();
+        let serialized = ssz_rs::serialize(&data).unwrap();
+        let root = data.hash_tree_root().unwrap();
+        (serialized, root)
+    });
 }
 
 #[test]
@@ -37,7 +53,12 @@ fn test_case_11() {
         "consensus-spec-tests/tests/minimal/bellatrix/ssz_static/Deposit/ssz_one/case_11",
     );
 
-    test_case.execute();
+    test_case.execute(|encoding| {
+        let mut data: spec::Deposit = ssz_rs::deserialize(encoding).unwrap();
+        let serialized = ssz_rs::serialize(&data).unwrap();
+        let root = data.hash_tree_root().unwrap();
+        (serialized, root)
+    });
 }
 
 #[test]
@@ -46,7 +67,12 @@ fn test_case_12() {
         "consensus-spec-tests/tests/minimal/bellatrix/ssz_static/Deposit/ssz_one/case_12",
     );
 
-    test_case.execute();
+    test_case.execute(|encoding| {
+        let mut data: spec::Deposit = ssz_rs::deserialize(encoding).unwrap();
+        let serialized = ssz_rs::serialize(&data).unwrap();
+        let root = data.hash_tree_root().unwrap();
+        (serialized, root)
+    });
 }
 
 #[test]
@@ -55,7 +81,12 @@ fn test_case_13() {
         "consensus-spec-tests/tests/minimal/bellatrix/ssz_static/Deposit/ssz_one/case_13",
     );
 
-    test_case.execute();
+    test_case.execute(|encoding| {
+        let mut data: spec::Deposit = ssz_rs::deserialize(encoding).unwrap();
+        let serialized = ssz_rs::serialize(&data).unwrap();
+        let root = data.hash_tree_root().unwrap();
+        (serialized, root)
+    });
 }
 
 #[test]
@@ -64,7 +95,12 @@ fn test_case_14() {
         "consensus-spec-tests/tests/minimal/bellatrix/ssz_static/Deposit/ssz_one/case_14",
     );
 
-    test_case.execute();
+    test_case.execute(|encoding| {
+        let mut data: spec::Deposit = ssz_rs::deserialize(encoding).unwrap();
+        let serialized = ssz_rs::serialize(&data).unwrap();
+        let root = data.hash_tree_root().unwrap();
+        (serialized, root)
+    });
 }
 
 #[test]
@@ -73,7 +109,12 @@ fn test_case_15() {
         "consensus-spec-tests/tests/minimal/bellatrix/ssz_static/Deposit/ssz_one/case_15",
     );
 
-    test_case.execute();
+    test_case.execute(|encoding| {
+        let mut data: spec::Deposit = ssz_rs::deserialize(encoding).unwrap();
+        let serialized = ssz_rs::serialize(&data).unwrap();
+        let root = data.hash_tree_root().unwrap();
+        (serialized, root)
+    });
 }
 
 #[test]
@@ -82,7 +123,12 @@ fn test_case_16() {
         "consensus-spec-tests/tests/minimal/bellatrix/ssz_static/Deposit/ssz_one/case_16",
     );
 
-    test_case.execute();
+    test_case.execute(|encoding| {
+        let mut data: spec::Deposit = ssz_rs::deserialize(encoding).unwrap();
+        let serialized = ssz_rs::serialize(&data).unwrap();
+        let root = data.hash_tree_root().unwrap();
+        (serialized, root)
+    });
 }
 
 #[test]
@@ -91,7 +137,12 @@ fn test_case_17() {
         "consensus-spec-tests/tests/minimal/bellatrix/ssz_static/Deposit/ssz_one/case_17",
     );
 
-    test_case.execute();
+    test_case.execute(|encoding| {
+        let mut data: spec::Deposit = ssz_rs::deserialize(encoding).unwrap();
+        let serialized = ssz_rs::serialize(&data).unwrap();
+        let root = data.hash_tree_root().unwrap();
+        (serialized, root)
+    });
 }
 
 #[test]
@@ -100,7 +151,12 @@ fn test_case_18() {
         "consensus-spec-tests/tests/minimal/bellatrix/ssz_static/Deposit/ssz_one/case_18",
     );
 
-    test_case.execute();
+    test_case.execute(|encoding| {
+        let mut data: spec::Deposit = ssz_rs::deserialize(encoding).unwrap();
+        let serialized = ssz_rs::serialize(&data).unwrap();
+        let root = data.hash_tree_root().unwrap();
+        (serialized, root)
+    });
 }
 
 #[test]
@@ -109,7 +165,12 @@ fn test_case_19() {
         "consensus-spec-tests/tests/minimal/bellatrix/ssz_static/Deposit/ssz_one/case_19",
     );
 
-    test_case.execute();
+    test_case.execute(|encoding| {
+        let mut data: spec::Deposit = ssz_rs::deserialize(encoding).unwrap();
+        let serialized = ssz_rs::serialize(&data).unwrap();
+        let root = data.hash_tree_root().unwrap();
+        (serialized, root)
+    });
 }
 
 #[test]
@@ -118,7 +179,12 @@ fn test_case_2() {
         "consensus-spec-tests/tests/minimal/bellatrix/ssz_static/Deposit/ssz_one/case_2",
     );
 
-    test_case.execute();
+    test_case.execute(|encoding| {
+        let mut data: spec::Deposit = ssz_rs::deserialize(encoding).unwrap();
+        let serialized = ssz_rs::serialize(&data).unwrap();
+        let root = data.hash_tree_root().unwrap();
+        (serialized, root)
+    });
 }
 
 #[test]
@@ -127,7 +193,12 @@ fn test_case_20() {
         "consensus-spec-tests/tests/minimal/bellatrix/ssz_static/Deposit/ssz_one/case_20",
     );
 
-    test_case.execute();
+    test_case.execute(|encoding| {
+        let mut data: spec::Deposit = ssz_rs::deserialize(encoding).unwrap();
+        let serialized = ssz_rs::serialize(&data).unwrap();
+        let root = data.hash_tree_root().unwrap();
+        (serialized, root)
+    });
 }
 
 #[test]
@@ -136,7 +207,12 @@ fn test_case_21() {
         "consensus-spec-tests/tests/minimal/bellatrix/ssz_static/Deposit/ssz_one/case_21",
     );
 
-    test_case.execute();
+    test_case.execute(|encoding| {
+        let mut data: spec::Deposit = ssz_rs::deserialize(encoding).unwrap();
+        let serialized = ssz_rs::serialize(&data).unwrap();
+        let root = data.hash_tree_root().unwrap();
+        (serialized, root)
+    });
 }
 
 #[test]
@@ -145,7 +221,12 @@ fn test_case_22() {
         "consensus-spec-tests/tests/minimal/bellatrix/ssz_static/Deposit/ssz_one/case_22",
     );
 
-    test_case.execute();
+    test_case.execute(|encoding| {
+        let mut data: spec::Deposit = ssz_rs::deserialize(encoding).unwrap();
+        let serialized = ssz_rs::serialize(&data).unwrap();
+        let root = data.hash_tree_root().unwrap();
+        (serialized, root)
+    });
 }
 
 #[test]
@@ -154,7 +235,12 @@ fn test_case_23() {
         "consensus-spec-tests/tests/minimal/bellatrix/ssz_static/Deposit/ssz_one/case_23",
     );
 
-    test_case.execute();
+    test_case.execute(|encoding| {
+        let mut data: spec::Deposit = ssz_rs::deserialize(encoding).unwrap();
+        let serialized = ssz_rs::serialize(&data).unwrap();
+        let root = data.hash_tree_root().unwrap();
+        (serialized, root)
+    });
 }
 
 #[test]
@@ -163,7 +249,12 @@ fn test_case_24() {
         "consensus-spec-tests/tests/minimal/bellatrix/ssz_static/Deposit/ssz_one/case_24",
     );
 
-    test_case.execute();
+    test_case.execute(|encoding| {
+        let mut data: spec::Deposit = ssz_rs::deserialize(encoding).unwrap();
+        let serialized = ssz_rs::serialize(&data).unwrap();
+        let root = data.hash_tree_root().unwrap();
+        (serialized, root)
+    });
 }
 
 #[test]
@@ -172,7 +263,12 @@ fn test_case_25() {
         "consensus-spec-tests/tests/minimal/bellatrix/ssz_static/Deposit/ssz_one/case_25",
     );
 
-    test_case.execute();
+    test_case.execute(|encoding| {
+        let mut data: spec::Deposit = ssz_rs::deserialize(encoding).unwrap();
+        let serialized = ssz_rs::serialize(&data).unwrap();
+        let root = data.hash_tree_root().unwrap();
+        (serialized, root)
+    });
 }
 
 #[test]
@@ -181,7 +277,12 @@ fn test_case_26() {
         "consensus-spec-tests/tests/minimal/bellatrix/ssz_static/Deposit/ssz_one/case_26",
     );
 
-    test_case.execute();
+    test_case.execute(|encoding| {
+        let mut data: spec::Deposit = ssz_rs::deserialize(encoding).unwrap();
+        let serialized = ssz_rs::serialize(&data).unwrap();
+        let root = data.hash_tree_root().unwrap();
+        (serialized, root)
+    });
 }
 
 #[test]
@@ -190,7 +291,12 @@ fn test_case_27() {
         "consensus-spec-tests/tests/minimal/bellatrix/ssz_static/Deposit/ssz_one/case_27",
     );
 
-    test_case.execute();
+    test_case.execute(|encoding| {
+        let mut data: spec::Deposit = ssz_rs::deserialize(encoding).unwrap();
+        let serialized = ssz_rs::serialize(&data).unwrap();
+        let root = data.hash_tree_root().unwrap();
+        (serialized, root)
+    });
 }
 
 #[test]
@@ -199,7 +305,12 @@ fn test_case_28() {
         "consensus-spec-tests/tests/minimal/bellatrix/ssz_static/Deposit/ssz_one/case_28",
     );
 
-    test_case.execute();
+    test_case.execute(|encoding| {
+        let mut data: spec::Deposit = ssz_rs::deserialize(encoding).unwrap();
+        let serialized = ssz_rs::serialize(&data).unwrap();
+        let root = data.hash_tree_root().unwrap();
+        (serialized, root)
+    });
 }
 
 #[test]
@@ -208,7 +319,12 @@ fn test_case_29() {
         "consensus-spec-tests/tests/minimal/bellatrix/ssz_static/Deposit/ssz_one/case_29",
     );
 
-    test_case.execute();
+    test_case.execute(|encoding| {
+        let mut data: spec::Deposit = ssz_rs::deserialize(encoding).unwrap();
+        let serialized = ssz_rs::serialize(&data).unwrap();
+        let root = data.hash_tree_root().unwrap();
+        (serialized, root)
+    });
 }
 
 #[test]
@@ -217,7 +333,12 @@ fn test_case_3() {
         "consensus-spec-tests/tests/minimal/bellatrix/ssz_static/Deposit/ssz_one/case_3",
     );
 
-    test_case.execute();
+    test_case.execute(|encoding| {
+        let mut data: spec::Deposit = ssz_rs::deserialize(encoding).unwrap();
+        let serialized = ssz_rs::serialize(&data).unwrap();
+        let root = data.hash_tree_root().unwrap();
+        (serialized, root)
+    });
 }
 
 #[test]
@@ -226,7 +347,12 @@ fn test_case_4() {
         "consensus-spec-tests/tests/minimal/bellatrix/ssz_static/Deposit/ssz_one/case_4",
     );
 
-    test_case.execute();
+    test_case.execute(|encoding| {
+        let mut data: spec::Deposit = ssz_rs::deserialize(encoding).unwrap();
+        let serialized = ssz_rs::serialize(&data).unwrap();
+        let root = data.hash_tree_root().unwrap();
+        (serialized, root)
+    });
 }
 
 #[test]
@@ -235,7 +361,12 @@ fn test_case_5() {
         "consensus-spec-tests/tests/minimal/bellatrix/ssz_static/Deposit/ssz_one/case_5",
     );
 
-    test_case.execute();
+    test_case.execute(|encoding| {
+        let mut data: spec::Deposit = ssz_rs::deserialize(encoding).unwrap();
+        let serialized = ssz_rs::serialize(&data).unwrap();
+        let root = data.hash_tree_root().unwrap();
+        (serialized, root)
+    });
 }
 
 #[test]
@@ -244,7 +375,12 @@ fn test_case_6() {
         "consensus-spec-tests/tests/minimal/bellatrix/ssz_static/Deposit/ssz_one/case_6",
     );
 
-    test_case.execute();
+    test_case.execute(|encoding| {
+        let mut data: spec::Deposit = ssz_rs::deserialize(encoding).unwrap();
+        let serialized = ssz_rs::serialize(&data).unwrap();
+        let root = data.hash_tree_root().unwrap();
+        (serialized, root)
+    });
 }
 
 #[test]
@@ -253,7 +389,12 @@ fn test_case_7() {
         "consensus-spec-tests/tests/minimal/bellatrix/ssz_static/Deposit/ssz_one/case_7",
     );
 
-    test_case.execute();
+    test_case.execute(|encoding| {
+        let mut data: spec::Deposit = ssz_rs::deserialize(encoding).unwrap();
+        let serialized = ssz_rs::serialize(&data).unwrap();
+        let root = data.hash_tree_root().unwrap();
+        (serialized, root)
+    });
 }
 
 #[test]
@@ -262,7 +403,12 @@ fn test_case_8() {
         "consensus-spec-tests/tests/minimal/bellatrix/ssz_static/Deposit/ssz_one/case_8",
     );
 
-    test_case.execute();
+    test_case.execute(|encoding| {
+        let mut data: spec::Deposit = ssz_rs::deserialize(encoding).unwrap();
+        let serialized = ssz_rs::serialize(&data).unwrap();
+        let root = data.hash_tree_root().unwrap();
+        (serialized, root)
+    });
 }
 
 #[test]
@@ -271,5 +417,10 @@ fn test_case_9() {
         "consensus-spec-tests/tests/minimal/bellatrix/ssz_static/Deposit/ssz_one/case_9",
     );
 
-    test_case.execute();
+    test_case.execute(|encoding| {
+        let mut data: spec::Deposit = ssz_rs::deserialize(encoding).unwrap();
+        let serialized = ssz_rs::serialize(&data).unwrap();
+        let root = data.hash_tree_root().unwrap();
+        (serialized, root)
+    });
 }
