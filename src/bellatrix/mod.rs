@@ -21,7 +21,6 @@ pub use beacon_state::*;
 pub use blinded_beacon_block::*;
 pub use execution::*;
 pub use presets::Preset;
-pub use state_transition_bellatrix::*;
 
 pub use crate::altair::{
     SyncAggregate, SyncCommittee, PARTICIPATION_FLAG_WEIGHTS, PROPOSER_WEIGHT, SYNC_REWARD_WEIGHT,
