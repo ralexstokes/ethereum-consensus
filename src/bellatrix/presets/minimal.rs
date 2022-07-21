@@ -1,3 +1,8 @@
+pub use crate::altair::mainnet::{
+    AggregateAndProof, Attestation, AttesterSlashing, ContributionAndProof, IndexedAttestation,
+    SignedAggregateAndProof, SignedContributionAndProof, SyncAggregate, SyncCommittee,
+    SyncCommitteeContribution,
+};
 use crate::altair::minimal::SYNC_COMMITTEE_SIZE;
 use crate::bellatrix;
 use crate::bellatrix::presets::Preset;

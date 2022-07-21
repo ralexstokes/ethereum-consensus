@@ -1,4 +1,9 @@
 use crate::altair::mainnet::SYNC_COMMITTEE_SIZE;
+pub use crate::altair::mainnet::{
+    AggregateAndProof, Attestation, AttesterSlashing, ContributionAndProof, IndexedAttestation,
+    SignedAggregateAndProof, SignedContributionAndProof, SyncAggregate, SyncCommittee,
+    SyncCommitteeContribution,
+};
 use crate::bellatrix;
 use crate::bellatrix::presets::Preset;
 use crate::phase0::mainnet::{

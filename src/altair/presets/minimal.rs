@@ -1,5 +1,8 @@
 use crate::altair;
 use crate::altair::presets::Preset;
+pub use crate::phase0::minimal::{
+    AggregateAndProof, Attestation, AttesterSlashing, IndexedAttestation, SignedAggregateAndProof,
+};
 use crate::phase0::minimal::{
     EPOCHS_PER_HISTORICAL_VECTOR, EPOCHS_PER_SLASHINGS_VECTOR, ETH1_DATA_VOTES_BOUND,
     HISTORICAL_ROOTS_LIMIT, MAX_ATTESTATIONS, MAX_ATTESTER_SLASHINGS, MAX_DEPOSITS,
