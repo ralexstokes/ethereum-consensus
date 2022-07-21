@@ -8,7 +8,7 @@ use ssz_rs::prelude::*;
 use std::error::Error;
 
 fn main() -> std::result::Result<(), Box<dyn Error>> {
-    let genesis_state = phase0::genesis_state();
+    let genesis_state = phase0::BeaconState::default();
     let context = Context::for_mainnet();
     let mut executor = Executor::new(genesis_state.into(), NoOpExecutionEngine, context);
 

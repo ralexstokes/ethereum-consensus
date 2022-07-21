@@ -29,13 +29,8 @@ pub use crate::phase0::{
     DEPOSIT_CONTRACT_TREE_DEPTH, JUSTIFICATION_BITS_LENGTH,
 };
 
-pub mod mainnet {
-    pub use super::presets::mainnet::*;
-}
-
-pub mod minimal {
-    pub use super::presets::minimal::*;
-}
+pub use presets::mainnet;
+pub use presets::minimal;
 
 pub const TIMELY_SOURCE_FLAG_INDEX: usize = 0;
 pub const TIMELY_TARGET_FLAG_INDEX: usize = 1;
