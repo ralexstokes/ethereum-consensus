@@ -2,8 +2,8 @@
 // This file was generated with `gen-tests`. Do NOT edit manually.
 
 use crate::spec_test_runners::finality::FinalityTestCase;
-use crate::test_utils::TestCase;
 use ethereum_consensus::phase0::mainnet as spec;
+use ssz_rs::prelude::*;
 
 #[test]
 fn test_finality_no_updates_at_genesis() {

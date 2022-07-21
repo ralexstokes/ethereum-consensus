@@ -2,7 +2,8 @@
 // This file was generated with `gen-tests`. Do NOT edit manually.
 
 use crate::spec_test_runners::ssz_static::SigningDataTestCase;
-use crate::test_utils::TestCase;
+use ethereum_consensus::phase0::mainnet as spec;
+use ssz_rs::prelude::*;
 
 #[test]
 fn test_case_0() {
@@ -10,7 +11,12 @@ fn test_case_0() {
         "consensus-spec-tests/tests/mainnet/phase0/ssz_static/SigningData/ssz_random/case_0",
     );
 
-    test_case.execute();
+    test_case.execute(|encoding| {
+        let mut data: spec::SigningData = ssz_rs::deserialize(encoding).unwrap();
+        let serialized = ssz_rs::serialize(&data).unwrap();
+        let root = data.hash_tree_root().unwrap();
+        (serialized, root)
+    });
 }
 
 #[test]
@@ -19,7 +25,12 @@ fn test_case_1() {
         "consensus-spec-tests/tests/mainnet/phase0/ssz_static/SigningData/ssz_random/case_1",
     );
 
-    test_case.execute();
+    test_case.execute(|encoding| {
+        let mut data: spec::SigningData = ssz_rs::deserialize(encoding).unwrap();
+        let serialized = ssz_rs::serialize(&data).unwrap();
+        let root = data.hash_tree_root().unwrap();
+        (serialized, root)
+    });
 }
 
 #[test]
@@ -28,7 +39,12 @@ fn test_case_2() {
         "consensus-spec-tests/tests/mainnet/phase0/ssz_static/SigningData/ssz_random/case_2",
     );
 
-    test_case.execute();
+    test_case.execute(|encoding| {
+        let mut data: spec::SigningData = ssz_rs::deserialize(encoding).unwrap();
+        let serialized = ssz_rs::serialize(&data).unwrap();
+        let root = data.hash_tree_root().unwrap();
+        (serialized, root)
+    });
 }
 
 #[test]
@@ -37,7 +53,12 @@ fn test_case_3() {
         "consensus-spec-tests/tests/mainnet/phase0/ssz_static/SigningData/ssz_random/case_3",
     );
 
-    test_case.execute();
+    test_case.execute(|encoding| {
+        let mut data: spec::SigningData = ssz_rs::deserialize(encoding).unwrap();
+        let serialized = ssz_rs::serialize(&data).unwrap();
+        let root = data.hash_tree_root().unwrap();
+        (serialized, root)
+    });
 }
 
 #[test]
@@ -46,5 +67,10 @@ fn test_case_4() {
         "consensus-spec-tests/tests/mainnet/phase0/ssz_static/SigningData/ssz_random/case_4",
     );
 
-    test_case.execute();
+    test_case.execute(|encoding| {
+        let mut data: spec::SigningData = ssz_rs::deserialize(encoding).unwrap();
+        let serialized = ssz_rs::serialize(&data).unwrap();
+        let root = data.hash_tree_root().unwrap();
+        (serialized, root)
+    });
 }

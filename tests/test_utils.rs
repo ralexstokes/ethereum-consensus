@@ -4,6 +4,7 @@ use serde::Deserialize;
 use std::fmt;
 use std::fs::File;
 use std::io::Read;
+use std::path::Path;
 
 #[derive(Debug)]
 pub enum Config {
@@ -40,16 +41,21 @@ pub fn load_yaml<T: for<'de> Deserialize<'de>>(path: &str) -> T {
     }
 }
 
-pub fn load_snappy_ssz<T: ssz_rs::Deserialize>(path: &str) -> Option<T> {
+pub fn load_snappy_ssz_bytes(path: &Path) -> Vec<u8> {
+    let mut file = File::open(path).unwrap();
     let mut data = vec![];
-    if let Ok(mut file) = File::open(&path) {
-        file.read_to_end(&mut data).unwrap();
+    file.read_to_end(&mut data).unwrap();
 
-        let mut decoder = snap::raw::Decoder::new();
-        let buffer = decoder.decompress_vec(&mut data).unwrap();
+    let mut decoder = snap::raw::Decoder::new();
+    decoder.decompress_vec(&mut data).unwrap()
+}
 
-        Some(<T as ssz_rs::Deserialize>::deserialize(&buffer).unwrap())
-    } else {
-        None
+pub fn load_snappy_ssz<T: ssz_rs::Deserialize>(path: &str) -> Option<T> {
+    let path = Path::new(path);
+    if !path.exists() {
+        return None;
     }
+    let buffer = load_snappy_ssz_bytes(path);
+
+    Some(<T as ssz_rs::Deserialize>::deserialize(&buffer).unwrap())
 }

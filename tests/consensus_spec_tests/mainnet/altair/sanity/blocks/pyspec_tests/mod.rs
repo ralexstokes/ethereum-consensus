@@ -3,6 +3,7 @@
 
 use crate::spec_test_runners::sanity::BlocksTestCase;
 use ethereum_consensus::altair::mainnet as spec;
+use ssz_rs::prelude::*;
 
 #[test]
 fn test_attestation() {

@@ -18,24 +18,21 @@ pub use state_transition::{
 
 pub use beacon_block::*;
 pub use beacon_state::*;
+pub use light_client::*;
 pub use presets::Preset;
 pub use sync::*;
 pub use validator::*;
 
 pub use crate::phase0::{
     Attestation, AttestationData, AttesterSlashing, BeaconBlockHeader, Checkpoint, Deposit,
-    DepositData, DepositMessage, Eth1Data, Fork, ForkData, HistoricalBatchAccumulator,
-    IndexedAttestation, ProposerSlashing, SignedVoluntaryExit, Validator, BASE_REWARDS_PER_EPOCH,
-    DEPOSIT_CONTRACT_TREE_DEPTH, JUSTIFICATION_BITS_LENGTH,
+    DepositData, DepositMessage, Eth1Block, Eth1Data, Fork, ForkData, HistoricalBatchAccumulator,
+    IndexedAttestation, ProposerSlashing, SignedBeaconBlockHeader, SignedVoluntaryExit,
+    SigningData, Validator, VoluntaryExit, BASE_REWARDS_PER_EPOCH, DEPOSIT_CONTRACT_TREE_DEPTH,
+    JUSTIFICATION_BITS_LENGTH,
 };
 
-pub mod mainnet {
-    pub use super::presets::mainnet::*;
-}
-
-pub mod minimal {
-    pub use super::presets::minimal::*;
-}
+pub use presets::mainnet;
+pub use presets::minimal;
 
 pub const TIMELY_SOURCE_FLAG_INDEX: usize = 0;
 pub const TIMELY_TARGET_FLAG_INDEX: usize = 1;

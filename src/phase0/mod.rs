@@ -17,6 +17,7 @@ mod validator;
 pub use beacon_block::*;
 pub use beacon_state::*;
 
+pub use crate::signing::SigningData;
 pub use block_processing::*;
 pub use epoch_processing::*;
 pub use fork::*;
@@ -31,15 +32,5 @@ pub const BASE_REWARDS_PER_EPOCH: u64 = 4;
 pub const DEPOSIT_CONTRACT_TREE_DEPTH: usize = 2usize.pow(5);
 pub const JUSTIFICATION_BITS_LENGTH: usize = 4;
 
-pub mod mainnet {
-    pub use super::presets::mainnet::*;
-
-    pub fn genesis_state() -> BeaconState {
-        // TODO return actual genesis state
-        BeaconState::default()
-    }
-}
-
-pub mod minimal {
-    pub use super::presets::minimal::*;
-}
+pub use presets::mainnet;
+pub use presets::minimal;

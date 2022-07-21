@@ -86,6 +86,8 @@ pub const ETH1_DATA_VOTES_BOUND: usize =
 pub const PENDING_ATTESTATIONS_BOUND: usize =
     phase0::get_pending_attestations_bound(MAX_ATTESTATIONS, SLOTS_PER_EPOCH as usize);
 
+pub type HistoricalBatch = phase0::HistoricalBatch<SLOTS_PER_HISTORICAL_ROOT>;
+
 pub type BeaconState = phase0::BeaconState<
     SLOTS_PER_HISTORICAL_ROOT,
     HISTORICAL_ROOTS_LIMIT,

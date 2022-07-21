@@ -2,7 +2,8 @@
 // This file was generated with `gen-tests`. Do NOT edit manually.
 
 use crate::spec_test_runners::ssz_static::Eth1BlockTestCase;
-use crate::test_utils::TestCase;
+use ethereum_consensus::bellatrix::minimal as spec;
+use ssz_rs::prelude::*;
 
 #[test]
 fn test_case_0() {
@@ -10,7 +11,12 @@ fn test_case_0() {
         "consensus-spec-tests/tests/minimal/bellatrix/ssz_static/Eth1Block/ssz_random_chaos/case_0",
     );
 
-    test_case.execute();
+    test_case.execute(|encoding| {
+        let mut data: spec::Eth1Block = ssz_rs::deserialize(encoding).unwrap();
+        let serialized = ssz_rs::serialize(&data).unwrap();
+        let root = data.hash_tree_root().unwrap();
+        (serialized, root)
+    });
 }
 
 #[test]
@@ -19,77 +25,132 @@ fn test_case_1() {
         "consensus-spec-tests/tests/minimal/bellatrix/ssz_static/Eth1Block/ssz_random_chaos/case_1",
     );
 
-    test_case.execute();
+    test_case.execute(|encoding| {
+        let mut data: spec::Eth1Block = ssz_rs::deserialize(encoding).unwrap();
+        let serialized = ssz_rs::serialize(&data).unwrap();
+        let root = data.hash_tree_root().unwrap();
+        (serialized, root)
+    });
 }
 
 #[test]
 fn test_case_10() {
-    let  test_case = Eth1BlockTestCase::from("consensus-spec-tests/tests/minimal/bellatrix/ssz_static/Eth1Block/ssz_random_chaos/case_10");
+    let  test_case = Eth1BlockTestCase::<>::from("consensus-spec-tests/tests/minimal/bellatrix/ssz_static/Eth1Block/ssz_random_chaos/case_10");
 
-    test_case.execute();
+    test_case.execute(|encoding| {
+        let mut data: spec::Eth1Block = ssz_rs::deserialize(encoding).unwrap();
+        let serialized = ssz_rs::serialize(&data).unwrap();
+        let root = data.hash_tree_root().unwrap();
+        (serialized, root)
+    });
 }
 
 #[test]
 fn test_case_11() {
-    let  test_case = Eth1BlockTestCase::from("consensus-spec-tests/tests/minimal/bellatrix/ssz_static/Eth1Block/ssz_random_chaos/case_11");
+    let  test_case = Eth1BlockTestCase::<>::from("consensus-spec-tests/tests/minimal/bellatrix/ssz_static/Eth1Block/ssz_random_chaos/case_11");
 
-    test_case.execute();
+    test_case.execute(|encoding| {
+        let mut data: spec::Eth1Block = ssz_rs::deserialize(encoding).unwrap();
+        let serialized = ssz_rs::serialize(&data).unwrap();
+        let root = data.hash_tree_root().unwrap();
+        (serialized, root)
+    });
 }
 
 #[test]
 fn test_case_12() {
-    let  test_case = Eth1BlockTestCase::from("consensus-spec-tests/tests/minimal/bellatrix/ssz_static/Eth1Block/ssz_random_chaos/case_12");
+    let  test_case = Eth1BlockTestCase::<>::from("consensus-spec-tests/tests/minimal/bellatrix/ssz_static/Eth1Block/ssz_random_chaos/case_12");
 
-    test_case.execute();
+    test_case.execute(|encoding| {
+        let mut data: spec::Eth1Block = ssz_rs::deserialize(encoding).unwrap();
+        let serialized = ssz_rs::serialize(&data).unwrap();
+        let root = data.hash_tree_root().unwrap();
+        (serialized, root)
+    });
 }
 
 #[test]
 fn test_case_13() {
-    let  test_case = Eth1BlockTestCase::from("consensus-spec-tests/tests/minimal/bellatrix/ssz_static/Eth1Block/ssz_random_chaos/case_13");
+    let  test_case = Eth1BlockTestCase::<>::from("consensus-spec-tests/tests/minimal/bellatrix/ssz_static/Eth1Block/ssz_random_chaos/case_13");
 
-    test_case.execute();
+    test_case.execute(|encoding| {
+        let mut data: spec::Eth1Block = ssz_rs::deserialize(encoding).unwrap();
+        let serialized = ssz_rs::serialize(&data).unwrap();
+        let root = data.hash_tree_root().unwrap();
+        (serialized, root)
+    });
 }
 
 #[test]
 fn test_case_14() {
-    let  test_case = Eth1BlockTestCase::from("consensus-spec-tests/tests/minimal/bellatrix/ssz_static/Eth1Block/ssz_random_chaos/case_14");
+    let  test_case = Eth1BlockTestCase::<>::from("consensus-spec-tests/tests/minimal/bellatrix/ssz_static/Eth1Block/ssz_random_chaos/case_14");
 
-    test_case.execute();
+    test_case.execute(|encoding| {
+        let mut data: spec::Eth1Block = ssz_rs::deserialize(encoding).unwrap();
+        let serialized = ssz_rs::serialize(&data).unwrap();
+        let root = data.hash_tree_root().unwrap();
+        (serialized, root)
+    });
 }
 
 #[test]
 fn test_case_15() {
-    let  test_case = Eth1BlockTestCase::from("consensus-spec-tests/tests/minimal/bellatrix/ssz_static/Eth1Block/ssz_random_chaos/case_15");
+    let  test_case = Eth1BlockTestCase::<>::from("consensus-spec-tests/tests/minimal/bellatrix/ssz_static/Eth1Block/ssz_random_chaos/case_15");
 
-    test_case.execute();
+    test_case.execute(|encoding| {
+        let mut data: spec::Eth1Block = ssz_rs::deserialize(encoding).unwrap();
+        let serialized = ssz_rs::serialize(&data).unwrap();
+        let root = data.hash_tree_root().unwrap();
+        (serialized, root)
+    });
 }
 
 #[test]
 fn test_case_16() {
-    let  test_case = Eth1BlockTestCase::from("consensus-spec-tests/tests/minimal/bellatrix/ssz_static/Eth1Block/ssz_random_chaos/case_16");
+    let  test_case = Eth1BlockTestCase::<>::from("consensus-spec-tests/tests/minimal/bellatrix/ssz_static/Eth1Block/ssz_random_chaos/case_16");
 
-    test_case.execute();
+    test_case.execute(|encoding| {
+        let mut data: spec::Eth1Block = ssz_rs::deserialize(encoding).unwrap();
+        let serialized = ssz_rs::serialize(&data).unwrap();
+        let root = data.hash_tree_root().unwrap();
+        (serialized, root)
+    });
 }
 
 #[test]
 fn test_case_17() {
-    let  test_case = Eth1BlockTestCase::from("consensus-spec-tests/tests/minimal/bellatrix/ssz_static/Eth1Block/ssz_random_chaos/case_17");
+    let  test_case = Eth1BlockTestCase::<>::from("consensus-spec-tests/tests/minimal/bellatrix/ssz_static/Eth1Block/ssz_random_chaos/case_17");
 
-    test_case.execute();
+    test_case.execute(|encoding| {
+        let mut data: spec::Eth1Block = ssz_rs::deserialize(encoding).unwrap();
+        let serialized = ssz_rs::serialize(&data).unwrap();
+        let root = data.hash_tree_root().unwrap();
+        (serialized, root)
+    });
 }
 
 #[test]
 fn test_case_18() {
-    let  test_case = Eth1BlockTestCase::from("consensus-spec-tests/tests/minimal/bellatrix/ssz_static/Eth1Block/ssz_random_chaos/case_18");
+    let  test_case = Eth1BlockTestCase::<>::from("consensus-spec-tests/tests/minimal/bellatrix/ssz_static/Eth1Block/ssz_random_chaos/case_18");
 
-    test_case.execute();
+    test_case.execute(|encoding| {
+        let mut data: spec::Eth1Block = ssz_rs::deserialize(encoding).unwrap();
+        let serialized = ssz_rs::serialize(&data).unwrap();
+        let root = data.hash_tree_root().unwrap();
+        (serialized, root)
+    });
 }
 
 #[test]
 fn test_case_19() {
-    let  test_case = Eth1BlockTestCase::from("consensus-spec-tests/tests/minimal/bellatrix/ssz_static/Eth1Block/ssz_random_chaos/case_19");
+    let  test_case = Eth1BlockTestCase::<>::from("consensus-spec-tests/tests/minimal/bellatrix/ssz_static/Eth1Block/ssz_random_chaos/case_19");
 
-    test_case.execute();
+    test_case.execute(|encoding| {
+        let mut data: spec::Eth1Block = ssz_rs::deserialize(encoding).unwrap();
+        let serialized = ssz_rs::serialize(&data).unwrap();
+        let root = data.hash_tree_root().unwrap();
+        (serialized, root)
+    });
 }
 
 #[test]
@@ -98,77 +159,132 @@ fn test_case_2() {
         "consensus-spec-tests/tests/minimal/bellatrix/ssz_static/Eth1Block/ssz_random_chaos/case_2",
     );
 
-    test_case.execute();
+    test_case.execute(|encoding| {
+        let mut data: spec::Eth1Block = ssz_rs::deserialize(encoding).unwrap();
+        let serialized = ssz_rs::serialize(&data).unwrap();
+        let root = data.hash_tree_root().unwrap();
+        (serialized, root)
+    });
 }
 
 #[test]
 fn test_case_20() {
-    let  test_case = Eth1BlockTestCase::from("consensus-spec-tests/tests/minimal/bellatrix/ssz_static/Eth1Block/ssz_random_chaos/case_20");
+    let  test_case = Eth1BlockTestCase::<>::from("consensus-spec-tests/tests/minimal/bellatrix/ssz_static/Eth1Block/ssz_random_chaos/case_20");
 
-    test_case.execute();
+    test_case.execute(|encoding| {
+        let mut data: spec::Eth1Block = ssz_rs::deserialize(encoding).unwrap();
+        let serialized = ssz_rs::serialize(&data).unwrap();
+        let root = data.hash_tree_root().unwrap();
+        (serialized, root)
+    });
 }
 
 #[test]
 fn test_case_21() {
-    let  test_case = Eth1BlockTestCase::from("consensus-spec-tests/tests/minimal/bellatrix/ssz_static/Eth1Block/ssz_random_chaos/case_21");
+    let  test_case = Eth1BlockTestCase::<>::from("consensus-spec-tests/tests/minimal/bellatrix/ssz_static/Eth1Block/ssz_random_chaos/case_21");
 
-    test_case.execute();
+    test_case.execute(|encoding| {
+        let mut data: spec::Eth1Block = ssz_rs::deserialize(encoding).unwrap();
+        let serialized = ssz_rs::serialize(&data).unwrap();
+        let root = data.hash_tree_root().unwrap();
+        (serialized, root)
+    });
 }
 
 #[test]
 fn test_case_22() {
-    let  test_case = Eth1BlockTestCase::from("consensus-spec-tests/tests/minimal/bellatrix/ssz_static/Eth1Block/ssz_random_chaos/case_22");
+    let  test_case = Eth1BlockTestCase::<>::from("consensus-spec-tests/tests/minimal/bellatrix/ssz_static/Eth1Block/ssz_random_chaos/case_22");
 
-    test_case.execute();
+    test_case.execute(|encoding| {
+        let mut data: spec::Eth1Block = ssz_rs::deserialize(encoding).unwrap();
+        let serialized = ssz_rs::serialize(&data).unwrap();
+        let root = data.hash_tree_root().unwrap();
+        (serialized, root)
+    });
 }
 
 #[test]
 fn test_case_23() {
-    let  test_case = Eth1BlockTestCase::from("consensus-spec-tests/tests/minimal/bellatrix/ssz_static/Eth1Block/ssz_random_chaos/case_23");
+    let  test_case = Eth1BlockTestCase::<>::from("consensus-spec-tests/tests/minimal/bellatrix/ssz_static/Eth1Block/ssz_random_chaos/case_23");
 
-    test_case.execute();
+    test_case.execute(|encoding| {
+        let mut data: spec::Eth1Block = ssz_rs::deserialize(encoding).unwrap();
+        let serialized = ssz_rs::serialize(&data).unwrap();
+        let root = data.hash_tree_root().unwrap();
+        (serialized, root)
+    });
 }
 
 #[test]
 fn test_case_24() {
-    let  test_case = Eth1BlockTestCase::from("consensus-spec-tests/tests/minimal/bellatrix/ssz_static/Eth1Block/ssz_random_chaos/case_24");
+    let  test_case = Eth1BlockTestCase::<>::from("consensus-spec-tests/tests/minimal/bellatrix/ssz_static/Eth1Block/ssz_random_chaos/case_24");
 
-    test_case.execute();
+    test_case.execute(|encoding| {
+        let mut data: spec::Eth1Block = ssz_rs::deserialize(encoding).unwrap();
+        let serialized = ssz_rs::serialize(&data).unwrap();
+        let root = data.hash_tree_root().unwrap();
+        (serialized, root)
+    });
 }
 
 #[test]
 fn test_case_25() {
-    let  test_case = Eth1BlockTestCase::from("consensus-spec-tests/tests/minimal/bellatrix/ssz_static/Eth1Block/ssz_random_chaos/case_25");
+    let  test_case = Eth1BlockTestCase::<>::from("consensus-spec-tests/tests/minimal/bellatrix/ssz_static/Eth1Block/ssz_random_chaos/case_25");
 
-    test_case.execute();
+    test_case.execute(|encoding| {
+        let mut data: spec::Eth1Block = ssz_rs::deserialize(encoding).unwrap();
+        let serialized = ssz_rs::serialize(&data).unwrap();
+        let root = data.hash_tree_root().unwrap();
+        (serialized, root)
+    });
 }
 
 #[test]
 fn test_case_26() {
-    let  test_case = Eth1BlockTestCase::from("consensus-spec-tests/tests/minimal/bellatrix/ssz_static/Eth1Block/ssz_random_chaos/case_26");
+    let  test_case = Eth1BlockTestCase::<>::from("consensus-spec-tests/tests/minimal/bellatrix/ssz_static/Eth1Block/ssz_random_chaos/case_26");
 
-    test_case.execute();
+    test_case.execute(|encoding| {
+        let mut data: spec::Eth1Block = ssz_rs::deserialize(encoding).unwrap();
+        let serialized = ssz_rs::serialize(&data).unwrap();
+        let root = data.hash_tree_root().unwrap();
+        (serialized, root)
+    });
 }
 
 #[test]
 fn test_case_27() {
-    let  test_case = Eth1BlockTestCase::from("consensus-spec-tests/tests/minimal/bellatrix/ssz_static/Eth1Block/ssz_random_chaos/case_27");
+    let  test_case = Eth1BlockTestCase::<>::from("consensus-spec-tests/tests/minimal/bellatrix/ssz_static/Eth1Block/ssz_random_chaos/case_27");
 
-    test_case.execute();
+    test_case.execute(|encoding| {
+        let mut data: spec::Eth1Block = ssz_rs::deserialize(encoding).unwrap();
+        let serialized = ssz_rs::serialize(&data).unwrap();
+        let root = data.hash_tree_root().unwrap();
+        (serialized, root)
+    });
 }
 
 #[test]
 fn test_case_28() {
-    let  test_case = Eth1BlockTestCase::from("consensus-spec-tests/tests/minimal/bellatrix/ssz_static/Eth1Block/ssz_random_chaos/case_28");
+    let  test_case = Eth1BlockTestCase::<>::from("consensus-spec-tests/tests/minimal/bellatrix/ssz_static/Eth1Block/ssz_random_chaos/case_28");
 
-    test_case.execute();
+    test_case.execute(|encoding| {
+        let mut data: spec::Eth1Block = ssz_rs::deserialize(encoding).unwrap();
+        let serialized = ssz_rs::serialize(&data).unwrap();
+        let root = data.hash_tree_root().unwrap();
+        (serialized, root)
+    });
 }
 
 #[test]
 fn test_case_29() {
-    let  test_case = Eth1BlockTestCase::from("consensus-spec-tests/tests/minimal/bellatrix/ssz_static/Eth1Block/ssz_random_chaos/case_29");
+    let  test_case = Eth1BlockTestCase::<>::from("consensus-spec-tests/tests/minimal/bellatrix/ssz_static/Eth1Block/ssz_random_chaos/case_29");
 
-    test_case.execute();
+    test_case.execute(|encoding| {
+        let mut data: spec::Eth1Block = ssz_rs::deserialize(encoding).unwrap();
+        let serialized = ssz_rs::serialize(&data).unwrap();
+        let root = data.hash_tree_root().unwrap();
+        (serialized, root)
+    });
 }
 
 #[test]
@@ -177,7 +293,12 @@ fn test_case_3() {
         "consensus-spec-tests/tests/minimal/bellatrix/ssz_static/Eth1Block/ssz_random_chaos/case_3",
     );
 
-    test_case.execute();
+    test_case.execute(|encoding| {
+        let mut data: spec::Eth1Block = ssz_rs::deserialize(encoding).unwrap();
+        let serialized = ssz_rs::serialize(&data).unwrap();
+        let root = data.hash_tree_root().unwrap();
+        (serialized, root)
+    });
 }
 
 #[test]
@@ -186,7 +307,12 @@ fn test_case_4() {
         "consensus-spec-tests/tests/minimal/bellatrix/ssz_static/Eth1Block/ssz_random_chaos/case_4",
     );
 
-    test_case.execute();
+    test_case.execute(|encoding| {
+        let mut data: spec::Eth1Block = ssz_rs::deserialize(encoding).unwrap();
+        let serialized = ssz_rs::serialize(&data).unwrap();
+        let root = data.hash_tree_root().unwrap();
+        (serialized, root)
+    });
 }
 
 #[test]
@@ -195,7 +321,12 @@ fn test_case_5() {
         "consensus-spec-tests/tests/minimal/bellatrix/ssz_static/Eth1Block/ssz_random_chaos/case_5",
     );
 
-    test_case.execute();
+    test_case.execute(|encoding| {
+        let mut data: spec::Eth1Block = ssz_rs::deserialize(encoding).unwrap();
+        let serialized = ssz_rs::serialize(&data).unwrap();
+        let root = data.hash_tree_root().unwrap();
+        (serialized, root)
+    });
 }
 
 #[test]
@@ -204,7 +335,12 @@ fn test_case_6() {
         "consensus-spec-tests/tests/minimal/bellatrix/ssz_static/Eth1Block/ssz_random_chaos/case_6",
     );
 
-    test_case.execute();
+    test_case.execute(|encoding| {
+        let mut data: spec::Eth1Block = ssz_rs::deserialize(encoding).unwrap();
+        let serialized = ssz_rs::serialize(&data).unwrap();
+        let root = data.hash_tree_root().unwrap();
+        (serialized, root)
+    });
 }
 
 #[test]
@@ -213,7 +349,12 @@ fn test_case_7() {
         "consensus-spec-tests/tests/minimal/bellatrix/ssz_static/Eth1Block/ssz_random_chaos/case_7",
     );
 
-    test_case.execute();
+    test_case.execute(|encoding| {
+        let mut data: spec::Eth1Block = ssz_rs::deserialize(encoding).unwrap();
+        let serialized = ssz_rs::serialize(&data).unwrap();
+        let root = data.hash_tree_root().unwrap();
+        (serialized, root)
+    });
 }
 
 #[test]
@@ -222,7 +363,12 @@ fn test_case_8() {
         "consensus-spec-tests/tests/minimal/bellatrix/ssz_static/Eth1Block/ssz_random_chaos/case_8",
     );
 
-    test_case.execute();
+    test_case.execute(|encoding| {
+        let mut data: spec::Eth1Block = ssz_rs::deserialize(encoding).unwrap();
+        let serialized = ssz_rs::serialize(&data).unwrap();
+        let root = data.hash_tree_root().unwrap();
+        (serialized, root)
+    });
 }
 
 #[test]
@@ -231,5 +377,10 @@ fn test_case_9() {
         "consensus-spec-tests/tests/minimal/bellatrix/ssz_static/Eth1Block/ssz_random_chaos/case_9",
     );
 
-    test_case.execute();
+    test_case.execute(|encoding| {
+        let mut data: spec::Eth1Block = ssz_rs::deserialize(encoding).unwrap();
+        let serialized = ssz_rs::serialize(&data).unwrap();
+        let root = data.hash_tree_root().unwrap();
+        (serialized, root)
+    });
 }

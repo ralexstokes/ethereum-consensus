@@ -2,8 +2,8 @@
 // This file was generated with `gen-tests`. Do NOT edit manually.
 
 use crate::spec_test_runners::epoch_processing::RegistryUpdatesTestCase;
-use crate::test_utils::TestCase;
 use ethereum_consensus::altair::mainnet as spec;
+use ssz_rs::prelude::*;
 
 #[test]
 fn test_activation_queue_activation_and_ejection_1() {

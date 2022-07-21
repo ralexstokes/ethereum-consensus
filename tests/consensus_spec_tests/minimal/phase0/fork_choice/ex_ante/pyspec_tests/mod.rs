@@ -2,7 +2,6 @@
 // This file was generated with `gen-tests`. Do NOT edit manually.
 
 use crate::spec_test_runners::fork_choice::ExAnteTestCase;
-use crate::test_utils::TestCase;
 
 #[test]
 fn test_ex_ante_sandwich_with_honest_attestation() {

@@ -119,7 +119,7 @@ use crate::spec_test_runners::{}::{};
         runner, test_case_type
     );
 
-    let needs_trait_import = !matches!(runner, "sanity");
+    let needs_trait_import = matches!(runner, "bls");
 
     if needs_trait_import {
         src += "use crate::test_utils::TestCase;\n";
@@ -146,8 +146,13 @@ use crate::spec_test_runners::{}::{};
                 let handler = &data.execution_handler[&spec];
                 execution_handler += handler;
             }
-            mut_decl += "mut";
+            if !matches!(runner, "ssz_static") {
+                mut_decl += "mut";
+            }
             if let Some(s) = data.preamble.get(&spec) {
+                preamble += s;
+            }
+            if let Some(s) = data.preamble.get(&Spec::All) {
                 preamble += s;
             }
             needs_spec_import = true;
@@ -160,6 +165,7 @@ use crate::spec_test_runners::{}::{};
 
     if needs_spec_import {
         writeln!(src, "use ethereum_consensus::{}::{} as spec;", fork, config).unwrap();
+        writeln!(src, "use ssz_rs::prelude::*;").unwrap();
     }
 
     let mut test_cases = tests.keys().cloned().collect::<Vec<_>>();
@@ -262,6 +268,541 @@ fn main() {
                         }
                         Ok(())
                     })".to_string())]),
+                },
+            ),
+        ])),
+        ("ssz_static",
+        HashMap::from([
+            (
+                "aggregate_and_proof",
+                Auxillary {
+                    test_case_type_generics: Default::default(),
+                    preamble: Default::default(),
+                    execution_handler: HashMap::from_iter([(Spec::All, "execute(|encoding| {
+                        let mut data: spec::AggregateAndProof = ssz_rs::deserialize(encoding).unwrap();
+                        let serialized = ssz_rs::serialize(&data).unwrap();
+                        let root = data.hash_tree_root().unwrap();
+                        (serialized, root)
+                })"
+                    .to_string())]),
+                },
+            ),
+            (
+                "attestation",
+                Auxillary {
+                    test_case_type_generics: Default::default(),
+                    preamble: Default::default(),
+                    execution_handler: HashMap::from_iter([(Spec::All, "execute(|encoding| {
+                        let mut data: spec::Attestation = ssz_rs::deserialize(encoding).unwrap();
+                        let serialized = ssz_rs::serialize(&data).unwrap();
+                        let root = data.hash_tree_root().unwrap();
+                        (serialized, root)
+                })"
+                    .to_string())]),
+                },
+            ),
+            (
+                "attestation_data",
+                Auxillary {
+                    test_case_type_generics: Default::default(),
+                    preamble: Default::default(),
+                    execution_handler: HashMap::from_iter([(Spec::All, "execute(|encoding| {
+                        let mut data: spec::AttestationData = ssz_rs::deserialize(encoding).unwrap();
+                        let serialized = ssz_rs::serialize(&data).unwrap();
+                        let root = data.hash_tree_root().unwrap();
+                        (serialized, root)
+                })"
+                    .to_string())]),
+                },
+            ),
+            (
+                "attester_slashing",
+                Auxillary {
+                    test_case_type_generics: Default::default(),
+                    preamble: Default::default(),
+                    execution_handler: HashMap::from_iter([(Spec::All, "execute(|encoding| {
+                        let mut data: spec::AttesterSlashing = ssz_rs::deserialize(encoding).unwrap();
+                        let serialized = ssz_rs::serialize(&data).unwrap();
+                        let root = data.hash_tree_root().unwrap();
+                        (serialized, root)
+                })"
+                    .to_string())]),
+                },
+            ),
+            (
+                "beacon_block",
+                Auxillary {
+                    test_case_type_generics: Default::default(),
+                    preamble: Default::default(),
+                    execution_handler: HashMap::from_iter([(Spec::All, "execute(|encoding| {
+                        let mut data: spec::BeaconBlock = ssz_rs::deserialize(encoding).unwrap();
+                        let serialized = ssz_rs::serialize(&data).unwrap();
+                        let root = data.hash_tree_root().unwrap();
+                        (serialized, root)
+                })"
+                    .to_string())]),
+                },
+            ),
+            (
+                "beacon_block_body",
+                Auxillary {
+                    test_case_type_generics: Default::default(),
+                    preamble: Default::default(),
+                    execution_handler: HashMap::from_iter([(Spec::All, "execute(|encoding| {
+                        let mut data: spec::BeaconBlockBody = ssz_rs::deserialize(encoding).unwrap();
+                        let serialized = ssz_rs::serialize(&data).unwrap();
+                        let root = data.hash_tree_root().unwrap();
+                        (serialized, root)
+                })"
+                    .to_string())]),
+                },
+            ),
+            (
+                "beacon_block_header",
+                Auxillary {
+                    test_case_type_generics: Default::default(),
+                    preamble: Default::default(),
+                    execution_handler: HashMap::from_iter([(Spec::All, "execute(|encoding| {
+                        let mut data: spec::BeaconBlockHeader = ssz_rs::deserialize(encoding).unwrap();
+                        let serialized = ssz_rs::serialize(&data).unwrap();
+                        let root = data.hash_tree_root().unwrap();
+                        (serialized, root)
+                })"
+                    .to_string())]),
+                },
+            ),
+            (
+                "beacon_state",
+                Auxillary {
+                    test_case_type_generics: Default::default(),
+                    preamble: Default::default(),
+                    execution_handler: HashMap::from_iter([(Spec::All, "execute(|encoding| {
+                        let mut data: spec::BeaconState = ssz_rs::deserialize(encoding).unwrap();
+                        let serialized = ssz_rs::serialize(&data).unwrap();
+                        let root = data.hash_tree_root().unwrap();
+                        (serialized, root)
+                })"
+                    .to_string())]),
+                },
+            ),
+            (
+                "checkpoint",
+                Auxillary {
+                    test_case_type_generics: Default::default(),
+                    preamble: Default::default(),
+                    execution_handler: HashMap::from_iter([(Spec::All, "execute(|encoding| {
+                        let mut data: spec::Checkpoint = ssz_rs::deserialize(encoding).unwrap();
+                        let serialized = ssz_rs::serialize(&data).unwrap();
+                        let root = data.hash_tree_root().unwrap();
+                        (serialized, root)
+                })"
+                    .to_string())]),
+                },
+            ),
+            (
+                "contribution_and_proof",
+                Auxillary {
+                    test_case_type_generics: Default::default(),
+                    preamble: Default::default(),
+                    execution_handler: HashMap::from_iter([(Spec::All, "execute(|encoding| {
+                        let mut data: spec::ContributionAndProof = ssz_rs::deserialize(encoding).unwrap();
+                        let serialized = ssz_rs::serialize(&data).unwrap();
+                        let root = data.hash_tree_root().unwrap();
+                        (serialized, root)
+                })"
+                    .to_string())]),
+                },
+            ),
+            (
+                "deposit",
+                Auxillary {
+                    test_case_type_generics: Default::default(),
+                    preamble: Default::default(),
+                    execution_handler: HashMap::from_iter([(Spec::All, "execute(|encoding| {
+                        let mut data: spec::Deposit = ssz_rs::deserialize(encoding).unwrap();
+                        let serialized = ssz_rs::serialize(&data).unwrap();
+                        let root = data.hash_tree_root().unwrap();
+                        (serialized, root)
+                })"
+                    .to_string())]),
+                },
+            ),
+            (
+                "deposit_data",
+                Auxillary {
+                    test_case_type_generics: Default::default(),
+                    preamble: Default::default(),
+                    execution_handler: HashMap::from_iter([(Spec::All, "execute(|encoding| {
+                        let mut data: spec::DepositData = ssz_rs::deserialize(encoding).unwrap();
+                        let serialized = ssz_rs::serialize(&data).unwrap();
+                        let root = data.hash_tree_root().unwrap();
+                        (serialized, root)
+                })"
+                    .to_string())]),
+                },
+            ),
+            (
+                "deposit_message",
+                Auxillary {
+                    test_case_type_generics: Default::default(),
+                    preamble: Default::default(),
+                    execution_handler: HashMap::from_iter([(Spec::All, "execute(|encoding| {
+                        let mut data: spec::DepositMessage = ssz_rs::deserialize(encoding).unwrap();
+                        let serialized = ssz_rs::serialize(&data).unwrap();
+                        let root = data.hash_tree_root().unwrap();
+                        (serialized, root)
+                })"
+                    .to_string())]),
+                },
+            ),
+            (
+                "eth_1_block",
+                Auxillary {
+                    test_case_type_generics: Default::default(),
+                    preamble: Default::default(),
+                    execution_handler: HashMap::from_iter([(Spec::All, "execute(|encoding| {
+                        let mut data: spec::Eth1Block = ssz_rs::deserialize(encoding).unwrap();
+                        let serialized = ssz_rs::serialize(&data).unwrap();
+                        let root = data.hash_tree_root().unwrap();
+                        (serialized, root)
+                })"
+                    .to_string())]),
+                },
+            ),
+            (
+                "eth_1_data",
+                Auxillary {
+                    test_case_type_generics: Default::default(),
+                    preamble: Default::default(),
+                    execution_handler: HashMap::from_iter([(Spec::All, "execute(|encoding| {
+                        let mut data: spec::Eth1Data = ssz_rs::deserialize(encoding).unwrap();
+                        let serialized = ssz_rs::serialize(&data).unwrap();
+                        let root = data.hash_tree_root().unwrap();
+                        (serialized, root)
+                })"
+                    .to_string())]),
+                },
+            ),
+            (
+                "execution_payload",
+                Auxillary {
+                    test_case_type_generics: Default::default(),
+                    preamble: Default::default(),
+                    execution_handler: HashMap::from_iter([(Spec::All, "execute(|encoding| {
+                        let mut data: spec::ExecutionPayload = ssz_rs::deserialize(encoding).unwrap();
+                        let serialized = ssz_rs::serialize(&data).unwrap();
+                        let root = data.hash_tree_root().unwrap();
+                        (serialized, root)
+                })"
+                    .to_string())]),
+                },
+            ),
+            (
+                "execution_payload_header",
+                Auxillary {
+                    test_case_type_generics: Default::default(),
+                    preamble: Default::default(),
+                    execution_handler: HashMap::from_iter([(Spec::All, "execute(|encoding| {
+                        let mut data: spec::ExecutionPayloadHeader = ssz_rs::deserialize(encoding).unwrap();
+                        let serialized = ssz_rs::serialize(&data).unwrap();
+                        let root = data.hash_tree_root().unwrap();
+                        (serialized, root)
+                })"
+                    .to_string())]),
+                },
+            ),
+            (
+                "fork",
+                Auxillary {
+                    test_case_type_generics: Default::default(),
+                    preamble: Default::default(),
+                    execution_handler: HashMap::from_iter([(Spec::All, "execute(|encoding| {
+                        let mut data: spec::Fork = ssz_rs::deserialize(encoding).unwrap();
+                        let serialized = ssz_rs::serialize(&data).unwrap();
+                        let root = data.hash_tree_root().unwrap();
+                        (serialized, root)
+                })"
+                    .to_string())]),
+                },
+            ),
+            (
+                "fork_data",
+                Auxillary {
+                    test_case_type_generics: Default::default(),
+                    preamble: Default::default(),
+                    execution_handler: HashMap::from_iter([(Spec::All, "execute(|encoding| {
+                        let mut data: spec::ForkData = ssz_rs::deserialize(encoding).unwrap();
+                        let serialized = ssz_rs::serialize(&data).unwrap();
+                        let root = data.hash_tree_root().unwrap();
+                        (serialized, root)
+                })"
+                    .to_string())]),
+                },
+            ),
+            (
+                "historical_batch",
+                Auxillary {
+                    test_case_type_generics: Default::default(),
+                    preamble: Default::default(),
+                    execution_handler: HashMap::from_iter([(Spec::All, "execute(|encoding| {
+                        let mut data: spec::HistoricalBatch = ssz_rs::deserialize(encoding).unwrap();
+                        let serialized = ssz_rs::serialize(&data).unwrap();
+                        let root = data.hash_tree_root().unwrap();
+                        (serialized, root)
+                })"
+                    .to_string())]),
+                },
+            ),
+            (
+                "indexed_attestation",
+                Auxillary {
+                    test_case_type_generics: Default::default(),
+                    preamble: Default::default(),
+                    execution_handler: HashMap::from_iter([(Spec::All, "execute(|encoding| {
+                        let mut data: spec::IndexedAttestation = ssz_rs::deserialize(encoding).unwrap();
+                        let serialized = ssz_rs::serialize(&data).unwrap();
+                        let root = data.hash_tree_root().unwrap();
+                        (serialized, root)
+                })"
+                    .to_string())]),
+                },
+            ),
+            (
+                "light_client_update",
+                Auxillary {
+                    test_case_type_generics: Default::default(),
+                    preamble: Default::default(),
+                    execution_handler: HashMap::from_iter([(Spec::All, "execute(|encoding| {
+                        let mut data: spec::LightClientUpdate = ssz_rs::deserialize(encoding).unwrap();
+                        let serialized = ssz_rs::serialize(&data).unwrap();
+                        let root = data.hash_tree_root().unwrap();
+                        (serialized, root)
+                })"
+                    .to_string())]),
+                },
+            ),
+            (
+                "pending_attestation",
+                Auxillary {
+                    test_case_type_generics: Default::default(),
+                    preamble: Default::default(),
+                    execution_handler: HashMap::from_iter([(Spec::All, "execute(|encoding| {
+                        let mut data: spec::PendingAttestation = ssz_rs::deserialize(encoding).unwrap();
+                        let serialized = ssz_rs::serialize(&data).unwrap();
+                        let root = data.hash_tree_root().unwrap();
+                        (serialized, root)
+                })"
+                    .to_string())]),
+                },
+            ),
+            (
+                "pow_block",
+                Auxillary {
+                    test_case_type_generics: Default::default(),
+                    preamble: Default::default(),
+                    execution_handler: HashMap::from_iter([(Spec::All, "execute(|encoding| {
+                        let mut data: spec::PowBlock = ssz_rs::deserialize(encoding).unwrap();
+                        let serialized = ssz_rs::serialize(&data).unwrap();
+                        let root = data.hash_tree_root().unwrap();
+                        (serialized, root)
+                })"
+                    .to_string())]),
+                },
+            ),
+            (
+                "proposer_slashing",
+                Auxillary {
+                    test_case_type_generics: Default::default(),
+                    preamble: Default::default(),
+                    execution_handler: HashMap::from_iter([(Spec::All, "execute(|encoding| {
+                        let mut data: spec::ProposerSlashing = ssz_rs::deserialize(encoding).unwrap();
+                        let serialized = ssz_rs::serialize(&data).unwrap();
+                        let root = data.hash_tree_root().unwrap();
+                        (serialized, root)
+                })"
+                    .to_string())]),
+                },
+            ),
+            (
+                "signed_aggregate_and_proof",
+                Auxillary {
+                    test_case_type_generics: Default::default(),
+                    preamble: Default::default(),
+                    execution_handler: HashMap::from_iter([(Spec::All, "execute(|encoding| {
+                        let mut data: spec::SignedAggregateAndProof = ssz_rs::deserialize(encoding).unwrap();
+                        let serialized = ssz_rs::serialize(&data).unwrap();
+                        let root = data.hash_tree_root().unwrap();
+                        (serialized, root)
+                })"
+                    .to_string())]),
+                },
+            ),
+            (
+                "signed_beacon_block",
+                Auxillary {
+                    test_case_type_generics: Default::default(),
+                    preamble: Default::default(),
+                    execution_handler: HashMap::from_iter([(Spec::All, "execute(|encoding| {
+                        let mut data: spec::SignedBeaconBlock = ssz_rs::deserialize(encoding).unwrap();
+                        let serialized = ssz_rs::serialize(&data).unwrap();
+                        let root = data.hash_tree_root().unwrap();
+                        (serialized, root)
+                })"
+                    .to_string())]),
+                },
+            ),
+            (
+                "signed_beacon_block_header",
+                Auxillary {
+                    test_case_type_generics: Default::default(),
+                    preamble: Default::default(),
+                    execution_handler: HashMap::from_iter([(Spec::All, "execute(|encoding| {
+                        let mut data: spec::SignedBeaconBlockHeader = ssz_rs::deserialize(encoding).unwrap();
+                        let serialized = ssz_rs::serialize(&data).unwrap();
+                        let root = data.hash_tree_root().unwrap();
+                        (serialized, root)
+                })"
+                    .to_string())]),
+                },
+            ),
+            (
+                "signed_contribution_and_proof",
+                Auxillary {
+                    test_case_type_generics: Default::default(),
+                    preamble: Default::default(),
+                    execution_handler: HashMap::from_iter([(Spec::All, "execute(|encoding| {
+                        let mut data: spec::SignedContributionAndProof = ssz_rs::deserialize(encoding).unwrap();
+                        let serialized = ssz_rs::serialize(&data).unwrap();
+                        let root = data.hash_tree_root().unwrap();
+                        (serialized, root)
+                })"
+                    .to_string())]),
+                },
+            ),
+            (
+                "signed_voluntary_exit",
+                Auxillary {
+                    test_case_type_generics: Default::default(),
+                    preamble: Default::default(),
+                    execution_handler: HashMap::from_iter([(Spec::All, "execute(|encoding| {
+                        let mut data: spec::SignedVoluntaryExit = ssz_rs::deserialize(encoding).unwrap();
+                        let serialized = ssz_rs::serialize(&data).unwrap();
+                        let root = data.hash_tree_root().unwrap();
+                        (serialized, root)
+                })"
+                    .to_string())]),
+                },
+            ),
+            (
+                "signing_data",
+                Auxillary {
+                    test_case_type_generics: Default::default(),
+                    preamble: Default::default(),
+                    execution_handler: HashMap::from_iter([(Spec::All, "execute(|encoding| {
+                        let mut data: spec::SigningData = ssz_rs::deserialize(encoding).unwrap();
+                        let serialized = ssz_rs::serialize(&data).unwrap();
+                        let root = data.hash_tree_root().unwrap();
+                        (serialized, root)
+                })"
+                    .to_string())]),
+                },
+            ),
+            (
+                "sync_aggregate",
+                Auxillary {
+                    test_case_type_generics: Default::default(),
+                    preamble: Default::default(),
+                    execution_handler: HashMap::from_iter([(Spec::All, "execute(|encoding| {
+                        let mut data: spec::SyncAggregate = ssz_rs::deserialize(encoding).unwrap();
+                        let serialized = ssz_rs::serialize(&data).unwrap();
+                        let root = data.hash_tree_root().unwrap();
+                        (serialized, root)
+                })"
+                    .to_string())]),
+                },
+            ),
+            (
+                "sync_aggregator_selection_data",
+                Auxillary {
+                    test_case_type_generics: Default::default(),
+                    preamble: Default::default(),
+                    execution_handler: HashMap::from_iter([(Spec::All, "execute(|encoding| {
+                        let mut data: spec::SyncAggregatorSelectionData = ssz_rs::deserialize(encoding).unwrap();
+                        let serialized = ssz_rs::serialize(&data).unwrap();
+                        let root = data.hash_tree_root().unwrap();
+                        (serialized, root)
+                })"
+                    .to_string())]),
+                },
+            ),
+            (
+                "sync_committee",
+                Auxillary {
+                    test_case_type_generics: Default::default(),
+                    preamble: Default::default(),
+                    execution_handler: HashMap::from_iter([(Spec::All, "execute(|encoding| {
+                        let mut data: spec::SyncCommittee = ssz_rs::deserialize(encoding).unwrap();
+                        let serialized = ssz_rs::serialize(&data).unwrap();
+                        let root = data.hash_tree_root().unwrap();
+                        (serialized, root)
+                })"
+                    .to_string())]),
+                },
+            ),
+            (
+                "sync_committee_contribution",
+                Auxillary {
+                    test_case_type_generics: Default::default(),
+                    preamble: Default::default(),
+                    execution_handler: HashMap::from_iter([(Spec::All, "execute(|encoding| {
+                        let mut data: spec::SyncCommitteeContribution = ssz_rs::deserialize(encoding).unwrap();
+                        let serialized = ssz_rs::serialize(&data).unwrap();
+                        let root = data.hash_tree_root().unwrap();
+                        (serialized, root)
+                })"
+                    .to_string())]),
+                },
+            ),
+            (
+                "sync_committee_message",
+                Auxillary {
+                    test_case_type_generics: Default::default(),
+                    preamble: Default::default(),
+                    execution_handler: HashMap::from_iter([(Spec::All, "execute(|encoding| {
+                        let mut data: spec::SyncCommitteeMessage = ssz_rs::deserialize(encoding).unwrap();
+                        let serialized = ssz_rs::serialize(&data).unwrap();
+                        let root = data.hash_tree_root().unwrap();
+                        (serialized, root)
+                })"
+                    .to_string())]),
+                },
+            ),
+            (
+                "validator",
+                Auxillary {
+                    test_case_type_generics: Default::default(),
+                    preamble: Default::default(),
+                    execution_handler: HashMap::from_iter([(Spec::All, "execute(|encoding| {
+                        let mut data: spec::Validator = ssz_rs::deserialize(encoding).unwrap();
+                        let serialized = ssz_rs::serialize(&data).unwrap();
+                        let root = data.hash_tree_root().unwrap();
+                        (serialized, root)
+                })"
+                    .to_string())]),
+                },
+            ),
+            (
+                "voluntary_exit",
+                Auxillary {
+                    test_case_type_generics: Default::default(),
+                    preamble: Default::default(),
+                    execution_handler: HashMap::from_iter([(Spec::All, "execute(|encoding| {
+                        let mut data: spec::VoluntaryExit = ssz_rs::deserialize(encoding).unwrap();
+                        let serialized = ssz_rs::serialize(&data).unwrap();
+                        let root = data.hash_tree_root().unwrap();
+                        (serialized, root)
+                })"
+                    .to_string())]),
                 },
             ),
         ])),

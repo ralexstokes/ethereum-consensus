@@ -2,7 +2,6 @@
 // This file was generated with `gen-tests`. Do NOT edit manually.
 
 use crate::spec_test_runners::operations::SyncAggregateTestCase;
-use crate::test_utils::TestCase;
 
 #[test]
 fn test_invalid_signature_bad_domain() {
