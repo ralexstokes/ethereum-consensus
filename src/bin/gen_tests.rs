@@ -205,6 +205,104 @@ enum Spec {
 
 fn main() {
     let auxilliary_data = HashMap::from([
+        ("operations",
+        HashMap::from([
+            (
+                "attestation",
+                Auxillary {
+                    test_case_type_generics: "spec::BeaconState, spec::Attestation".to_string(),
+                    preamble: Default::default(),
+                    execution_handler: HashMap::from_iter([(Spec::All, "execute(|state, operation, context| {
+                    spec::process_attestation(state, operation, context)
+                })"
+                    .to_string())]),
+                },
+            ),
+            (
+                "attester_slashing",
+                Auxillary {
+                    test_case_type_generics: "spec::BeaconState, spec::AttesterSlashing".to_string(),
+                    preamble: Default::default(),
+                    execution_handler: HashMap::from_iter([(Spec::All, "execute(|state, operation, context| {
+                    spec::process_attester_slashing(state, operation, context)
+                })"
+                    .to_string())]),
+                },
+            ),
+            (
+                "block_header",
+                Auxillary {
+                    test_case_type_generics: "spec::BeaconState, spec::BeaconBlock".to_string(),
+                    preamble: Default::default(),
+                    execution_handler: HashMap::from_iter([(Spec::All, "execute(|state, operation, context| {
+                    spec::process_block_header(state, operation, context)
+                })"
+                    .to_string())]),
+                },
+            ),
+            (
+                "deposit",
+                Auxillary {
+                    test_case_type_generics: "spec::BeaconState, spec::Deposit".to_string(),
+                    preamble: Default::default(),
+                    execution_handler: HashMap::from_iter([(Spec::All, "execute(|state, operation, context| {
+                    spec::process_deposit(state, operation, context)
+                })"
+                    .to_string())]),
+                },
+            ),
+            (
+                "proposer_slashing",
+                Auxillary {
+                    test_case_type_generics: "spec::BeaconState, spec::ProposerSlashing".to_string(),
+                    preamble: Default::default(),
+                    execution_handler: HashMap::from_iter([(Spec::All, "execute(|state, operation, context| {
+                    spec::process_proposer_slashing(state, operation, context)
+                })"
+                    .to_string())]),
+                },
+            ),
+            (
+                "voluntary_exit",
+                Auxillary {
+                    test_case_type_generics: "spec::BeaconState, spec::SignedVoluntaryExit".to_string(),
+                    preamble: Default::default(),
+                    execution_handler: HashMap::from_iter([(Spec::All, "execute(|state, operation, context| {
+                    spec::process_voluntary_exit(state, operation, context)
+                })"
+                    .to_string())]),
+                },
+            ),
+            (
+                "sync_aggregate",
+                Auxillary {
+                    test_case_type_generics: "spec::BeaconState, spec::SyncAggregate".to_string(),
+                    preamble: Default::default(),
+                    execution_handler: HashMap::from_iter([(Spec::All, "execute(|state, operation, context| {
+                    spec::process_sync_aggregate(state, operation, context)
+                })"
+                    .to_string())]),
+                },
+            ),
+            (
+                "execution_payload",
+                Auxillary {
+                    test_case_type_generics: "spec::BeaconState, spec::ExecutionPayload".to_string(),
+                    preamble: Default::default(),
+                    execution_handler: HashMap::from_iter([(Spec::All, "execute(|state, operation, context, execution_valid| {
+                    use ethereum_consensus::state_transition::{Error, InvalidBlock, InvalidOperation, InvalidExecutionPayload};
+                    let execution_engine = spec::MockExecutionEngine::new(|_| if execution_valid {
+                        Ok(())
+                    } else {
+                        // NOTE: exact error is not specified for this test
+                        Err(Error::InvalidBlock(Box::new(InvalidBlock::InvalidOperation(InvalidOperation::ExecutionPayload(InvalidExecutionPayload::InvalidTimestamp { provided: 0, expected: 0 })))))
+                    });
+                    spec::process_execution_payload(state, operation, execution_engine, context)
+                })"
+                    .to_string())]),
+                },
+            ),
+        ])),
         ("sanity",
         HashMap::from([
             (

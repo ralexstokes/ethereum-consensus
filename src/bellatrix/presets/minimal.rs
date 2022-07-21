@@ -1,10 +1,10 @@
-pub use crate::altair::mainnet::{
+use crate::altair::minimal::SYNC_COMMITTEE_SIZE;
+pub use crate::altair::minimal::{
     AggregateAndProof, Attestation, AttesterSlashing, ContributionAndProof, HistoricalBatch,
     IndexedAttestation, LightClientUpdate, PendingAttestation, SignedAggregateAndProof,
     SignedContributionAndProof, SyncAggregate, SyncCommittee, SyncCommitteeContribution,
     SyncCommitteeMessage,
 };
-use crate::altair::minimal::SYNC_COMMITTEE_SIZE;
 use crate::bellatrix;
 use crate::bellatrix::presets::Preset;
 use crate::phase0::minimal::{
@@ -154,4 +154,12 @@ pub type NoOpExecutionEngine = bellatrix::NoOpExecutionEngine<
     MAX_EXTRA_DATA_BYTES,
     MAX_BYTES_PER_TRANSACTION,
     MAX_TRANSACTIONS_PER_PAYLOAD,
+>;
+
+pub type MockExecutionEngine<F> = bellatrix::MockExecutionEngine<
+    BYTES_PER_LOGS_BLOOM,
+    MAX_EXTRA_DATA_BYTES,
+    MAX_BYTES_PER_TRANSACTION,
+    MAX_TRANSACTIONS_PER_PAYLOAD,
+    F,
 >;
