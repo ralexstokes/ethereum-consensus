@@ -19,12 +19,19 @@ pub(super) const fn get_pending_attestations_bound(
     max_attestations * slots_per_epoch
 }
 
-/// Note: a slight deviation from the specification's definition of `HistoricalBatch`
-///
+#[derive(Default, Debug, SimpleSerialize)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+pub struct HistoricalBatch<const SLOTS_PER_HISTORICAL_ROOT: usize> {
+    pub block_roots: Vector<Root, SLOTS_PER_HISTORICAL_ROOT>,
+    pub state_roots: Vector<Root, SLOTS_PER_HISTORICAL_ROOT>,
+}
+
 /// `HistoricalBatch` is to be used as a "summary" Merkleized container and is simply a wrapper around
 /// `block_roots` & `state_roots` (and their respective Merkle roots). Instead of the `_roots`
 /// being of type `Vector<Root, N>`, a single `Root` is pulled out to allow Merkleization of each root to be
-/// performed manually (using the `ssz_rs` crate). Thus, the container is redefined as `HistoricalBatchAccumulator`
+/// performed manually (using the `ssz_rs` crate).
+///
+/// Instead of requiring a full copy of the roots, the container is summarized as `HistoricalBatchAccumulator`
 /// with `block_roots_root` & `state_roots_root`.
 ///
 /// This design decision was chosen for memory optimization purposes, for example, in the

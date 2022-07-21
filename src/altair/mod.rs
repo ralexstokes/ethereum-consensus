@@ -18,15 +18,17 @@ pub use state_transition::{
 
 pub use beacon_block::*;
 pub use beacon_state::*;
+pub use light_client::*;
 pub use presets::Preset;
 pub use sync::*;
 pub use validator::*;
 
 pub use crate::phase0::{
     Attestation, AttestationData, AttesterSlashing, BeaconBlockHeader, Checkpoint, Deposit,
-    DepositData, DepositMessage, Eth1Data, Fork, ForkData, HistoricalBatchAccumulator,
-    IndexedAttestation, ProposerSlashing, SignedVoluntaryExit, Validator, BASE_REWARDS_PER_EPOCH,
-    DEPOSIT_CONTRACT_TREE_DEPTH, JUSTIFICATION_BITS_LENGTH,
+    DepositData, DepositMessage, Eth1Block, Eth1Data, Fork, ForkData, HistoricalBatchAccumulator,
+    IndexedAttestation, ProposerSlashing, SignedBeaconBlockHeader, SignedVoluntaryExit,
+    SigningData, Validator, VoluntaryExit, BASE_REWARDS_PER_EPOCH, DEPOSIT_CONTRACT_TREE_DEPTH,
+    JUSTIFICATION_BITS_LENGTH,
 };
 
 pub use presets::mainnet;

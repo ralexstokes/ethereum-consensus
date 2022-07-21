@@ -1,7 +1,8 @@
 use crate::altair;
 use crate::altair::presets::Preset;
 pub use crate::phase0::minimal::{
-    AggregateAndProof, Attestation, AttesterSlashing, IndexedAttestation, SignedAggregateAndProof,
+    AggregateAndProof, Attestation, AttesterSlashing, HistoricalBatch, IndexedAttestation,
+    PendingAttestation, SignedAggregateAndProof,
 };
 use crate::phase0::minimal::{
     EPOCHS_PER_HISTORICAL_VECTOR, EPOCHS_PER_SLASHINGS_VECTOR, ETH1_DATA_VOTES_BOUND,
@@ -37,6 +38,8 @@ pub const PRESET: Preset = Preset {
 pub type SyncAggregate = altair::SyncAggregate<SYNC_COMMITTEE_SIZE>;
 pub type SyncCommittee = altair::SyncCommittee<SYNC_COMMITTEE_SIZE>;
 
+pub type LightClientUpdate = altair::LightClientUpdate<SYNC_COMMITTEE_SIZE>;
+
 pub type BeaconState = altair::BeaconState<
     SLOTS_PER_HISTORICAL_ROOT,
     HISTORICAL_ROOTS_LIMIT,
@@ -47,6 +50,17 @@ pub type BeaconState = altair::BeaconState<
     MAX_VALIDATORS_PER_COMMITTEE,
     SYNC_COMMITTEE_SIZE,
 >;
+
+pub type BeaconBlockBody = altair::BeaconBlockBody<
+    MAX_PROPOSER_SLASHINGS,
+    MAX_VALIDATORS_PER_COMMITTEE,
+    MAX_ATTESTER_SLASHINGS,
+    MAX_ATTESTATIONS,
+    MAX_DEPOSITS,
+    MAX_VOLUNTARY_EXITS,
+    SYNC_COMMITTEE_SIZE,
+>;
+
 pub type BeaconBlock = altair::BeaconBlock<
     MAX_PROPOSER_SLASHINGS,
     MAX_VALIDATORS_PER_COMMITTEE,
@@ -56,6 +70,7 @@ pub type BeaconBlock = altair::BeaconBlock<
     MAX_VOLUNTARY_EXITS,
     SYNC_COMMITTEE_SIZE,
 >;
+
 pub type SignedBeaconBlock = altair::SignedBeaconBlock<
     MAX_PROPOSER_SLASHINGS,
     MAX_VALIDATORS_PER_COMMITTEE,

@@ -7,6 +7,7 @@ mod blinded_beacon_block;
 mod block_processing;
 mod epoch_processing;
 mod execution;
+mod fork_choice;
 mod helpers;
 mod presets;
 mod state_transition_bellatrix;
@@ -20,17 +21,20 @@ pub use beacon_block::*;
 pub use beacon_state::*;
 pub use blinded_beacon_block::*;
 pub use execution::*;
+pub use fork_choice::*;
 pub use presets::Preset;
 
 pub use crate::altair::{
-    SyncAggregate, SyncCommittee, PARTICIPATION_FLAG_WEIGHTS, PROPOSER_WEIGHT, SYNC_REWARD_WEIGHT,
-    TIMELY_HEAD_FLAG_INDEX, TIMELY_SOURCE_FLAG_INDEX, TIMELY_TARGET_FLAG_INDEX, WEIGHT_DENOMINATOR,
+    SyncAggregate, SyncAggregatorSelectionData, SyncCommittee, PARTICIPATION_FLAG_WEIGHTS,
+    PROPOSER_WEIGHT, SYNC_REWARD_WEIGHT, TIMELY_HEAD_FLAG_INDEX, TIMELY_SOURCE_FLAG_INDEX,
+    TIMELY_TARGET_FLAG_INDEX, WEIGHT_DENOMINATOR,
 };
 pub use crate::phase0::{
     Attestation, AttestationData, AttesterSlashing, BeaconBlockHeader, Checkpoint, Deposit,
-    DepositData, DepositMessage, Eth1Data, Fork, ForkData, HistoricalBatchAccumulator,
-    IndexedAttestation, ProposerSlashing, SignedVoluntaryExit, Validator, BASE_REWARDS_PER_EPOCH,
-    DEPOSIT_CONTRACT_TREE_DEPTH, JUSTIFICATION_BITS_LENGTH,
+    DepositData, DepositMessage, Eth1Block, Eth1Data, Fork, ForkData, HistoricalBatchAccumulator,
+    IndexedAttestation, ProposerSlashing, SignedBeaconBlockHeader, SignedVoluntaryExit,
+    SigningData, Validator, VoluntaryExit, BASE_REWARDS_PER_EPOCH, DEPOSIT_CONTRACT_TREE_DEPTH,
+    JUSTIFICATION_BITS_LENGTH,
 };
 
 pub mod mainnet {

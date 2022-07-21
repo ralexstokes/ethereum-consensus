@@ -1,9 +1,9 @@
 use crate::primitives::{BlsSignature, Root, Slot, ValidatorIndex};
-use ssz_rs::prelude::Bitvector;
+use ssz_rs::prelude::*;
 
 pub const SYNC_COMMITTEE_SUBNET_COUNT: usize = 4;
 
-#[derive(Debug, Default, Clone)]
+#[derive(Debug, Default, Clone, SimpleSerialize)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct SyncCommitteeMessage {
     #[serde(with = "crate::serde::as_string")]
@@ -18,7 +18,7 @@ pub(super) const fn get_sync_subcommittee_size(sync_committee_size: usize) -> us
     sync_committee_size / SYNC_COMMITTEE_SUBNET_COUNT
 }
 
-#[derive(Debug, Default, Clone)]
+#[derive(Debug, Default, Clone, SimpleSerialize)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct SyncCommitteeContribution<const SYNC_SUBCOMMITTEE_SIZE: usize> {
     #[serde(with = "crate::serde::as_string")]
@@ -30,7 +30,7 @@ pub struct SyncCommitteeContribution<const SYNC_SUBCOMMITTEE_SIZE: usize> {
     pub signature: BlsSignature,
 }
 
-#[derive(Debug, Default, Clone)]
+#[derive(Debug, Default, Clone, SimpleSerialize)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct ContributionAndProof<const SYNC_SUBCOMMITTEE_SIZE: usize> {
     #[serde(with = "crate::serde::as_string")]
@@ -39,9 +39,16 @@ pub struct ContributionAndProof<const SYNC_SUBCOMMITTEE_SIZE: usize> {
     pub selection_proof: BlsSignature,
 }
 
-#[derive(Debug, Default, Clone)]
+#[derive(Debug, Default, Clone, SimpleSerialize)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct SignedContributionAndProof<const SYNC_SUBCOMMITTEE_SIZE: usize> {
     pub message: ContributionAndProof<SYNC_SUBCOMMITTEE_SIZE>,
     pub signature: BlsSignature,
+}
+
+#[derive(Debug, Default, Clone, SimpleSerialize)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+pub struct SyncAggregatorSelectionData {
+    pub slot: Slot,
+    pub subcommittee_index: u64,
 }

@@ -1,7 +1,8 @@
 pub use crate::altair::mainnet::{
-    AggregateAndProof, Attestation, AttesterSlashing, ContributionAndProof, IndexedAttestation,
-    SignedAggregateAndProof, SignedContributionAndProof, SyncAggregate, SyncCommittee,
-    SyncCommitteeContribution,
+    AggregateAndProof, Attestation, AttesterSlashing, ContributionAndProof, HistoricalBatch,
+    IndexedAttestation, LightClientUpdate, PendingAttestation, SignedAggregateAndProof,
+    SignedContributionAndProof, SyncAggregate, SyncCommittee, SyncCommitteeContribution,
+    SyncCommitteeMessage,
 };
 use crate::altair::minimal::SYNC_COMMITTEE_SIZE;
 use crate::bellatrix;
@@ -105,6 +106,21 @@ pub type BeaconState = bellatrix::BeaconState<
     MAX_BYTES_PER_TRANSACTION,
     MAX_TRANSACTIONS_PER_PAYLOAD,
 >;
+
+pub type BeaconBlockBody = bellatrix::BeaconBlockBody<
+    MAX_PROPOSER_SLASHINGS,
+    MAX_VALIDATORS_PER_COMMITTEE,
+    MAX_ATTESTER_SLASHINGS,
+    MAX_ATTESTATIONS,
+    MAX_DEPOSITS,
+    MAX_VOLUNTARY_EXITS,
+    SYNC_COMMITTEE_SIZE,
+    BYTES_PER_LOGS_BLOOM,
+    MAX_EXTRA_DATA_BYTES,
+    MAX_BYTES_PER_TRANSACTION,
+    MAX_TRANSACTIONS_PER_PAYLOAD,
+>;
+
 pub type BeaconBlock = bellatrix::BeaconBlock<
     MAX_PROPOSER_SLASHINGS,
     MAX_VALIDATORS_PER_COMMITTEE,
@@ -118,6 +134,7 @@ pub type BeaconBlock = bellatrix::BeaconBlock<
     MAX_BYTES_PER_TRANSACTION,
     MAX_TRANSACTIONS_PER_PAYLOAD,
 >;
+
 pub type SignedBeaconBlock = bellatrix::SignedBeaconBlock<
     MAX_PROPOSER_SLASHINGS,
     MAX_VALIDATORS_PER_COMMITTEE,

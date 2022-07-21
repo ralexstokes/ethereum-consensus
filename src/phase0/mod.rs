@@ -17,6 +17,7 @@ mod validator;
 pub use beacon_block::*;
 pub use beacon_state::*;
 
+pub use crate::signing::SigningData;
 pub use block_processing::*;
 pub use epoch_processing::*;
 pub use fork::*;

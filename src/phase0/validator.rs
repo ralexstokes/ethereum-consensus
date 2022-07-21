@@ -1,5 +1,5 @@
 use crate::phase0::Attestation;
-use crate::primitives::{BlsPublicKey, BlsSignature, Bytes32, Epoch, Gwei, ValidatorIndex};
+use crate::primitives::{BlsPublicKey, BlsSignature, Bytes32, Epoch, Gwei, Root, ValidatorIndex};
 use ssz_rs::prelude::*;
 
 #[derive(Default, Debug, SimpleSerialize, Clone, PartialEq, Eq)]
@@ -20,6 +20,14 @@ pub struct Validator {
     pub exit_epoch: Epoch,
     #[serde(with = "crate::serde::as_string")]
     pub withdrawable_epoch: Epoch,
+}
+
+#[derive(Default, Debug, SimpleSerialize, Clone)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+pub struct Eth1Block {
+    pub timestamp: u64,
+    pub deposit_root: Root,
+    pub deposit_count: u64,
 }
 
 #[derive(Default, Debug, SimpleSerialize, Clone)]

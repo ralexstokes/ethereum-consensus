@@ -1,8 +1,9 @@
 use crate::altair::mainnet::SYNC_COMMITTEE_SIZE;
 pub use crate::altair::mainnet::{
-    AggregateAndProof, Attestation, AttesterSlashing, ContributionAndProof, IndexedAttestation,
-    SignedAggregateAndProof, SignedContributionAndProof, SyncAggregate, SyncCommittee,
-    SyncCommitteeContribution,
+    AggregateAndProof, Attestation, AttesterSlashing, ContributionAndProof, HistoricalBatch,
+    IndexedAttestation, LightClientUpdate, PendingAttestation, SignedAggregateAndProof,
+    SignedContributionAndProof, SyncAggregate, SyncCommittee, SyncCommitteeContribution,
+    SyncCommitteeMessage,
 };
 use crate::bellatrix;
 use crate::bellatrix::presets::Preset;
@@ -99,6 +100,20 @@ pub type BeaconState = bellatrix::BeaconState<
     EPOCHS_PER_HISTORICAL_VECTOR,
     EPOCHS_PER_SLASHINGS_VECTOR,
     MAX_VALIDATORS_PER_COMMITTEE,
+    SYNC_COMMITTEE_SIZE,
+    BYTES_PER_LOGS_BLOOM,
+    MAX_EXTRA_DATA_BYTES,
+    MAX_BYTES_PER_TRANSACTION,
+    MAX_TRANSACTIONS_PER_PAYLOAD,
+>;
+
+pub type BeaconBlockBody = bellatrix::BeaconBlockBody<
+    MAX_PROPOSER_SLASHINGS,
+    MAX_VALIDATORS_PER_COMMITTEE,
+    MAX_ATTESTER_SLASHINGS,
+    MAX_ATTESTATIONS,
+    MAX_DEPOSITS,
+    MAX_VOLUNTARY_EXITS,
     SYNC_COMMITTEE_SIZE,
     BYTES_PER_LOGS_BLOOM,
     MAX_EXTRA_DATA_BYTES,
