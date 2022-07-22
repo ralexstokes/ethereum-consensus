@@ -330,6 +330,20 @@ fn main() {
                 },
             ),
         ])),
+        ("genesis",
+        HashMap::from([
+            (
+                "validity",
+                Auxillary {
+                    test_case_type_generics: "spec::BeaconState".to_string(),
+                    preamble: Default::default(),
+                    execution_handler: HashMap::from_iter([(Spec::All, "execute(|state, context| {
+                    spec::is_valid_genesis_state(state, context)
+                })"
+                    .to_string())]),
+                },
+            ),
+        ])),
         ("transition",
         HashMap::from([
             (
