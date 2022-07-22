@@ -7,6 +7,7 @@ mod blinded_beacon_block;
 mod block_processing;
 mod epoch_processing;
 mod execution;
+mod fork;
 mod fork_choice;
 mod helpers;
 mod presets;
@@ -21,6 +22,7 @@ pub use beacon_block::*;
 pub use beacon_state::*;
 pub use blinded_beacon_block::*;
 pub use execution::*;
+pub use fork::*;
 pub use fork_choice::*;
 pub use presets::Preset;
 
