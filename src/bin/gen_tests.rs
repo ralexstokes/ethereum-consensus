@@ -146,7 +146,7 @@ use crate::spec_test_runners::{}::{};
                 let handler = &data.execution_handler[&spec];
                 execution_handler += handler;
             }
-            if !matches!(runner, "ssz_static") {
+            if !matches!(runner, "ssz_static" | "rewards") {
                 mut_decl += "mut";
             }
             if let Some(s) = data.preamble.get(&spec) {
@@ -339,6 +339,129 @@ fn main() {
                         }
                         Ok(())
                     })".to_string())]),
+                },
+            ),
+        ])),
+        ("rewards",
+        HashMap::from([
+            (
+                "basic",
+                Auxillary {
+                    test_case_type_generics: "spec::BeaconState".to_string(),
+                    preamble: Default::default(),
+                    execution_handler: HashMap::from_iter([
+                        (Spec::Phase0, "execute(|state, context| {
+                    let source_deltas = spec::get_source_deltas(state, context).unwrap();
+                    let target_deltas = spec::get_target_deltas(state, context).unwrap();
+                    let head_deltas = spec::get_head_deltas(state, context).unwrap();
+                    let inclusion_penalty_deltas = spec::get_inclusion_delay_deltas(state, context).unwrap();
+                    let inactivity_penalty_deltas = spec::get_inactivity_penalty_deltas(state, context).unwrap();
+                    (source_deltas, target_deltas, head_deltas, Some(inclusion_penalty_deltas), inactivity_penalty_deltas)
+                })"
+                    .to_string()),
+                        (Spec::Altair, "execute(|state, context| {
+                    let flag_index = spec::TIMELY_SOURCE_FLAG_INDEX;
+                    let source_deltas = spec::get_flag_index_deltas(state, flag_index, context).unwrap();
+                    let flag_index = spec::TIMELY_TARGET_FLAG_INDEX;
+                    let target_deltas = spec::get_flag_index_deltas(state, flag_index, context).unwrap();
+                    let flag_index = spec::TIMELY_HEAD_FLAG_INDEX;
+                    let head_deltas = spec::get_flag_index_deltas(state, flag_index, context).unwrap();
+                    let inactivity_penalty_deltas = spec::get_inactivity_penalty_deltas(state, context).unwrap();
+                    (source_deltas, target_deltas, head_deltas, None, inactivity_penalty_deltas)
+                })"
+                    .to_string()),
+                        (Spec::Bellatrix, "execute(|state, context| {
+                    let flag_index = spec::TIMELY_SOURCE_FLAG_INDEX;
+                    let source_deltas = spec::get_flag_index_deltas(state, flag_index, context).unwrap();
+                    let flag_index = spec::TIMELY_TARGET_FLAG_INDEX;
+                    let target_deltas = spec::get_flag_index_deltas(state, flag_index, context).unwrap();
+                    let flag_index = spec::TIMELY_HEAD_FLAG_INDEX;
+                    let head_deltas = spec::get_flag_index_deltas(state, flag_index, context).unwrap();
+                    let inactivity_penalty_deltas = spec::get_inactivity_penalty_deltas(state, context).unwrap();
+                    (source_deltas, target_deltas, head_deltas, None, inactivity_penalty_deltas)
+                })"
+                    .to_string()),
+                    ]),
+                },
+            ),
+            (
+                "leak",
+                Auxillary {
+                    test_case_type_generics: "spec::BeaconState".to_string(),
+                    preamble: Default::default(),
+                    execution_handler: HashMap::from_iter([
+                        (Spec::Phase0, "execute(|state, context| {
+                    let source_deltas = spec::get_source_deltas(state, context).unwrap();
+                    let target_deltas = spec::get_target_deltas(state, context).unwrap();
+                    let head_deltas = spec::get_head_deltas(state, context).unwrap();
+                    let inclusion_penalty_deltas = spec::get_inclusion_delay_deltas(state, context).unwrap();
+                    let inactivity_penalty_deltas = spec::get_inactivity_penalty_deltas(state, context).unwrap();
+                    (source_deltas, target_deltas, head_deltas, Some(inclusion_penalty_deltas), inactivity_penalty_deltas)
+                })"
+                    .to_string()),
+                        (Spec::Altair, "execute(|state, context| {
+                    let flag_index = spec::TIMELY_SOURCE_FLAG_INDEX;
+                    let source_deltas = spec::get_flag_index_deltas(state, flag_index, context).unwrap();
+                    let flag_index = spec::TIMELY_TARGET_FLAG_INDEX;
+                    let target_deltas = spec::get_flag_index_deltas(state, flag_index, context).unwrap();
+                    let flag_index = spec::TIMELY_HEAD_FLAG_INDEX;
+                    let head_deltas = spec::get_flag_index_deltas(state, flag_index, context).unwrap();
+                    let inactivity_penalty_deltas = spec::get_inactivity_penalty_deltas(state, context).unwrap();
+                    (source_deltas, target_deltas, head_deltas, None, inactivity_penalty_deltas)
+                })"
+                    .to_string()),
+                        (Spec::Bellatrix, "execute(|state, context| {
+                    let flag_index = spec::TIMELY_SOURCE_FLAG_INDEX;
+                    let source_deltas = spec::get_flag_index_deltas(state, flag_index, context).unwrap();
+                    let flag_index = spec::TIMELY_TARGET_FLAG_INDEX;
+                    let target_deltas = spec::get_flag_index_deltas(state, flag_index, context).unwrap();
+                    let flag_index = spec::TIMELY_HEAD_FLAG_INDEX;
+                    let head_deltas = spec::get_flag_index_deltas(state, flag_index, context).unwrap();
+                    let inactivity_penalty_deltas = spec::get_inactivity_penalty_deltas(state, context).unwrap();
+                    (source_deltas, target_deltas, head_deltas, None, inactivity_penalty_deltas)
+                })"
+                    .to_string()),
+                    ]),
+                },
+            ),
+            (
+                "random",
+                Auxillary {
+                    test_case_type_generics: "spec::BeaconState".to_string(),
+                    preamble: Default::default(),
+                    execution_handler: HashMap::from_iter([
+                        (Spec::Phase0, "execute(|state, context| {
+                    let source_deltas = spec::get_source_deltas(state, context).unwrap();
+                    let target_deltas = spec::get_target_deltas(state, context).unwrap();
+                    let head_deltas = spec::get_head_deltas(state, context).unwrap();
+                    let inclusion_penalty_deltas = spec::get_inclusion_delay_deltas(state, context).unwrap();
+                    let inactivity_penalty_deltas = spec::get_inactivity_penalty_deltas(state, context).unwrap();
+                    (source_deltas, target_deltas, head_deltas, Some(inclusion_penalty_deltas), inactivity_penalty_deltas)
+                })"
+                    .to_string()),
+                        (Spec::Altair, "execute(|state, context| {
+                    let flag_index = spec::TIMELY_SOURCE_FLAG_INDEX;
+                    let source_deltas = spec::get_flag_index_deltas(state, flag_index, context).unwrap();
+                    let flag_index = spec::TIMELY_TARGET_FLAG_INDEX;
+                    let target_deltas = spec::get_flag_index_deltas(state, flag_index, context).unwrap();
+                    let flag_index = spec::TIMELY_HEAD_FLAG_INDEX;
+                    let head_deltas = spec::get_flag_index_deltas(state, flag_index, context).unwrap();
+                    let inactivity_penalty_deltas = spec::get_inactivity_penalty_deltas(state, context).unwrap();
+                    (source_deltas, target_deltas, head_deltas, None, inactivity_penalty_deltas)
+                })"
+                    .to_string()),
+                        (Spec::Bellatrix, "execute(|state, context| {
+                    let flag_index = spec::TIMELY_SOURCE_FLAG_INDEX;
+                    let source_deltas = spec::get_flag_index_deltas(state, flag_index, context).unwrap();
+                    let flag_index = spec::TIMELY_TARGET_FLAG_INDEX;
+                    let target_deltas = spec::get_flag_index_deltas(state, flag_index, context).unwrap();
+                    let flag_index = spec::TIMELY_HEAD_FLAG_INDEX;
+                    let head_deltas = spec::get_flag_index_deltas(state, flag_index, context).unwrap();
+                    let inactivity_penalty_deltas = spec::get_inactivity_penalty_deltas(state, context).unwrap();
+                    (source_deltas, target_deltas, head_deltas, None, inactivity_penalty_deltas)
+                })"
+                    .to_string()),
+                    ]),
                 },
             ),
         ])),
