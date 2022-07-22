@@ -168,6 +168,21 @@ use crate::spec_test_runners::{}::{};
         writeln!(src, "use ssz_rs::prelude::*;").unwrap();
     }
 
+    if matches!(runner, "transition") {
+        writeln!(
+            src,
+            "use ethereum_consensus::state_transition::{}::{{Executor, BeaconState}};",
+            config
+        )
+        .unwrap();
+        writeln!(
+            src,
+            "use ethereum_consensus::bellatrix::{}::NoOpExecutionEngine;",
+            config
+        )
+        .unwrap();
+    }
+
     let mut test_cases = tests.keys().cloned().collect::<Vec<_>>();
     test_cases.sort();
     for test_case in &test_cases {
@@ -298,6 +313,41 @@ fn main() {
                         Err(Error::InvalidBlock(Box::new(InvalidBlock::InvalidOperation(InvalidOperation::ExecutionPayload(InvalidExecutionPayload::InvalidTimestamp { provided: 0, expected: 0 })))))
                     });
                     spec::process_execution_payload(state, operation, execution_engine, context)
+                })"
+                    .to_string())]),
+                },
+            ),
+        ])),
+        ("transition",
+        HashMap::from([
+            (
+                "core",
+                Auxillary {
+                    test_case_type_generics: "spec::BeaconState".to_string(),
+                    preamble: Default::default(),
+                    execution_handler: HashMap::from_iter([
+                        (Spec::Altair, "execute(|state, blocks: Vec<spec::SignedBeaconBlock>, context| {
+                    let mut executor = Executor::new(state.into(), NoOpExecutionEngine, context);
+                    for block in blocks.into_iter() {
+                        let mut block = block.into();
+                        executor.apply_block(&mut block)?;
+                    }
+                    match executor.state {
+                        BeaconState::Altair(inner) => Ok(*inner),
+                        _ => unreachable!(),
+                    }
+                })"
+                    .to_string()),
+                        (Spec::Bellatrix, "execute(|state, blocks: Vec<spec::SignedBeaconBlock>, context| {
+                    let mut executor = Executor::new(state.into(), NoOpExecutionEngine, context);
+                    for block in blocks.into_iter() {
+                        let mut block = block.into();
+                        executor.apply_block(&mut block)?;
+                    }
+                    match executor.state {
+                        BeaconState::Bellatrix(inner) => Ok(*inner),
+                        _ => unreachable!(),
+                    }
                 })"
                     .to_string())]),
                 },
