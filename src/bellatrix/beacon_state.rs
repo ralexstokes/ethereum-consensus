@@ -1,4 +1,4 @@
-use crate::altair::{self, SyncCommittee};
+use crate::altair::SyncCommittee;
 use crate::bellatrix::ExecutionPayloadHeader;
 use crate::phase0::{
     BeaconBlockHeader, Checkpoint, Eth1Data, Fork, Validator, JUSTIFICATION_BITS_LENGTH,
@@ -60,61 +60,4 @@ pub struct BeaconState<
         MAX_BYTES_PER_TRANSACTION,
         MAX_TRANSACTIONS_PER_PAYLOAD,
     >,
-}
-
-impl<
-        const SLOTS_PER_HISTORICAL_ROOT: usize,
-        const HISTORICAL_ROOTS_LIMIT: usize,
-        const ETH1_DATA_VOTES_BOUND: usize,
-        const VALIDATOR_REGISTRY_LIMIT: usize,
-        const EPOCHS_PER_HISTORICAL_VECTOR: usize,
-        const EPOCHS_PER_SLASHINGS_VECTOR: usize,
-        const MAX_VALIDATORS_PER_COMMITTEE: usize,
-        const SYNC_COMMITTEE_SIZE: usize,
-        const BYTES_PER_LOGS_BLOOM: usize,
-        const MAX_EXTRA_DATA_BYTES: usize,
-        const MAX_BYTES_PER_TRANSACTION: usize,
-        const MAX_TRANSACTIONS_PER_PAYLOAD: usize,
-    >
-    From<
-        &altair::BeaconState<
-            SLOTS_PER_HISTORICAL_ROOT,
-            HISTORICAL_ROOTS_LIMIT,
-            ETH1_DATA_VOTES_BOUND,
-            VALIDATOR_REGISTRY_LIMIT,
-            EPOCHS_PER_HISTORICAL_VECTOR,
-            EPOCHS_PER_SLASHINGS_VECTOR,
-            MAX_VALIDATORS_PER_COMMITTEE,
-            SYNC_COMMITTEE_SIZE,
-        >,
-    >
-    for BeaconState<
-        SLOTS_PER_HISTORICAL_ROOT,
-        HISTORICAL_ROOTS_LIMIT,
-        ETH1_DATA_VOTES_BOUND,
-        VALIDATOR_REGISTRY_LIMIT,
-        EPOCHS_PER_HISTORICAL_VECTOR,
-        EPOCHS_PER_SLASHINGS_VECTOR,
-        MAX_VALIDATORS_PER_COMMITTEE,
-        SYNC_COMMITTEE_SIZE,
-        BYTES_PER_LOGS_BLOOM,
-        MAX_EXTRA_DATA_BYTES,
-        MAX_BYTES_PER_TRANSACTION,
-        MAX_TRANSACTIONS_PER_PAYLOAD,
-    >
-{
-    fn from(
-        _state: &altair::BeaconState<
-            SLOTS_PER_HISTORICAL_ROOT,
-            HISTORICAL_ROOTS_LIMIT,
-            ETH1_DATA_VOTES_BOUND,
-            VALIDATOR_REGISTRY_LIMIT,
-            EPOCHS_PER_HISTORICAL_VECTOR,
-            EPOCHS_PER_SLASHINGS_VECTOR,
-            MAX_VALIDATORS_PER_COMMITTEE,
-            SYNC_COMMITTEE_SIZE,
-        >,
-    ) -> Self {
-        unimplemented!()
-    }
 }
