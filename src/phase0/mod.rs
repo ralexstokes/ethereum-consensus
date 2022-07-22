@@ -6,7 +6,7 @@ mod beacon_state;
 mod block_processing;
 mod epoch_processing;
 mod fork;
-pub mod genesis;
+mod genesis;
 mod helpers;
 mod operations;
 mod presets;
@@ -14,13 +14,13 @@ mod slot_processing;
 mod state_transition;
 mod validator;
 
+pub use crate::signing::SigningData;
 pub use beacon_block::*;
 pub use beacon_state::*;
-
-pub use crate::signing::SigningData;
 pub use block_processing::*;
 pub use epoch_processing::*;
 pub use fork::*;
+pub use genesis::*;
 pub use helpers::*;
 pub use operations::*;
 pub use presets::Preset;
