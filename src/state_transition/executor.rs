@@ -218,7 +218,7 @@ impl<
             BeaconState::Phase0(state) => {
                 let fork_slot = self.context.altair_fork_epoch * self.context.slots_per_epoch;
                 phase0::process_slots(state, fork_slot, &self.context)?;
-                let mut state = altair::BeaconState::from(&**state);
+                let mut state = altair::upgrade_to_altair(state, &self.context)?;
                 if signed_block.message.slot == state.slot {
                     altair::state_transition_block_in_slot(
                         &mut state,
@@ -263,7 +263,7 @@ impl<
             BeaconState::Phase0(state) => {
                 let fork_slot = self.context.altair_fork_epoch * self.context.slots_per_epoch;
                 phase0::process_slots(state, fork_slot, &self.context)?;
-                let mut state = altair::BeaconState::from(&**state);
+                let mut state = altair::upgrade_to_altair(state, &self.context)?;
 
                 let fork_slot = self.context.bellatrix_fork_epoch * self.context.slots_per_epoch;
                 altair::process_slots(&mut state, fork_slot, &self.context)?;
