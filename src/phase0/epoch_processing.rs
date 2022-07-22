@@ -959,7 +959,7 @@ pub fn get_inactivity_penalty_deltas<
         PENDING_ATTESTATIONS_BOUND,
     >,
     context: &Context,
-) -> Result<Vec<Gwei>> {
+) -> Result<(Vec<Gwei>, Vec<Gwei>)> {
     // Return inactivity reward/penalty deltas for each validator.
     let previous_epoch = get_previous_epoch(state, context);
     let validator_count = state.validators.len();
@@ -982,8 +982,8 @@ pub fn get_inactivity_penalty_deltas<
         }
     }
     // No rewards associated with inactivity penalties
-    // Note: a slight deviation from the spec -- `rewards` is not provided in the return since it's unused
-    Ok(penalties)
+    let rewards = vec![];
+    Ok((rewards, penalties))
 }
 
 pub fn get_attestation_deltas<
@@ -1013,7 +1013,7 @@ pub fn get_attestation_deltas<
     let (target_rewards, target_penalties) = get_target_deltas(state, context)?;
     let (head_rewards, head_penalties) = get_head_deltas(state, context)?;
     let inclusion_delay_rewards = get_inclusion_delay_deltas(state, context)?;
-    let inactivity_penalties = get_inactivity_penalty_deltas(state, context)?;
+    let (_, inactivity_penalties) = get_inactivity_penalty_deltas(state, context)?;
 
     let validator_count = state.validators.len();
     let mut rewards = vec![0; validator_count];
