@@ -1,4 +1,4 @@
-use crate::altair::mainnet::SYNC_COMMITTEE_SIZE;
+pub use crate::altair::mainnet::SYNC_COMMITTEE_SIZE;
 pub use crate::altair::mainnet::{
     AggregateAndProof, Attestation, AttesterSlashing, ContributionAndProof, HistoricalBatch,
     IndexedAttestation, LightClientUpdate, PendingAttestation, SignedAggregateAndProof,
@@ -7,7 +7,7 @@ pub use crate::altair::mainnet::{
 };
 use crate::bellatrix;
 use crate::bellatrix::presets::Preset;
-use crate::phase0::mainnet::{
+pub use crate::phase0::mainnet::{
     EPOCHS_PER_HISTORICAL_VECTOR, EPOCHS_PER_SLASHINGS_VECTOR, ETH1_DATA_VOTES_BOUND,
     HISTORICAL_ROOTS_LIMIT, MAX_ATTESTATIONS, MAX_ATTESTER_SLASHINGS, MAX_DEPOSITS,
     MAX_PROPOSER_SLASHINGS, MAX_VALIDATORS_PER_COMMITTEE, MAX_VOLUNTARY_EXITS,
