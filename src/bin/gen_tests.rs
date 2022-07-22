@@ -137,7 +137,18 @@ use crate::spec_test_runners::{}::{};
     };
     if let Some(handler_data) = auxilliary_data.get(runner) {
         if let Some(data) = handler_data.get(handler) {
-            test_case_type = format!("{}::<{}>", test_case_type, data.test_case_type_generics);
+            let mut generics = data.test_case_type_generics.to_string();
+            // NOTE: special case for this handler...
+            if runner == "genesis" && handler == "initialization" {
+                if spec == Spec::Bellatrix {
+                    generics += ", spec::ExecutionPayloadHeader"
+                } else {
+                    // "placeholder" type, can be whatever
+                    // ideally would  use `()` but it does not implement `ssz_rs::Deserialize`
+                    generics += ", usize"
+                }
+            }
+            test_case_type = format!("{}::<{}>", test_case_type, generics);
             if data.execution_handler.len() == 1 && data.execution_handler.contains_key(&Spec::All)
             {
                 execution_handler += &data.execution_handler[&Spec::All];
@@ -327,6 +338,87 @@ fn main() {
                     spec::process_execution_payload(state, operation, execution_engine, context)
                 })"
                     .to_string())]),
+                },
+            ),
+        ])),
+        ("genesis",
+        HashMap::from([
+            (
+                "validity",
+                Auxillary {
+                    test_case_type_generics: "spec::BeaconState".to_string(),
+                    preamble: Default::default(),
+                    execution_handler: HashMap::from_iter([(Spec::All, "execute(|state, context| {
+                    spec::is_valid_genesis_state(state, context)
+                })"
+                    .to_string())]),
+                },
+            ),
+            (
+                "initialization",
+                Auxillary {
+                    test_case_type_generics: "spec::BeaconState, spec::Deposit".to_string(),
+                    preamble: Default::default(),
+                    execution_handler: HashMap::from_iter([
+                        (Spec::Phase0, "execute(|eth1_block_hash, eth1_timestamp, deposits, _execution_payload_header, context| {
+                    spec::initialize_beacon_state_from_eth1::<
+                        {spec::SLOTS_PER_HISTORICAL_ROOT},
+                        {spec::HISTORICAL_ROOTS_LIMIT},
+                        {spec::ETH1_DATA_VOTES_BOUND},
+                        {spec::VALIDATOR_REGISTRY_LIMIT},
+                        {spec::EPOCHS_PER_HISTORICAL_VECTOR},
+                        {spec::EPOCHS_PER_SLASHINGS_VECTOR},
+                        {spec::MAX_VALIDATORS_PER_COMMITTEE},
+                        {spec::PENDING_ATTESTATIONS_BOUND},
+                        {spec::MAX_PROPOSER_SLASHINGS},
+                        {spec::MAX_ATTESTER_SLASHINGS},
+                        {spec::MAX_ATTESTATIONS},
+                        {spec::MAX_DEPOSITS},
+                        {spec::MAX_VOLUNTARY_EXITS},
+                    >(eth1_block_hash, eth1_timestamp, deposits, context)
+                })"
+                    .to_string()),
+                        (Spec::Altair, "execute(|eth1_block_hash, eth1_timestamp, deposits, _execution_payload_header, context| {
+                    spec::initialize_beacon_state_from_eth1::<
+                        {spec::SLOTS_PER_HISTORICAL_ROOT},
+                        {spec::HISTORICAL_ROOTS_LIMIT},
+                        {spec::ETH1_DATA_VOTES_BOUND},
+                        {spec::VALIDATOR_REGISTRY_LIMIT},
+                        {spec::EPOCHS_PER_HISTORICAL_VECTOR},
+                        {spec::EPOCHS_PER_SLASHINGS_VECTOR},
+                        {spec::MAX_VALIDATORS_PER_COMMITTEE},
+                        {spec::SYNC_COMMITTEE_SIZE},
+                        {spec::MAX_PROPOSER_SLASHINGS},
+                        {spec::MAX_ATTESTER_SLASHINGS},
+                        {spec::MAX_ATTESTATIONS},
+                        {spec::MAX_DEPOSITS},
+                        {spec::MAX_VOLUNTARY_EXITS},
+                        >(eth1_block_hash, eth1_timestamp, deposits, context)
+                })"
+                    .to_string()),
+                        (Spec::Bellatrix, "execute(|eth1_block_hash, eth1_timestamp, deposits, execution_payload_header, context| {
+                    spec::initialize_beacon_state_from_eth1::<
+                        {spec::SLOTS_PER_HISTORICAL_ROOT},
+                        {spec::HISTORICAL_ROOTS_LIMIT},
+                        {spec::ETH1_DATA_VOTES_BOUND},
+                        {spec::VALIDATOR_REGISTRY_LIMIT},
+                        {spec::EPOCHS_PER_HISTORICAL_VECTOR},
+                        {spec::EPOCHS_PER_SLASHINGS_VECTOR},
+                        {spec::MAX_VALIDATORS_PER_COMMITTEE},
+                        {spec::SYNC_COMMITTEE_SIZE},
+                        {spec::MAX_PROPOSER_SLASHINGS},
+                        {spec::MAX_ATTESTER_SLASHINGS},
+                        {spec::MAX_ATTESTATIONS},
+                        {spec::MAX_DEPOSITS},
+                        {spec::MAX_VOLUNTARY_EXITS},
+                        {spec::BYTES_PER_LOGS_BLOOM},
+                        {spec::MAX_EXTRA_DATA_BYTES},
+                        {spec::MAX_BYTES_PER_TRANSACTION},
+                        {spec::MAX_TRANSACTIONS_PER_PAYLOAD},
+                        >(eth1_block_hash, eth1_timestamp, deposits, execution_payload_header, context)
+                })"
+                    .to_string())
+                    ]),
                 },
             ),
         ])),

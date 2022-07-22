@@ -9,6 +9,7 @@ mod epoch_processing;
 mod execution;
 mod fork;
 mod fork_choice;
+mod genesis;
 mod helpers;
 mod presets;
 mod state_transition_bellatrix;
@@ -24,6 +25,7 @@ pub use blinded_beacon_block::*;
 pub use execution::*;
 pub use fork::*;
 pub use fork_choice::*;
+pub use genesis::*;
 pub use presets::Preset;
 
 pub use crate::altair::{

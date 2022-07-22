@@ -113,8 +113,9 @@ pub fn upgrade_to_altair<
 
     translate_participation(&mut post_state, &state.previous_epoch_attestations, context)?;
 
-    post_state.current_sync_committee = get_next_sync_committee(&post_state, context)?;
-    post_state.next_sync_committee = get_next_sync_committee(&post_state, context)?;
+    let sync_committee = get_next_sync_committee(&post_state, context)?;
+    post_state.current_sync_committee = sync_committee.clone();
+    post_state.next_sync_committee = sync_committee;
 
     Ok(post_state)
 }
