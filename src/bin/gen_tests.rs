@@ -146,7 +146,7 @@ use crate::spec_test_runners::{}::{};
                 let handler = &data.execution_handler[&spec];
                 execution_handler += handler;
             }
-            if !matches!(runner, "ssz_static" | "rewards") {
+            if !matches!(runner, "ssz_static" | "rewards" | "fork") {
                 mut_decl += "mut";
             }
             if let Some(s) = data.preamble.get(&spec) {
@@ -168,6 +168,7 @@ use crate::spec_test_runners::{}::{};
         writeln!(src, "use ssz_rs::prelude::*;").unwrap();
     }
 
+    // special case imports here...
     if matches!(runner, "transition") {
         writeln!(
             src,
@@ -181,6 +182,17 @@ use crate::spec_test_runners::{}::{};
             config
         )
         .unwrap();
+    }
+    if matches!(runner, "fork") {
+        match spec {
+            Spec::Altair => {
+                writeln!(src, "use ethereum_consensus::phase0::{} as phase0;", config).unwrap();
+            }
+            Spec::Bellatrix => {
+                writeln!(src, "use ethereum_consensus::altair::{} as altair;", config).unwrap();
+            }
+            _ => todo!("support other forks"),
+        }
     }
 
     let mut test_cases = tests.keys().cloned().collect::<Vec<_>>();
@@ -350,6 +362,26 @@ fn main() {
                     }
                 })"
                     .to_string())]),
+                },
+            ),
+        ])),
+        ("fork",
+        HashMap::from([
+            (
+                "fork",
+                Auxillary {
+                    test_case_type_generics: Default::default(),
+                    preamble: Default::default(),
+                    execution_handler: HashMap::from_iter([
+                        (Spec::Altair, "execute(|state: &phase0::BeaconState, context| -> spec::BeaconState {
+                    spec::upgrade_to_altair(state, context).unwrap()
+                })"
+                    .to_string()),
+                        (Spec::Bellatrix, "execute(|state: &altair::BeaconState, context| -> spec::BeaconState {
+                    spec::upgrade_to_bellatrix(state, context)
+                })"
+                    .to_string())
+                    ]),
                 },
             ),
         ])),
