@@ -1,10 +1,12 @@
-use crate::phase0 as spec;
+use crate::bellatrix as spec;
 
+use crate::phase0::DEPOSIT_DATA_LIST_BOUND;
 use crate::primitives::{Gwei, Hash32, GENESIS_EPOCH};
 use crate::state_transition::{Context, Result};
 use spec::{
-    get_active_validator_indices, process_deposit, BeaconBlock, BeaconBlockBody, BeaconBlockHeader,
-    BeaconState, Deposit, DepositData, Eth1Data, Fork, DEPOSIT_DATA_LIST_BOUND,
+    get_active_validator_indices, get_next_sync_committee, process_deposit, BeaconBlock,
+    BeaconBlockBody, BeaconBlockHeader, BeaconState, Deposit, DepositData, Eth1Data,
+    ExecutionPayloadHeader, Fork,
 };
 use ssz_rs::prelude::*;
 
@@ -16,16 +18,28 @@ pub fn initialize_beacon_state_from_eth1<
     const EPOCHS_PER_HISTORICAL_VECTOR: usize,
     const EPOCHS_PER_SLASHINGS_VECTOR: usize,
     const MAX_VALIDATORS_PER_COMMITTEE: usize,
-    const PENDING_ATTESTATIONS_BOUND: usize,
+    const SYNC_COMMITTEE_SIZE: usize,
     const MAX_PROPOSER_SLASHINGS: usize,
     const MAX_ATTESTER_SLASHINGS: usize,
     const MAX_ATTESTATIONS: usize,
     const MAX_DEPOSITS: usize,
     const MAX_VOLUNTARY_EXITS: usize,
+    const BYTES_PER_LOGS_BLOOM: usize,
+    const MAX_EXTRA_DATA_BYTES: usize,
+    const MAX_BYTES_PER_TRANSACTION: usize,
+    const MAX_TRANSACTIONS_PER_PAYLOAD: usize,
 >(
     eth1_block_hash: Hash32,
     eth1_timestamp: u64,
     deposits: &mut [Deposit],
+    execution_payload_header: Option<
+        &ExecutionPayloadHeader<
+            BYTES_PER_LOGS_BLOOM,
+            MAX_EXTRA_DATA_BYTES,
+            MAX_BYTES_PER_TRANSACTION,
+            MAX_TRANSACTIONS_PER_PAYLOAD,
+        >,
+    >,
     context: &Context,
 ) -> Result<
     BeaconState<
@@ -36,12 +50,16 @@ pub fn initialize_beacon_state_from_eth1<
         EPOCHS_PER_HISTORICAL_VECTOR,
         EPOCHS_PER_SLASHINGS_VECTOR,
         MAX_VALIDATORS_PER_COMMITTEE,
-        PENDING_ATTESTATIONS_BOUND,
+        SYNC_COMMITTEE_SIZE,
+        BYTES_PER_LOGS_BLOOM,
+        MAX_EXTRA_DATA_BYTES,
+        MAX_BYTES_PER_TRANSACTION,
+        MAX_TRANSACTIONS_PER_PAYLOAD,
     >,
 > {
     let fork = Fork {
-        previous_version: context.genesis_fork_version,
-        current_version: context.genesis_fork_version,
+        previous_version: context.bellatrix_fork_version,
+        current_version: context.bellatrix_fork_version,
         epoch: GENESIS_EPOCH,
     };
     let eth1_data = Eth1Data {
@@ -56,6 +74,11 @@ pub fn initialize_beacon_state_from_eth1<
         MAX_ATTESTATIONS,
         MAX_DEPOSITS,
         MAX_VOLUNTARY_EXITS,
+        SYNC_COMMITTEE_SIZE,
+        BYTES_PER_LOGS_BLOOM,
+        MAX_EXTRA_DATA_BYTES,
+        MAX_BYTES_PER_TRANSACTION,
+        MAX_TRANSACTIONS_PER_PAYLOAD,
     >::default();
     let body_root = latest_block_body.hash_tree_root()?;
     let latest_block_header = BeaconBlockHeader {
@@ -65,12 +88,14 @@ pub fn initialize_beacon_state_from_eth1<
     let randao_mixes = Vector::from_iter(
         std::iter::repeat(eth1_block_hash).take(context.epochs_per_historical_vector as usize),
     );
+    let execution_payload_header = execution_payload_header.cloned().unwrap_or_default();
     let mut state = BeaconState {
         genesis_time: eth1_timestamp + context.genesis_delay,
         fork,
         eth1_data,
         latest_block_header,
         randao_mixes,
+        latest_execution_payload_header: execution_payload_header,
         ..Default::default()
     };
 
@@ -97,6 +122,10 @@ pub fn initialize_beacon_state_from_eth1<
 
     state.genesis_validators_root = state.validators.hash_tree_root()?;
 
+    let sync_committee = get_next_sync_committee(&state, context)?;
+    state.current_sync_committee = sync_committee.clone();
+    state.next_sync_committee = sync_committee;
+
     Ok(state)
 }
 
@@ -108,7 +137,11 @@ pub fn is_valid_genesis_state<
     const EPOCHS_PER_HISTORICAL_VECTOR: usize,
     const EPOCHS_PER_SLASHINGS_VECTOR: usize,
     const MAX_VALIDATORS_PER_COMMITTEE: usize,
-    const PENDING_ATTESTATIONS_BOUND: usize,
+    const SYNC_COMMITTEE_SIZE: usize,
+    const BYTES_PER_LOGS_BLOOM: usize,
+    const MAX_EXTRA_DATA_BYTES: usize,
+    const MAX_BYTES_PER_TRANSACTION: usize,
+    const MAX_TRANSACTIONS_PER_PAYLOAD: usize,
 >(
     state: &BeaconState<
         SLOTS_PER_HISTORICAL_ROOT,
@@ -118,7 +151,11 @@ pub fn is_valid_genesis_state<
         EPOCHS_PER_HISTORICAL_VECTOR,
         EPOCHS_PER_SLASHINGS_VECTOR,
         MAX_VALIDATORS_PER_COMMITTEE,
-        PENDING_ATTESTATIONS_BOUND,
+        SYNC_COMMITTEE_SIZE,
+        BYTES_PER_LOGS_BLOOM,
+        MAX_EXTRA_DATA_BYTES,
+        MAX_BYTES_PER_TRANSACTION,
+        MAX_TRANSACTIONS_PER_PAYLOAD,
     >,
     context: &Context,
 ) -> bool {
@@ -143,12 +180,16 @@ pub fn get_genesis_block<
     const EPOCHS_PER_HISTORICAL_VECTOR: usize,
     const EPOCHS_PER_SLASHINGS_VECTOR: usize,
     const MAX_VALIDATORS_PER_COMMITTEE: usize,
-    const PENDING_ATTESTATIONS_BOUND: usize,
+    const SYNC_COMMITTEE_SIZE: usize,
     const MAX_PROPOSER_SLASHINGS: usize,
     const MAX_ATTESTER_SLASHINGS: usize,
     const MAX_ATTESTATIONS: usize,
     const MAX_DEPOSITS: usize,
     const MAX_VOLUNTARY_EXITS: usize,
+    const BYTES_PER_LOGS_BLOOM: usize,
+    const MAX_EXTRA_DATA_BYTES: usize,
+    const MAX_BYTES_PER_TRANSACTION: usize,
+    const MAX_TRANSACTIONS_PER_PAYLOAD: usize,
 >(
     genesis_state: &mut BeaconState<
         SLOTS_PER_HISTORICAL_ROOT,
@@ -158,7 +199,11 @@ pub fn get_genesis_block<
         EPOCHS_PER_HISTORICAL_VECTOR,
         EPOCHS_PER_SLASHINGS_VECTOR,
         MAX_VALIDATORS_PER_COMMITTEE,
-        PENDING_ATTESTATIONS_BOUND,
+        SYNC_COMMITTEE_SIZE,
+        BYTES_PER_LOGS_BLOOM,
+        MAX_EXTRA_DATA_BYTES,
+        MAX_BYTES_PER_TRANSACTION,
+        MAX_TRANSACTIONS_PER_PAYLOAD,
     >,
 ) -> Result<
     BeaconBlock<
@@ -168,6 +213,11 @@ pub fn get_genesis_block<
         MAX_ATTESTATIONS,
         MAX_DEPOSITS,
         MAX_VOLUNTARY_EXITS,
+        SYNC_COMMITTEE_SIZE,
+        BYTES_PER_LOGS_BLOOM,
+        MAX_EXTRA_DATA_BYTES,
+        MAX_BYTES_PER_TRANSACTION,
+        MAX_TRANSACTIONS_PER_PAYLOAD,
     >,
 > {
     Ok(BeaconBlock {

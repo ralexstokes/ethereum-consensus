@@ -188,8 +188,6 @@ impl fmt::Display for Specs {
 enum Modules {
     BlockProcessing,
     EpochProcessing,
-    // TODO: enable
-    // Genesis,
     Helpers,
     StateTransition,
     SlotProcessing,
@@ -200,7 +198,6 @@ impl fmt::Display for Modules {
         match self {
             Self::BlockProcessing => write!(f, "block_processing"),
             Self::EpochProcessing => write!(f, "epoch_processing"),
-            // Self::Genesis => write!(f,  "genesis"),
             Self::Helpers => write!(f, "helpers"),
             Self::StateTransition => write!(f, "state_transition"),
             Self::SlotProcessing => write!(f, "slot_processing"),
@@ -211,8 +208,6 @@ impl fmt::Display for Modules {
 const ALL_MODULES: &[Modules; 5] = &[
     Modules::BlockProcessing,
     Modules::EpochProcessing,
-    // TODO: enable
-    // Modules::Genesis,
     Modules::Helpers,
     Modules::StateTransition,
     Modules::SlotProcessing,

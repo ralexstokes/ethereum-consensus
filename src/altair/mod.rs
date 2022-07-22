@@ -6,6 +6,7 @@ mod beacon_state;
 mod block_processing;
 mod epoch_processing;
 mod fork;
+mod genesis;
 mod helpers;
 mod light_client;
 mod presets;
@@ -20,6 +21,7 @@ pub use state_transition::{
 pub use beacon_block::*;
 pub use beacon_state::*;
 pub use fork::*;
+pub use genesis::*;
 pub use light_client::*;
 pub use presets::Preset;
 pub use sync::*;
