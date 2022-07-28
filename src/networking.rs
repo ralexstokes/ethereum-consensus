@@ -13,6 +13,7 @@ pub const RESP_TIMEOUT: Duration = Duration::from_secs(10);
 pub const ATTESTATION_PROPAGATION_SLOT_RANGE: usize = 32;
 pub const MAXIMUM_GOSSIP_CLOCK_DISPARITY: Duration = Duration::from_millis(500);
 
+#[cfg(feature = "peer-id")]
 pub use libp2p_core::PeerId;
 pub use multiaddr::Multiaddr;
 
