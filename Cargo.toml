@@ -12,6 +12,7 @@ async = ["tokio", "tokio-stream", "async-stream"]
 spec-tests = ["serde", "serde_json", "serde_yaml"]
 gen-spec = ["syn", "prettyplease", "quote"]
 gen-tests = ["walkdir", "convert_case"]
+peer-id = ["libp2p-core"]
 
 [dependencies]
 ssz-rs = { git = "https://github.com/ralexstokes/ssz-rs" }
@@ -22,7 +23,8 @@ sha2 = "0.9.8"
 integer-sqrt = "0.1.5"
 enr = "0.5.1"
 multiaddr = "0.14.0"
-libp2p-core = { version = "0.32.1", features = ["serde"] }
+
+libp2p-core = { version = "0.32.1", features = ["serde"], optional = true }
 
 serde = { version = "1.0", features = ["derive"], optional = true }
 serde_json = { version = "1.0.81", optional = true }
