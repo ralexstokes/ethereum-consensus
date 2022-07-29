@@ -5,16 +5,18 @@ use crate::error::ApiError;
 use crate::types::{
     ApiResult, AttestationDuty, BalanceSummary, BeaconHeaderSummary, BeaconProposerRegistration,
     BlockId, CommitteeDescriptor, CommitteeFilter, CommitteeSummary, EventTopic,
-    FinalityCheckpoints, GenesisDetails, HealthStatus, NetworkIdentity, PeerDescription,
-    PeerDescriptor, PeerSummary, ProposerDuty, PublicKeyOrIndex, RootData, StateId,
-    SyncCommitteeDescriptor, SyncCommitteeDuty, SyncCommitteeSummary, SyncStatus, ValidatorStatus,
-    ValidatorSummary, Value, VersionData,
+    FinalityCheckpoints, GenesisDetails, HealthStatus, PeerSummary, ProposerDuty, PublicKeyOrIndex,
+    RootData, StateId, SyncCommitteeDescriptor, SyncCommitteeDuty, SyncCommitteeSummary,
+    SyncStatus, ValidatorStatus, ValidatorSummary, Value, VersionData,
 };
+#[cfg(feature = "peer-id")]
+use crate::types::{NetworkIdentity, PeerDescription, PeerDescriptor};
 use ethereum_consensus::altair::mainnet::{
     SignedContributionAndProof, SyncCommitteeContribution, SyncCommitteeMessage,
 };
 use ethereum_consensus::bellatrix::mainnet::{BlindedBeaconBlock, SignedBlindedBeaconBlock};
 use ethereum_consensus::builder::SignedValidatorRegistration;
+#[cfg(feature = "peer-id")]
 use ethereum_consensus::networking::Multiaddr;
 use ethereum_consensus::phase0::mainnet::{
     Attestation, AttestationData, AttesterSlashing, BeaconBlock, BeaconState, Fork,
@@ -371,14 +373,17 @@ impl Client {
     }
 
     /* node namespace */
+    #[cfg(feature = "peer-id")]
     pub async fn get_node_identity() -> Result<NetworkIdentity, Error> {
         unimplemented!("")
     }
 
+    #[cfg(feature = "peer-id")]
     pub async fn get_node_peers(filters: &[PeerDescriptor]) -> Result<Vec<PeerDescription>, Error> {
         unimplemented!("")
     }
 
+    #[cfg(feature = "peer-id")]
     pub async fn get_peer(peer_id: Multiaddr) -> Result<PeerDescription, Error> {
         unimplemented!("")
     }
