@@ -15,8 +15,6 @@ pub struct CoreTestCase<S> {
 struct Meta {
     post_fork: String,
     fork_epoch: Epoch,
-    #[serde(default)]
-    fork_block: usize,
     blocks_count: usize,
 }
 
