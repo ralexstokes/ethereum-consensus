@@ -1,6 +1,6 @@
 use crate::test_utils::{load_snappy_ssz, load_yaml, Config};
 use ethereum_consensus::primitives::Epoch;
-use ethereum_consensus::state_transition::{Context, Executor, Result, Validation};
+use ethereum_consensus::state_transition::{Context, Result};
 use serde::Deserialize;
 use std::fmt;
 
@@ -15,8 +15,6 @@ pub struct CoreTestCase<S> {
 struct Meta {
     post_fork: String,
     fork_epoch: Epoch,
-    #[serde(default)]
-    fork_block: usize,
     blocks_count: usize,
 }
 

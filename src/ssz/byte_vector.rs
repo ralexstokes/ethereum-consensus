@@ -10,6 +10,15 @@ pub struct ByteVector<const N: usize>(
     #[serde(with = "crate::serde::as_hex")] pub(crate) Vector<u8, N>,
 );
 
+#[cfg(not(feature = "bls"))]
+impl<const N: usize> ByteVector<N> {
+    pub fn to_bytes(&self) -> [u8; N] {
+        let mut data = vec![];
+        self.serialize(&mut data).unwrap();
+        data.try_into().unwrap()
+    }
+}
+
 impl<const N: usize> TryFrom<&[u8]> for ByteVector<N> {
     type Error = ssz_rs::DeserializeError;
 

@@ -15,7 +15,9 @@ download-integration-tests: clean-integration-tests
 clean-integration-tests:
     rm -rf consensus-spec-tests
 run-integration-tests:
+    # NOTE: Two types of tests, those that support BLS and those that do not
     cargo test --features 'spec-tests' --test '*'
+    cargo test --features 'spec-tests default-without-bls' --no-default-features --test '*'
 fmt:
     cargo fmt
 lint: fmt
