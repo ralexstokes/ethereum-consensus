@@ -1,6 +1,6 @@
 use crate::test_utils::{load_snappy_ssz, load_yaml, Config};
 use ethereum_consensus::primitives::Epoch;
-use ethereum_consensus::state_transition::{Context, Executor, Result, Validation};
+use ethereum_consensus::state_transition::{Context, Result};
 use serde::Deserialize;
 use std::fmt;
 
