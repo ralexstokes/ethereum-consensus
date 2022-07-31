@@ -42,7 +42,7 @@ pub fn compute_committee(
     let end = (indices.len()) * (index + 1) / count;
     for i in start..end {
         let index = compute_shuffled_index(i, indices.len(), seed, context)?;
-        committee[index] = indices[index];
+        committee[i - start] = indices[index];
     }
     Ok(committee)
 }
