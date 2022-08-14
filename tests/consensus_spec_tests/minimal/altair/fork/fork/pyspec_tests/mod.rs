@@ -1,6 +1,7 @@
 // WARNING!
 // This file was generated with `gen-tests`. Do NOT edit manually.
 
+#![cfg(feature = "bls")]
 use crate::spec_test_runners::fork::ForkTestCase;
 use ethereum_consensus::altair::minimal as spec;
 use ethereum_consensus::phase0::minimal as phase0;

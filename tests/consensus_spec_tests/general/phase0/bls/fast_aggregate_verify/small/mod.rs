@@ -1,6 +1,7 @@
 // WARNING!
 // This file was generated with `gen-tests`. Do NOT edit manually.
 
+#![cfg(feature = "bls")]
 use crate::spec_test_runners::bls::FastAggregateVerifyTestCase;
 use crate::test_utils::TestCase;
 
