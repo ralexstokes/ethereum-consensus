@@ -110,12 +110,11 @@ fn generate_suite_src(
     auxilliary_data: &HashMap<&str, HashMap<&str, Auxillary>>,
 ) -> String {
     let mut test_case_type = handler.to_case(Case::UpperCamel) + "TestCase";
-    let mut src = format!(
-        r#"// WARNING!
+    let mut src = r#"// WARNING!
 // This file was generated with `gen-tests`. Do NOT edit manually.
 
 "#
-    );
+    .to_string();
 
     // NOTE: demand `bls` feature set unless we know the test
     // handler expects it to be missing
