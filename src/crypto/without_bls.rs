@@ -245,7 +245,7 @@ impl Merkleized for PublicKey {
 
 impl SimpleSerialize for PublicKey {
     fn is_composite_type() -> bool {
-        false
+        true
     }
 }
 
@@ -355,6 +355,6 @@ impl Merkleized for Signature {
 
 impl SimpleSerialize for Signature {
     fn is_composite_type() -> bool {
-        false
+        true
     }
 }
