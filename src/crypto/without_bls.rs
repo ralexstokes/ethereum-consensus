@@ -224,11 +224,7 @@ impl Sized for PublicKey {
 
 impl Serialize for PublicKey {
     fn serialize(&self, buffer: &mut Vec<u8>) -> Result<usize, SerializeError> {
-        let start = buffer.len();
-        buffer.extend_from_slice(&self.as_bytes());
-        let encoded_length = buffer.len() - start;
-        debug_assert_eq!(encoded_length, Self::size_hint());
-        Ok(encoded_length)
+        self.0.serialize(buffer)
     }
 }
 
@@ -243,10 +239,7 @@ impl Deserialize for PublicKey {
 
 impl Merkleized for PublicKey {
     fn hash_tree_root(&mut self) -> Result<Node, MerkleizationError> {
-        let mut buffer = vec![];
-        self.serialize(&mut buffer)?;
-        pack_bytes(&mut buffer);
-        merkleize(&buffer, None)
+        self.0.hash_tree_root()
     }
 }
 
@@ -340,11 +333,7 @@ impl Sized for Signature {
 
 impl Serialize for Signature {
     fn serialize(&self, buffer: &mut Vec<u8>) -> Result<usize, SerializeError> {
-        let start = buffer.len();
-        buffer.extend_from_slice(&self.as_bytes());
-        let encoded_length = buffer.len() - start;
-        debug_assert!(encoded_length == Self::size_hint());
-        Ok(encoded_length)
+        self.0.serialize(buffer)
     }
 }
 
@@ -360,10 +349,7 @@ impl Deserialize for Signature {
 
 impl Merkleized for Signature {
     fn hash_tree_root(&mut self) -> Result<Node, MerkleizationError> {
-        let mut buffer = vec![];
-        self.serialize(&mut buffer)?;
-        pack_bytes(&mut buffer);
-        merkleize(&buffer, None)
+        self.0.hash_tree_root()
     }
 }
 
