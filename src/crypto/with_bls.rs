@@ -1,11 +1,9 @@
 use crate::bytes::write_bytes_to_lower_hex;
-use crate::primitives::Bytes32;
 #[cfg(feature = "serde")]
 use crate::serde::{try_bytes_from_hex_str, HexError};
 use blst::{min_pk as blst_core, BLST_ERROR};
 #[cfg(feature = "serde")]
 use serde;
-use sha2::{digest::FixedOutput, Digest, Sha256};
 use ssz_rs::prelude::*;
 use std::fmt;
 use std::hash::{Hash, Hasher};
@@ -26,6 +24,8 @@ pub enum Error {
     Randomness(#[from] rand::Error),
     #[error("blst error: {0}")]
     BLST(#[from] BLSTError),
+    #[error("expected additional input data when decoding")]
+    MissingInput,
 }
 
 #[derive(Debug, Error)]
@@ -46,21 +46,6 @@ impl From<BLST_ERROR> for BLSTError {
         };
         Self(inner.to_string())
     }
-}
-
-pub fn hash<D: AsRef<[u8]>>(data: D) -> Bytes32 {
-    let mut result = vec![0u8; 32];
-    let mut hasher = Sha256::new();
-    hasher.update(data);
-    hasher.finalize_into(result.as_mut_slice().into());
-    Bytes32::try_from(result.as_ref()).expect("correct input")
-}
-
-fn verify_signature(public_key: &PublicKey, msg: &[u8], sig: &Signature) -> bool {
-    let pk = &public_key.0;
-    let avg = &[];
-    let res = sig.0.verify(true, msg, BLS_DST, avg, pk, true);
-    res == BLST_ERROR::BLST_SUCCESS
 }
 
 pub fn aggregate(signatures: &[Signature]) -> Result<Signature, Error> {
@@ -244,7 +229,7 @@ impl PartialEq for PublicKey {
 
 impl PublicKey {
     pub fn verify_signature(&self, msg: &[u8], sig: &Signature) -> bool {
-        verify_signature(self, msg, sig)
+        sig.verify(self, msg)
     }
 
     pub fn validate(&self) -> bool {
@@ -296,7 +281,8 @@ impl Merkleized for PublicKey {
 
 impl SimpleSerialize for PublicKey {
     fn is_composite_type() -> bool {
-        false
+        // NOTE: treat as Vector<u8, N>
+        true
     }
 }
 
@@ -363,9 +349,11 @@ impl Default for Signature {
 
 impl Signature {
     pub fn verify(&self, pk: &PublicKey, msg: &[u8]) -> bool {
-        verify_signature(pk, msg, self)
+        let pk = &pk.0;
+        let avg = &[];
+        let res = self.0.verify(true, msg, BLS_DST, avg, pk, true);
+        res == BLST_ERROR::BLST_SUCCESS
     }
-
     pub fn as_bytes(&self) -> [u8; 96] {
         self.0.to_bytes()
     }
@@ -400,9 +388,8 @@ impl Deserialize for Signature {
     where
         Self: Sized,
     {
-        let inner = blst_core::Signature::deserialize(encoding)
-            .map_err(|_| DeserializeError::InvalidInput)?;
-        Ok(Self(inner))
+        let signature = Self::try_from(encoding).map_err(|_| DeserializeError::InvalidInput)?;
+        Ok(signature)
     }
 }
 
@@ -417,7 +404,8 @@ impl Merkleized for Signature {
 
 impl SimpleSerialize for Signature {
     fn is_composite_type() -> bool {
-        false
+        // NOTE: treat as Vector<u8, N>
+        true
     }
 }
 

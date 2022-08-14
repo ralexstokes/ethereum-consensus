@@ -110,14 +110,27 @@ fn generate_suite_src(
     auxilliary_data: &HashMap<&str, HashMap<&str, Auxillary>>,
 ) -> String {
     let mut test_case_type = handler.to_case(Case::UpperCamel) + "TestCase";
-    let mut src = format!(
-        r#"// WARNING!
+    let mut src = r#"// WARNING!
 // This file was generated with `gen-tests`. Do NOT edit manually.
 
-use crate::spec_test_runners::{}::{};
-"#,
+"#
+    .to_string();
+
+    // NOTE: demand `bls` feature set unless we know the test
+    // handler expects it to be missing
+    // NOTE: needs to be at top-of-file...
+    if matches!(runner, "ssz_static") {
+        writeln!(src, "#![cfg(not(feature = \"bls\"))]").unwrap();
+    } else {
+        writeln!(src, "#![cfg(feature = \"bls\")]").unwrap();
+    }
+
+    writeln!(
+        src,
+        "use crate::spec_test_runners::{}::{};",
         runner, test_case_type
-    );
+    )
+    .unwrap();
 
     let needs_trait_import = matches!(runner, "bls");
 
@@ -205,7 +218,6 @@ use crate::spec_test_runners::{}::{};
             _ => todo!("support other forks"),
         }
     }
-
     let mut test_cases = tests.keys().cloned().collect::<Vec<_>>();
     test_cases.sort();
     for test_case in &test_cases {

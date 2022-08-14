@@ -1,4 +1,4 @@
-use crate::test_utils::{load_snappy_ssz, load_yaml, Config, TestCase};
+use crate::test_utils::{load_snappy_ssz, Config};
 use ethereum_consensus::state_transition::{Context, Result};
 use std::fmt;
 
