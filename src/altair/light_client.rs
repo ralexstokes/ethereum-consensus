@@ -1,6 +1,6 @@
 use crate::altair::{SyncAggregate, SyncCommittee};
 use crate::phase0::BeaconBlockHeader;
-use crate::primitives::{Bytes32, Slot};
+use crate::primitives::{Bytes32, Version};
 use ssz_rs::prelude::*;
 
 pub const NEXT_SYNC_COMMITTEE_INDEX_FLOOR_LOG_2: usize = 5;
@@ -15,5 +15,5 @@ pub struct LightClientUpdate<const SYNC_COMMITTEE_SIZE: usize> {
     pub finalized_header: BeaconBlockHeader,
     pub finality_branch: Vector<Bytes32, FINALIZED_ROOT_INDEX_FLOOR_LOG_2>,
     pub sync_aggregate: SyncAggregate<SYNC_COMMITTEE_SIZE>,
-    pub signature_slot: Slot,
+    pub fork_version: Version,
 }
