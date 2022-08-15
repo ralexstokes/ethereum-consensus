@@ -71,7 +71,11 @@ pub fn process_proposer_slashing<
     }
 
     let proposer_index = header_1.proposer_index;
-    let proposer = &state.validators[proposer_index];
+    let proposer = state.validators.get(proposer_index).ok_or_else(|| {
+        invalid_operation_error(InvalidOperation::ProposerSlashing(
+            InvalidProposerSlashing::InvalidIndex(proposer_index),
+        ))
+    })?;
     if !is_slashable_validator(proposer, get_current_epoch(state, context)) {
         return Err(invalid_operation_error(InvalidOperation::ProposerSlashing(
             InvalidProposerSlashing::ProposerIsNotSlashable(header_1.proposer_index),
@@ -415,7 +419,14 @@ pub fn process_voluntary_exit<
     context: &Context,
 ) -> Result<()> {
     let voluntary_exit = &mut signed_voluntary_exit.message;
-    let validator = &state.validators[voluntary_exit.validator_index];
+    let validator = state
+        .validators
+        .get(voluntary_exit.validator_index)
+        .ok_or_else(|| {
+            invalid_operation_error(InvalidOperation::VoluntaryExit(
+                InvalidVoluntaryExit::InvalidIndex(voluntary_exit.validator_index),
+            ))
+        })?;
     let current_epoch = get_current_epoch(state, context);
 
     if !is_active_validator(validator, current_epoch) {

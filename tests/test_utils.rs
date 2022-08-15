@@ -57,5 +57,7 @@ pub fn load_snappy_ssz<T: ssz_rs::Deserialize>(path: &str) -> Option<T> {
     }
     let buffer = load_snappy_ssz_bytes(path);
 
-    Some(<T as ssz_rs::Deserialize>::deserialize(&buffer).unwrap())
+    let result = <T as ssz_rs::Deserialize>::deserialize(&buffer);
+
+    result.ok()
 }
