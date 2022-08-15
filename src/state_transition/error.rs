@@ -183,6 +183,8 @@ pub enum InvalidProposerSlashing {
     ProposerIsNotSlashable(ValidatorIndex),
     #[error("header has invalid signature: {0:?}")]
     InvalidSignature(BlsSignature),
+    #[error("proposer with index {0} is not in state")]
+    InvalidIndex(ValidatorIndex),
 }
 
 #[derive(Debug, Error)]
@@ -195,6 +197,8 @@ pub enum InvalidAttesterSlashing {
 
 #[derive(Debug, Error)]
 pub enum InvalidVoluntaryExit {
+    #[error("validator with index {0} is not in state")]
+    InvalidIndex(ValidatorIndex),
     #[error("validator is not active in the current epoch {0}")]
     InactiveValidator(Epoch),
     #[error("validator {index} already exited in {epoch}")]
