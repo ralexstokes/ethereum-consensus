@@ -7,8 +7,9 @@ pub use crate::altair::epoch_processing::process_justification_and_finalization;
 pub use crate::altair::epoch_processing::process_participation_flag_updates;
 pub use crate::altair::epoch_processing::process_rewards_and_penalties;
 pub use crate::altair::epoch_processing::process_sync_committee_updates;
-use crate::primitives::{Epoch, Gwei, ValidatorIndex};
 use crate::state_transition::{Context, Result};
+
+use crate::primitives::{Epoch, Gwei, ValidatorIndex};
 
 use spec::{
     compute_activation_exit_epoch, decrease_balance, get_block_root, get_current_epoch,

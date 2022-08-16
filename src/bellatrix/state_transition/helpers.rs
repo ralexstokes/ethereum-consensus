@@ -38,9 +38,9 @@ pub fn compute_committee(
     count: usize,
     context: &Context,
 ) -> Result<Vec<ValidatorIndex>> {
-    let mut committee = vec![0usize; count];
     let start = (indices.len() * index) / count;
     let end = (indices.len()) * (index + 1) / count;
+    let mut committee = vec![0usize; end - start];
     for i in start..end {
         let index = compute_shuffled_index(i, indices.len(), seed, context)?;
         committee[i - start] = indices[index];
@@ -1458,18 +1458,19 @@ pub fn is_valid_indexed_attestation<
             )),
         ));
     }
-    let public_keys = state
-        .validators
-        .iter()
-        .enumerate()
-        .filter_map(|(i, v)| {
-            if indices.contains(&i) {
-                Some(&v.public_key)
-            } else {
-                None
-            }
-        })
-        .collect::<Vec<_>>();
+    let mut public_keys = vec![];
+    for index in indices {
+        let public_key = state
+            .validators
+            .get(index)
+            .map(|v| &v.public_key)
+            .ok_or_else(|| {
+                invalid_operation_error(InvalidOperation::IndexedAttestation(
+                    InvalidIndexedAttestation::InvalidIndex(index),
+                ))
+            })?;
+        public_keys.push(public_key);
+    }
     let domain = get_domain(
         state,
         DomainType::BeaconAttester,
