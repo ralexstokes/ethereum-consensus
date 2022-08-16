@@ -369,9 +369,9 @@ pub fn compute_committee(
     count: usize,
     context: &Context,
 ) -> Result<Vec<ValidatorIndex>> {
-    let mut committee = vec![0usize; count];
     let start = (indices.len() * index) / count;
     let end = (indices.len()) * (index + 1) / count;
+    let mut committee = vec![0usize; end - start];
     for i in start..end {
         let index = compute_shuffled_index(i, indices.len(), seed, context)?;
         committee[i - start] = indices[index];
