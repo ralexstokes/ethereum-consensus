@@ -1,7 +1,6 @@
 // WARNING!
 // This file was generated with `gen-tests`. Do NOT edit manually.
 
-#![cfg(feature = "bls")]
 use crate::spec_test_runners::genesis::ValidityTestCase;
 use ethereum_consensus::phase0::minimal as spec;
 use ssz_rs::prelude::*;

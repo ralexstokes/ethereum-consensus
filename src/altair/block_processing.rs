@@ -1,6 +1,6 @@
 use crate::altair as spec;
 
-use crate::crypto::eth_fast_aggregate_verify;
+use crate::crypto::{eth_fast_aggregate_verify, verify_signature};
 use crate::domains::DomainType;
 use crate::primitives::{BlsPublicKey, ParticipationFlags, ValidatorIndex};
 use crate::signing::compute_signing_root;
@@ -212,24 +212,23 @@ pub fn process_deposit<
         };
         let domain = compute_domain(DomainType::Deposit, None, None, context)?;
         let signing_root = compute_signing_root(&mut deposit_message, domain)?;
-        // Initialize validator if the deposit signature is valid
-        if public_key.verify_signature(signing_root.as_bytes(), &deposit.data.signature) {
-            state
-                .validators
-                .push(get_validator_from_deposit(deposit, context));
-            state.balances.push(amount);
-            state
-                .previous_epoch_participation
-                .push(ParticipationFlags::default());
-            state
-                .current_epoch_participation
-                .push(ParticipationFlags::default());
-            state.inactivity_scores.push(0)
-        } else {
+
+        if verify_signature(public_key, signing_root.as_bytes(), &deposit.data.signature).is_err() {
             return Err(invalid_operation_error(InvalidOperation::Deposit(
                 InvalidDeposit::InvalidSignature(deposit.data.signature.clone()),
             )));
         }
+        state
+            .validators
+            .push(get_validator_from_deposit(deposit, context));
+        state.balances.push(amount);
+        state
+            .previous_epoch_participation
+            .push(ParticipationFlags::default());
+        state
+            .current_epoch_participation
+            .push(ParticipationFlags::default());
+        state.inactivity_scores.push(0)
     } else {
         let index = state
             .validators
@@ -292,11 +291,13 @@ pub fn process_sync_aggregate<
     )?;
     let mut root_at_slot = *get_block_root_at_slot(state, previous_slot)?;
     let signing_root = compute_signing_root(&mut root_at_slot, domain)?;
-    if !eth_fast_aggregate_verify(
+    if eth_fast_aggregate_verify(
         participant_public_keys.as_slice(),
         signing_root.as_ref(),
         &sync_aggregate.sync_committee_signature,
-    ) {
+    )
+    .is_err()
+    {
         return Err(invalid_operation_error(InvalidOperation::SyncAggregate(
             InvalidSyncAggregate::InvalidSignature {
                 signature: sync_aggregate.sync_committee_signature.clone(),

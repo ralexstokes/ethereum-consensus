@@ -1,4 +1,4 @@
-use ethereum_consensus::crypto::SecretKey;
+use ethereum_consensus::crypto::{verify_signature, SecretKey};
 use rand::prelude::*;
 
 /// A simple example that adopts the original BLST's example:
@@ -11,6 +11,6 @@ fn main() {
     let msg = b"blst is such a blast";
     let sig = sk.sign(msg);
 
-    let valid = sig.verify(&pk, msg);
+    let valid = verify_signature(&pk, msg, &sig).is_ok();
     println!("Signature is valid: {:?}", valid);
 }

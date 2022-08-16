@@ -4,7 +4,7 @@ pub use crate::bellatrix::helpers::compute_timestamp_at_slot;
 pub use crate::bellatrix::helpers::is_execution_enabled;
 pub use crate::bellatrix::helpers::is_merge_transition_block;
 pub use crate::bellatrix::helpers::is_merge_transition_complete;
-use crate::crypto::{eth_aggregate_public_keys, fast_aggregate_verify, hash};
+use crate::crypto::{eth_aggregate_public_keys, fast_aggregate_verify, hash, verify_signature};
 use crate::primitives::{
     Bytes32, CommitteeIndex, Domain, DomainType, Epoch, ForkDigest, Gwei, ParticipationFlags, Root,
     Slot, ValidatorIndex, Version, FAR_FUTURE_EPOCH, GENESIS_EPOCH,
@@ -1477,15 +1477,12 @@ pub fn is_valid_indexed_attestation<
         context,
     )?;
     let signing_root = compute_signing_root(&mut indexed_attestation.data, domain)?;
-    if fast_aggregate_verify(
+    fast_aggregate_verify(
         &public_keys,
         signing_root.as_bytes(),
         &indexed_attestation.signature,
-    ) {
-        Ok(())
-    } else {
-        Err(Error::InvalidSignature)
-    }
+    )
+    .map_err(Into::into)
 }
 pub fn slash_validator<
     const SLOTS_PER_HISTORICAL_ROOT: usize,
@@ -1606,12 +1603,7 @@ pub fn verify_block_signature<
         })?;
     let domain = get_domain(state, DomainType::BeaconProposer, None, context)?;
     let signing_root = compute_signing_root(&mut signed_block.message, domain)?;
-    if proposer
-        .public_key
-        .verify_signature(signing_root.as_bytes(), &signed_block.signature)
-    {
-        Ok(())
-    } else {
-        Err(Error::InvalidSignature)
-    }
+    let public_key = &proposer.public_key;
+    verify_signature(public_key, signing_root.as_bytes(), &signed_block.signature)
+        .map_err(Into::into)
 }

@@ -17,8 +17,6 @@ pub enum Error {
     Crypto(#[from] CryptoError),
     #[error("requested element {requested} but collection only has {bound} elements")]
     OutOfBounds { requested: usize, bound: usize },
-    #[error("invalid signature")]
-    InvalidSignature,
     #[error("collection cannot be empty")]
     CollectionCannotBeEmpty,
     #[error("given index {index} is greater than the total amount of indices {total}")]

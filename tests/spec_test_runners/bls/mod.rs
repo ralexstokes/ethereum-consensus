@@ -1,7 +1,7 @@
 use crate::test_utils::{load_yaml, TestCase};
 use ethereum_consensus::crypto::{
     aggregate, aggregate_verify, eth_aggregate_public_keys, eth_fast_aggregate_verify,
-    fast_aggregate_verify, PublicKey, SecretKey, Signature,
+    fast_aggregate_verify, verify_signature, PublicKey, SecretKey, Signature,
 };
 use ethereum_consensus::primitives::Bytes32;
 use ethereum_consensus::serde as eth_serde;
@@ -74,7 +74,7 @@ impl AggregateVerifyTestCase {
             .map(|m| m.as_ref())
             .collect::<Vec<_>>();
         let signature = self.input.signature.as_ref().unwrap();
-        aggregate_verify(&public_keys, &messages, signature)
+        aggregate_verify(&public_keys, &messages, signature).is_ok()
     }
 }
 
@@ -130,6 +130,7 @@ impl FastAggregateVerifyTestCase {
             self.input.message.as_ref(),
             self.input.signature.as_ref().unwrap(),
         )
+        .is_ok()
     }
 }
 
@@ -225,10 +226,12 @@ impl VerifyTestCase {
     }
 
     fn run(&self) -> bool {
-        self.input.signature.as_ref().unwrap().verify(
+        verify_signature(
             self.input.pubkey.as_ref().unwrap(),
             self.input.message.as_ref(),
+            self.input.signature.as_ref().unwrap(),
         )
+        .is_ok()
     }
 }
 
@@ -321,7 +324,7 @@ impl EthFastAggregateVerifyTestCase {
         let public_keys = public_keys.iter().collect::<Vec<_>>();
         let message = self.input.message.as_ref();
         let signature = self.input.signature.as_ref().unwrap();
-        eth_fast_aggregate_verify(&public_keys, message, signature)
+        eth_fast_aggregate_verify(&public_keys, message, signature).is_ok()
     }
 }
 

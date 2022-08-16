@@ -1,7 +1,6 @@
 // WARNING!
 // This file was generated with `gen-tests`. Do NOT edit manually.
 
-#![cfg(not(feature = "bls"))]
 use crate::spec_test_runners::ssz_static::IndexedAttestationTestCase;
 use ethereum_consensus::altair::mainnet as spec;
 use ssz_rs::prelude::*;

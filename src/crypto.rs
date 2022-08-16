@@ -1,31 +1,47 @@
 use crate::bytes::write_bytes_to_lower_hex;
+use crate::primitives::Bytes32;
 #[cfg(feature = "serde")]
 use crate::serde::{try_bytes_from_hex_str, HexError};
-use blst::{min_pk as blst_core, BLST_ERROR};
+use crate::ssz::ByteVector;
+use blst::{min_pk as bls_impl, BLST_ERROR};
 #[cfg(feature = "serde")]
 use serde;
+use sha2::{digest::FixedOutput, Digest, Sha256};
 use ssz_rs::prelude::*;
 use std::fmt;
-use std::hash::{Hash, Hasher};
+use std::ops::{Deref, DerefMut};
 use thiserror::Error;
+
+pub fn hash<D: AsRef<[u8]>>(data: D) -> Bytes32 {
+    let mut result = vec![0u8; 32];
+    let mut hasher = Sha256::new();
+    hasher.update(data);
+    hasher.finalize_into(result.as_mut_slice().into());
+    Bytes32::try_from(result.as_ref()).expect("correct input")
+}
 
 const BLS_DST: &[u8] = b"BLS_SIG_BLS12381G2_XMD:SHA-256_SSWU_RO_POP_";
 const BLS_PUBLIC_KEY_BYTES_LEN: usize = 48;
 const BLS_SECRET_KEY_BYTES_LEN: usize = 32;
+const BLS_SIGNATURE_BYTES_LEN: usize = 96;
 
 #[derive(Debug, Error)]
 pub enum Error {
     #[cfg(feature = "serde")]
-    #[error("error deserializing: {0}")]
-    Deserialize(#[from] HexError),
-    #[error("inputs required but none were provided")]
-    EmptyInput,
+    #[error("error deserializing hex-encoded input: {0}")]
+    Hex(#[from] HexError),
+    #[error("inputs required for aggregation but none were provided")]
+    EmptyAggregate,
+    #[error(
+        "invalid length of encoding: expected {expected} bytes but only provided {provided} bytes"
+    )]
+    EncodingError { provided: usize, expected: usize },
     #[error("randomness failure: {0}")]
     Randomness(#[from] rand::Error),
     #[error("blst error: {0}")]
     BLST(#[from] BLSTError),
-    #[error("expected additional input data when decoding")]
-    MissingInput,
+    #[error("invalid signature")]
+    InvalidSignature,
 }
 
 #[derive(Debug, Error)]
@@ -48,38 +64,89 @@ impl From<BLST_ERROR> for BLSTError {
     }
 }
 
+pub fn verify_signature(
+    public_key: &PublicKey,
+    msg: &[u8],
+    signature: &Signature,
+) -> Result<(), Error> {
+    let public_key: bls_impl::PublicKey = public_key.try_into()?;
+    let signature: bls_impl::Signature = signature.try_into()?;
+    let res = signature.verify(true, msg, BLS_DST, &[], &public_key, true);
+    if res == BLST_ERROR::BLST_SUCCESS {
+        Ok(())
+    } else {
+        Err(Error::InvalidSignature)
+    }
+}
+
 pub fn aggregate(signatures: &[Signature]) -> Result<Signature, Error> {
     if signatures.is_empty() {
-        return Err(Error::EmptyInput);
+        return Err(Error::EmptyAggregate);
     }
-    let vs: Vec<&blst_core::Signature> = signatures.iter().map(|s| &s.0).collect();
 
-    blst_core::AggregateSignature::aggregate(&vs, true)
-        .map(|s| Signature(s.to_signature()))
+    let signatures = signatures
+        .iter()
+        .map(bls_impl::Signature::try_from)
+        .collect::<Result<Vec<bls_impl::Signature>, Error>>()?;
+    let signatures: Vec<&bls_impl::Signature> = signatures.iter().collect();
+
+    bls_impl::AggregateSignature::aggregate(&signatures, true)
+        .map(|s| Signature::try_from(s.to_signature().to_bytes().as_ref()).unwrap())
         .map_err(|e| BLSTError::from(e).into())
 }
 
-pub fn aggregate_verify(pks: &[PublicKey], msgs: &[&[u8]], signature: &Signature) -> bool {
-    let v: Vec<&blst_core::PublicKey> = pks.iter().map(|pk| &pk.0).collect();
-    let res = signature.0.aggregate_verify(true, msgs, BLS_DST, &v, true);
-    res == BLST_ERROR::BLST_SUCCESS
+pub fn aggregate_verify(
+    public_keys: &[PublicKey],
+    msgs: &[&[u8]],
+    signature: &Signature,
+) -> Result<(), Error> {
+    let public_keys = public_keys
+        .iter()
+        .map(bls_impl::PublicKey::try_from)
+        .collect::<Result<Vec<bls_impl::PublicKey>, Error>>()?;
+    let public_keys: Vec<&bls_impl::PublicKey> = public_keys.iter().collect();
+    let signature: bls_impl::Signature = signature.try_into()?;
+    let res = signature.aggregate_verify(true, msgs, BLS_DST, &public_keys, true);
+    if res == BLST_ERROR::BLST_SUCCESS {
+        Ok(())
+    } else {
+        Err(Error::InvalidSignature)
+    }
 }
 
-pub fn fast_aggregate_verify(pks: &[&PublicKey], msg: &[u8], signature: &Signature) -> bool {
-    let v: Vec<&blst_core::PublicKey> = pks.iter().map(|pk| &pk.0).collect();
-    let res = signature.0.fast_aggregate_verify(true, msg, BLS_DST, &v);
-    res == BLST_ERROR::BLST_SUCCESS
+pub fn fast_aggregate_verify(
+    public_keys: &[&PublicKey],
+    msg: &[u8],
+    signature: &Signature,
+) -> Result<(), Error> {
+    let public_keys = public_keys
+        .iter()
+        .cloned()
+        .map(bls_impl::PublicKey::try_from)
+        .collect::<Result<Vec<bls_impl::PublicKey>, Error>>()?;
+    let public_keys: Vec<&bls_impl::PublicKey> = public_keys.iter().collect();
+    let signature: bls_impl::Signature = signature.try_into()?;
+    let res = signature.fast_aggregate_verify(true, msg, BLS_DST, &public_keys);
+    if res == BLST_ERROR::BLST_SUCCESS {
+        Ok(())
+    } else {
+        Err(Error::InvalidSignature)
+    }
 }
 
 // Return the aggregate public key for the public keys in `pks`
-pub fn eth_aggregate_public_keys(pks: &[PublicKey]) -> Result<PublicKey, Error> {
-    if pks.is_empty() {
-        return Err(Error::EmptyInput);
+pub fn eth_aggregate_public_keys(public_keys: &[PublicKey]) -> Result<PublicKey, Error> {
+    if public_keys.is_empty() {
+        return Err(Error::EmptyAggregate);
     }
-    let v: Vec<&blst_core::PublicKey> = pks.iter().map(|pk| &pk.0).collect();
+    let public_keys = public_keys
+        .iter()
+        .map(bls_impl::PublicKey::try_from)
+        .collect::<Result<Vec<bls_impl::PublicKey>, Error>>()?;
+    let public_keys: Vec<&bls_impl::PublicKey> = public_keys.iter().collect();
 
-    blst_core::AggregatePublicKey::aggregate(&v, true)
-        .map(|agg_pk| PublicKey(agg_pk.to_public_key()))
+    bls_impl::AggregatePublicKey::aggregate(&public_keys, true)
+        .map(|agg_pk| PublicKey::try_from(agg_pk.to_public_key().to_bytes().as_ref()).unwrap())
         .map_err(|e| BLSTError::from(e).into())
 }
 
@@ -87,9 +154,9 @@ pub fn eth_fast_aggregate_verify(
     public_keys: &[&PublicKey],
     message: &[u8],
     signature: &Signature,
-) -> bool {
+) -> Result<(), Error> {
     if public_keys.is_empty() && signature.is_infinity() {
-        true
+        Ok(())
     } else {
         fast_aggregate_verify(public_keys, message, signature)
     }
@@ -97,20 +164,9 @@ pub fn eth_fast_aggregate_verify(
 
 #[derive(Clone, Default)]
 #[cfg_attr(feature = "serde", derive(serde::Deserialize))]
+#[cfg_attr(feature = "spec-tests", derive(Debug))]
 #[cfg_attr(feature = "serde", serde(try_from = "String"))]
-pub struct SecretKey(blst_core::SecretKey);
-
-impl fmt::LowerHex for SecretKey {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write_bytes_to_lower_hex(f, self.as_bytes())
-    }
-}
-
-impl fmt::Debug for SecretKey {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "SecretKey({:#x})", self)
-    }
-}
+pub struct SecretKey(bls_impl::SecretKey);
 
 #[cfg(feature = "serde")]
 impl TryFrom<String> for SecretKey {
@@ -126,21 +182,12 @@ impl TryFrom<&[u8]> for SecretKey {
     type Error = Error;
 
     fn try_from(data: &[u8]) -> Result<Self, Self::Error> {
-        let inner = blst_core::SecretKey::from_bytes(data).map_err(BLSTError::from)?;
+        let inner = bls_impl::SecretKey::from_bytes(data).map_err(BLSTError::from)?;
         Ok(Self(inner))
     }
 }
 
-impl PartialEq for SecretKey {
-    fn eq(&self, other: &Self) -> bool {
-        self.as_bytes() == other.as_bytes()
-    }
-}
-
-impl Eq for SecretKey {}
-
 impl SecretKey {
-    // https://docs.rs/rand/latest/rand/trait.Rng.html#generic-usage
     pub fn random<R: rand::Rng>(rng: &mut R) -> Result<Self, Error> {
         let mut ikm = [0u8; BLS_SECRET_KEY_BYTES_LEN];
         rng.try_fill_bytes(&mut ikm)?;
@@ -148,32 +195,29 @@ impl SecretKey {
     }
 
     pub fn key_gen(ikm: &[u8]) -> Result<Self, Error> {
-        let sk = blst_core::SecretKey::key_gen(ikm, &[]).map_err(BLSTError::from)?;
+        let sk = bls_impl::SecretKey::key_gen(ikm, &[]).map_err(BLSTError::from)?;
         Ok(Self(sk))
-    }
-
-    pub fn as_bytes(&self) -> [u8; BLS_SECRET_KEY_BYTES_LEN] {
-        self.0.to_bytes()
     }
 
     pub fn public_key(&self) -> PublicKey {
         let pk = self.0.sk_to_pk();
-        PublicKey(pk)
+        PublicKey::try_from(pk.to_bytes().as_ref()).unwrap()
     }
 
     pub fn sign(&self, msg: &[u8]) -> Signature {
-        Signature(self.0.sign(msg, BLS_DST, &[]))
+        let inner = self.0.sign(msg, BLS_DST, &[]);
+        Signature::try_from(inner.to_bytes().as_ref()).unwrap()
     }
 }
 
-#[derive(Default, Clone, Eq)]
+#[derive(Clone, Default, Hash, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(feature = "serde", serde(into = "String", try_from = "String"))]
-pub struct PublicKey(blst_core::PublicKey);
+pub struct PublicKey(ByteVector<BLS_PUBLIC_KEY_BYTES_LEN>);
 
 impl fmt::LowerHex for PublicKey {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write_bytes_to_lower_hex(f, self.as_bytes())
+        write_bytes_to_lower_hex(f, self.as_ref())
     }
 }
 
@@ -186,6 +230,20 @@ impl fmt::Debug for PublicKey {
 impl fmt::Display for PublicKey {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{:#x}", self)
+    }
+}
+
+impl Deref for PublicKey {
+    type Target = ByteVector<BLS_PUBLIC_KEY_BYTES_LEN>;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
+impl DerefMut for PublicKey {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.0
     }
 }
 
@@ -210,35 +268,30 @@ impl TryFrom<&[u8]> for PublicKey {
     type Error = Error;
 
     fn try_from(data: &[u8]) -> Result<Self, Error> {
-        let inner = blst_core::PublicKey::key_validate(data).map_err(BLSTError::from)?;
+        let inner = ByteVector::try_from(data).map_err(|_| Error::EncodingError {
+            provided: data.len(),
+            expected: BLS_PUBLIC_KEY_BYTES_LEN,
+        })?;
         Ok(Self(inner))
     }
 }
 
-impl Hash for PublicKey {
-    fn hash<H: Hasher>(&self, state: &mut H) {
-        self.as_bytes().hash(state)
-    }
-}
+impl TryFrom<&PublicKey> for bls_impl::PublicKey {
+    type Error = Error;
 
-impl PartialEq for PublicKey {
-    fn eq(&self, other: &Self) -> bool {
-        self.0 == other.0
+    fn try_from(public_key: &PublicKey) -> Result<Self, Error> {
+        Self::key_validate(public_key.0.as_ref()).map_err(|err| BLSTError::from(err).into())
     }
 }
 
 impl PublicKey {
-    pub fn verify_signature(&self, msg: &[u8], sig: &Signature) -> bool {
-        sig.verify(self, msg)
-    }
+    // pub fn validate(&self) -> bool {
+    //     self.0.validate().is_ok()
+    // }
 
-    pub fn validate(&self) -> bool {
-        self.0.validate().is_ok()
-    }
-
-    pub fn as_bytes(&self) -> [u8; BLS_PUBLIC_KEY_BYTES_LEN] {
-        self.0.to_bytes()
-    }
+    // pub fn as_bytes(&self) -> [u8; BLS_PUBLIC_KEY_BYTES_LEN] {
+    //     self.0.to_bytes()
+    // }
 }
 
 impl Sized for PublicKey {
@@ -253,11 +306,7 @@ impl Sized for PublicKey {
 
 impl Serialize for PublicKey {
     fn serialize(&self, buffer: &mut Vec<u8>) -> Result<usize, SerializeError> {
-        let start = buffer.len();
-        buffer.extend_from_slice(&self.as_bytes());
-        let encoded_length = buffer.len() - start;
-        debug_assert_eq!(encoded_length, Self::size_hint());
-        Ok(encoded_length)
+        self.0.serialize(buffer)
     }
 }
 
@@ -272,10 +321,7 @@ impl Deserialize for PublicKey {
 
 impl Merkleized for PublicKey {
     fn hash_tree_root(&mut self) -> Result<Node, MerkleizationError> {
-        let mut buffer = vec![];
-        self.serialize(&mut buffer)?;
-        pack_bytes(&mut buffer);
-        merkleize(&buffer, None)
+        self.0.hash_tree_root()
     }
 }
 
@@ -286,14 +332,14 @@ impl SimpleSerialize for PublicKey {
     }
 }
 
-#[derive(Clone, PartialEq, Eq)]
+#[derive(Clone, Default, Hash, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(feature = "serde", serde(into = "String", try_from = "String"))]
-pub struct Signature(blst_core::Signature);
+pub struct Signature(ByteVector<BLS_SIGNATURE_BYTES_LEN>);
 
 impl fmt::LowerHex for Signature {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write_bytes_to_lower_hex(f, self.as_bytes())
+        write_bytes_to_lower_hex(f, self.as_ref())
     }
 }
 
@@ -306,6 +352,20 @@ impl fmt::Debug for Signature {
 impl fmt::Display for Signature {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{:#x}", self)
+    }
+}
+
+impl Deref for Signature {
+    type Target = ByteVector<BLS_SIGNATURE_BYTES_LEN>;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
+impl DerefMut for Signature {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.0
     }
 }
 
@@ -330,36 +390,45 @@ impl TryFrom<&[u8]> for Signature {
     type Error = Error;
 
     fn try_from(data: &[u8]) -> Result<Self, Error> {
-        let inner = blst_core::Signature::from_bytes(data).map_err(BLSTError::from)?;
+        let inner = ByteVector::try_from(data).map_err(|_| Error::EncodingError {
+            provided: data.len(),
+            expected: BLS_SIGNATURE_BYTES_LEN,
+        })?;
         Ok(Self(inner))
     }
 }
 
-impl Default for Signature {
-    fn default() -> Self {
-        let mut encoding = vec![0u8; Self::size_hint()];
-        // set top two bits, particularity of the `BLS12-381` encoding
-        encoding[0] = 192;
-        Self(
-            blst_core::Signature::from_bytes(&encoding)
-                .expect("default is a well-formed signature"),
-        )
+impl TryFrom<&Signature> for bls_impl::Signature {
+    type Error = Error;
+
+    fn try_from(signature: &Signature) -> Result<Self, Error> {
+        Self::from_bytes(signature.0.as_ref()).map_err(|err| BLSTError::from(err).into())
     }
 }
 
+// impl Default for Signature {
+//     fn default() -> Self {
+//         Self(
+//             bls_impl::Signature::from_bytes(&encoding)
+//                 .expect("default is a well-formed signature"),
+//         )
+//     }
+// }
+
+const INFINITY_COMPRESSED_SIGNATURE: [u8; BLS_SIGNATURE_BYTES_LEN] = [
+    192, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0,
+];
+
 impl Signature {
-    pub fn verify(&self, pk: &PublicKey, msg: &[u8]) -> bool {
-        let pk = &pk.0;
-        let avg = &[];
-        let res = self.0.verify(true, msg, BLS_DST, avg, pk, true);
-        res == BLST_ERROR::BLST_SUCCESS
-    }
-    pub fn as_bytes(&self) -> [u8; 96] {
-        self.0.to_bytes()
-    }
+    // pub fn as_bytes(&self) -> [u8; 96] {
+    //     self.0.to_bytes()
+    // }
 
     pub fn is_infinity(&self) -> bool {
-        self == &Self::default()
+        self.as_ref() == INFINITY_COMPRESSED_SIGNATURE
     }
 }
 
@@ -369,17 +438,18 @@ impl Sized for Signature {
     }
 
     fn size_hint() -> usize {
-        96
+        BLS_SIGNATURE_BYTES_LEN
     }
 }
 
 impl Serialize for Signature {
     fn serialize(&self, buffer: &mut Vec<u8>) -> Result<usize, SerializeError> {
-        let start = buffer.len();
-        buffer.extend_from_slice(&self.as_bytes());
-        let encoded_length = buffer.len() - start;
-        debug_assert!(encoded_length == Self::size_hint());
-        Ok(encoded_length)
+        self.0.serialize(buffer)
+        //     let start = buffer.len();
+        //     buffer.extend_from_slice(&self.as_bytes());
+        //     let encoded_length = buffer.len() - start;
+        //     debug_assert!(encoded_length == Self::size_hint());
+        //     Ok(encoded_length)
     }
 }
 
@@ -395,10 +465,11 @@ impl Deserialize for Signature {
 
 impl Merkleized for Signature {
     fn hash_tree_root(&mut self) -> Result<Node, MerkleizationError> {
-        let mut buffer = vec![];
-        self.serialize(&mut buffer)?;
-        pack_bytes(&mut buffer);
-        merkleize(&buffer, None)
+        self.0.hash_tree_root()
+        // let mut buffer = vec![];
+        // self.serialize(&mut buffer)?;
+        // pack_bytes(&mut buffer);
+        // merkleize(&buffer, None)
     }
 }
 
@@ -428,14 +499,11 @@ mod tests {
         let msg = "message".as_bytes();
         let sig = sk.sign(msg);
 
-        assert!(sig.verify(&pk, msg));
-
-        let pk = sk.public_key();
-        assert!(pk.verify_signature(msg, &sig));
+        assert!(verify_signature(&pk, msg, &sig).is_ok());
     }
 
     #[test]
-    #[should_panic(expected = "bad encoding")]
+    #[should_panic(expected = "expected")]
     fn test_signature_from_null_bytes() {
         let b = [0u8; 0];
         Signature::try_from(b.as_ref()).expect("can make a signature");
@@ -505,18 +573,15 @@ mod tests {
     #[test]
     fn random_secret_key() {
         let mut rng = thread_rng();
-        let sk = SecretKey::random(&mut rng).unwrap();
-        let valid = sk.as_bytes();
-        assert_eq!(valid.len(), BLS_SECRET_KEY_BYTES_LEN)
+        let _ = SecretKey::random(&mut rng).unwrap();
     }
 
     #[test]
     fn random_public_key() {
         let mut rng = thread_rng();
-        let pk = SecretKey::random(&mut rng).unwrap().public_key();
-        let valid = pk.validate();
-        assert!(valid)
+        let _ = SecretKey::random(&mut rng).unwrap().public_key();
     }
+
     #[test]
     fn good_public_key() {
         let bytes: [u8; 48] = [
@@ -525,12 +590,10 @@ mod tests {
             0xb6, 0x13, 0x49, 0xb4, 0xbf, 0x2d, 0x15, 0x3f, 0x64, 0x9f, 0x7b, 0x53, 0x35, 0x9f,
             0xe8, 0xb9, 0x4a, 0x38, 0xe4, 0x4c,
         ];
-        let pk = PublicKey::try_from(bytes.as_ref()).expect("can't make a good public key");
-        assert!(pk.validate());
+        let _ = PublicKey::try_from(bytes.as_ref()).expect("can't make a good public key");
     }
 
     #[test]
-    #[should_panic(expected = "zero public key")]
     fn zero_public_key() {
         let z = [0u8; BLS_PUBLIC_KEY_BYTES_LEN];
         PublicKey::try_from(z.as_ref()).expect("can make a zero public key");
@@ -544,7 +607,6 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "infinity public key")]
     fn infinity_as_public_key() {
         PublicKey::try_from(INFINITY_COMPRESSED_PUBLIC_KEY.as_ref())
             .expect("can make infinity public key");
@@ -580,7 +642,7 @@ mod tests {
         let sig = aggregate(signatures.as_ref()).unwrap();
         let v = aggregate_verify(pks.as_slice(), msgs.as_ref(), &sig);
 
-        assert!(v);
+        assert!(v.is_ok());
     }
 
     #[test]
@@ -599,7 +661,7 @@ mod tests {
         let sig = aggregate(signatures.as_slice()).unwrap();
         let v = fast_aggregate_verify(&pks, msg, &sig);
 
-        assert!(v);
+        assert!(v.is_ok());
     }
 
     #[test]
@@ -631,17 +693,14 @@ mod tests {
         let msg = b"blst is such a blast";
         let signature = secret_key.sign(msg);
 
-        let secret_key_bytes = secret_key.as_bytes();
-        let publicy_key_bytes = public_key.as_bytes();
-        let signature_bytes = signature.as_bytes();
+        let publicy_key_bytes = public_key.0.as_ref();
+        let signature_bytes = signature.0.as_ref();
 
-        let _ = SecretKey::try_from(secret_key_bytes.as_ref()).unwrap();
-
-        let recovered_public_key = PublicKey::try_from(publicy_key_bytes.as_ref()).unwrap();
+        let recovered_public_key = PublicKey::try_from(publicy_key_bytes).unwrap();
         assert_eq!(public_key, recovered_public_key);
-        let recovered_signature = Signature::try_from(signature_bytes.as_ref()).unwrap();
+        let recovered_signature = Signature::try_from(signature_bytes).unwrap();
         assert_eq!(signature, recovered_signature);
 
-        assert!(signature.verify(&public_key, msg));
+        assert!(verify_signature(&public_key, msg, &signature).is_ok());
     }
 }

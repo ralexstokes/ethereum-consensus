@@ -1,4 +1,4 @@
-use crate::crypto::SecretKey;
+use crate::crypto::{verify_signature, SecretKey};
 use crate::primitives::{BlsPublicKey, BlsSignature, Domain, Root};
 use crate::state_transition::Error;
 use ssz_rs::prelude::*;
@@ -38,9 +38,5 @@ pub fn verify_signed_data<T: SimpleSerialize>(
     domain: Domain,
 ) -> Result<(), Error> {
     let signing_root = compute_signing_root(data, domain)?;
-    if signature.verify(public_key, signing_root.as_bytes()) {
-        Ok(())
-    } else {
-        Err(Error::InvalidSignature)
-    }
+    verify_signature(public_key, signing_root.as_bytes(), signature).map_err(Into::into)
 }
