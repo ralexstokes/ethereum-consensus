@@ -6,9 +6,7 @@ license = "MIT OR Apache-2.0"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 [features]
-default = ["default-without-bls", "bls"]
-default-without-bls = ["serde", "async"]
-bls = []
+default = ["serde", "async"]
 serde = ["dep:serde", "hex", "serde_json"]
 async = ["tokio", "tokio-stream", "async-stream"]
 spec-tests = ["serde", "serde_yaml"]

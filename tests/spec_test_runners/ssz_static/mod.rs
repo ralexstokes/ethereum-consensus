@@ -1,5 +1,3 @@
-#![cfg(not(feature = "bls"))]
-
 use crate::test_utils::{load_snappy_ssz_bytes, load_yaml};
 use ethereum_consensus::primitives::{Bytes32, Root};
 use serde::Deserialize;

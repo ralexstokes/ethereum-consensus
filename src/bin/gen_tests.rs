@@ -116,15 +116,6 @@ fn generate_suite_src(
 "#
     .to_string();
 
-    // NOTE: demand `bls` feature set unless we know the test
-    // handler expects it to be missing
-    // NOTE: needs to be at top-of-file...
-    if matches!(runner, "ssz_static") {
-        writeln!(src, "#![cfg(not(feature = \"bls\"))]").unwrap();
-    } else {
-        writeln!(src, "#![cfg(feature = \"bls\")]").unwrap();
-    }
-
     writeln!(
         src,
         "use crate::spec_test_runners::{}::{};",
