@@ -386,6 +386,7 @@ pub fn process_deposit<
             },
         )));
     }
+    state.eth1_deposit_index += 1;
     let public_key = &deposit.data.public_key;
     let amount = deposit.data.amount;
     let validator_public_keys: HashSet<&BlsPublicKey> =
@@ -399,9 +400,7 @@ pub fn process_deposit<
         let domain = compute_domain(DomainType::Deposit, None, None, context)?;
         let signing_root = compute_signing_root(&mut deposit_message, domain)?;
         if verify_signature(public_key, signing_root.as_bytes(), &deposit.data.signature).is_err() {
-            return Err(invalid_operation_error(InvalidOperation::Deposit(
-                InvalidDeposit::InvalidSignature(deposit.data.signature.clone()),
-            )));
+            return Ok(());
         }
         state
             .validators
@@ -422,7 +421,6 @@ pub fn process_deposit<
             .unwrap();
         increase_balance(state, index, amount);
     }
-    state.eth1_deposit_index += 1;
     Ok(())
 }
 pub fn process_eth1_data<
