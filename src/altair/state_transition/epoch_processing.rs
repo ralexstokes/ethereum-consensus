@@ -9,6 +9,9 @@ pub use crate::altair::epoch_processing::process_rewards_and_penalties;
 pub use crate::altair::epoch_processing::process_sync_committee_updates;
 
 use crate::primitives::{Epoch, Gwei, ValidatorIndex};
+use ssz_rs::prelude::*;
+
+use crate::state_transition::{Context, Result};
 use spec::{
     compute_activation_exit_epoch, decrease_balance, get_block_root, get_current_epoch,
     get_previous_epoch, get_randao_mix, get_total_active_balance, get_validator_churn_limit,
@@ -17,8 +20,6 @@ use spec::{
     JUSTIFICATION_BITS_LENGTH,
 };
 
-use crate::state_transition::{Context, Result};
-use ssz_rs::prelude::*;
 pub fn get_finality_delay<
     const SLOTS_PER_HISTORICAL_ROOT: usize,
     const HISTORICAL_ROOTS_LIMIT: usize,

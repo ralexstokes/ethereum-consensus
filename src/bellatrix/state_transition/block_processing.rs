@@ -2,7 +2,7 @@
 use crate::bellatrix as spec;
 pub use crate::bellatrix::block_processing::process_block;
 pub use crate::bellatrix::block_processing::process_execution_payload;
-use crate::crypto::{eth_fast_aggregate_verify, hash};
+use crate::crypto::{eth_fast_aggregate_verify, hash, verify_signature};
 use crate::primitives::{
     BlsPublicKey, Bytes32, DomainType, Gwei, ParticipationFlags, ValidatorIndex, FAR_FUTURE_EPOCH,
 };
@@ -398,23 +398,22 @@ pub fn process_deposit<
         };
         let domain = compute_domain(DomainType::Deposit, None, None, context)?;
         let signing_root = compute_signing_root(&mut deposit_message, domain)?;
-        if public_key.verify_signature(signing_root.as_bytes(), &deposit.data.signature) {
-            state
-                .validators
-                .push(get_validator_from_deposit(deposit, context));
-            state.balances.push(amount);
-            state
-                .previous_epoch_participation
-                .push(ParticipationFlags::default());
-            state
-                .current_epoch_participation
-                .push(ParticipationFlags::default());
-            state.inactivity_scores.push(0)
-        } else {
+        if verify_signature(public_key, signing_root.as_bytes(), &deposit.data.signature).is_err() {
             return Err(invalid_operation_error(InvalidOperation::Deposit(
                 InvalidDeposit::InvalidSignature(deposit.data.signature.clone()),
             )));
         }
+        state
+            .validators
+            .push(get_validator_from_deposit(deposit, context));
+        state.balances.push(amount);
+        state
+            .previous_epoch_participation
+            .push(ParticipationFlags::default());
+        state
+            .current_epoch_participation
+            .push(ParticipationFlags::default());
+        state.inactivity_scores.push(0)
     } else {
         let index = state
             .validators
@@ -613,7 +612,11 @@ pub fn process_proposer_slashing<
         )));
     }
     let proposer_index = header_1.proposer_index;
-    let proposer = &state.validators[proposer_index];
+    let proposer = state.validators.get(proposer_index).ok_or_else(|| {
+        invalid_operation_error(InvalidOperation::ProposerSlashing(
+            InvalidProposerSlashing::InvalidIndex(proposer_index),
+        ))
+    })?;
     if !is_slashable_validator(proposer, get_current_epoch(state, context)) {
         return Err(invalid_operation_error(InvalidOperation::ProposerSlashing(
             InvalidProposerSlashing::ProposerIsNotSlashable(header_1.proposer_index),
@@ -626,10 +629,14 @@ pub fn process_proposer_slashing<
         &mut proposer_slashing.signed_header_2,
     ] {
         let signing_root = compute_signing_root(&mut signed_header.message, domain)?;
-        let valid_signature = proposer
-            .public_key
-            .verify_signature(signing_root.as_bytes(), &signed_header.signature);
-        if !valid_signature {
+        let public_key = &proposer.public_key;
+        if verify_signature(
+            public_key,
+            signing_root.as_bytes(),
+            &signed_header.signature,
+        )
+        .is_err()
+        {
             return Err(invalid_operation_error(InvalidOperation::ProposerSlashing(
                 InvalidProposerSlashing::InvalidSignature(signed_header.signature.clone()),
             )));
@@ -690,9 +697,12 @@ pub fn process_randao<
     let proposer = &state.validators[proposer_index];
     let domain = get_domain(state, DomainType::Randao, Some(epoch), context)?;
     let signing_root = compute_signing_root(&mut epoch, domain)?;
-    if !body
-        .randao_reveal
-        .verify(&proposer.public_key, signing_root.as_bytes())
+    if verify_signature(
+        &proposer.public_key,
+        signing_root.as_bytes(),
+        &body.randao_reveal,
+    )
+    .is_err()
     {
         return Err(invalid_operation_error(InvalidOperation::Randao(
             body.randao_reveal.clone(),
@@ -700,7 +710,7 @@ pub fn process_randao<
     }
     let mix = xor(
         get_randao_mix(state, epoch),
-        &hash(body.randao_reveal.as_bytes()),
+        &hash(body.randao_reveal.as_ref()),
     );
     let mix_index = epoch % context.epochs_per_historical_vector;
     state.randao_mixes[mix_index as usize] = mix;
@@ -761,11 +771,13 @@ pub fn process_sync_aggregate<
     )?;
     let mut root_at_slot = *get_block_root_at_slot(state, previous_slot)?;
     let signing_root = compute_signing_root(&mut root_at_slot, domain)?;
-    if !eth_fast_aggregate_verify(
+    if eth_fast_aggregate_verify(
         participant_public_keys.as_slice(),
         signing_root.as_ref(),
         &sync_aggregate.sync_committee_signature,
-    ) {
+    )
+    .is_err()
+    {
         return Err(invalid_operation_error(InvalidOperation::SyncAggregate(
             InvalidSyncAggregate::InvalidSignature {
                 signature: sync_aggregate.sync_committee_signature.clone(),
@@ -845,7 +857,14 @@ pub fn process_voluntary_exit<
     context: &Context,
 ) -> Result<()> {
     let voluntary_exit = &mut signed_voluntary_exit.message;
-    let validator = &state.validators[voluntary_exit.validator_index];
+    let validator = state
+        .validators
+        .get(voluntary_exit.validator_index)
+        .ok_or_else(|| {
+            invalid_operation_error(InvalidOperation::VoluntaryExit(
+                InvalidVoluntaryExit::InvalidIndex(voluntary_exit.validator_index),
+            ))
+        })?;
     let current_epoch = get_current_epoch(state, context);
     if !is_active_validator(validator, current_epoch) {
         return Err(invalid_operation_error(InvalidOperation::VoluntaryExit(
@@ -885,9 +904,13 @@ pub fn process_voluntary_exit<
         context,
     )?;
     let signing_root = compute_signing_root(voluntary_exit, domain)?;
-    if !validator
-        .public_key
-        .verify_signature(signing_root.as_bytes(), &signed_voluntary_exit.signature)
+    let public_key = &validator.public_key;
+    if verify_signature(
+        public_key,
+        signing_root.as_bytes(),
+        &signed_voluntary_exit.signature,
+    )
+    .is_err()
     {
         return Err(invalid_operation_error(InvalidOperation::VoluntaryExit(
             InvalidVoluntaryExit::InvalidSignature(signed_voluntary_exit.signature.clone()),

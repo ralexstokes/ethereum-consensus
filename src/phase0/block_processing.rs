@@ -1,6 +1,6 @@
 use crate::phase0 as spec;
 
-use crate::crypto::hash;
+use crate::crypto::{hash, verify_signature};
 use crate::primitives::{
     BlsPublicKey, Bytes32, DomainType, Gwei, ValidatorIndex, FAR_FUTURE_EPOCH,
 };
@@ -89,11 +89,14 @@ pub fn process_proposer_slashing<
         &mut proposer_slashing.signed_header_2,
     ] {
         let signing_root = compute_signing_root(&mut signed_header.message, domain)?;
-        let valid_signature = proposer
-            .public_key
-            .verify_signature(signing_root.as_bytes(), &signed_header.signature);
-
-        if !valid_signature {
+        let public_key = &proposer.public_key;
+        if verify_signature(
+            public_key,
+            signing_root.as_bytes(),
+            &signed_header.signature,
+        )
+        .is_err()
+        {
             return Err(invalid_operation_error(InvalidOperation::ProposerSlashing(
                 InvalidProposerSlashing::InvalidSignature(signed_header.signature.clone()),
             )));
@@ -359,11 +362,11 @@ pub fn process_deposit<
 
     // NOTE: deviate from the order of the spec to avoid mutations
     // that would need to be rolled back upon failure
-    let public_key = deposit.data.public_key.clone();
+    let public_key = &deposit.data.public_key;
     let amount = deposit.data.amount;
     let validator_public_keys: HashSet<&BlsPublicKey> =
         HashSet::from_iter(state.validators.iter().map(|v| &v.public_key));
-    if !validator_public_keys.contains(&public_key) {
+    if !validator_public_keys.contains(public_key) {
         let mut deposit_message = DepositMessage {
             public_key: public_key.clone(),
             withdrawal_credentials: deposit.data.withdrawal_credentials.clone(),
@@ -371,7 +374,8 @@ pub fn process_deposit<
         };
         let domain = compute_domain(DomainType::Deposit, None, None, context)?;
         let signing_root = compute_signing_root(&mut deposit_message, domain)?;
-        if !public_key.verify_signature(signing_root.as_bytes(), &deposit.data.signature) {
+
+        if verify_signature(public_key, signing_root.as_bytes(), &deposit.data.signature).is_err() {
             return Err(invalid_operation_error(InvalidOperation::Deposit(
                 InvalidDeposit::InvalidSignature(deposit.data.signature.clone()),
             )));
@@ -385,7 +389,7 @@ pub fn process_deposit<
         let index = state
             .validators
             .iter()
-            .position(|v| v.public_key == public_key)
+            .position(|v| &v.public_key == public_key)
             .unwrap();
 
         increase_balance(state, index, amount);
@@ -472,9 +476,13 @@ pub fn process_voluntary_exit<
     )?;
     let signing_root = compute_signing_root(voluntary_exit, domain)?;
 
-    if !validator
-        .public_key
-        .verify_signature(signing_root.as_bytes(), &signed_voluntary_exit.signature)
+    let public_key = &validator.public_key;
+    if verify_signature(
+        public_key,
+        signing_root.as_bytes(),
+        &signed_voluntary_exit.signature,
+    )
+    .is_err()
     {
         return Err(invalid_operation_error(InvalidOperation::VoluntaryExit(
             InvalidVoluntaryExit::InvalidSignature(signed_voluntary_exit.signature.clone()),
@@ -629,9 +637,12 @@ pub fn process_randao<
     let domain = get_domain(state, DomainType::Randao, Some(epoch), context)?;
     let signing_root = compute_signing_root(&mut epoch, domain)?;
 
-    if !body
-        .randao_reveal
-        .verify(&proposer.public_key, signing_root.as_bytes())
+    if verify_signature(
+        &proposer.public_key,
+        signing_root.as_bytes(),
+        &body.randao_reveal,
+    )
+    .is_err()
     {
         return Err(invalid_operation_error(InvalidOperation::Randao(
             body.randao_reveal.clone(),
@@ -640,7 +651,7 @@ pub fn process_randao<
 
     let mix = xor(
         get_randao_mix(state, epoch),
-        &hash(body.randao_reveal.as_bytes()),
+        &hash(body.randao_reveal.as_ref()),
     );
     let mix_index = epoch % context.epochs_per_historical_vector;
     state.randao_mixes[mix_index as usize] = mix;
