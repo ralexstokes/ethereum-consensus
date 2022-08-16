@@ -6,5 +6,4 @@ pub mod slot_processing;
 
 pub use crate::bellatrix::state_transition_bellatrix::state_transition;
 pub use crate::bellatrix::state_transition_bellatrix::state_transition_block_in_slot;
-
 use ssz_rs::prelude::*;
