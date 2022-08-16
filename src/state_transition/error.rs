@@ -151,6 +151,8 @@ pub enum InvalidIndexedAttestation {
     DuplicateIndices(Vec<ValidatorIndex>),
     #[error("attesting indices are not sorted")]
     AttestingIndicesNotSorted,
+    #[error("index in attesting set is invalid for this state")]
+    InvalidIndex(ValidatorIndex),
 }
 
 #[derive(Debug, Error)]

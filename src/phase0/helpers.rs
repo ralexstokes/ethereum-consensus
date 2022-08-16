@@ -130,18 +130,19 @@ pub fn is_valid_indexed_attestation<
             )),
         ));
     }
-    let public_keys = state
-        .validators
-        .iter()
-        .enumerate()
-        .filter_map(|(i, v)| {
-            if indices.contains(&i) {
-                Some(&v.public_key)
-            } else {
-                None
-            }
-        })
-        .collect::<Vec<_>>();
+    let mut public_keys = vec![];
+    for index in indices {
+        let public_key = state
+            .validators
+            .get(index)
+            .map(|v| &v.public_key)
+            .ok_or_else(|| {
+                invalid_operation_error(InvalidOperation::IndexedAttestation(
+                    InvalidIndexedAttestation::InvalidIndex(index),
+                ))
+            })?;
+        public_keys.push(public_key);
+    }
 
     let domain = get_domain(
         state,
