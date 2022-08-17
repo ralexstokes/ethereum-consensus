@@ -8,9 +8,9 @@ use spec::{
     get_next_sync_committee, get_previous_epoch, get_total_active_balance, get_total_balance,
     get_unslashed_participating_indices, increase_balance, is_in_inactivity_leak,
     process_effective_balance_updates, process_eth1_data_reset, process_historical_roots_update,
-    process_randao_mixes_reset, process_registry_updates, process_slashings,
-    process_slashings_reset, weigh_justification_and_finalization, BeaconState,
-    PARTICIPATION_FLAG_WEIGHTS, TIMELY_TARGET_FLAG_INDEX,
+    process_randao_mixes_reset, process_registry_updates, process_slashings_reset,
+    weigh_justification_and_finalization, BeaconState, PARTICIPATION_FLAG_WEIGHTS,
+    TIMELY_TARGET_FLAG_INDEX,
 };
 use std::mem;
 
@@ -218,6 +218,49 @@ pub fn process_participation_flag_updates<
     state.current_epoch_participation = rotate_participation
         .try_into()
         .expect("should convert from Vec to List");
+    Ok(())
+}
+
+pub fn process_slashings<
+    const SLOTS_PER_HISTORICAL_ROOT: usize,
+    const HISTORICAL_ROOTS_LIMIT: usize,
+    const ETH1_DATA_VOTES_BOUND: usize,
+    const VALIDATOR_REGISTRY_LIMIT: usize,
+    const EPOCHS_PER_HISTORICAL_VECTOR: usize,
+    const EPOCHS_PER_SLASHINGS_VECTOR: usize,
+    const MAX_VALIDATORS_PER_COMMITTEE: usize,
+    const SYNC_COMMITTEE_SIZE: usize,
+>(
+    state: &mut BeaconState<
+        SLOTS_PER_HISTORICAL_ROOT,
+        HISTORICAL_ROOTS_LIMIT,
+        ETH1_DATA_VOTES_BOUND,
+        VALIDATOR_REGISTRY_LIMIT,
+        EPOCHS_PER_HISTORICAL_VECTOR,
+        EPOCHS_PER_SLASHINGS_VECTOR,
+        MAX_VALIDATORS_PER_COMMITTEE,
+        SYNC_COMMITTEE_SIZE,
+    >,
+    context: &Context,
+) -> Result<()> {
+    let epoch = get_current_epoch(state, context);
+    let total_balance = get_total_active_balance(state, context)?;
+    let adjusted_total_slashing_balance = Gwei::min(
+        state.slashings.iter().sum::<Gwei>() * context.proportional_slashing_multiplier_altair,
+        total_balance,
+    );
+    for i in 0..state.validators.len() {
+        let validator = &state.validators[i];
+        if validator.slashed
+            && (epoch + context.epochs_per_slashings_vector / 2) == validator.withdrawable_epoch
+        {
+            let increment = context.effective_balance_increment;
+            let penalty_numerator =
+                validator.effective_balance / increment * adjusted_total_slashing_balance;
+            let penalty = penalty_numerator / total_balance * increment;
+            decrease_balance(state, i, penalty);
+        }
+    }
     Ok(())
 }
 

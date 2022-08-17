@@ -351,13 +351,12 @@ pub fn get_inactivity_penalty_deltas<
         previous_epoch,
         context,
     )?;
-    let current_epoch = get_current_epoch(state, context);
-    let inactivity_penalty_quotient = context.inactivity_penalty_quotient(current_epoch)?;
     for i in get_eligible_validator_indices(state, context) {
         if !matching_target_indices.contains(&i) {
             let penalty_numerator =
                 state.validators[i].effective_balance * state.inactivity_scores[i];
-            let penalty_denominator = context.inactivity_score_bias * inactivity_penalty_quotient;
+            let penalty_denominator =
+                context.inactivity_score_bias * context.inactivity_penalty_quotient_altair;
             penalties[i] += penalty_numerator / penalty_denominator;
         }
     }
@@ -397,11 +396,11 @@ pub fn slash_validator<
     );
     let slashings_index = epoch as usize % EPOCHS_PER_SLASHINGS_VECTOR;
     state.slashings[slashings_index] += state.validators[slashed_index].effective_balance;
-    let min_slashing_penalty_quotient = context.min_slashing_penalty_quotient(epoch)?;
     decrease_balance(
         state,
         slashed_index,
-        state.validators[slashed_index].effective_balance / min_slashing_penalty_quotient,
+        state.validators[slashed_index].effective_balance
+            / context.min_slashing_penalty_quotient_altair,
     );
 
     let proposer_index = get_beacon_proposer_index(state, context)?;

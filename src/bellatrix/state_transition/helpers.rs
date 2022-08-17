@@ -1,9 +1,11 @@
 //! WARNING: This file was derived by the `gen-spec` utility. DO NOT EDIT MANUALLY.
 use crate::bellatrix as spec;
 pub use crate::bellatrix::helpers::compute_timestamp_at_slot;
+pub use crate::bellatrix::helpers::get_inactivity_penalty_deltas;
 pub use crate::bellatrix::helpers::is_execution_enabled;
 pub use crate::bellatrix::helpers::is_merge_transition_block;
 pub use crate::bellatrix::helpers::is_merge_transition_complete;
+pub use crate::bellatrix::helpers::slash_validator;
 use crate::crypto::{eth_aggregate_public_keys, fast_aggregate_verify, hash, verify_signature};
 use crate::primitives::{
     Bytes32, CommitteeIndex, Domain, DomainType, Epoch, ForkDigest, Gwei, ParticipationFlags, Root,
@@ -18,8 +20,7 @@ use integer_sqrt::IntegerSquareRoot;
 use spec::{
     get_base_reward, is_in_inactivity_leak, Attestation, AttestationData, BeaconState, ForkData,
     IndexedAttestation, SignedBeaconBlock, SyncCommittee, Validator, PARTICIPATION_FLAG_WEIGHTS,
-    PROPOSER_WEIGHT, TIMELY_HEAD_FLAG_INDEX, TIMELY_SOURCE_FLAG_INDEX, TIMELY_TARGET_FLAG_INDEX,
-    WEIGHT_DENOMINATOR,
+    TIMELY_HEAD_FLAG_INDEX, TIMELY_SOURCE_FLAG_INDEX, TIMELY_TARGET_FLAG_INDEX, WEIGHT_DENOMINATOR,
 };
 use ssz_rs::prelude::*;
 use std::cmp;
@@ -766,58 +767,6 @@ pub fn get_flag_index_deltas<
     }
     Ok((rewards, penalties))
 }
-pub fn get_inactivity_penalty_deltas<
-    const SLOTS_PER_HISTORICAL_ROOT: usize,
-    const HISTORICAL_ROOTS_LIMIT: usize,
-    const ETH1_DATA_VOTES_BOUND: usize,
-    const VALIDATOR_REGISTRY_LIMIT: usize,
-    const EPOCHS_PER_HISTORICAL_VECTOR: usize,
-    const EPOCHS_PER_SLASHINGS_VECTOR: usize,
-    const MAX_VALIDATORS_PER_COMMITTEE: usize,
-    const SYNC_COMMITTEE_SIZE: usize,
-    const BYTES_PER_LOGS_BLOOM: usize,
-    const MAX_EXTRA_DATA_BYTES: usize,
-    const MAX_BYTES_PER_TRANSACTION: usize,
-    const MAX_TRANSACTIONS_PER_PAYLOAD: usize,
->(
-    state: &BeaconState<
-        SLOTS_PER_HISTORICAL_ROOT,
-        HISTORICAL_ROOTS_LIMIT,
-        ETH1_DATA_VOTES_BOUND,
-        VALIDATOR_REGISTRY_LIMIT,
-        EPOCHS_PER_HISTORICAL_VECTOR,
-        EPOCHS_PER_SLASHINGS_VECTOR,
-        MAX_VALIDATORS_PER_COMMITTEE,
-        SYNC_COMMITTEE_SIZE,
-        BYTES_PER_LOGS_BLOOM,
-        MAX_EXTRA_DATA_BYTES,
-        MAX_BYTES_PER_TRANSACTION,
-        MAX_TRANSACTIONS_PER_PAYLOAD,
-    >,
-    context: &Context,
-) -> Result<(Vec<Gwei>, Vec<Gwei>)> {
-    let validator_count = state.validators.len();
-    let rewards = vec![0; validator_count];
-    let mut penalties = vec![0; validator_count];
-    let previous_epoch = get_previous_epoch(state, context);
-    let matching_target_indices = get_unslashed_participating_indices(
-        state,
-        TIMELY_TARGET_FLAG_INDEX,
-        previous_epoch,
-        context,
-    )?;
-    let current_epoch = get_current_epoch(state, context);
-    let inactivity_penalty_quotient = context.inactivity_penalty_quotient(current_epoch)?;
-    for i in get_eligible_validator_indices(state, context) {
-        if !matching_target_indices.contains(&i) {
-            let penalty_numerator =
-                state.validators[i].effective_balance * state.inactivity_scores[i];
-            let penalty_denominator = context.inactivity_score_bias * inactivity_penalty_quotient;
-            penalties[i] += penalty_numerator / penalty_denominator;
-        }
-    }
-    Ok((rewards, penalties))
-}
 pub fn get_indexed_attestation<
     const SLOTS_PER_HISTORICAL_ROOT: usize,
     const HISTORICAL_ROOTS_LIMIT: usize,
@@ -1484,67 +1433,6 @@ pub fn is_valid_indexed_attestation<
         &indexed_attestation.signature,
     )
     .map_err(Into::into)
-}
-pub fn slash_validator<
-    const SLOTS_PER_HISTORICAL_ROOT: usize,
-    const HISTORICAL_ROOTS_LIMIT: usize,
-    const ETH1_DATA_VOTES_BOUND: usize,
-    const VALIDATOR_REGISTRY_LIMIT: usize,
-    const EPOCHS_PER_HISTORICAL_VECTOR: usize,
-    const EPOCHS_PER_SLASHINGS_VECTOR: usize,
-    const MAX_VALIDATORS_PER_COMMITTEE: usize,
-    const SYNC_COMMITTEE_SIZE: usize,
-    const BYTES_PER_LOGS_BLOOM: usize,
-    const MAX_EXTRA_DATA_BYTES: usize,
-    const MAX_BYTES_PER_TRANSACTION: usize,
-    const MAX_TRANSACTIONS_PER_PAYLOAD: usize,
->(
-    state: &mut BeaconState<
-        SLOTS_PER_HISTORICAL_ROOT,
-        HISTORICAL_ROOTS_LIMIT,
-        ETH1_DATA_VOTES_BOUND,
-        VALIDATOR_REGISTRY_LIMIT,
-        EPOCHS_PER_HISTORICAL_VECTOR,
-        EPOCHS_PER_SLASHINGS_VECTOR,
-        MAX_VALIDATORS_PER_COMMITTEE,
-        SYNC_COMMITTEE_SIZE,
-        BYTES_PER_LOGS_BLOOM,
-        MAX_EXTRA_DATA_BYTES,
-        MAX_BYTES_PER_TRANSACTION,
-        MAX_TRANSACTIONS_PER_PAYLOAD,
-    >,
-    slashed_index: ValidatorIndex,
-    whistleblower_index: Option<ValidatorIndex>,
-    context: &Context,
-) -> Result<()> {
-    let epoch = get_current_epoch(state, context);
-    initiate_validator_exit(state, slashed_index, context);
-    state.validators[slashed_index].slashed = true;
-    state.validators[slashed_index].withdrawable_epoch = u64::max(
-        state.validators[slashed_index].withdrawable_epoch,
-        epoch + context.epochs_per_slashings_vector as u64,
-    );
-    let slashings_index = epoch as usize % EPOCHS_PER_SLASHINGS_VECTOR;
-    state.slashings[slashings_index] += state.validators[slashed_index].effective_balance;
-    let min_slashing_penalty_quotient = context.min_slashing_penalty_quotient(epoch)?;
-    decrease_balance(
-        state,
-        slashed_index,
-        state.validators[slashed_index].effective_balance / min_slashing_penalty_quotient,
-    );
-    let proposer_index = get_beacon_proposer_index(state, context)?;
-    let whistleblower_index = whistleblower_index.unwrap_or(proposer_index);
-    let whistleblower_reward =
-        state.validators[slashed_index].effective_balance / context.whistleblower_reward_quotient;
-    let proposer_reward_scaling_factor = PROPOSER_WEIGHT / WEIGHT_DENOMINATOR;
-    let proposer_reward = whistleblower_reward * proposer_reward_scaling_factor;
-    increase_balance(state, proposer_index, proposer_reward);
-    increase_balance(
-        state,
-        whistleblower_index,
-        whistleblower_reward - proposer_reward,
-    );
-    Ok(())
 }
 pub fn verify_block_signature<
     const SLOTS_PER_HISTORICAL_ROOT: usize,
