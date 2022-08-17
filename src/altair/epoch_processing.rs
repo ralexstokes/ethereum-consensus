@@ -81,7 +81,7 @@ pub fn process_justification_and_finalization<
     let current_indices = get_unslashed_participating_indices(
         state,
         TIMELY_TARGET_FLAG_INDEX,
-        get_previous_epoch(state, context),
+        current_epoch,
         context,
     )?;
     let total_active_balance = get_total_active_balance(state, context)?;

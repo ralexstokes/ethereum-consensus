@@ -202,7 +202,7 @@ pub fn get_unslashed_participating_indices<
         .into_iter()
         .filter(|&i| {
             let did_participate = has_flag(epoch_participation[i], flag_index);
-            let not_slashed = state.validators[i].slashed;
+            let not_slashed = !state.validators[i].slashed;
             did_participate && not_slashed
         })
         .collect::<HashSet<_>>())
