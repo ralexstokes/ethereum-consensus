@@ -596,7 +596,7 @@ pub fn weigh_justification_and_finalization<
     current_epoch_target_balance: Gwei,
     context: &Context,
 ) -> Result<()> {
-    let previous_epoch = get_current_epoch(state, context);
+    let previous_epoch = get_previous_epoch(state, context);
     let current_epoch = get_current_epoch(state, context);
     let old_previous_justified_checkpoint = state.previous_justified_checkpoint.clone();
     let old_current_justified_checkpoint = state.current_justified_checkpoint.clone();
