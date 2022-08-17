@@ -171,7 +171,7 @@ where
 pub struct DepositTestCase<S, T> {
     pre: S,
     post: Option<S>,
-    operation: T,
+    operation: Option<T>,
     config: Config,
 }
 
@@ -188,7 +188,7 @@ where
         let post = load_snappy_ssz::<S>(&path);
 
         let path = test_case_path.to_string() + "/deposit.ssz_snappy";
-        let operation: T = load_snappy_ssz(&path).unwrap();
+        let operation = load_snappy_ssz::<T>(&path);
 
         let config = if test_case_path.contains("minimal") {
             Config::Minimal
@@ -208,17 +208,21 @@ where
     where
         F: FnOnce(&mut S, &mut T, &Context) -> Result<()>,
     {
-        let context = match self.config {
-            Config::Minimal => Context::for_minimal(),
-            Config::Mainnet => Context::for_mainnet(),
-        };
+        if let Some(operation) = self.operation.as_mut() {
+            let context = match self.config {
+                Config::Minimal => Context::for_minimal(),
+                Config::Mainnet => Context::for_mainnet(),
+            };
 
-        let result = f(&mut self.pre, &mut self.operation, &context);
+            let result = f(&mut self.pre, operation, &context);
 
-        if let Some(post) = self.post.as_ref() {
-            assert_eq!(&self.pre, post);
+            if let Some(post) = self.post.as_ref() {
+                assert_eq!(&self.pre, post);
+            } else {
+                assert!(result.is_err())
+            }
         } else {
-            assert!(result.is_err())
+            assert!(self.post.is_none())
         }
     }
 }

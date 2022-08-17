@@ -574,7 +574,6 @@ impl Spec {
                 vec![
                     "use std::cmp;",
                     "use crate::signing::compute_signing_root;",
-                    "use crate::crypto::hash;",
                     "use ssz_rs::prelude::*;",
                     "use crate::ssz::ByteVector;",
                 ],
@@ -656,7 +655,6 @@ impl Spec {
                     "use crate::ssz::ByteVector;",
                     "use crate::signing::compute_signing_root;",
                     "use std::iter::zip;",
-                    "use crate::crypto::{eth_fast_aggregate_verify, hash};",
                 ],
             ),
             (

@@ -4,9 +4,11 @@ pub use crate::altair::block_processing::process_attestation;
 pub use crate::altair::block_processing::process_block;
 pub use crate::altair::block_processing::process_deposit;
 pub use crate::altair::block_processing::process_sync_aggregate;
-use crate::crypto::{hash, verify_signature};
 use crate::primitives::{Bytes32, DomainType, Gwei, ValidatorIndex, FAR_FUTURE_EPOCH};
 use crate::signing::compute_signing_root;
+use ssz_rs::prelude::*;
+
+use crate::crypto::{hash, verify_signature};
 use crate::ssz::ByteVector;
 use crate::state_transition::{
     invalid_header_error, invalid_operation_error, Context, InvalidAttesterSlashing,
@@ -20,8 +22,6 @@ use spec::{
     BeaconBlock, BeaconBlockBody, BeaconBlockHeader, BeaconState, Deposit, ProposerSlashing,
     SignedVoluntaryExit, Validator,
 };
-use ssz_rs::prelude::*;
-
 use std::collections::HashSet;
 pub fn get_validator_from_deposit(deposit: &Deposit, context: &Context) -> Validator {
     let amount = deposit.data.amount;

@@ -3,7 +3,6 @@ use crate::bellatrix;
 use crate::configs::{self, Config};
 use crate::phase0;
 use crate::primitives::{Epoch, ExecutionAddress, Gwei, Hash32, Slot, Version, U256};
-use crate::state_transition::{Error, Result};
 
 #[derive(Debug, Default, Clone)]
 pub struct ForkSchedule {
@@ -236,54 +235,6 @@ impl Context {
         ForkSchedule {
             altair: self.altair_fork_epoch,
             bellatrix: self.bellatrix_fork_epoch,
-        }
-    }
-
-    pub fn inactivity_penalty_quotient(&self, current_epoch: Epoch) -> Result<u64> {
-        if current_epoch < self.fork_schedule.altair {
-            Ok(self.inactivity_penalty_quotient)
-        } else if current_epoch < self.fork_schedule.bellatrix {
-            Ok(self.inactivity_penalty_quotient_altair)
-        } else if current_epoch < Epoch::MAX {
-            Ok(self.inactivity_penalty_quotient_bellatrix)
-        } else {
-            // satisfy compiler with error arm...
-            Err(Error::UnknownFork {
-                fork_schedule: self.fork_schedule.clone(),
-                requested: current_epoch,
-            })
-        }
-    }
-
-    pub fn min_slashing_penalty_quotient(&self, current_epoch: Epoch) -> Result<u64> {
-        if current_epoch < self.fork_schedule.altair {
-            Ok(self.min_slashing_penalty_quotient)
-        } else if current_epoch < self.fork_schedule.bellatrix {
-            Ok(self.min_slashing_penalty_quotient_altair)
-        } else if current_epoch < Epoch::MAX {
-            Ok(self.min_slashing_penalty_quotient_bellatrix)
-        } else {
-            // satisfy compiler with error arm...
-            Err(Error::UnknownFork {
-                fork_schedule: self.fork_schedule.clone(),
-                requested: current_epoch,
-            })
-        }
-    }
-
-    pub fn proportional_slashing_multiplier(&self, current_epoch: Epoch) -> Result<u64> {
-        if current_epoch < self.fork_schedule.altair {
-            Ok(self.proportional_slashing_multiplier)
-        } else if current_epoch < self.fork_schedule.bellatrix {
-            Ok(self.proportional_slashing_multiplier_altair)
-        } else if current_epoch < Epoch::MAX {
-            Ok(self.proportional_slashing_multiplier_bellatrix)
-        } else {
-            // satisfy compiler with error arm...
-            Err(Error::UnknownFork {
-                fork_schedule: self.fork_schedule.clone(),
-                requested: current_epoch,
-            })
         }
     }
 }
