@@ -297,15 +297,16 @@ pub fn get_flag_index_deltas<
         unslashed_participating_balance / context.effective_balance_increment;
     let active_increments =
         get_total_active_balance(state, context)? / context.effective_balance_increment;
+    let not_leaking = !is_in_inactivity_leak(state, context);
     for index in get_eligible_validator_indices(state, context) {
         let base_reward = get_base_reward(state, index, context)?;
         if unslashed_participating_indices.contains(&index) {
-            if !is_in_inactivity_leak(state, context) {
+            if not_leaking {
                 let reward_numerator = base_reward * weight * unslashed_participating_increments;
                 rewards[index] += reward_numerator / (active_increments * WEIGHT_DENOMINATOR);
-            } else if flag_index != TIMELY_HEAD_FLAG_INDEX {
-                penalties[index] += base_reward * weight / WEIGHT_DENOMINATOR;
             }
+        } else if flag_index != TIMELY_HEAD_FLAG_INDEX {
+            penalties[index] += base_reward * weight / WEIGHT_DENOMINATOR;
         }
     }
     Ok((rewards, penalties))
