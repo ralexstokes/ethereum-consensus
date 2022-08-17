@@ -185,7 +185,7 @@ pub fn process_rewards_and_penalties<
         deltas.push(flag_index_delta);
     }
     deltas.push(get_inactivity_penalty_deltas(state, context)?);
-    for (rewards, penalties) in deltas.iter() {
+    for (rewards, penalties) in deltas {
         for index in 0..state.validators.len() {
             increase_balance(state, index, rewards[index]);
             decrease_balance(state, index, penalties[index]);
