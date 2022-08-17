@@ -52,14 +52,14 @@ pub fn get_next_sync_committee_indices<
         SYNC_COMMITTEE_SIZE,
     >,
     context: &Context,
-) -> Result<HashSet<ValidatorIndex>> {
+) -> Result<Vec<ValidatorIndex>> {
     let epoch = get_current_epoch(state, context) + 1;
     let max_random_byte = u8::MAX as u64;
     let active_validator_indices = get_active_validator_indices(state, epoch);
     let active_validator_count = active_validator_indices.len();
     let seed = get_seed(state, epoch, DomainType::SyncCommittee, context);
     let mut i: usize = 0;
-    let mut sync_committee_indices = HashSet::new();
+    let mut sync_committee_indices = vec![];
     let mut hash_input = [0u8; 40];
     hash_input[..32].copy_from_slice(seed.as_ref());
     while sync_committee_indices.len() < context.sync_committee_size {
@@ -77,7 +77,7 @@ pub fn get_next_sync_committee_indices<
         let effective_balance = state.validators[candidate_index].effective_balance;
 
         if effective_balance * max_random_byte >= context.max_effective_balance * random_byte {
-            sync_committee_indices.insert(candidate_index);
+            sync_committee_indices.push(candidate_index);
         }
         i += 1;
     }
@@ -108,17 +108,9 @@ pub fn get_next_sync_committee<
     context: &Context,
 ) -> Result<SyncCommittee<SYNC_COMMITTEE_SIZE>> {
     let indices = get_next_sync_committee_indices(state, context)?;
-    let public_keys = state
-        .validators
-        .iter()
-        .enumerate()
-        .filter_map(|(i, v)| {
-            if indices.contains(&i) {
-                Some(v.public_key.clone())
-            } else {
-                None
-            }
-        })
+    let public_keys = indices
+        .into_iter()
+        .map(|i| state.validators[i].public_key.clone())
         .collect::<Vector<_, SYNC_COMMITTEE_SIZE>>();
     let aggregate_public_key = eth_aggregate_public_keys(&public_keys)?;
 
