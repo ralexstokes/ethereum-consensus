@@ -308,21 +308,24 @@ pub fn process_inactivity_updates<
     }
     let eligible_validator_indices =
         get_eligible_validator_indices(state, context).collect::<Vec<_>>();
+    let unslashed_participating_indices = get_unslashed_participating_indices(
+        state,
+        TIMELY_TARGET_FLAG_INDEX,
+        get_previous_epoch(state, context),
+        context,
+    )?;
+    let not_is_leaking = !is_in_inactivity_leak(state, context);
     for index in eligible_validator_indices {
-        if get_unslashed_participating_indices(
-            state,
-            TIMELY_TARGET_FLAG_INDEX,
-            get_previous_epoch(state, context),
-            context,
-        )?
-        .contains(&index)
-        {
+        if unslashed_participating_indices.contains(&index) {
             state.inactivity_scores[index] -= u64::min(1, state.inactivity_scores[index]);
         } else {
             state.inactivity_scores[index] += context.inactivity_score_bias;
         }
-        if !is_in_inactivity_leak(state, context) {
-            state.inactivity_scores[index] -= u64::min(1, state.inactivity_scores[index]);
+        if not_is_leaking {
+            state.inactivity_scores[index] -= u64::min(
+                context.inactivity_score_recovery_rate,
+                state.inactivity_scores[index],
+            );
         }
     }
     Ok(())
@@ -370,7 +373,7 @@ pub fn process_justification_and_finalization<
     let current_indices = get_unslashed_participating_indices(
         state,
         TIMELY_TARGET_FLAG_INDEX,
-        get_previous_epoch(state, context),
+        current_epoch,
         context,
     )?;
     let total_active_balance = get_total_active_balance(state, context)?;
@@ -564,7 +567,7 @@ pub fn process_rewards_and_penalties<
         deltas.push(flag_index_delta);
     }
     deltas.push(get_inactivity_penalty_deltas(state, context)?);
-    for (rewards, penalties) in deltas.iter() {
+    for (rewards, penalties) in deltas {
         for index in 0..state.validators.len() {
             increase_balance(state, index, rewards[index]);
             decrease_balance(state, index, penalties[index]);
@@ -678,7 +681,7 @@ pub fn weigh_justification_and_finalization<
     current_epoch_target_balance: Gwei,
     context: &Context,
 ) -> Result<()> {
-    let previous_epoch = get_current_epoch(state, context);
+    let previous_epoch = get_previous_epoch(state, context);
     let current_epoch = get_current_epoch(state, context);
     let old_previous_justified_checkpoint = state.previous_justified_checkpoint.clone();
     let old_current_justified_checkpoint = state.current_justified_checkpoint.clone();
