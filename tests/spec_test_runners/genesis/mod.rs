@@ -13,7 +13,7 @@ struct Eth1 {
 #[derive(Deserialize)]
 struct Meta {
     deposits_count: usize,
-    execution_payload_header: bool,
+    execution_payload_header: Option<bool>,
 }
 
 pub struct InitializationTestCase<S, D, H> {
@@ -44,7 +44,7 @@ where
             deposits.push(deposit);
         }
 
-        let execution_payload_header = if meta.execution_payload_header {
+        let execution_payload_header = if meta.execution_payload_header.unwrap_or(false) {
             let path = test_case_path.to_string() + "/execution_payload_header.ssz_snappy";
             let header: H = load_snappy_ssz(&path).unwrap();
             Some(header)
