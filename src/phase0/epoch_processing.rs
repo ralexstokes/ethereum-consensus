@@ -81,12 +81,20 @@ pub fn get_matching_target_attestations<
     >,
     epoch: Epoch,
     context: &Context,
-) -> Result<impl Iterator<Item = &'a PendingAttestation<MAX_VALIDATORS_PER_COMMITTEE>>> {
+) -> Result<Vec<&'a PendingAttestation<MAX_VALIDATORS_PER_COMMITTEE>>> {
     let source_attestations = get_matching_source_attestations(state, epoch, context)?;
+    let mut result = vec![];
+    if source_attestations.is_empty() {
+        return Ok(result);
+    }
+
     let block_root = get_block_root(state, epoch, context)?;
-    Ok(source_attestations
-        .iter()
-        .filter(move |a| a.data.target.root == *block_root))
+    for attestation in source_attestations.iter() {
+        if attestation.data.target.root == *block_root {
+            result.push(attestation)
+        }
+    }
+    Ok(result)
 }
 
 pub fn get_matching_head_attestations<
@@ -144,7 +152,7 @@ pub fn get_unslashed_attesting_indices<
         MAX_VALIDATORS_PER_COMMITTEE,
         PENDING_ATTESTATIONS_BOUND,
     >,
-    attestations: impl Iterator<Item = &'a PendingAttestation<MAX_VALIDATORS_PER_COMMITTEE>>,
+    attestations: impl IntoIterator<Item = &'a PendingAttestation<MAX_VALIDATORS_PER_COMMITTEE>>,
     context: &Context,
 ) -> Result<HashSet<ValidatorIndex>> {
     let mut output = HashSet::new();
@@ -557,7 +565,7 @@ pub fn get_attesting_balance<
         MAX_VALIDATORS_PER_COMMITTEE,
         PENDING_ATTESTATIONS_BOUND,
     >,
-    attestations: impl Iterator<Item = &'a PendingAttestation<MAX_VALIDATORS_PER_COMMITTEE>>,
+    attestations: impl IntoIterator<Item = &'a PendingAttestation<MAX_VALIDATORS_PER_COMMITTEE>>,
     context: &Context,
 ) -> Result<Gwei> {
     /*
@@ -771,7 +779,7 @@ pub fn get_attestation_component_deltas<
         MAX_VALIDATORS_PER_COMMITTEE,
         PENDING_ATTESTATIONS_BOUND,
     >,
-    attestations: impl Iterator<Item = &'a PendingAttestation<MAX_VALIDATORS_PER_COMMITTEE>>,
+    attestations: impl IntoIterator<Item = &'a PendingAttestation<MAX_VALIDATORS_PER_COMMITTEE>>,
     context: &Context,
 ) -> Result<(Vec<Gwei>, Vec<Gwei>)> {
     // Helper with shared logic for use by get source, target, and head deltas functions
@@ -885,7 +893,7 @@ pub fn get_head_deltas<
     let previous_epoch = get_previous_epoch(state, context);
     let matching_head_attestations =
         get_matching_head_attestations(state, previous_epoch, context)?;
-    get_attestation_component_deltas(state, matching_head_attestations.into_iter(), context)
+    get_attestation_component_deltas(state, matching_head_attestations, context)
 }
 
 pub fn get_inclusion_delay_deltas<
