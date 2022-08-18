@@ -74,7 +74,7 @@ where
 
     pub fn execute<F>(&self, f: F)
     where
-        F: FnOnce(&S, &Context) -> (Pair, Pair, Pair, Option<Vec<Gwei>>, Pair),
+        F: FnOnce(&S, &Context) -> (Pair, Pair, Pair, Option<Pair>, Pair),
     {
         let context = match self.config {
             Config::Minimal => Context::for_minimal(),
@@ -92,8 +92,9 @@ where
         assert_deltas(&self.target_deltas, target_deltas);
         assert_deltas(&self.head_deltas, head_deltas);
         if let Some(expected) = self.inclusion_delay_deltas.as_ref() {
-            let provided = inclusion_delay_deltas.unwrap();
-            assert_deltas(expected, (vec![], provided));
+            assert_deltas(expected, inclusion_delay_deltas.unwrap());
+        } else {
+            assert!(inclusion_delay_deltas.is_none());
         }
         assert_deltas(&self.inactivity_penalty_deltas, inactivity_penalty_deltas);
     }
@@ -151,7 +152,7 @@ where
 
     pub fn execute<F>(&self, f: F)
     where
-        F: FnOnce(&S, &Context) -> (Pair, Pair, Pair, Option<Vec<Gwei>>, Pair),
+        F: FnOnce(&S, &Context) -> (Pair, Pair, Pair, Option<Pair>, Pair),
     {
         let context = match self.config {
             Config::Minimal => Context::for_minimal(),
@@ -169,8 +170,9 @@ where
         assert_deltas(&self.target_deltas, target_deltas);
         assert_deltas(&self.head_deltas, head_deltas);
         if let Some(expected) = self.inclusion_delay_deltas.as_ref() {
-            let provided = inclusion_delay_deltas.unwrap();
-            assert_deltas(expected, (vec![], provided));
+            assert_deltas(expected, inclusion_delay_deltas.unwrap());
+        } else {
+            assert!(inclusion_delay_deltas.is_none());
         }
         assert_deltas(&self.inactivity_penalty_deltas, inactivity_penalty_deltas);
     }
@@ -228,7 +230,7 @@ where
 
     pub fn execute<F>(&self, f: F)
     where
-        F: FnOnce(&S, &Context) -> (Pair, Pair, Pair, Option<Vec<Gwei>>, Pair),
+        F: FnOnce(&S, &Context) -> (Pair, Pair, Pair, Option<Pair>, Pair),
     {
         let context = match self.config {
             Config::Minimal => Context::for_minimal(),
@@ -246,8 +248,9 @@ where
         assert_deltas(&self.target_deltas, target_deltas);
         assert_deltas(&self.head_deltas, head_deltas);
         if let Some(expected) = self.inclusion_delay_deltas.as_ref() {
-            let provided = inclusion_delay_deltas.unwrap();
-            assert_deltas(expected, (vec![], provided));
+            assert_deltas(expected, inclusion_delay_deltas.unwrap());
+        } else {
+            assert!(inclusion_delay_deltas.is_none());
         }
         assert_deltas(&self.inactivity_penalty_deltas, inactivity_penalty_deltas);
     }
