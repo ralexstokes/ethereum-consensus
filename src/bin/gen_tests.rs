@@ -191,6 +191,17 @@ fn generate_suite_src(
             config
         )
         .unwrap();
+        let pre_fork = match spec {
+            Spec::Altair => "phase0",
+            Spec::Bellatrix => "altair",
+            _ => unimplemented!("support other forks"),
+        };
+        writeln!(
+            src,
+            "use ethereum_consensus::{}::{} as pre_spec;",
+            pre_fork, config
+        )
+        .unwrap();
         writeln!(
             src,
             "use ethereum_consensus::bellatrix::{}::NoOpExecutionEngine;",
@@ -433,8 +444,12 @@ fn main() {
                     test_case_type_generics: "spec::BeaconState".to_string(),
                     preamble: Default::default(),
                     execution_handler: HashMap::from_iter([
-                        (Spec::Altair, "execute(|state, blocks: Vec<spec::SignedBeaconBlock>, context| {
+                        (Spec::Altair, "execute(|state: pre_spec::BeaconState, pre_blocks: Vec<pre_spec::SignedBeaconBlock>, blocks: Vec<spec::SignedBeaconBlock>, context| {
                     let mut executor = Executor::new(state.into(), NoOpExecutionEngine, context);
+                    for block in pre_blocks.into_iter() {
+                        let mut block = block.into();
+                        executor.apply_block(&mut block)?;
+                    }
                     for block in blocks.into_iter() {
                         let mut block = block.into();
                         executor.apply_block(&mut block)?;
@@ -445,8 +460,12 @@ fn main() {
                     }
                 })"
                     .to_string()),
-                        (Spec::Bellatrix, "execute(|state, blocks: Vec<spec::SignedBeaconBlock>, context| {
+                        (Spec::Bellatrix, "execute(|state: pre_spec::BeaconState, pre_blocks: Vec<pre_spec::SignedBeaconBlock>, blocks: Vec<spec::SignedBeaconBlock>, context| {
                     let mut executor = Executor::new(state.into(), NoOpExecutionEngine, context);
+                    for block in pre_blocks.into_iter() {
+                        let mut block = block.into();
+                        executor.apply_block(&mut block)?;
+                    }
                     for block in blocks.into_iter() {
                         let mut block = block.into();
                         executor.apply_block(&mut block)?;
