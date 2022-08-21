@@ -1,7 +1,7 @@
 use crate::crypto::Error as CryptoError;
 use crate::phase0::{AttestationData, BeaconBlockHeader, Checkpoint};
 use crate::primitives::{BlsSignature, Bytes32, Epoch, Hash32, Root, Slot, ValidatorIndex};
-use crate::state_transition::{ForkSchedule, Forks};
+use crate::state_transition::Forks;
 use ssz_rs::prelude::*;
 use thiserror::Error;
 
@@ -44,13 +44,6 @@ pub enum Error {
         requested: Epoch,
         previous: Epoch,
         current: Epoch,
-    },
-    #[error(
-    "the requested epoch {requested} refers to an unknown fork according to the schedule {fork_schedule:?}"
-    )]
-    UnknownFork {
-        fork_schedule: ForkSchedule,
-        requested: Epoch,
     },
     #[error(
         "transition requested from a later fork {destination_fork:?} to an earlier fork {source_fork:?}"

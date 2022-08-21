@@ -4,12 +4,6 @@ use crate::configs::{self, Config};
 use crate::phase0;
 use crate::primitives::{Epoch, ExecutionAddress, Gwei, Hash32, Slot, Version, U256};
 
-#[derive(Debug, Default, Clone)]
-pub struct ForkSchedule {
-    pub altair: Epoch,
-    pub bellatrix: Epoch,
-}
-
 #[derive(Debug)]
 pub enum Forks {
     Phase0,
@@ -19,8 +13,6 @@ pub enum Forks {
 
 #[derive(Debug, Default, Clone)]
 pub struct Context {
-    pub fork_schedule: ForkSchedule,
-
     // phase0 preset
     pub max_committees_per_slot: u64,
     pub target_committee_size: u64,
@@ -120,12 +112,7 @@ impl Context {
         bellatrix_preset: &bellatrix::Preset,
         config: &Config,
     ) -> Self {
-        let fork_schedule = ForkSchedule {
-            altair: config.altair_fork_epoch,
-            bellatrix: config.bellatrix_fork_epoch,
-        };
         Self {
-            fork_schedule,
             // phase0
             max_committees_per_slot: phase0_preset.max_committees_per_slot,
             target_committee_size: phase0_preset.target_committee_size,
@@ -229,12 +216,5 @@ impl Context {
         let altair_preset = &altair::minimal::PRESET;
         let bellatrix_preset = &bellatrix::minimal::PRESET;
         Self::from(phase0_preset, altair_preset, bellatrix_preset, config)
-    }
-
-    pub fn fork_schedule(&self) -> ForkSchedule {
-        ForkSchedule {
-            altair: self.altair_fork_epoch,
-            bellatrix: self.bellatrix_fork_epoch,
-        }
     }
 }
