@@ -16,9 +16,6 @@ There are a number of top-level modules exposing a variety of supporting types, 
 
 And then a module to drive any state transition in `state_transition`.
 
-**NOTE:** this module is still under construction but the idea is that it will support starting from any `BeaconState`
-  and consuming any number of blocks, even across fork boundaries.
-
 Specialized logic for each fork can be found in the module with the same name as the fork, e.g. `bellatrix`.
 
 Each fork supports a compile-time "preset", with two common presets `mainnet` and `minimal` provided as a convenience.
