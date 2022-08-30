@@ -1,5 +1,7 @@
+pub mod goerli;
 pub mod mainnet;
 pub mod minimal;
+pub mod sepolia;
 
 use crate::primitives::{Epoch, ExecutionAddress, Gwei, Hash32, Version, U256};
 
