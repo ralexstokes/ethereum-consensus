@@ -1,5 +1,7 @@
 use crate::phase0::compute_domain;
-use crate::primitives::{BlsPublicKey, BlsSignature, Domain, DomainType, ExecutionAddress};
+use crate::primitives::{
+    BlsPublicKey, BlsSignature, Domain, DomainType, ExecutionAddress, Root, Version,
+};
 use crate::state_transition::{Context, Error};
 use ssz_rs::prelude::*;
 
@@ -22,7 +24,11 @@ pub struct SignedValidatorRegistration {
     pub signature: BlsSignature,
 }
 
-pub fn compute_builder_domain(context: &Context) -> Result<Domain, Error> {
+pub fn compute_builder_domain(
+    context: &Context,
+    fork_version: Option<Version>,
+    genesis_validators_root: Option<Root>,
+) -> Result<Domain, Error> {
     let domain_type = DomainType::ApplicationBuilder;
-    compute_domain(domain_type, None, None, context)
+    compute_domain(domain_type, fork_version, genesis_validators_root, context)
 }
