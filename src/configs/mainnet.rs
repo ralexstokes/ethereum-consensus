@@ -17,11 +17,11 @@ pub const TERMINAL_BLOCK_HASH_ACTIVATION_EPOCH: Epoch = FAR_FUTURE_EPOCH;
 pub const ALTAIR_FORK_VERSION: Version = [1, 0, 0, 0];
 pub const ALTAIR_FORK_EPOCH: Epoch = 74240;
 pub const BELLATRIX_FORK_VERSION: Version = [2, 0, 0, 0];
-pub const BELLATRIX_FORK_EPOCH: Epoch = 18446744073709551615;
+pub const BELLATRIX_FORK_EPOCH: Epoch = 144896;
 pub const CAPELLA_FORK_VERSION: Version = [3, 0, 0, 0];
-pub const CAPELLA_FORK_EPOCH: Epoch = 18446744073709551615;
+pub const CAPELLA_FORK_EPOCH: Epoch = FAR_FUTURE_EPOCH;
 pub const SHARDING_FORK_VERSION: Version = [4, 0, 0, 0];
-pub const SHARDING_FORK_EPOCH: Epoch = 18446744073709551615;
+pub const SHARDING_FORK_EPOCH: Epoch = FAR_FUTURE_EPOCH;
 pub const INACTIVITY_SCORE_BIAS: u64 = 4;
 pub const INACTIVITY_SCORE_RECOVERY_RATE: u64 = 16;
 pub const PROPOSER_SCORE_BOOST: u64 = 70;
@@ -29,7 +29,10 @@ pub const DEPOSIT_CHAIN_ID: usize = 1;
 pub const DEPOSIT_NETWORK_ID: usize = 1;
 
 pub fn config() -> Config {
-    let terminal_total_difficulty = U256::from_bytes_le([0xff; 32]);
+    let terminal_total_difficulty = U256::from_bytes_le([
+        0, 0, 56, 215, 40, 161, 8, 216, 112, 12, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0,
+    ]);
     let terminal_block_hash = Default::default();
     let deposit_contract_address = ExecutionAddress::try_from(
         [
