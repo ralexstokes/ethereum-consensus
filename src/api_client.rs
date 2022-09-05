@@ -91,19 +91,16 @@ impl Client {
         Ok(response)
     }
 
-    pub async fn post<T: serde::Serialize, U: serde::Serialize + serde::de::DeserializeOwned>(
+    pub async fn post<T: serde::Serialize + ?Sized>(
         &self,
         path: &str,
         argument: &T,
-    ) -> Result<U, Error> {
-        let result: ApiResult<U> = self.http_post(path, argument).await?.json().await?;
-        match result {
-            ApiResult::Ok(result) => Ok(result),
-            ApiResult::Err(err) => Err(err.into()),
-        }
+    ) -> Result<(), Error> {
+        let response = self.http_post(path, argument).await?;
+        api_error_or_ok(response).await
     }
 
-    pub async fn http_post<T: serde::Serialize>(
+    pub async fn http_post<T: serde::Serialize + ?Sized>(
         &self,
         path: &str,
         argument: &T,
@@ -511,10 +508,8 @@ impl Client {
         &self,
         registrations: &[BeaconProposerRegistration],
     ) -> Result<(), Error> {
-        let response = self
-            .http_post("/eth/v1/validator/prepare_beacon_proposer", &registrations)
-            .await?;
-        api_error_or_ok(response).await
+        self.post("/eth/v1/validator/prepare_beacon_proposer", registrations)
+            .await
     }
 
     // endpoint for builder registrations
