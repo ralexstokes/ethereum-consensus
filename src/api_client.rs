@@ -280,19 +280,12 @@ impl Client {
 
     pub async fn get_beacon_header(&self, id: BlockId) -> Result<BeaconHeaderSummary, Error> {
         let path = format!("eth/v1/beacon/headers/{id}");
-        let target = self.endpoint.join(&path)?;
-        let request = self.http.get(target);
-        let response = request.send().await?;
-        let result: ApiResult<Value<BeaconHeaderSummary>> = response.json().await?;
-        match result {
-            ApiResult::Ok(result) => Ok(result.data),
-            ApiResult::Err(err) => Err(err.into()),
-        }
+        let result: Value<BeaconHeaderSummary> = self.get(&path).await?;
+        Ok(result.data)
     }
 
     pub async fn post_signed_beacon_block(&self, block: &SignedBeaconBlock) -> Result<(), Error> {
-        let target = self.endpoint.join("eth/v1/beacon/blocks")?;
-        self.http.post(target).json(block).send().await?;
+        self.post("/eth/v1/beacon/blocks", block).await?;
         Ok(())
     }
 
@@ -300,8 +293,7 @@ impl Client {
         &self,
         block: &SignedBlindedBeaconBlock,
     ) -> Result<(), Error> {
-        let target = self.endpoint.join("eth/v1/beacon/blinded_blocks")?;
-        self.http.post(target).json(block).send().await?;
+        self.post("/eth/v1/beacon/blinded_blocks", block).await?;
         Ok(())
     }
 
@@ -350,8 +342,7 @@ impl Client {
     }
 
     pub async fn post_attestations(&self, attestations: &[Attestation]) -> Result<(), Error> {
-        let target = self.endpoint.join("eth/v1/beacon/pool/attestations")?;
-        self.http.post(target).json(&attestations).send().await?;
+        self.post("/eth/v1/beacon/pool/attestations", attestations).await?;
         Ok(())
     }
 
@@ -365,14 +356,7 @@ impl Client {
         &self,
         attester_slashing: &AttesterSlashing,
     ) -> Result<(), Error> {
-        let target = self
-            .endpoint
-            .join("eth/v1/beacon/pool/attester_slashings")?;
-        self.http
-            .post(target)
-            .json(&attester_slashing)
-            .send()
-            .await?;
+        self.post("/eth/v1/beacon/pool/attester_slashings", attester_slashing).await?;
         Ok(())
     }
 
@@ -386,14 +370,7 @@ impl Client {
         &self,
         proposer_slashing: &ProposerSlashing,
     ) -> Result<(), Error> {
-        let target = self
-            .endpoint
-            .join("eth/v1/beacon/pool/proposer_slashings")?;
-        self.http
-            .post(target)
-            .json(&proposer_slashing)
-            .send()
-            .await?;
+        self.post("/eth/v1/beacon/pool/proposer_slashings", proposer_slashing).await?;
         Ok(())
     }
 
@@ -401,8 +378,7 @@ impl Client {
         &self,
         messages: &[SyncCommitteeMessage],
     ) -> Result<(), Error> {
-        let target = self.endpoint.join("eth/v1/beacon/pool/sync_committees")?;
-        self.http.post(target).json(&messages).send().await?;
+        self.post("/eth/v1/beacon/pool/sync_committees", messages).await?;
         Ok(())
     }
 
@@ -416,8 +392,7 @@ impl Client {
         &self,
         exit: &SignedVoluntaryExit,
     ) -> Result<(), Error> {
-        let target = self.endpoint.join("eth/v1/beacon/pool/voluntary_exits")?;
-        self.http.post(target).json(&exit).send().await?;
+        self.post("/eth/v1/beacon/pool/voluntary_exits", exit).await?;
         Ok(())
     }
 
