@@ -342,7 +342,8 @@ impl Client {
     }
 
     pub async fn post_attestations(&self, attestations: &[Attestation]) -> Result<(), Error> {
-        self.post("/eth/v1/beacon/pool/attestations", attestations).await?;
+        self.post("/eth/v1/beacon/pool/attestations", attestations)
+            .await?;
         Ok(())
     }
 
@@ -356,7 +357,8 @@ impl Client {
         &self,
         attester_slashing: &AttesterSlashing,
     ) -> Result<(), Error> {
-        self.post("/eth/v1/beacon/pool/attester_slashings", attester_slashing).await?;
+        self.post("/eth/v1/beacon/pool/attester_slashings", attester_slashing)
+            .await?;
         Ok(())
     }
 
@@ -370,7 +372,8 @@ impl Client {
         &self,
         proposer_slashing: &ProposerSlashing,
     ) -> Result<(), Error> {
-        self.post("/eth/v1/beacon/pool/proposer_slashings", proposer_slashing).await?;
+        self.post("/eth/v1/beacon/pool/proposer_slashings", proposer_slashing)
+            .await?;
         Ok(())
     }
 
@@ -378,7 +381,8 @@ impl Client {
         &self,
         messages: &[SyncCommitteeMessage],
     ) -> Result<(), Error> {
-        self.post("/eth/v1/beacon/pool/sync_committees", messages).await?;
+        self.post("/eth/v1/beacon/pool/sync_committees", messages)
+            .await?;
         Ok(())
     }
 
@@ -392,7 +396,8 @@ impl Client {
         &self,
         exit: &SignedVoluntaryExit,
     ) -> Result<(), Error> {
-        self.post("/eth/v1/beacon/pool/voluntary_exits", exit).await?;
+        self.post("/eth/v1/beacon/pool/voluntary_exits", exit)
+            .await?;
         Ok(())
     }
 
