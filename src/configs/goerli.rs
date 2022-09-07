@@ -46,7 +46,7 @@ pub fn config() -> Config {
     .unwrap();
 
     Config {
-        name: "prater",
+        name: "goerli",
         terminal_total_difficulty,
         terminal_block_hash,
         terminal_block_hash_activation_epoch: TERMINAL_BLOCK_HASH_ACTIVATION_EPOCH,
