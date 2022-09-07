@@ -11,6 +11,8 @@ pub fn convert_timestamp_to_slot(timestamp: u64, genesis_time: u64, seconds_per_
 }
 
 pub const MAINNET_GENESIS_TIME: u64 = 1606824023;
+pub const SEPOLIA_GENESIS_TIME: u64 = 1655733600;
+pub const GOERLI_GENESIS_TIME: u64 = 1616508000;
 
 pub fn get_current_unix_time_in_secs() -> u64 {
     SystemTime::now()
@@ -67,6 +69,20 @@ pub fn from_system_time(
 pub fn for_mainnet() -> Clock<SystemTimeProvider> {
     let genesis_time = MAINNET_GENESIS_TIME;
     let seconds_per_slot = configs::mainnet::SECONDS_PER_SLOT;
+    let slots_per_epoch = presets::mainnet::SLOTS_PER_EPOCH;
+    from_system_time(genesis_time, seconds_per_slot, slots_per_epoch)
+}
+
+pub fn for_sepolia() -> Clock<SystemTimeProvider> {
+    let genesis_time = SEPOLIA_GENESIS_TIME;
+    let seconds_per_slot = configs::sepolia::SECONDS_PER_SLOT;
+    let slots_per_epoch = presets::mainnet::SLOTS_PER_EPOCH;
+    from_system_time(genesis_time, seconds_per_slot, slots_per_epoch)
+}
+
+pub fn for_goerli() -> Clock<SystemTimeProvider> {
+    let genesis_time = GOERLI_GENESIS_TIME;
+    let seconds_per_slot = configs::goerli::SECONDS_PER_SLOT;
     let slots_per_epoch = presets::mainnet::SLOTS_PER_EPOCH;
     from_system_time(genesis_time, seconds_per_slot, slots_per_epoch)
 }
