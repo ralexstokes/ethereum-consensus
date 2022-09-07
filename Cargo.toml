@@ -15,7 +15,7 @@ gen-tests = ["walkdir", "convert_case"]
 peer-id = ["libp2p-core"]
 
 [dependencies]
-ssz-rs = { git = "https://github.com/ralexstokes/ssz-rs" }
+ssz-rs = { git = "https://github.com/ralexstokes/ssz-rs", rev = "cb08f1" }
 blst = "0.3.6"
 rand = "0.8.4"
 thiserror = "1.0.30"
