@@ -20,7 +20,7 @@ itertools = "0.10.3"
 
 thiserror = "1.0.30"
 
-ethereum-consensus = { git = "https://github.com/ralexstokes/ethereum-consensus" }
+ethereum-consensus = { git = "https://github.com/ralexstokes/ethereum-consensus", rev = "v0.1.1" }
 
 [features]
 peer-id = ["ethereum-consensus/peer-id"]
