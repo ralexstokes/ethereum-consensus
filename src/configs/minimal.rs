@@ -29,7 +29,10 @@ pub const DEPOSIT_CHAIN_ID: usize = 5;
 pub const DEPOSIT_NETWORK_ID: usize = 5;
 
 pub fn config() -> Config {
-    let terminal_total_difficulty = U256::from_bytes_le([0xff; 32]);
+    let terminal_total_difficulty = U256::from_bytes_le([
+        0, 252, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
+        255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
+    ]);
     let terminal_block_hash = Default::default();
     let deposit_contract_address = ExecutionAddress::try_from(
         [
