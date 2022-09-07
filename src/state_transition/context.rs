@@ -217,4 +217,20 @@ impl Context {
         let bellatrix_preset = &bellatrix::minimal::PRESET;
         Self::from(phase0_preset, altair_preset, bellatrix_preset, config)
     }
+
+    pub fn for_goerli() -> Self {
+        let config = &configs::goerli::config();
+        let phase0_preset = &phase0::mainnet::PRESET;
+        let altair_preset = &altair::mainnet::PRESET;
+        let bellatrix_preset = &bellatrix::mainnet::PRESET;
+        Self::from(phase0_preset, altair_preset, bellatrix_preset, config)
+    }
+
+    pub fn for_sepolia() -> Self {
+        let config = &configs::sepolia::config();
+        let phase0_preset = &phase0::mainnet::PRESET;
+        let altair_preset = &altair::mainnet::PRESET;
+        let bellatrix_preset = &bellatrix::mainnet::PRESET;
+        Self::from(phase0_preset, altair_preset, bellatrix_preset, config)
+    }
 }
