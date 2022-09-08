@@ -47,11 +47,13 @@ pub enum Error {
 }
 
 pub async fn api_error_or_ok(response: reqwest::Response) -> Result<(), Error> {
-    if response.status() == reqwest::StatusCode::OK {
-        Ok(())
-    } else {
-        let api_err = response.json::<ApiError>().await?;
-        Err(Error::Api(api_err))
+    match response.status() {
+        reqwest::StatusCode::OK => Ok(()),
+        reqwest::StatusCode::ACCEPTED => Ok(()),
+        _ => {
+            let api_err = response.json::<ApiError>().await?;
+            Err(Error::Api(api_err))
+        }
     }
 }
 
