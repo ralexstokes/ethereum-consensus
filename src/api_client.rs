@@ -287,16 +287,14 @@ impl Client {
     }
 
     pub async fn post_signed_beacon_block(&self, block: &SignedBeaconBlock) -> Result<(), Error> {
-        self.post("/eth/v1/beacon/blocks", block).await?;
-        Ok(())
+        self.post("/eth/v1/beacon/blocks", block).await
     }
 
     pub async fn post_signed_blinded_beacon_block(
         &self,
         block: &SignedBlindedBeaconBlock,
     ) -> Result<(), Error> {
-        self.post("/eth/v1/beacon/blinded_blocks", block).await?;
-        Ok(())
+        self.post("/eth/v1/beacon/blinded_blocks", block).await
     }
 
     // v2 endpoint
@@ -345,8 +343,7 @@ impl Client {
 
     pub async fn post_attestations(&self, attestations: &[Attestation]) -> Result<(), Error> {
         self.post("/eth/v1/beacon/pool/attestations", attestations)
-            .await?;
-        Ok(())
+            .await
     }
 
     pub async fn get_attester_slashings_from_pool(&self) -> Result<Vec<AttesterSlashing>, Error> {
@@ -360,8 +357,7 @@ impl Client {
         attester_slashing: &AttesterSlashing,
     ) -> Result<(), Error> {
         self.post("/eth/v1/beacon/pool/attester_slashings", attester_slashing)
-            .await?;
-        Ok(())
+            .await
     }
 
     pub async fn get_proposer_slashings_from_pool(&self) -> Result<Vec<ProposerSlashing>, Error> {
@@ -375,8 +371,7 @@ impl Client {
         proposer_slashing: &ProposerSlashing,
     ) -> Result<(), Error> {
         self.post("/eth/v1/beacon/pool/proposer_slashings", proposer_slashing)
-            .await?;
-        Ok(())
+            .await
     }
 
     pub async fn post_sync_committee_messages(
@@ -384,8 +379,7 @@ impl Client {
         messages: &[SyncCommitteeMessage],
     ) -> Result<(), Error> {
         self.post("/eth/v1/beacon/pool/sync_committees", messages)
-            .await?;
-        Ok(())
+            .await
     }
 
     pub async fn get_voluntary_exits_from_pool(&self) -> Result<Vec<SignedVoluntaryExit>, Error> {
@@ -398,9 +392,7 @@ impl Client {
         &self,
         exit: &SignedVoluntaryExit,
     ) -> Result<(), Error> {
-        self.post("/eth/v1/beacon/pool/voluntary_exits", exit)
-            .await?;
-        Ok(())
+        self.post("/eth/v1/beacon/pool/voluntary_exits", exit).await
     }
 
     /* config namespace */
