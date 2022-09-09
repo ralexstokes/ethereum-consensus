@@ -231,35 +231,70 @@ impl Client {
         id: StateId,
         epoch: Option<Epoch>,
     ) -> Result<Vec<SyncCommitteeSummary>, Error> {
-        unimplemented!("")
+        let path = format!("eth/v1/beacon/states/{id}/sync_committees");
+        let target = self.endpoint.join(&path)?;
+        let mut request = self.http.get(target);
+        if let Some(epoch) = epoch {
+            request = request.query(&[("epoch", epoch)]);
+        }
+        let response = request.send().await?;
+        let result: ApiResult<Value<Vec<SyncCommitteeSummary>>> = response.json().await?;
+        match result {
+            ApiResult::Ok(result) => Ok(result.data),
+            ApiResult::Err(err) => Err(err.into()),
+        }
     }
 
     pub async fn get_beacon_header_at_head(&self) -> Result<BeaconHeaderSummary, Error> {
-        unimplemented!("")
+        let result: Value<BeaconHeaderSummary> = self.get("/eth/v1/beacon/headers").await?;
+        Ok(result.data)
     }
 
-    pub async fn get_beacon_header_for_slot(slot: Slot) -> Result<BeaconHeaderSummary, Error> {
-        unimplemented!("")
+    pub async fn get_beacon_header_for_slot(
+        &self,
+        slot: Slot,
+    ) -> Result<BeaconHeaderSummary, Error> {
+        let target = self.endpoint.join("eth/v1/beacon/headers")?;
+        let mut request = self.http.get(target);
+        request = request.query(&[("slot", slot)]);
+        let response = request.send().await?;
+        let result: ApiResult<Value<BeaconHeaderSummary>> = response.json().await?;
+        match result {
+            ApiResult::Ok(result) => Ok(result.data),
+            ApiResult::Err(err) => Err(err.into()),
+        }
     }
 
     pub async fn get_beacon_header_for_parent_root(
+        &self,
         parent_root: Root,
     ) -> Result<BeaconHeaderSummary, Error> {
-        unimplemented!("")
+        let target = self.endpoint.join("eth/v1/beacon/headers")?;
+        let mut request = self.http.get(target);
+        request = request.query(&[("parent_root", parent_root)]);
+        let response = request.send().await?;
+        let result: ApiResult<Value<BeaconHeaderSummary>> = response.json().await?;
+        match result {
+            ApiResult::Ok(result) => Ok(result.data),
+            ApiResult::Err(err) => Err(err.into()),
+        }
     }
 
-    pub async fn get_beacon_header(id: BlockId) -> Result<BeaconHeaderSummary, Error> {
-        unimplemented!("")
+    pub async fn get_beacon_header(&self, id: BlockId) -> Result<BeaconHeaderSummary, Error> {
+        let path = format!("eth/v1/beacon/headers/{id}");
+        let result: Value<BeaconHeaderSummary> = self.get(&path).await?;
+        Ok(result.data)
     }
 
-    pub async fn post_signed_beacon_block(block: &SignedBeaconBlock) -> Result<(), Error> {
-        unimplemented!("")
+    pub async fn post_signed_beacon_block(&self, block: &SignedBeaconBlock) -> Result<(), Error> {
+        self.post("/eth/v1/beacon/blocks", block).await
     }
 
     pub async fn post_signed_blinded_beacon_block(
+        &self,
         block: &SignedBlindedBeaconBlock,
     ) -> Result<(), Error> {
-        unimplemented!("")
+        self.post("/eth/v1/beacon/blinded_blocks", block).await
     }
 
     // v2 endpoint
@@ -306,38 +341,58 @@ impl Client {
         }
     }
 
-    pub async fn post_attestations(attestations: &[Attestation]) -> Result<(), Error> {
-        unimplemented!("")
+    pub async fn post_attestations(&self, attestations: &[Attestation]) -> Result<(), Error> {
+        self.post("/eth/v1/beacon/pool/attestations", attestations)
+            .await
     }
 
-    pub async fn get_attester_slashings_from_pool() -> Result<Vec<AttesterSlashing>, Error> {
-        unimplemented!("")
+    pub async fn get_attester_slashings_from_pool(&self) -> Result<Vec<AttesterSlashing>, Error> {
+        let result: Value<Vec<AttesterSlashing>> =
+            self.get("eth/v1/beacon/pool/attester_slashings").await?;
+        Ok(result.data)
     }
 
-    pub async fn post_attester_slashing(attester_slashing: &AttesterSlashing) -> Result<(), Error> {
-        unimplemented!("")
+    pub async fn post_attester_slashing(
+        &self,
+        attester_slashing: &AttesterSlashing,
+    ) -> Result<(), Error> {
+        self.post("/eth/v1/beacon/pool/attester_slashings", attester_slashing)
+            .await
     }
 
-    pub async fn get_proposer_slashings_from_pool() -> Result<Vec<ProposerSlashing>, Error> {
-        unimplemented!("")
+    pub async fn get_proposer_slashings_from_pool(&self) -> Result<Vec<ProposerSlashing>, Error> {
+        let result: Value<Vec<ProposerSlashing>> =
+            self.get("eth/v1/beacon/pool/proposer_slashings").await?;
+        Ok(result.data)
     }
 
-    pub async fn post_proposer_slashing(proposer_slashing: &ProposerSlashing) -> Result<(), Error> {
-        unimplemented!("")
+    pub async fn post_proposer_slashing(
+        &self,
+        proposer_slashing: &ProposerSlashing,
+    ) -> Result<(), Error> {
+        self.post("/eth/v1/beacon/pool/proposer_slashings", proposer_slashing)
+            .await
     }
 
     pub async fn post_sync_committee_messages(
+        &self,
         messages: &[SyncCommitteeMessage],
     ) -> Result<(), Error> {
-        unimplemented!("")
+        self.post("/eth/v1/beacon/pool/sync_committees", messages)
+            .await
     }
 
-    pub async fn get_voluntary_exits_from_pool() -> Result<Vec<SignedVoluntaryExit>, Error> {
-        unimplemented!("")
+    pub async fn get_voluntary_exits_from_pool(&self) -> Result<Vec<SignedVoluntaryExit>, Error> {
+        let result: Value<Vec<SignedVoluntaryExit>> =
+            self.get("eth/v1/beacon/pool/voluntary_exits").await?;
+        Ok(result.data)
     }
 
-    pub async fn post_signed_voluntary_exit(exit: &SignedVoluntaryExit) -> Result<(), Error> {
-        unimplemented!("")
+    pub async fn post_signed_voluntary_exit(
+        &self,
+        exit: &SignedVoluntaryExit,
+    ) -> Result<(), Error> {
+        self.post("/eth/v1/beacon/pool/voluntary_exits", exit).await
     }
 
     /* config namespace */
