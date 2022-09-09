@@ -6,6 +6,7 @@ pub mod clock;
 pub mod configs;
 pub mod crypto;
 pub mod domains;
+#[cfg(feature = "networking")]
 pub mod networking;
 pub mod phase0;
 pub mod primitives;

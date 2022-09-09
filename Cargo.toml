@@ -6,13 +6,14 @@ license = "MIT OR Apache-2.0"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 [features]
-default = ["serde", "async"]
+default = ["serde", "async", "networking"]
 serde = ["dep:serde", "hex", "serde_json"]
 async = ["tokio", "tokio-stream", "async-stream"]
 spec-tests = ["serde", "serde_yaml"]
 gen-spec = ["syn", "prettyplease", "quote"]
 gen-tests = ["walkdir", "convert_case"]
 peer-id = ["libp2p-core"]
+networking = ["enr"]
 
 [dependencies]
 ssz-rs = { git = "https://github.com/ralexstokes/ssz-rs", rev = "cb08f1" }
@@ -21,7 +22,7 @@ rand = "0.8.4"
 thiserror = "1.0.30"
 sha2 = "0.9.8"
 integer-sqrt = "0.1.5"
-enr = "0.5.1"
+enr = {version = "0.5.1", optional = true}
 multiaddr = "0.14.0"
 
 libp2p-core = { version = "0.32.1", features = ["serde"], optional = true }
