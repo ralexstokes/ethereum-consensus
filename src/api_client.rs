@@ -149,11 +149,11 @@ impl Client {
         let target = self.endpoint.join(&path)?;
         let mut request = self.http.get(target);
         if !validator_ids.is_empty() {
-            let validator_ids = validator_ids.iter().join(", ");
+            let validator_ids = validator_ids.iter().join(",");
             request = request.query(&[("id", validator_ids)]);
         }
         if !filters.is_empty() {
-            let filters = filters.iter().join(", ");
+            let filters = filters.iter().join(",");
             request = request.query(&[("status", filters)]);
         }
         let response = request.send().await?;
@@ -185,7 +185,7 @@ impl Client {
         let mut request = self.http.get(target);
 
         if !filters.is_empty() {
-            let filters = filters.iter().join(", ");
+            let filters = filters.iter().join(",");
             request = request.query(&[("id", filters)]);
         }
         let response = request.send().await?;
