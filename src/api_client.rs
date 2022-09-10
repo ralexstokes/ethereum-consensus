@@ -339,12 +339,12 @@ impl Client {
 
     /* config namespace */
     pub async fn get_fork_schedule(&self) -> Result<Vec<Fork>, Error> {
-        let result: Value<Vec<Fork>> = self.get("eth/v1/config/fork_schedule/").await?;
+        let result: Value<Vec<Fork>> = self.get("eth/v1/config/fork_schedule").await?;
         Ok(result.data)
     }
 
     pub async fn get_spec(&self) -> Result<HashMap<String, String>, Error> {
-        let result: Value<HashMap<String, String>> = self.get("eth/v1/config/spec/").await?;
+        let result: Value<HashMap<String, String>> = self.get("eth/v1/config/spec").await?;
         Ok(result.data)
     }
 
