@@ -4,7 +4,7 @@
 use crate::error::ApiError;
 use crate::types::{
     ApiResult, AttestationDuty, BalanceSummary, BeaconHeaderSummary, BeaconProposerRegistration,
-    BlockId, CommitteeDescriptor, CommitteeFilter, CommitteeSummary, EventTopic,
+    BlockId, CommitteeDescriptor, CommitteeFilter, CommitteeSummary, DepositContract, EventTopic,
     FinalityCheckpoints, GenesisDetails, HealthStatus, PeerSummary, ProposerDuty, PublicKeyOrIndex,
     RootData, StateId, SyncCommitteeDescriptor, SyncCommitteeDuty, SyncCommitteeSummary,
     SyncStatus, ValidatorStatus, ValidatorSummary, Value, VersionData,
@@ -23,8 +23,7 @@ use ethereum_consensus::phase0::mainnet::{
     ProposerSlashing, SignedAggregateAndProof, SignedBeaconBlock, SignedVoluntaryExit,
 };
 use ethereum_consensus::primitives::{
-    Bytes32, ChainId, CommitteeIndex, Coordinate, Epoch, ExecutionAddress, RandaoReveal, Root,
-    Slot, ValidatorIndex,
+    Bytes32, CommitteeIndex, Coordinate, Epoch, RandaoReveal, Root, Slot, ValidatorIndex,
 };
 use http::StatusCode;
 use itertools::Itertools;
@@ -331,7 +330,7 @@ impl Client {
             request = request.query(&[("slot", slot)]);
         }
         if let Some(committee_index) = committee_index {
-            request = request.query(&[("committe_index", committee_index)]);
+            request = request.query(&[("committee_index", committee_index)]);
         }
         let response = request.send().await?;
         let result: ApiResult<Value<Vec<Attestation>>> = response.json().await?;
@@ -396,16 +395,19 @@ impl Client {
     }
 
     /* config namespace */
-    pub async fn get_fork_schedule() -> Result<Vec<Fork>, Error> {
-        unimplemented!("")
+    pub async fn get_fork_schedule(&self) -> Result<Vec<Fork>, Error> {
+        let result: Value<Vec<Fork>> = self.get("eth/v1/config/fork_schedule").await?;
+        Ok(result.data)
     }
 
-    pub async fn get_spec() -> Result<HashMap<String, String>, Error> {
-        unimplemented!("")
+    pub async fn get_spec(&self) -> Result<HashMap<String, String>, Error> {
+        let result: Value<HashMap<String, String>> = self.get("eth/v1/config/spec").await?;
+        Ok(result.data)
     }
 
-    pub async fn get_deposit_contract_address() -> Result<(ChainId, ExecutionAddress), Error> {
-        unimplemented!("")
+    pub async fn get_deposit_contract_address(&self) -> Result<DepositContract, Error> {
+        let result: Value<DepositContract> = self.get("/eth/v1/config/deposit_contract").await?;
+        Ok(result.data)
     }
 
     /* debug namespace */

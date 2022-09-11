@@ -3,8 +3,8 @@ use crate::error::ApiError;
 use ethereum_consensus::networking::{Enr, MetaData, Multiaddr, PeerId};
 use ethereum_consensus::phase0::mainnet::{Checkpoint, SignedBeaconBlockHeader, Validator};
 use ethereum_consensus::primitives::{
-    BlsPublicKey, CommitteeIndex, Epoch, ExecutionAddress, Gwei, Root, Slot, ValidatorIndex,
-    Version,
+    BlsPublicKey, ChainId, CommitteeIndex, Epoch, ExecutionAddress, Gwei, Root, Slot,
+    ValidatorIndex, Version,
 };
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
 use std::collections::HashMap;
@@ -13,6 +13,13 @@ use std::fmt;
 #[derive(Serialize, Deserialize)]
 pub struct VersionData {
     pub version: String,
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct DepositContract {
+    #[serde(with = "crate::serde::as_string")]
+    pub chain_id: ChainId,
+    pub address: ExecutionAddress,
 }
 
 #[derive(Serialize, Deserialize)]
