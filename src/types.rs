@@ -14,6 +14,14 @@ pub struct VersionData {
     pub version: String,
 }
 
+#[derive(Serialize, Deserialize, Debug)]
+pub struct Coordinate {
+    #[serde(with = "crate::serde::as_string")]
+    slot: Slot,
+    root: Root,
+    execution_optimistic: bool,
+}
+
 #[derive(Serialize, Deserialize)]
 pub struct DepositContract {
     #[serde(with = "crate::serde::as_string")]
