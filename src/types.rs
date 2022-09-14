@@ -1,5 +1,4 @@
 use crate::error::ApiError;
-#[cfg(feature = "peer-id")]
 use ethereum_consensus::networking::{Enr, MetaData, Multiaddr, PeerId};
 use ethereum_consensus::phase0::mainnet::{Checkpoint, SignedBeaconBlockHeader, Validator};
 use ethereum_consensus::primitives::{
@@ -222,7 +221,6 @@ pub enum EventTopic {
     ContributionAndProof,
 }
 
-#[cfg(feature = "peer-id")]
 #[derive(Serialize, Deserialize)]
 pub struct NetworkIdentity {
     pub peer_id: PeerId,
@@ -252,7 +250,6 @@ pub struct PeerDescriptor {
     pub direction: ConnectionOrientation,
 }
 
-#[cfg(feature = "peer-id")]
 #[derive(Serialize, Deserialize)]
 pub struct PeerDescription {
     pub peer_id: PeerId,
