@@ -1,4 +1,5 @@
 use crate::primitives::Epoch;
+use crate::ssz::ByteList;
 use enr;
 use ssz_rs::prelude::Bitvector;
 use std::time::Duration;
@@ -13,9 +14,14 @@ pub const RESP_TIMEOUT: Duration = Duration::from_secs(10);
 pub const ATTESTATION_PROPAGATION_SLOT_RANGE: usize = 32;
 pub const MAXIMUM_GOSSIP_CLOCK_DISPARITY: Duration = Duration::from_millis(500);
 
-#[cfg(feature = "peer-id")]
-pub use libp2p_core::PeerId;
 pub use multiaddr::Multiaddr;
+
+// TODO see how much this can be tightened
+const MAX_PEER_ID_BYTE_COUNT: usize = 512;
+
+#[derive(Default, Clone, PartialEq, Eq, Debug)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+pub struct PeerId(#[serde(with = "crate::serde::as_b58")] ByteList<MAX_PEER_ID_BYTE_COUNT>);
 
 pub type Enr = enr::Enr<enr::k256::ecdsa::SigningKey>;
 
@@ -29,4 +35,17 @@ pub struct MetaData {
     #[serde(with = "crate::serde::as_string")]
     pub seq_number: u64,
     pub attnets: Bitvector<ATTESTATION_SUBNET_COUNT>,
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_peer_id_serde() {
+        let id_repr = "\"16Uiu2HAmVDji3ShrqL9DLnQo3teJcEWiKqy9qKefFFFxrz2EYwde\"";
+        let id: PeerId = serde_json::from_str(id_repr).unwrap();
+        let roundtrip_id_repr = serde_json::to_string(&id).unwrap();
+        assert_eq!(id_repr, roundtrip_id_repr);
+    }
 }
