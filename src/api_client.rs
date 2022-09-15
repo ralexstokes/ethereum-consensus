@@ -4,22 +4,24 @@
 use crate::error::ApiError;
 use crate::types::{
     ApiResult, AttestationDuty, BalanceSummary, BeaconHeaderSummary, BeaconProposerRegistration,
-    BlockId, CommitteeDescriptor, CommitteeFilter, CommitteeSummary, Coordinate, DepositContract,
-    EventTopic, FinalityCheckpoints, GenesisDetails, HealthStatus, PeerSummary, ProposerDuty,
-    PublicKeyOrIndex, RootData, StateId, SyncCommitteeDescriptor, SyncCommitteeDuty,
+    BlockId, CommitteeDescriptor, CommitteeFilter, CommitteeSummary, CoordinateWithMetadata,
+    DepositContract, EventTopic, FinalityCheckpoints, GenesisDetails, HealthStatus, PeerSummary,
+    ProposerDuty, PublicKeyOrIndex, RootData, StateId, SyncCommitteeDescriptor, SyncCommitteeDuty,
     SyncCommitteeSummary, SyncStatus, ValidatorStatus, ValidatorSummary, Value, VersionData,
 };
+#[cfg(feature = "peer-id")]
 use crate::types::{NetworkIdentity, PeerDescription, PeerDescriptor};
-use ethereum_consensus::altair::mainnet::{
-    Attestation, AttestationData, AttesterSlashing, BeaconBlock, BeaconState, Fork,
-    ProposerSlashing, SignedAggregateAndProof, SignedBeaconBlock, SignedVoluntaryExit,
-};
 use ethereum_consensus::altair::mainnet::{
     SignedContributionAndProof, SyncCommitteeContribution, SyncCommitteeMessage,
 };
 use ethereum_consensus::bellatrix::mainnet::{BlindedBeaconBlock, SignedBlindedBeaconBlock};
 use ethereum_consensus::builder::SignedValidatorRegistration;
+#[cfg(feature = "peer-id")]
 use ethereum_consensus::networking::Multiaddr;
+use ethereum_consensus::phase0::mainnet::{
+    Attestation, AttestationData, AttesterSlashing, BeaconBlock, BeaconState, Fork,
+    ProposerSlashing, SignedAggregateAndProof, SignedBeaconBlock, SignedVoluntaryExit,
+};
 use ethereum_consensus::primitives::{
     Bytes32, CommitteeIndex, Epoch, RandaoReveal, Root, Slot, ValidatorIndex,
 };
@@ -418,8 +420,9 @@ impl Client {
     }
 
     // v2 endpoint
-    pub async fn get_heads(&self) -> Result<Vec<Coordinate>, Error> {
-        let result: Value<Vec<Coordinate>> = self.get("/eth/v2/debug/beacon/heads").await?;
+    pub async fn get_heads(&self) -> Result<Vec<CoordinateWithMetadata>, Error> {
+        let result: Value<Vec<CoordinateWithMetadata>> =
+            self.get("/eth/v2/debug/beacon/heads").await?;
         Ok(result.data)
     }
 
@@ -431,14 +434,17 @@ impl Client {
     }
 
     /* node namespace */
+    #[cfg(feature = "peer-id")]
     pub async fn get_node_identity() -> Result<NetworkIdentity, Error> {
         unimplemented!("")
     }
 
+    #[cfg(feature = "peer-id")]
     pub async fn get_node_peers(filters: &[PeerDescriptor]) -> Result<Vec<PeerDescription>, Error> {
         unimplemented!("")
     }
 
+    #[cfg(feature = "peer-id")]
     pub async fn get_peer(peer_id: Multiaddr) -> Result<PeerDescription, Error> {
         unimplemented!("")
     }

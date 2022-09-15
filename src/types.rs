@@ -2,7 +2,7 @@ use crate::error::ApiError;
 use ethereum_consensus::networking::{Enr, MetaData, Multiaddr, PeerId};
 use ethereum_consensus::phase0::mainnet::{Checkpoint, SignedBeaconBlockHeader, Validator};
 use ethereum_consensus::primitives::{
-    BlsPublicKey, ChainId, CommitteeIndex, Epoch, ExecutionAddress, Gwei, Root, Slot,
+    BlsPublicKey, ChainId, CommitteeIndex, Coordinate, Epoch, ExecutionAddress, Gwei, Root, Slot,
     ValidatorIndex, Version,
 };
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
@@ -14,12 +14,12 @@ pub struct VersionData {
     pub version: String,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
-pub struct Coordinate {
-    #[serde(with = "crate::serde::as_string")]
-    slot: Slot,
-    root: Root,
-    execution_optimistic: bool,
+#[derive(Serialize, Deserialize)]
+pub struct CoordinateWithMetadata {
+    #[serde(flatten)]
+    pub coordinate: Coordinate,
+    #[serde(flatten)]
+    pub meta: HashMap<String, serde_json::Value>,
 }
 
 #[derive(Serialize, Deserialize)]
