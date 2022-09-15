@@ -440,7 +440,6 @@ impl Client {
         unimplemented!("")
     }
 
-    #[cfg(feature = "peer-id")]
     pub async fn get_peer(peer_id: Multiaddr) -> Result<PeerDescription, Error> {
         unimplemented!("")
     }
