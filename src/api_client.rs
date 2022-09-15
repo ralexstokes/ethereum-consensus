@@ -9,7 +9,6 @@ use crate::types::{
     ProposerDuty, PublicKeyOrIndex, RootData, StateId, SyncCommitteeDescriptor, SyncCommitteeDuty,
     SyncCommitteeSummary, SyncStatus, ValidatorStatus, ValidatorSummary, Value, VersionData,
 };
-#[cfg(feature = "peer-id")]
 use crate::types::{NetworkIdentity, PeerDescription, PeerDescriptor};
 use ethereum_consensus::altair::mainnet::{
     SignedContributionAndProof, SyncCommitteeContribution, SyncCommitteeMessage,
