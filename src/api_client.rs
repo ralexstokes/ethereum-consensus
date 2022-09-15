@@ -4,10 +4,10 @@
 use crate::error::ApiError;
 use crate::types::{
     ApiResult, AttestationDuty, BalanceSummary, BeaconHeaderSummary, BeaconProposerRegistration,
-    BlockId, CommitteeDescriptor, CommitteeFilter, CommitteeSummary, DepositContract, EventTopic,
-    FinalityCheckpoints, GenesisDetails, HealthStatus, PeerSummary, ProposerDuty, PublicKeyOrIndex,
-    RootData, StateId, SyncCommitteeDescriptor, SyncCommitteeDuty, SyncCommitteeSummary,
-    SyncStatus, ValidatorStatus, ValidatorSummary, Value, VersionData,
+    BlockId, CommitteeDescriptor, CommitteeFilter, CommitteeSummary, CoordinateWithMetadata,
+    DepositContract, EventTopic, FinalityCheckpoints, GenesisDetails, HealthStatus, PeerSummary,
+    ProposerDuty, PublicKeyOrIndex, RootData, StateId, SyncCommitteeDescriptor, SyncCommitteeDuty,
+    SyncCommitteeSummary, SyncStatus, ValidatorStatus, ValidatorSummary, Value, VersionData,
 };
 use crate::types::{NetworkIdentity, PeerDescription, PeerDescriptor};
 use ethereum_consensus::altair::mainnet::{
@@ -21,7 +21,7 @@ use ethereum_consensus::phase0::mainnet::{
     ProposerSlashing, SignedAggregateAndProof, SignedBeaconBlock, SignedVoluntaryExit,
 };
 use ethereum_consensus::primitives::{
-    Bytes32, CommitteeIndex, Coordinate, Epoch, RandaoReveal, Root, Slot, ValidatorIndex,
+    Bytes32, CommitteeIndex, Epoch, RandaoReveal, Root, Slot, ValidatorIndex,
 };
 use http::StatusCode;
 use itertools::Itertools;
@@ -410,13 +410,18 @@ impl Client {
 
     /* debug namespace */
     // v2 endpoint
-    pub async fn get_state(id: StateId) -> Result<BeaconState, Error> {
-        unimplemented!("")
+    pub async fn get_state(&self, id: StateId) -> Result<BeaconState, Error> {
+        let result: Value<BeaconState> = self
+            .get(&format!("eth/v2/debug/beacon/states/{}", id))
+            .await?;
+        Ok(result.data)
     }
 
     // v2 endpoint
-    pub async fn get_heads() -> Result<Vec<Coordinate>, Error> {
-        unimplemented!("")
+    pub async fn get_heads(&self) -> Result<Vec<CoordinateWithMetadata>, Error> {
+        let result: Value<Vec<CoordinateWithMetadata>> =
+            self.get("/eth/v2/debug/beacon/heads").await?;
+        Ok(result.data)
     }
 
     /* events namespace */
