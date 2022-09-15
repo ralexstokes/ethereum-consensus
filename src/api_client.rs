@@ -432,7 +432,6 @@ impl Client {
     }
 
     /* node namespace */
-    #[cfg(feature = "peer-id")]
     pub async fn get_node_identity() -> Result<NetworkIdentity, Error> {
         unimplemented!("")
     }
