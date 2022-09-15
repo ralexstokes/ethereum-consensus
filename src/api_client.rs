@@ -436,7 +436,6 @@ impl Client {
         unimplemented!("")
     }
 
-    #[cfg(feature = "peer-id")]
     pub async fn get_node_peers(filters: &[PeerDescriptor]) -> Result<Vec<PeerDescription>, Error> {
         unimplemented!("")
     }
