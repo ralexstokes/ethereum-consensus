@@ -15,7 +15,6 @@ use ethereum_consensus::altair::mainnet::{
 };
 use ethereum_consensus::bellatrix::mainnet::{BlindedBeaconBlock, SignedBlindedBeaconBlock};
 use ethereum_consensus::builder::SignedValidatorRegistration;
-#[cfg(feature = "peer-id")]
 use ethereum_consensus::networking::Multiaddr;
 use ethereum_consensus::phase0::mainnet::{
     Attestation, AttestationData, AttesterSlashing, BeaconBlock, BeaconState, Fork,
