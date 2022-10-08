@@ -239,6 +239,7 @@ pub struct NetworkIdentity {
 }
 
 #[derive(Serialize, Deserialize, Debug)]
+#[serde(rename_all = "lowercase")]
 pub enum PeerState {
     Disconnected,
     Connecting,
@@ -259,6 +260,7 @@ impl fmt::Display for PeerState {
 }
 
 #[derive(Serialize, Deserialize, Debug)]
+#[serde(rename_all = "lowercase")]
 pub enum ConnectionOrientation {
     Inbound,
     Outbound,
@@ -285,8 +287,8 @@ pub struct PeerDescription {
     pub peer_id: PeerId,
     pub enr: Enr,
     pub last_seen_p2p_address: Multiaddr,
-    pub state: String,
-    pub direction: String,
+    pub state: PeerState,
+    pub direction: ConnectionOrientation,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
