@@ -15,7 +15,7 @@ use ethereum_consensus::altair::mainnet::{
 };
 use ethereum_consensus::bellatrix::mainnet::{BlindedBeaconBlock, SignedBlindedBeaconBlock};
 use ethereum_consensus::builder::SignedValidatorRegistration;
-use ethereum_consensus::networking::Multiaddr;
+use ethereum_consensus::networking::PeerId;
 use ethereum_consensus::phase0::mainnet::{
     Attestation, AttestationData, AttesterSlashing, BeaconBlock, BeaconState, Fork,
     ProposerSlashing, SignedAggregateAndProof, SignedBeaconBlock, SignedVoluntaryExit,
@@ -440,8 +440,13 @@ impl Client {
         unimplemented!("")
     }
 
-    pub async fn get_peer(peer_id: Multiaddr) -> Result<PeerDescription, Error> {
-        unimplemented!("")
+    pub async fn get_peer(&self, peer_id: PeerId) -> Result<PeerDescription, Error> {
+        let id = serde_json::to_string(&peer_id)
+            .unwrap()
+            .replace(&['\"'][..], "");
+        let result: Value<PeerDescription> =
+            self.get(&format!("/eth/v1/node/peers/{}", id)).await?;
+        Ok(result.data)
     }
 
     pub async fn get_peer_summary(&self) -> Result<PeerSummary, Error> {

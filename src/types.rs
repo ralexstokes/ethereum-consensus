@@ -238,7 +238,8 @@ pub struct NetworkIdentity {
     pub metadata: MetaData,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Debug)]
+#[serde(rename_all = "lowercase")]
 pub enum PeerState {
     Disconnected,
     Connecting,
@@ -246,7 +247,8 @@ pub enum PeerState {
     Disconnecting,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Debug)]
+#[serde(rename_all = "lowercase")]
 pub enum ConnectionOrientation {
     Inbound,
     Outbound,
