@@ -474,10 +474,22 @@ impl Client {
 
     /* validator namespace */
     pub async fn get_attester_duties(
+        &self,
         epoch: Epoch,
         indices: &[ValidatorIndex],
     ) -> Result<(Root, Vec<AttestationDuty>), Error> {
-        unimplemented!("")
+        let endpoint = format!("eth/v1/validator/duties/attester/{epoch}");
+        let mut result: Value<Vec<AttestationDuty>> = self
+            .http_post(&endpoint, indices)
+            .await?
+            .json()
+            .await
+            .unwrap();
+        let dependent_root_value = result.meta.remove("dependent_root").ok_or_else(|| {
+            Error::MissingExpectedData("missing `dependent_root` in response".to_string())
+        })?;
+        let dependent_root: Root = serde_json::from_value(dependent_root_value)?;
+        Ok((dependent_root, result.data))
     }
 
     pub async fn get_proposer_duties(
