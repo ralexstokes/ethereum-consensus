@@ -494,10 +494,18 @@ impl Client {
     }
 
     pub async fn get_sync_committee_duties(
+        &self,
         epoch: Epoch,
         indices: &[ValidatorIndex],
-    ) -> Result<(Root, Vec<SyncCommitteeDuty>), Error> {
-        unimplemented!("")
+    ) -> Result<Vec<SyncCommitteeDuty>, Error> {
+        let endpoint = format!("eth/v1/validator/duties/sync/{epoch}");
+        let mut result: Value<Vec<SyncCommitteeDuty>> = self
+            .http_post(&endpoint, indices)
+            .await?
+            .json()
+            .await
+            .unwrap();
+        Ok(result.data)
     }
 
     // v2 endpoint
