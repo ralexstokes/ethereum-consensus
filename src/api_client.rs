@@ -111,7 +111,7 @@ impl Client {
 
     /* beacon namespace */
     pub async fn get_genesis_details(&self) -> Result<GenesisDetails, Error> {
-        let details: Value<GenesisDetails> = self.get("/eth/v1/beacon/genesis").await?;
+        let details: Value<GenesisDetails> = self.get("eth/v1/beacon/genesis").await?;
         Ok(details.data)
     }
 
@@ -243,7 +243,7 @@ impl Client {
     }
 
     pub async fn get_beacon_header_at_head(&self) -> Result<BeaconHeaderSummary, Error> {
-        let result: Value<BeaconHeaderSummary> = self.get("/eth/v1/beacon/headers").await?;
+        let result: Value<BeaconHeaderSummary> = self.get("eth/v1/beacon/headers").await?;
         Ok(result.data)
     }
 
@@ -284,14 +284,14 @@ impl Client {
     }
 
     pub async fn post_signed_beacon_block(&self, block: &SignedBeaconBlock) -> Result<(), Error> {
-        self.post("/eth/v1/beacon/blocks", block).await
+        self.post("eth/v1/beacon/blocks", block).await
     }
 
     pub async fn post_signed_blinded_beacon_block(
         &self,
         block: &SignedBlindedBeaconBlock,
     ) -> Result<(), Error> {
-        self.post("/eth/v1/beacon/blinded_blocks", block).await
+        self.post("eth/v1/beacon/blinded_blocks", block).await
     }
 
     // v2 endpoint
@@ -339,7 +339,7 @@ impl Client {
     }
 
     pub async fn post_attestations(&self, attestations: &[Attestation]) -> Result<(), Error> {
-        self.post("/eth/v1/beacon/pool/attestations", attestations)
+        self.post("eth/v1/beacon/pool/attestations", attestations)
             .await
     }
 
@@ -353,7 +353,7 @@ impl Client {
         &self,
         attester_slashing: &AttesterSlashing,
     ) -> Result<(), Error> {
-        self.post("/eth/v1/beacon/pool/attester_slashings", attester_slashing)
+        self.post("eth/v1/beacon/pool/attester_slashings", attester_slashing)
             .await
     }
 
@@ -367,7 +367,7 @@ impl Client {
         &self,
         proposer_slashing: &ProposerSlashing,
     ) -> Result<(), Error> {
-        self.post("/eth/v1/beacon/pool/proposer_slashings", proposer_slashing)
+        self.post("eth/v1/beacon/pool/proposer_slashings", proposer_slashing)
             .await
     }
 
@@ -375,7 +375,7 @@ impl Client {
         &self,
         messages: &[SyncCommitteeMessage],
     ) -> Result<(), Error> {
-        self.post("/eth/v1/beacon/pool/sync_committees", messages)
+        self.post("eth/v1/beacon/pool/sync_committees", messages)
             .await
     }
 
@@ -389,7 +389,7 @@ impl Client {
         &self,
         exit: &SignedVoluntaryExit,
     ) -> Result<(), Error> {
-        self.post("/eth/v1/beacon/pool/voluntary_exits", exit).await
+        self.post("eth/v1/beacon/pool/voluntary_exits", exit).await
     }
 
     /* config namespace */
@@ -404,7 +404,7 @@ impl Client {
     }
 
     pub async fn get_deposit_contract_address(&self) -> Result<DepositContract, Error> {
-        let result: Value<DepositContract> = self.get("/eth/v1/config/deposit_contract").await?;
+        let result: Value<DepositContract> = self.get("eth/v1/config/deposit_contract").await?;
         Ok(result.data)
     }
 
@@ -420,7 +420,7 @@ impl Client {
     // v2 endpoint
     pub async fn get_heads(&self) -> Result<Vec<CoordinateWithMetadata>, Error> {
         let result: Value<Vec<CoordinateWithMetadata>> =
-            self.get("/eth/v2/debug/beacon/heads").await?;
+            self.get("eth/v2/debug/beacon/heads").await?;
         Ok(result.data)
     }
 
@@ -433,7 +433,7 @@ impl Client {
 
     /* node namespace */
     pub async fn get_node_identity(&self) -> Result<NetworkIdentity, Error> {
-        let result: Value<NetworkIdentity> = self.get("/eth/v1/node/identity").await?;
+        let result: Value<NetworkIdentity> = self.get("eth/v1/node/identity").await?;
         Ok(result.data)
     }
 
@@ -586,7 +586,7 @@ impl Client {
         &self,
         registrations: &[BeaconProposerRegistration],
     ) -> Result<(), Error> {
-        self.post("/eth/v1/validator/prepare_beacon_proposer", registrations)
+        self.post("eth/v1/validator/prepare_beacon_proposer", registrations)
             .await
     }
 
