@@ -9,7 +9,7 @@ use crate::types::{
     ProposerDuty, PublicKeyOrIndex, RootData, StateId, SyncCommitteeDescriptor, SyncCommitteeDuty,
     SyncCommitteeSummary, SyncStatus, ValidatorStatus, ValidatorSummary, Value, VersionData,
 };
-use crate::types::{NetworkIdentity, PeerDescription, PeerDescriptor};
+use crate::types::{ConnectionOrientation, NetworkIdentity, PeerDescription, PeerState};
 use ethereum_consensus::altair::mainnet::{
     SignedContributionAndProof, SyncCommitteeContribution, SyncCommitteeMessage,
 };
@@ -432,12 +432,31 @@ impl Client {
     }
 
     /* node namespace */
-    pub async fn get_node_identity() -> Result<NetworkIdentity, Error> {
-        unimplemented!("")
+    pub async fn get_node_identity(&self) -> Result<NetworkIdentity, Error> {
+        let result: Value<NetworkIdentity> = self.get("/eth/v1/node/identity").await?;
+        Ok(result.data)
     }
 
-    pub async fn get_node_peers(filters: &[PeerDescriptor]) -> Result<Vec<PeerDescription>, Error> {
-        unimplemented!("")
+    pub async fn get_node_peers(
+        &self,
+        peer_states: &[PeerState],
+        connection_orientations: &[ConnectionOrientation],
+    ) -> Result<Vec<PeerDescription>, Error> {
+        let path = "eth/v1/node/peers";
+        let target = self.endpoint.join(path)?;
+        let mut request = self.http.get(target);
+        if !peer_states.is_empty() {
+            request = request.query(&[("state", peer_states.iter().join(","))]);
+        }
+        if !connection_orientations.is_empty() {
+            request = request.query(&[("direction", connection_orientations.iter().join(","))]);
+        }
+        let response = request.send().await?;
+        let result: ApiResult<Value<Vec<PeerDescription>>> = response.json().await?;
+        match result {
+            ApiResult::Ok(result) => Ok(result.data),
+            ApiResult::Err(err) => Err(err.into()),
+        }
     }
 
     pub async fn get_peer(&self, peer_id: PeerId) -> Result<PeerDescription, Error> {
