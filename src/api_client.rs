@@ -473,8 +473,9 @@ impl Client {
         Ok(result.data.version)
     }
 
-    pub async fn get_sync_status() -> Result<SyncStatus, Error> {
-        unimplemented!("")
+    pub async fn get_sync_status(&self) -> Result<SyncStatus, Error> {
+        let result: Value<SyncStatus> = self.get("eth/v1/node/syncing").await?;
+        Ok(result.data)
     }
 
     pub async fn get_health(&self) -> Result<HealthStatus, Error> {
