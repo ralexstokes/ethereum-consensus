@@ -479,8 +479,12 @@ impl Client {
         indices: &[ValidatorIndex],
     ) -> Result<(Root, Vec<AttestationDuty>), Error> {
         let endpoint = format!("eth/v1/validator/duties/attester/{epoch}");
+        let indices = indices
+            .iter()
+            .map(|index| index.to_string())
+            .collect::<Vec<_>>();
         let mut result: Value<Vec<AttestationDuty>> = self
-            .http_post(&endpoint, indices)
+            .http_post(&endpoint, &indices)
             .await?
             .json()
             .await
