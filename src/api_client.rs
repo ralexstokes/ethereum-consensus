@@ -499,8 +499,12 @@ impl Client {
         indices: &[ValidatorIndex],
     ) -> Result<Vec<SyncCommitteeDuty>, Error> {
         let endpoint = format!("eth/v1/validator/duties/sync/{epoch}");
+        let indices = indices
+            .iter()
+            .map(|index| index.to_string())
+            .collect::<Vec<_>>();
         let result: Value<Vec<SyncCommitteeDuty>> = self
-            .http_post(&endpoint, indices)
+            .http_post(&endpoint, &indices)
             .await?
             .json()
             .await
