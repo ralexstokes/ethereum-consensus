@@ -492,8 +492,7 @@ impl Client {
         let dependent_root_value = result
             .meta
             .remove("dependent_root")
-            .ok_or_else(|| {
-            Error::MissingExpectedData("`dependent_root`".to_string())})?;
+            .ok_or_else(|| Error::MissingExpectedData("`dependent_root`".to_string()))?;
         let dependent_root: Root = serde_json::from_value(dependent_root_value)?;
         Ok((dependent_root, result.data))
     }
