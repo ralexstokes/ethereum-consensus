@@ -2,6 +2,7 @@ use crate::primitives::Epoch;
 use crate::ssz::ByteList;
 use enr;
 use ssz_rs::prelude::Bitvector;
+use std::fmt;
 use std::time::Duration;
 
 pub const ATTESTATION_SUBNET_COUNT: usize = 64;
@@ -22,6 +23,12 @@ const MAX_PEER_ID_BYTE_COUNT: usize = 512;
 #[derive(Default, Clone, PartialEq, Eq, Debug)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct PeerId(#[serde(with = "crate::serde::as_b58")] ByteList<MAX_PEER_ID_BYTE_COUNT>);
+
+impl fmt::Display for PeerId {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{}", self.0)
+    }
+}
 
 pub type Enr = enr::Enr<enr::k256::ecdsa::SigningKey>;
 
