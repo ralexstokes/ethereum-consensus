@@ -1,5 +1,4 @@
 use crate::primitives::Epoch;
-use crate::ssz::ByteList;
 use enr;
 pub use multiaddr::Multiaddr;
 use multihash::{Code, Error, Multihash};
