@@ -23,10 +23,10 @@ const MAX_PEER_ID_BYTE_COUNT: usize = 512;
 #[derive(Default, Clone, PartialEq, Eq, Debug)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct PeerId(#[serde(with = "crate::serde::as_b58")] ByteList<MAX_PEER_ID_BYTE_COUNT>);
-
+#[cfg(feature = "serde")]
 impl fmt::Display for PeerId {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}", self.0)
+        write!(f, "{}", bs58::encode(self.0))
     }
 }
 
