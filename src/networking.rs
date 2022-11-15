@@ -2,6 +2,8 @@ use crate::primitives::Epoch;
 use enr;
 pub use multiaddr::Multiaddr;
 use multihash::{Code, Error, Multihash};
+#[cfg(feature = "serde")]
+use serde::{Deserialize, Serialize};
 use ssz_rs::prelude::Bitvector;
 use std::fmt;
 use std::time::Duration;
@@ -16,14 +18,10 @@ pub const TTFB_TIMEOUT: Duration = Duration::from_secs(5);
 pub const RESP_TIMEOUT: Duration = Duration::from_secs(10);
 pub const ATTESTATION_PROPAGATION_SLOT_RANGE: usize = 32;
 pub const MAXIMUM_GOSSIP_CLOCK_DISPARITY: Duration = Duration::from_millis(500);
+pub const MAX_INLINE_KEY_LENGTH: usize = 42;
 
-/// Public keys with byte-lengths smaller than `MAX_INLINE_KEY_LENGTH` will be
-/// automatically used as the peer id using an identity multihash.
-const MAX_INLINE_KEY_LENGTH: usize = 42;
-
-#[cfg(feature = "serde")]
-use serde::{Deserialize, Serialize};
-
+// PeerId reimplemented from rust-libp2p
+// revisit this implementation later
 #[derive(Clone, Copy, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub struct PeerId {
     multihash: Multihash,
