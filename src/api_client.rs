@@ -441,7 +441,7 @@ impl Client {
     }
 
     pub async fn get_peer(&self, peer_id: PeerId) -> Result<PeerDescription, Error> {
-        let id = serde_json::to_string(&peer_id);
+        let id = &peer_id;
         let result: Value<PeerDescription> =
             self.get(&format!("/eth/v1/node/peers/{}", id)).await?;
         Ok(result.data)
