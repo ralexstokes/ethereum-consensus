@@ -247,11 +247,33 @@ pub enum PeerState {
     Disconnecting,
 }
 
+impl fmt::Display for PeerState {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        let printable = match *self {
+            Self::Disconnected => "disconnected",
+            Self::Connecting => "connecting",
+            Self::Connected => "connected",
+            Self::Disconnecting => "disconnecting",
+        };
+        write!(f, "{}", printable)
+    }
+}
+
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(rename_all = "lowercase")]
 pub enum ConnectionOrientation {
     Inbound,
     Outbound,
+}
+
+impl fmt::Display for ConnectionOrientation {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        let printable = match *self {
+            Self::Inbound => "inbound",
+            Self::Outbound => "outbound",
+        };
+        write!(f, "{}", printable)
+    }
 }
 
 #[derive(Serialize, Deserialize)]
@@ -260,7 +282,7 @@ pub struct PeerDescriptor {
     pub direction: ConnectionOrientation,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct PeerDescription {
     pub peer_id: PeerId,
     pub enr: Enr,
