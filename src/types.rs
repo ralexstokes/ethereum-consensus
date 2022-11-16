@@ -282,7 +282,7 @@ pub struct PeerDescriptor {
     pub direction: ConnectionOrientation,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize)]
 pub struct PeerDescription {
     pub peer_id: PeerId,
     pub enr: Enr,
