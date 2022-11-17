@@ -460,9 +460,8 @@ impl Client {
     }
 
     pub async fn get_peer(&self, peer_id: PeerId) -> Result<PeerDescription, Error> {
-        let id = &peer_id;
         let result: Value<PeerDescription> =
-            self.get(&format!("/eth/v1/node/peers/{}", id)).await?;
+            self.get(&format!("/eth/v1/node/peers/{}", peer_id)).await?;
         Ok(result.data)
     }
 
