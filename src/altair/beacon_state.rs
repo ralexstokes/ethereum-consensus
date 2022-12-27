@@ -1,3 +1,5 @@
+use serde::__private::Vec;
+
 use crate::altair::{
     BeaconBlockHeader, Checkpoint, Eth1Data, Fork, SyncCommittee, Validator,
     JUSTIFICATION_BITS_LENGTH,

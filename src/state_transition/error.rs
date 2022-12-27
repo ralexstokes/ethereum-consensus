@@ -1,65 +1,116 @@
+use core::fmt::{Display, Formatter};
 use crate::crypto::Error as CryptoError;
 use crate::phase0::{AttestationData, BeaconBlockHeader, Checkpoint};
 use crate::primitives::{BlsSignature, Bytes32, Epoch, Hash32, Root, Slot, ValidatorIndex};
 use crate::state_transition::Forks;
 use ssz_rs::prelude::*;
 use thiserror::Error;
+use alloc::boxed::Box;
+use alloc::vec::Vec;
 
 pub type Result<T> = std::result::Result<T, Error>;
 
-#[derive(Debug, Error)]
+#[derive(Debug)]
 pub enum Error {
-    #[error("{0}")]
-    Merkleization(#[from] MerkleizationError),
-    #[error("{0}")]
-    SimpleSerialize(#[from] SimpleSerializeError),
-    #[error("{0}")]
-    Crypto(#[from] CryptoError),
-    #[error("requested element {requested} but collection only has {bound} elements")]
+    Merkleization,
+    SimpleSerialize,
+    Crypto,
     OutOfBounds { requested: usize, bound: usize },
-    #[error("collection cannot be empty")]
     CollectionCannotBeEmpty,
-    #[error("given index {index} is greater than the total amount of indices {total}")]
     InvalidShufflingIndex { index: usize, total: usize },
-    #[error("slot {requested} is outside of allowed range ({lower_bound}, {upper_bound})")]
     SlotOutOfRange {
         requested: Slot,
         lower_bound: Slot,
         upper_bound: Slot,
     },
-    #[error("overflow")]
     Overflow,
-    #[error("underflow")]
     Underflow,
-    #[error("{0}")]
-    InvalidBlock(#[from] Box<InvalidBlock>),
-    #[error("an invalid transition to a past slot {requested} from slot {current}")]
+    InvalidBlock,
     TransitionToPreviousSlot { current: Slot, requested: Slot },
-    #[error("invalid state root")]
     InvalidStateRoot,
-    #[error(
-    "the requested epoch {requested} is not in the required current epoch {current} or previous epoch {previous}"
-    )]
+
     InvalidEpoch {
         requested: Epoch,
         previous: Epoch,
         current: Epoch,
     },
-    #[error(
-        "transition requested from a later fork {destination_fork:?} to an earlier fork {source_fork:?}"
-    )]
     IncompatibleForks {
         source_fork: Forks,
         destination_fork: Forks,
     },
 }
 
-#[derive(Debug, Error)]
+impl From<MerkleizationError> for Error {
+    fn from(_: MerkleizationError) -> Self {
+        Error::Merkleization
+    }
+}
+
+impl From<CryptoError> for Error {
+    fn from(_: CryptoError) -> Self {
+        Error::Crypto
+    }
+}
+
+impl From<Box<InvalidBlock>> for Error {
+    fn from(_: Box<InvalidBlock>) -> Self {
+        Error::InvalidBlock
+    }
+}
+
+#[derive(Debug)]
 pub enum InvalidBlock {
-    #[error("invalid beacon block header: {0}")]
-    Header(#[from] InvalidBeaconBlockHeader),
-    #[error("invalid operation: {0}")]
-    InvalidOperation(#[from] InvalidOperation),
+    Header,
+    InvalidOperation,
+}
+
+impl From<InvalidBeaconBlockHeader> for InvalidBlock {
+    fn from(_: InvalidBeaconBlockHeader) -> Self {
+        InvalidBlock::Header
+    }
+}
+
+impl From<InvalidOperation> for InvalidBlock {
+    fn from(_: InvalidOperation) -> Self {
+        InvalidBlock::InvalidOperation
+    }
+}
+
+impl From<InvalidOperation> for InvalidBlock {
+    fn from(_: InvalidOperation) -> Self {
+        InvalidBlock::InvalidOperation
+    }
+}
+
+impl Display for Error {
+    fn fmt(&self, f: &mut Formatter<'_>) -> core::fmt::Result {
+        match *self {
+            Error::Merkleization => write!(f, "merkleization error"),
+            Error::SimpleSerialize => write!(f, "simple serialize error"),
+            Error::Crypto => write!(f, "crypto error"),
+            Error::OutOfBounds{requested, bound} => write!(f, "requested element {} but collection only has {} elements", requested, bound),
+            Error::CollectionCannotBeEmpty => write!(f, "collection cannot be empty"),
+            Error::InvalidShufflingIndex{index, total} => write!(f, "given index {} is greater than the total amount of indices {}", index, total),
+            Error::SlotOutOfRange{requested, lower_bound, upper_bound}  => write!(f, "slot {} is outside of allowed range ({}, {})", requested, lower_bound, upper_bound),
+            Error::Overflow => write!(f, "overflow error"),
+            Error::Underflow => write!(f, "underflow error"),
+            Error::InvalidBlock => write!(f, "invalid block"),
+            Error::TransitionToPreviousSlot{requested, current} => write!(f, "an invalid transition to a past slot {} from slot {}", requested, current),
+            Error::InvalidStateRoot => write!(f, "invalid state root"),
+            Error::InvalidEpoch{requested,previous,current} => write!(f, "the requested epoch {} is not in the required current epoch {} or previous epoch {}", requested, current, previous),
+            Error::IncompatibleForks{source_fork, destination_fork} => write!(f, "transition requested from a later fork {:?} to an earlier fork {:?}", destination_fork, source_fork),
+        }
+    }
+}
+
+
+impl Display for InvalidBlock {
+    fn fmt(&self, f: &mut Formatter<'_>) -> core::fmt::Result {
+        match *self {
+            InvalidBlock::Header => write!(f, "invalid beacon block header"),
+            InvalidBlock::InvalidOperation => write!(f, "invalid operation"),
+        }
+    }
 }
 
 #[derive(Debug, Error)]
@@ -84,7 +135,7 @@ pub enum InvalidOperation {
     ExecutionPayload(#[from] InvalidExecutionPayload),
 }
 
-#[derive(Debug, Error)]
+#[derive(Debug)]
 pub enum InvalidBeaconBlockHeader {
     #[error("mismatch between state slot {state_slot} and block slot {block_slot}")]
     StateSlotMismatch { state_slot: Slot, block_slot: Slot },
@@ -180,12 +231,19 @@ pub enum InvalidProposerSlashing {
     InvalidIndex(ValidatorIndex),
 }
 
-#[derive(Debug, Error)]
+#[derive(Debug)]
 pub enum InvalidAttesterSlashing {
-    #[error("attestation data is not slashable: {0:?} vs. {1:?}")]
     NotSlashable(Box<AttestationData>, Box<AttestationData>),
-    #[error("no validator was slashed across indices: {0:?}")]
     NoSlashings(Vec<ValidatorIndex>),
+}
+
+impl Display for InvalidAttesterSlashing {
+    fn fmt(&self, f: &mut Formatter<'_>) -> core::fmt::Result {
+        match *self {
+            InvalidAttesterSlashing::NotSlashable(attestation_data1, attestation_data2)  => write!(f, "attestation data is not slashable {}, {}", attestation_data1, attestation_data2),
+            InvalidAttesterSlashing::NoSlashings(indices)  => write!(f, "no slashings occured for indices, {}", indices),
+        }
+    }
 }
 
 #[derive(Debug, Error)]
