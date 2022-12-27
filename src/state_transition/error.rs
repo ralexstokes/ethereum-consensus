@@ -8,7 +8,7 @@ use thiserror::Error;
 use alloc::boxed::Box;
 use alloc::vec::Vec;
 
-pub type Result<T> = std::result::Result<T, Error>;
+pub type Result<T> = core::result::Result<T, Error>;
 
 #[derive(Debug)]
 pub enum Error {
@@ -58,6 +58,28 @@ impl From<Box<InvalidBlock>> for Error {
     }
 }
 
+
+impl Display for Error {
+    fn fmt(&self, f: &mut Formatter<'_>) -> core::fmt::Result {
+        match self {
+            Error::Merkleization => write!(f, "merkleization error"),
+            Error::SimpleSerialize => write!(f, "simple serialize error"),
+            Error::Crypto => write!(f, "crypto error"),
+            Error::OutOfBounds{requested, bound} => write!(f, "requested element {} but collection only has {} elements", requested, bound),
+            Error::CollectionCannotBeEmpty => write!(f, "collection cannot be empty"),
+            Error::InvalidShufflingIndex{index, total} => write!(f, "given index {} is greater than the total amount of indices {}", index, total),
+            Error::SlotOutOfRange{requested, lower_bound, upper_bound}  => write!(f, "slot {} is outside of allowed range ({}, {})", requested, lower_bound, upper_bound),
+            Error::Overflow => write!(f, "overflow error"),
+            Error::Underflow => write!(f, "underflow error"),
+            Error::InvalidBlock => write!(f, "invalid block"),
+            Error::TransitionToPreviousSlot{requested, current} => write!(f, "an invalid transition to a past slot {} from slot {}", requested, current),
+            Error::InvalidStateRoot => write!(f, "invalid state root"),
+            Error::InvalidEpoch{requested,previous,current} => write!(f, "the requested epoch {} is not in the required current epoch {} or previous epoch {}", requested, current, previous),
+            Error::IncompatibleForks{source_fork, destination_fork} => write!(f, "transition requested from a later fork {:?} to an earlier fork {:?}", destination_fork, source_fork),
+        }
+    }
+}
+
 #[derive(Debug)]
 pub enum InvalidBlock {
     Header,
@@ -82,27 +104,6 @@ impl From<InvalidOperation> for InvalidBlock {
     }
 }
 
-impl Display for Error {
-    fn fmt(&self, f: &mut Formatter<'_>) -> core::fmt::Result {
-        match *self {
-            Error::Merkleization => write!(f, "merkleization error"),
-            Error::SimpleSerialize => write!(f, "simple serialize error"),
-            Error::Crypto => write!(f, "crypto error"),
-            Error::OutOfBounds{requested, bound} => write!(f, "requested element {} but collection only has {} elements", requested, bound),
-            Error::CollectionCannotBeEmpty => write!(f, "collection cannot be empty"),
-            Error::InvalidShufflingIndex{index, total} => write!(f, "given index {} is greater than the total amount of indices {}", index, total),
-            Error::SlotOutOfRange{requested, lower_bound, upper_bound}  => write!(f, "slot {} is outside of allowed range ({}, {})", requested, lower_bound, upper_bound),
-            Error::Overflow => write!(f, "overflow error"),
-            Error::Underflow => write!(f, "underflow error"),
-            Error::InvalidBlock => write!(f, "invalid block"),
-            Error::TransitionToPreviousSlot{requested, current} => write!(f, "an invalid transition to a past slot {} from slot {}", requested, current),
-            Error::InvalidStateRoot => write!(f, "invalid state root"),
-            Error::InvalidEpoch{requested,previous,current} => write!(f, "the requested epoch {} is not in the required current epoch {} or previous epoch {}", requested, current, previous),
-            Error::IncompatibleForks{source_fork, destination_fork} => write!(f, "transition requested from a later fork {:?} to an earlier fork {:?}", destination_fork, source_fork),
-        }
-    }
-}
-
 
 impl Display for InvalidBlock {
     fn fmt(&self, f: &mut Formatter<'_>) -> core::fmt::Result {
@@ -113,27 +114,83 @@ impl Display for InvalidBlock {
     }
 }
 
-#[derive(Debug, Error)]
+#[derive(Debug)]
 pub enum InvalidOperation {
-    #[error("invalid attestation: {0}")]
-    Attestation(#[from] InvalidAttestation),
-    #[error("invalid indexed attestation: {0}")]
-    IndexedAttestation(#[from] InvalidIndexedAttestation),
-    #[error("invalid deposit: {0}")]
-    Deposit(#[from] InvalidDeposit),
-    #[error("invalid randao (Bls signature): {0:?}")]
+    Attestation,
+    IndexedAttestation,
+    Deposit,
     Randao(BlsSignature),
-    #[error("invalid proposer slashing: {0}")]
-    ProposerSlashing(#[from] InvalidProposerSlashing),
-    #[error("invalid attester slashing: {0}")]
-    AttesterSlashing(#[from] InvalidAttesterSlashing),
-    #[error("invalid voluntary exit: {0}")]
-    VoluntaryExit(#[from] InvalidVoluntaryExit),
-    #[error("invalid sync aggregate: {0}")]
-    SyncAggregate(#[from] InvalidSyncAggregate),
-    #[error("invalid execution payload: {0}")]
-    ExecutionPayload(#[from] InvalidExecutionPayload),
+    ProposerSlashing,
+    AttesterSlashing,
+    VoluntaryExit,
+    SyncAggregate,
+    ExecutionPayload,
 }
+
+impl Display for InvalidOperation {
+    fn fmt(&self, f: &mut Formatter<'_>) -> core::fmt::Result {
+        match self {
+            InvalidOperation::Attestation => write!(f, "invalid attestation"),
+            InvalidOperation::IndexedAttestation => write!(f, "invalid indexed attestation"),
+            InvalidOperation::Deposit => write!(f, "invalid deposit"),
+            InvalidOperation::Randao(blssignature) => write!(f, "invalid randao (Bls signature): {0:?}", blssignature),
+            InvalidOperation::ProposerSlashing => write!(f, "invalid proposer slashing"),
+            InvalidOperation::AttesterSlashing => write!(f, "invalid attester slashing"),
+            InvalidOperation::VoluntaryExit => write!(f, "invalid voluntary exit"),
+            InvalidOperation::SyncAggregate => write!(f, "invalid sync aggregate"),
+            InvalidOperation::ExecutionPayload => write!(f, "invalid execution payload"),
+        }
+    }
+}
+
+impl From<InvalidAttestation> for InvalidOperation {
+    fn from(_: InvalidAttestation) -> Self {
+        InvalidOperation::Attestation
+    }
+}
+
+impl From<InvalidIndexedAttestation> for InvalidOperation {
+    fn from(_: InvalidIndexedAttestation) -> Self {
+        InvalidOperation::IndexedAttestation
+    }
+}
+
+impl From<InvalidDeposit> for InvalidOperation {
+    fn from(_: InvalidDeposit) -> Self {
+        InvalidOperation::Deposit
+    }
+}
+
+impl From<InvalidProposerSlashing> for InvalidOperation {
+    fn from(_: InvalidProposerSlashing) -> Self {
+        InvalidOperation::ProposerSlashing
+    }
+}
+
+impl From<InvalidAttesterSlashing> for InvalidOperation {
+    fn from(_: InvalidAttesterSlashing) -> Self {
+        InvalidOperation::AttesterSlashing
+    }
+}
+
+impl From<InvalidVoluntaryExit> for InvalidOperation {
+    fn from(_: InvalidVoluntaryExit) -> Self {
+        InvalidOperation::VoluntaryExit
+    }
+}
+
+impl From<InvalidSyncAggregate> for InvalidOperation {
+    fn from(_: InvalidSyncAggregate) -> Self {
+        InvalidOperation::SyncAggregate
+    }
+}
+
+impl From<InvalidExecutionPayload> for InvalidOperation {
+    fn from(_: InvalidExecutionPayload) -> Self {
+        InvalidOperation::ExecutionPayload
+    }
+}
+
 
 #[derive(Debug)]
 pub enum InvalidBeaconBlockHeader {
