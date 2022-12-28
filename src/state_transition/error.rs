@@ -1,12 +1,10 @@
-use core::fmt::{Display, Formatter};
 use crate::crypto::Error as CryptoError;
 use crate::phase0::{AttestationData, BeaconBlockHeader, Checkpoint};
 use crate::primitives::{BlsSignature, Bytes32, Epoch, Hash32, Root, Slot, ValidatorIndex};
 use crate::state_transition::Forks;
 use ssz_rs::prelude::*;
+use crate::prelude::*;
 use thiserror::Error;
-use alloc::boxed::Box;
-use alloc::vec::Vec;
 
 pub type Result<T> = core::result::Result<T, Error>;
 
@@ -15,9 +13,15 @@ pub enum Error {
     Merkleization,
     SimpleSerialize,
     Crypto,
-    OutOfBounds { requested: usize, bound: usize },
+    OutOfBounds {
+        requested: usize,
+        bound: usize,
+    },
     CollectionCannotBeEmpty,
-    InvalidShufflingIndex { index: usize, total: usize },
+    InvalidShufflingIndex {
+        index: usize,
+        total: usize,
+    },
     SlotOutOfRange {
         requested: Slot,
         lower_bound: Slot,
@@ -26,7 +30,10 @@ pub enum Error {
     Overflow,
     Underflow,
     InvalidBlock,
-    TransitionToPreviousSlot { current: Slot, requested: Slot },
+    TransitionToPreviousSlot {
+        current: Slot,
+        requested: Slot,
+    },
     InvalidStateRoot,
 
     InvalidEpoch {
@@ -57,7 +64,6 @@ impl From<Box<InvalidBlock>> for Error {
         Error::InvalidBlock
     }
 }
-
 
 impl Display for Error {
     fn fmt(&self, f: &mut Formatter<'_>) -> core::fmt::Result {
@@ -104,7 +110,6 @@ impl From<InvalidOperation> for InvalidBlock {
     }
 }
 
-
 impl Display for InvalidBlock {
     fn fmt(&self, f: &mut Formatter<'_>) -> core::fmt::Result {
         match *self {
@@ -133,7 +138,9 @@ impl Display for InvalidOperation {
             InvalidOperation::Attestation => write!(f, "invalid attestation"),
             InvalidOperation::IndexedAttestation => write!(f, "invalid indexed attestation"),
             InvalidOperation::Deposit => write!(f, "invalid deposit"),
-            InvalidOperation::Randao(blssignature) => write!(f, "invalid randao (Bls signature): {0:?}", blssignature),
+            InvalidOperation::Randao(blssignature) => {
+                write!(f, "invalid randao (Bls signature): {0:?}", blssignature)
+            }
             InvalidOperation::ProposerSlashing => write!(f, "invalid proposer slashing"),
             InvalidOperation::AttesterSlashing => write!(f, "invalid attester slashing"),
             InvalidOperation::VoluntaryExit => write!(f, "invalid voluntary exit"),
@@ -190,7 +197,6 @@ impl From<InvalidExecutionPayload> for InvalidOperation {
         InvalidOperation::ExecutionPayload
     }
 }
-
 
 #[derive(Debug)]
 pub enum InvalidBeaconBlockHeader {
@@ -297,8 +303,14 @@ pub enum InvalidAttesterSlashing {
 impl Display for InvalidAttesterSlashing {
     fn fmt(&self, f: &mut Formatter<'_>) -> core::fmt::Result {
         match *self {
-            InvalidAttesterSlashing::NotSlashable(attestation_data1, attestation_data2)  => write!(f, "attestation data is not slashable {}, {}", attestation_data1, attestation_data2),
-            InvalidAttesterSlashing::NoSlashings(indices)  => write!(f, "no slashings occured for indices, {}", indices),
+            InvalidAttesterSlashing::NotSlashable(attestation_data1, attestation_data2) => write!(
+                f,
+                "attestation data is not slashable {}, {}",
+                attestation_data1, attestation_data2
+            ),
+            InvalidAttesterSlashing::NoSlashings(indices) => {
+                write!(f, "no slashings occured for indices, {}", indices)
+            }
         }
     }
 }
@@ -345,9 +357,9 @@ pub enum InvalidExecutionPayload {
 }
 
 pub(crate) fn invalid_header_error(error: InvalidBeaconBlockHeader) -> Error {
-    Error::InvalidBlock(Box::new(InvalidBlock::Header(error)))
+    Error::InvalidBlock
 }
 
 pub(crate) fn invalid_operation_error(error: InvalidOperation) -> Error {
-    Error::InvalidBlock(Box::new(InvalidBlock::InvalidOperation(error)))
+    Error::InvalidBlock
 }

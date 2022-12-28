@@ -3,6 +3,7 @@ use crate::bellatrix::ExecutionPayload;
 use crate::phase0::{
     Attestation, AttesterSlashing, Deposit, Eth1Data, ProposerSlashing, SignedVoluntaryExit,
 };
+use crate::prelude::*;
 use crate::primitives::{BlsSignature, Bytes32, Root, Slot, ValidatorIndex};
 use ssz_rs::prelude::*;
 
