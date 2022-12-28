@@ -15,7 +15,8 @@ use spec::{
     JUSTIFICATION_BITS_LENGTH, PARTICIPATION_FLAG_WEIGHTS, TIMELY_TARGET_FLAG_INDEX,
 };
 use ssz_rs::prelude::*;
-use std::mem;
+use crate::prelude::*;
+
 pub fn get_base_reward<
     const SLOTS_PER_HISTORICAL_ROOT: usize,
     const HISTORICAL_ROOTS_LIMIT: usize,

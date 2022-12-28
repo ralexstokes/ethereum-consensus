@@ -12,7 +12,7 @@ use spec::{
     weigh_justification_and_finalization, BeaconState, PARTICIPATION_FLAG_WEIGHTS,
     TIMELY_TARGET_FLAG_INDEX,
 };
-use std::mem;
+use crate::prelude::*;
 
 // Return the base reward for the validator defined by `index` with respect to the current `state`
 pub fn get_base_reward<

@@ -2,6 +2,7 @@ use crate::crypto::{verify_signature, SecretKey};
 use crate::primitives::{BlsPublicKey, BlsSignature, Domain, Root};
 use crate::state_transition::Error;
 use ssz_rs::prelude::*;
+use crate::prelude::*;
 
 #[derive(Default, Debug, SimpleSerialize)]
 pub struct SigningData {

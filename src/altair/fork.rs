@@ -5,6 +5,7 @@ use crate::altair::{
 use crate::phase0;
 use crate::state_transition::{Context, Result};
 use ssz_rs::prelude::*;
+use crate::prelude::*;
 
 fn translate_participation<
     const SLOTS_PER_HISTORICAL_ROOT: usize,

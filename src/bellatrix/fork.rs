@@ -2,6 +2,7 @@ use crate::altair;
 use crate::bellatrix::{BeaconState, Fork};
 use crate::state_transition::Context;
 use ssz_rs::prelude::*;
+use crate::prelude::*;
 
 pub fn upgrade_to_bellatrix<
     const SLOTS_PER_HISTORICAL_ROOT: usize,

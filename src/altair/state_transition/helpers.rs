@@ -25,8 +25,8 @@ use spec::{
     Validator,
 };
 use ssz_rs::prelude::*;
-use std::cmp;
-use std::collections::HashSet;
+use crate::prelude::*;
+
 pub fn compute_activation_exit_epoch(epoch: Epoch, context: &Context) -> Epoch {
     epoch + 1 + context.max_seed_lookahead
 }
@@ -244,7 +244,7 @@ pub fn get_attesting_indices<
     data: &AttestationData,
     bits: &Bitlist<MAX_VALIDATORS_PER_COMMITTEE>,
     context: &Context,
-) -> Result<HashSet<ValidatorIndex>> {
+) -> Result<BTreeSet<ValidatorIndex>> {
     let committee = get_beacon_committee(state, data.slot, data.index, context)?;
     if bits.len() != committee.len() {
         return Err(invalid_operation_error(InvalidOperation::Attestation(
@@ -254,7 +254,7 @@ pub fn get_attesting_indices<
             },
         )));
     }
-    let mut indices = HashSet::with_capacity(bits.capacity());
+    let mut indices = BTreeSet::new();
     for (i, validator_index) in committee.iter().enumerate() {
         if bits[i] {
             indices.insert(*validator_index);
@@ -659,7 +659,7 @@ pub fn get_total_active_balance<
     context: &Context,
 ) -> Result<Gwei> {
     let indices = get_active_validator_indices(state, get_current_epoch(state, context));
-    get_total_balance(state, &HashSet::from_iter(indices), context)
+    get_total_balance(state, &BTreeSet::from_iter(indices), context)
 }
 pub fn get_total_balance<
     const SLOTS_PER_HISTORICAL_ROOT: usize,
@@ -681,7 +681,7 @@ pub fn get_total_balance<
         MAX_VALIDATORS_PER_COMMITTEE,
         SYNC_COMMITTEE_SIZE,
     >,
-    indices: &HashSet<ValidatorIndex>,
+    indices: &BTreeSet<ValidatorIndex>,
     context: &Context,
 ) -> Result<Gwei> {
     let total_balance = indices
@@ -882,9 +882,9 @@ pub fn is_valid_indexed_attestation<
             ),
         ));
     }
-    let indices: HashSet<usize> = HashSet::from_iter(attesting_indices.iter().cloned());
+    let indices: BTreeSet<usize> = BTreeSet::from_iter(attesting_indices.iter().cloned());
     if indices.len() != indexed_attestation.attesting_indices.len() {
-        let mut seen = HashSet::new();
+        let mut seen = BTreeSet::new();
         let mut duplicates = vec![];
         for i in indices.iter() {
             if seen.contains(i) {

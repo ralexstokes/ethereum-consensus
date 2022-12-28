@@ -8,6 +8,7 @@ use spec::{
     initiate_validator_exit, BeaconBlockBody, BeaconState, ExecutionPayload,
     ExecutionPayloadHeader, PROPOSER_WEIGHT, TIMELY_TARGET_FLAG_INDEX, WEIGHT_DENOMINATOR,
 };
+use crate::prelude::*;
 
 pub fn get_inactivity_penalty_deltas<
     const SLOTS_PER_HISTORICAL_ROOT: usize,

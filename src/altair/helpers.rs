@@ -17,7 +17,6 @@ use spec::{
     TIMELY_HEAD_FLAG_INDEX, TIMELY_SOURCE_FLAG_INDEX, TIMELY_TARGET_FLAG_INDEX, WEIGHT_DENOMINATOR,
 };
 use ssz_rs::Vector;
-use std::collections::HashSet;
 
 // Return a new ``ParticipationFlags`` adding ``flag_index`` to ``flags``
 pub fn add_flag(flags: ParticipationFlags, flag_index: usize) -> ParticipationFlags {
@@ -173,7 +172,7 @@ pub fn get_unslashed_participating_indices<
     flag_index: usize,
     epoch: Epoch,
     context: &Context,
-) -> Result<HashSet<ValidatorIndex>> {
+) -> Result<BTreeSet<ValidatorIndex>> {
     let previous_epoch = get_previous_epoch(state, context);
     let current_epoch = get_current_epoch(state, context);
     let is_current = epoch == current_epoch;
@@ -198,7 +197,7 @@ pub fn get_unslashed_participating_indices<
             let not_slashed = !state.validators[i].slashed;
             did_participate && not_slashed
         })
-        .collect::<HashSet<_>>())
+        .collect::<BTreeSet<_>>())
 }
 
 // Return the flag indices that are satisfied by an attestation.

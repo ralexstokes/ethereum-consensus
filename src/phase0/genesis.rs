@@ -7,6 +7,7 @@ use spec::{
     BeaconState, Deposit, DepositData, Eth1Data, Fork, DEPOSIT_DATA_LIST_BOUND,
 };
 use ssz_rs::prelude::*;
+use crate::prelude::*;
 
 pub fn initialize_beacon_state_from_eth1<
     const SLOTS_PER_HISTORICAL_ROOT: usize,
@@ -63,7 +64,7 @@ pub fn initialize_beacon_state_from_eth1<
         ..Default::default()
     };
     let randao_mixes = Vector::from_iter(
-        std::iter::repeat(eth1_block_hash).take(context.epochs_per_historical_vector as usize),
+        repeat(eth1_block_hash).take(context.epochs_per_historical_vector as usize).collect(),
     );
     let mut state = BeaconState {
         genesis_time: eth1_timestamp + context.genesis_delay,

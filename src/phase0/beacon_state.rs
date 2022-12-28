@@ -4,6 +4,7 @@ use crate::phase0::{
 };
 use crate::primitives::{Bytes32, Epoch, Gwei, Root, Slot};
 use ssz_rs::prelude::*;
+use crate::prelude::*;
 
 pub(super) const fn get_eth1_data_votes_bound(
     epochs_per_eth1_voting_period: Epoch,

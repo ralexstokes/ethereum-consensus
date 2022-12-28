@@ -4,6 +4,7 @@ use crate::primitives::{
     ValidatorIndex,
 };
 use ssz_rs::prelude::*;
+use crate::prelude::*;
 
 #[derive(Default, Clone, Debug, SimpleSerialize, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]

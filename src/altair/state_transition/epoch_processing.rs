@@ -17,6 +17,7 @@ use spec::{
     HistoricalBatchAccumulator, JUSTIFICATION_BITS_LENGTH,
 };
 use ssz_rs::prelude::*;
+use crate::prelude::*;
 
 use crate::state_transition::{Context, Result};
 pub fn get_finality_delay<

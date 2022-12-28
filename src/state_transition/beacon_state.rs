@@ -3,6 +3,7 @@
 use crate::altair;
 use crate::bellatrix;
 use crate::phase0;
+use crate::prelude::*;
 
 #[derive(Debug)]
 pub enum BeaconState<

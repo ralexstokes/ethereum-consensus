@@ -8,8 +8,6 @@ use blst::{min_pk as bls_impl, BLST_ERROR};
 use serde;
 use sha2::{digest::FixedOutput, Digest, Sha256};
 use ssz_rs::prelude::*;
-use std::fmt;
-use std::ops::{Deref, DerefMut};
 use thiserror::Error;
 use crate::prelude::*;
 
@@ -26,28 +24,59 @@ const BLS_PUBLIC_KEY_BYTES_LEN: usize = 48;
 const BLS_SECRET_KEY_BYTES_LEN: usize = 32;
 const BLS_SIGNATURE_BYTES_LEN: usize = 96;
 
-#[derive(Debug, Error)]
+#[derive(Debug)]
 pub enum Error {
     #[cfg(feature = "serde")]
-    #[error("error deserializing hex-encoded input: {0}")]
-    Hex(#[from] HexError),
-    #[error("inputs required for aggregation but none were provided")]
+    Hex,
     EmptyAggregate,
-    #[error(
-        "invalid length of encoding: expected {expected} bytes but only provided {provided} bytes"
-    )]
     EncodingError { provided: usize, expected: usize },
-    #[error("randomness failure: {0}")]
-    Randomness(#[from] rand::Error),
-    #[error("blst error: {0}")]
-    BLST(#[from] BLSTError),
-    #[error("invalid signature")]
+    Randomness,
+    BLST,
     InvalidSignature,
 }
 
-#[derive(Debug, Error)]
-#[error("{0}")]
+impl From<HexError> for Error {
+    fn from(_: HexError) -> Self {
+        Error::Hex
+    }
+}
+
+impl From<rand::Error> for Error {
+    fn from(_: rand::Error) -> Self {
+        Error::Randomness
+    }
+}
+
+impl From<BLSTError> for Error {
+    fn from(_: BLSTError) -> Self {
+        Error::BLST
+    }
+}
+
+
+impl Display for Error {
+    fn fmt(&self, f: &mut Formatter<'_>) -> core::fmt::Result {
+        match self {
+            Error::Hex => write!(f, "error deserializing hex-encoded input",),
+            Error::EmptyAggregate => write!(f, "inputs required for aggregation but none were provided",),
+            Error::EncodingError{provided, expected} => write!(f, "invalid length of encoding: expected {} bytes but only provided {} bytes", expected, provided),
+            Error::Randomness => write!(f, "randomness failure",),
+            Error::BLST => write!(f, "lst error",),
+            Error::InvalidSignature => write!(f, "invalid signature",),
+        }
+    }
+}
+
+
+
+#[derive(Debug)]
 pub struct BLSTError(String);
+
+impl fmt::Display for BLSTError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.0)
+    }
+}
 
 impl From<BLST_ERROR> for BLSTError {
     fn from(err: BLST_ERROR) -> Self {

@@ -2,9 +2,7 @@
 use crate::configs;
 use crate::phase0 as presets;
 use crate::primitives::{Epoch, Slot};
-use std::ops::Deref;
-use std::sync::Arc;
-use std::time::{Duration, SystemTime, UNIX_EPOCH};
+use crate::prelude::*;
 
 pub fn convert_timestamp_to_slot(timestamp: u64, genesis_time: u64, seconds_per_slot: u64) -> Slot {
     (timestamp - genesis_time) / seconds_per_slot

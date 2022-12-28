@@ -27,8 +27,7 @@ use spec::{
     PROPOSER_WEIGHT, SYNC_REWARD_WEIGHT, WEIGHT_DENOMINATOR,
 };
 use ssz_rs::prelude::*;
-use std::collections::{HashMap, HashSet};
-use std::iter::zip;
+use crate::prelude::*;
 pub fn get_validator_from_deposit(deposit: &Deposit, context: &Context) -> Validator {
     let amount = deposit.data.amount;
     let effective_balance = Gwei::min(
@@ -214,9 +213,9 @@ pub fn process_attester_slashing<
     }
     is_valid_indexed_attestation(state, attestation_1, context)?;
     is_valid_indexed_attestation(state, attestation_2, context)?;
-    let indices_1: HashSet<ValidatorIndex> =
-        HashSet::from_iter(attestation_1.attesting_indices.iter().cloned());
-    let indices_2 = HashSet::from_iter(attestation_2.attesting_indices.iter().cloned());
+    let indices_1: BTreeSet<ValidatorIndex> =
+        BTreeSet::from_iter(attestation_1.attesting_indices.iter().cloned());
+    let indices_2 = BTreeSet::from_iter(attestation_2.attesting_indices.iter().cloned());
     let mut indices = indices_1
         .intersection(&indices_2)
         .cloned()
@@ -389,8 +388,8 @@ pub fn process_deposit<
     state.eth1_deposit_index += 1;
     let public_key = &deposit.data.public_key;
     let amount = deposit.data.amount;
-    let validator_public_keys: HashSet<&BlsPublicKey> =
-        HashSet::from_iter(state.validators.iter().map(|v| &v.public_key));
+    let validator_public_keys: BTreeSet<&BlsPublicKey> =
+        BTreeSet::from_iter(state.validators.iter().map(|v| &v.public_key));
     if !validator_public_keys.contains(public_key) {
         let mut deposit_message = DepositMessage {
             public_key: public_key.clone(),
@@ -797,7 +796,7 @@ pub fn process_sync_aggregate<
         .iter()
         .enumerate()
         .map(|(i, v)| (&v.public_key, i))
-        .collect::<HashMap<&BlsPublicKey, usize>>();
+        .collect::<BTreeMap<&BlsPublicKey, usize>>();
     let mut committee_indices: Vec<ValidatorIndex> = Vec::default();
     for public_key in state.current_sync_committee.public_keys.iter() {
         committee_indices.push(

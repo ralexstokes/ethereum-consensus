@@ -104,12 +104,6 @@ impl From<InvalidOperation> for InvalidBlock {
     }
 }
 
-impl From<InvalidOperation> for InvalidBlock {
-    fn from(_: InvalidOperation) -> Self {
-        InvalidBlock::InvalidOperation
-    }
-}
-
 impl Display for InvalidBlock {
     fn fmt(&self, f: &mut Formatter<'_>) -> core::fmt::Result {
         match *self {
@@ -121,80 +115,80 @@ impl Display for InvalidBlock {
 
 #[derive(Debug)]
 pub enum InvalidOperation {
-    Attestation,
-    IndexedAttestation,
-    Deposit,
+    Attestation(InvalidAttestation),
+    IndexedAttestation(InvalidIndexedAttestation),
+    Deposit(InvalidDeposit),
     Randao(BlsSignature),
-    ProposerSlashing,
-    AttesterSlashing,
-    VoluntaryExit,
-    SyncAggregate,
-    ExecutionPayload,
+    ProposerSlashing(InvalidProposerSlashing),
+    AttesterSlashing(InvalidAttesterSlashing),
+    VoluntaryExit(InvalidVoluntaryExit),
+    SyncAggregate(InvalidSyncAggregate),
+    ExecutionPayload(InvalidExecutionPayload),
 }
 
 impl Display for InvalidOperation {
     fn fmt(&self, f: &mut Formatter<'_>) -> core::fmt::Result {
         match self {
-            InvalidOperation::Attestation => write!(f, "invalid attestation"),
-            InvalidOperation::IndexedAttestation => write!(f, "invalid indexed attestation"),
-            InvalidOperation::Deposit => write!(f, "invalid deposit"),
+            InvalidOperation::Attestation(invalid_attestation) => write!(f, "invalid attestation"),
+            InvalidOperation::IndexedAttestation(indexed_attestation) => write!(f, "invalid indexed attestation"),
+            InvalidOperation::Deposit(invalid_deposit) => write!(f, "invalid deposit"),
             InvalidOperation::Randao(blssignature) => {
                 write!(f, "invalid randao (Bls signature): {0:?}", blssignature)
             }
-            InvalidOperation::ProposerSlashing => write!(f, "invalid proposer slashing"),
-            InvalidOperation::AttesterSlashing => write!(f, "invalid attester slashing"),
-            InvalidOperation::VoluntaryExit => write!(f, "invalid voluntary exit"),
-            InvalidOperation::SyncAggregate => write!(f, "invalid sync aggregate"),
-            InvalidOperation::ExecutionPayload => write!(f, "invalid execution payload"),
+            InvalidOperation::ProposerSlashing(invalid_proposer_slashing) => write!(f, "invalid proposer slashing"),
+            InvalidOperation::AttesterSlashing(invalifd_attester_slashing) => write!(f, "invalid attester slashing"),
+            InvalidOperation::VoluntaryExit(invalid_voluntary_exit) => write!(f, "invalid voluntary exit"),
+            InvalidOperation::SyncAggregate(invalid_sync_aggregate) => write!(f, "invalid sync aggregate"),
+            InvalidOperation::ExecutionPayload(invalid_execution_payload) => write!(f, "invalid execution payload"),
         }
     }
 }
 
 impl From<InvalidAttestation> for InvalidOperation {
-    fn from(_: InvalidAttestation) -> Self {
-        InvalidOperation::Attestation
+    fn from(invalid_attestation: InvalidAttestation) -> Self {
+        InvalidOperation::Attestation(invalid_attestation)
     }
 }
 
 impl From<InvalidIndexedAttestation> for InvalidOperation {
-    fn from(_: InvalidIndexedAttestation) -> Self {
-        InvalidOperation::IndexedAttestation
+    fn from(invalid: InvalidIndexedAttestation) -> Self {
+        InvalidOperation::IndexedAttestation(invalid)
     }
 }
 
 impl From<InvalidDeposit> for InvalidOperation {
-    fn from(_: InvalidDeposit) -> Self {
-        InvalidOperation::Deposit
+    fn from(invalid_deposit: InvalidDeposit) -> Self {
+        InvalidOperation::Deposit(invalid_deposit)
     }
 }
 
 impl From<InvalidProposerSlashing> for InvalidOperation {
-    fn from(_: InvalidProposerSlashing) -> Self {
-        InvalidOperation::ProposerSlashing
+    fn from(invalid: InvalidProposerSlashing) -> Self {
+        InvalidOperation::ProposerSlashing(invalid)
     }
 }
 
 impl From<InvalidAttesterSlashing> for InvalidOperation {
-    fn from(_: InvalidAttesterSlashing) -> Self {
-        InvalidOperation::AttesterSlashing
+    fn from(invalid: InvalidAttesterSlashing) -> Self {
+        InvalidOperation::AttesterSlashing(invalid)
     }
 }
 
 impl From<InvalidVoluntaryExit> for InvalidOperation {
-    fn from(_: InvalidVoluntaryExit) -> Self {
-        InvalidOperation::VoluntaryExit
+    fn from(invalid: InvalidVoluntaryExit) -> Self {
+        InvalidOperation::VoluntaryExit(invalid)
     }
 }
 
 impl From<InvalidSyncAggregate> for InvalidOperation {
-    fn from(_: InvalidSyncAggregate) -> Self {
-        InvalidOperation::SyncAggregate
+    fn from(sync_aggregate: InvalidSyncAggregate) -> Self {
+        InvalidOperation::SyncAggregate(sync_aggregate)
     }
 }
 
 impl From<InvalidExecutionPayload> for InvalidOperation {
-    fn from(_: InvalidExecutionPayload) -> Self {
-        InvalidOperation::ExecutionPayload
+    fn from(invalid: InvalidExecutionPayload) -> Self {
+        InvalidOperation::ExecutionPayload(invalid)
     }
 }
 
@@ -302,7 +296,7 @@ impl Display for InvalidDeposit {
         match self {
             InvalidDeposit::IncorrectCount {expected, count} => write!(f, "expected {} deposits but only had {} deposits", expected, count),
             InvalidDeposit::InvalidProof{leaf, branch, depth, index, root} => write!(f, "merkle validation failed for tree with depth {} and root {:?} at index {} for leaf {:?} and branch {:?}", depth, root, index, leaf, branch),
-            InvalidIndexedAttestation::InvalidSignature(bls) => write!(f, "invalid signature for deposit: {:?}", bls),
+            InvalidDeposit::InvalidSignature(bls) => write!(f, "invalid signature for deposit: {:?}", bls),
         }
     }
 }
@@ -352,7 +346,7 @@ impl Display for InvalidAttesterSlashing {
     }
 }
 
-#[derive(Debug, Error)]
+#[derive(Debug)]
 pub enum InvalidVoluntaryExit {
     InvalidIndex(ValidatorIndex),
     InactiveValidator(Epoch),
