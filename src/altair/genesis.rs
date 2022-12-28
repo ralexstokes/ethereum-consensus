@@ -8,6 +8,7 @@ use spec::{
     BeaconBlockBody, BeaconBlockHeader, BeaconState, Deposit, DepositData, Eth1Data, Fork,
 };
 use ssz_rs::prelude::*;
+use crate::prelude::*;
 
 pub fn initialize_beacon_state_from_eth1<
     const SLOTS_PER_HISTORICAL_ROOT: usize,

@@ -11,6 +11,7 @@ use ssz_rs::prelude::*;
 use std::fmt;
 use std::ops::{Deref, DerefMut};
 use thiserror::Error;
+use crate::prelude::*;
 
 pub fn hash<D: AsRef<[u8]>>(data: D) -> Bytes32 {
     let mut result = vec![0u8; 32];

@@ -18,3 +18,5 @@ pub use alloc::boxed::Box;
 
 #[cfg(not(feature = "std"))]
 pub use alloc::{vec, vec::Vec};
+pub use alloc::collections::{BTreeMap, BTreeSet};
+pub use alloc::collections::{zip, Zip};

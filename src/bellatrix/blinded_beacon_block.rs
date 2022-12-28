@@ -5,6 +5,7 @@ use crate::phase0::{
 };
 use crate::primitives::{BlsSignature, Bytes32, Root, Slot, ValidatorIndex};
 use ssz_rs::prelude::*;
+use crate::prelude::*;
 
 #[derive(Default, Debug, Clone, SimpleSerialize)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
