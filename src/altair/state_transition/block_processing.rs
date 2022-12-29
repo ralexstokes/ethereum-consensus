@@ -4,10 +4,10 @@ pub use crate::altair::block_processing::process_attestation;
 pub use crate::altair::block_processing::process_block;
 pub use crate::altair::block_processing::process_deposit;
 pub use crate::altair::block_processing::process_sync_aggregate;
+use crate::prelude::*;
 use crate::primitives::{Bytes32, DomainType, Gwei, ValidatorIndex, FAR_FUTURE_EPOCH};
 use crate::signing::compute_signing_root;
 use ssz_rs::prelude::*;
-use crate::prelude::*;
 
 use crate::crypto::{hash, verify_signature};
 use crate::ssz::ByteVector;
@@ -75,9 +75,9 @@ pub fn process_attester_slashing<
     }
     is_valid_indexed_attestation(state, attestation_1, context)?;
     is_valid_indexed_attestation(state, attestation_2, context)?;
-    let indices_1: BTreeSet<ValidatorIndex> =
-        BTreeSet::from_iter(attestation_1.attesting_indices.iter().cloned());
-    let indices_2 = BTreeSet::from_iter(attestation_2.attesting_indices.iter().cloned());
+    let indices_1: HashSet<ValidatorIndex> =
+        HashSet::from_iter(attestation_1.attesting_indices.iter().cloned());
+    let indices_2 = HashSet::from_iter(attestation_2.attesting_indices.iter().cloned());
     let mut indices = indices_1
         .intersection(&indices_2)
         .cloned()

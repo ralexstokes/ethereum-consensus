@@ -1,6 +1,7 @@
 use crate::phase0 as spec;
 
 use crate::crypto::{fast_aggregate_verify, hash, verify_signature};
+use crate::prelude::*;
 use crate::primitives::{
     Bytes32, CommitteeIndex, Domain, DomainType, Epoch, ForkDigest, Gwei, Root, Slot,
     ValidatorIndex, Version, FAR_FUTURE_EPOCH, GENESIS_EPOCH,
@@ -15,7 +16,6 @@ use spec::{
     Validator,
 };
 use ssz_rs::prelude::*;
-use crate::prelude::*;
 
 pub fn is_active_validator(validator: &Validator, epoch: Epoch) -> bool {
     validator.activation_epoch <= epoch && epoch < validator.exit_epoch
@@ -112,9 +112,9 @@ pub fn is_valid_indexed_attestation<
         ));
     }
 
-    let indices: BTreeSet<usize> = BTreeSet::from_iter(attesting_indices.iter().cloned());
+    let indices: HashSet<usize> = HashSet::from_iter(attesting_indices.iter().cloned());
     if indices.len() != indexed_attestation.attesting_indices.len() {
-        let mut seen = BTreeSet::new();
+        let mut seen = HashSet::new();
         let mut duplicates = vec![];
         for i in indices.iter() {
             if seen.contains(i) {
@@ -757,7 +757,7 @@ pub fn get_total_balance<
         MAX_VALIDATORS_PER_COMMITTEE,
         PENDING_ATTESTATIONS_BOUND,
     >,
-    indices: &BTreeSet<ValidatorIndex>,
+    indices: &HashSet<ValidatorIndex>,
     context: &Context,
 ) -> Result<Gwei> {
     let total_balance = indices
@@ -792,7 +792,7 @@ pub fn get_total_active_balance<
     context: &Context,
 ) -> Result<Gwei> {
     let indices = get_active_validator_indices(state, get_current_epoch(state, context));
-    get_total_balance(state, &BTreeSet::from_iter(indices), context)
+    get_total_balance(state, &HashSet::from_iter(indices), context)
 }
 
 pub fn get_indexed_attestation<
@@ -858,7 +858,7 @@ pub fn get_attesting_indices<
     data: &AttestationData,
     bits: &Bitlist<MAX_VALIDATORS_PER_COMMITTEE>,
     context: &Context,
-) -> Result<BTreeSet<ValidatorIndex>> {
+) -> Result<HashSet<ValidatorIndex>> {
     let committee = get_beacon_committee(state, data.slot, data.index, context)?;
 
     if bits.len() != committee.len() {
@@ -870,7 +870,7 @@ pub fn get_attesting_indices<
         )));
     }
 
-    let mut indices = BTreeSet::new();
+    let mut indices = HashSet::new();
 
     for (i, validator_index) in committee.iter().enumerate() {
         if bits[i] {

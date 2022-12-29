@@ -1,18 +1,18 @@
 use crate::crypto::Error as CryptoError;
 use crate::phase0::{AttestationData, BeaconBlockHeader, Checkpoint};
+use crate::prelude::*;
 use crate::primitives::{BlsSignature, Bytes32, Epoch, Hash32, Root, Slot, ValidatorIndex};
 use crate::state_transition::Forks;
 use ssz_rs::prelude::*;
-use crate::prelude::*;
 use thiserror::Error;
 
 pub type Result<T> = core::result::Result<T, Error>;
 
 #[derive(Debug)]
 pub enum Error {
-    Merkleization,
-    SimpleSerialize,
-    Crypto,
+    Merkleization(MerkleizationError),
+    SimpleSerialize(SimpleSerializeError),
+    Crypto(CryptoError),
     OutOfBounds {
         requested: usize,
         bound: usize,
@@ -29,7 +29,7 @@ pub enum Error {
     },
     Overflow,
     Underflow,
-    InvalidBlock,
+    InvalidBlock(Box<InvalidBlock>),
     TransitionToPreviousSlot {
         current: Slot,
         requested: Slot,
@@ -47,37 +47,43 @@ pub enum Error {
     },
 }
 
+impl From<SimpleSerializeError> for Error {
+    fn from(error: SimpleSerializeError) -> Self {
+        Error::SimpleSerialize(error)
+    }
+}
+
 impl From<MerkleizationError> for Error {
-    fn from(_: MerkleizationError) -> Self {
-        Error::Merkleization
+    fn from(error: MerkleizationError) -> Self {
+        Error::Merkleization(error)
     }
 }
 
 impl From<CryptoError> for Error {
-    fn from(_: CryptoError) -> Self {
-        Error::Crypto
+    fn from(error: CryptoError) -> Self {
+        Error::Crypto(error)
     }
 }
 
 impl From<Box<InvalidBlock>> for Error {
-    fn from(_: Box<InvalidBlock>) -> Self {
-        Error::InvalidBlock
+    fn from(error: Box<InvalidBlock>) -> Self {
+        Error::InvalidBlock(error)
     }
 }
 
 impl Display for Error {
     fn fmt(&self, f: &mut Formatter<'_>) -> core::fmt::Result {
         match self {
-            Error::Merkleization => write!(f, "merkleization error"),
-            Error::SimpleSerialize => write!(f, "simple serialize error"),
-            Error::Crypto => write!(f, "crypto error"),
+            Error::Merkleization(error) => write!(f, "merkleization error"),
+            Error::SimpleSerialize(error) => write!(f, "simple serialize error"),
+            Error::Crypto(eror) => write!(f, "crypto error"),
             Error::OutOfBounds{requested, bound} => write!(f, "requested element {} but collection only has {} elements", requested, bound),
             Error::CollectionCannotBeEmpty => write!(f, "collection cannot be empty"),
             Error::InvalidShufflingIndex{index, total} => write!(f, "given index {} is greater than the total amount of indices {}", index, total),
             Error::SlotOutOfRange{requested, lower_bound, upper_bound}  => write!(f, "slot {} is outside of allowed range ({}, {})", requested, lower_bound, upper_bound),
             Error::Overflow => write!(f, "overflow error"),
             Error::Underflow => write!(f, "underflow error"),
-            Error::InvalidBlock => write!(f, "invalid block"),
+            Error::InvalidBlock(error) => write!(f, "invalid block"),
             Error::TransitionToPreviousSlot{requested, current} => write!(f, "an invalid transition to a past slot {} from slot {}", requested, current),
             Error::InvalidStateRoot => write!(f, "invalid state root"),
             Error::InvalidEpoch{requested,previous,current} => write!(f, "the requested epoch {} is not in the required current epoch {} or previous epoch {}", requested, current, previous),
@@ -88,27 +94,27 @@ impl Display for Error {
 
 #[derive(Debug)]
 pub enum InvalidBlock {
-    Header,
-    InvalidOperation,
+    Header(InvalidBeaconBlockHeader),
+    InvalidOperation(InvalidOperation),
 }
 
 impl From<InvalidBeaconBlockHeader> for InvalidBlock {
-    fn from(_: InvalidBeaconBlockHeader) -> Self {
-        InvalidBlock::Header
+    fn from(error: InvalidBeaconBlockHeader) -> Self {
+        InvalidBlock::Header(error)
     }
 }
 
 impl From<InvalidOperation> for InvalidBlock {
-    fn from(_: InvalidOperation) -> Self {
-        InvalidBlock::InvalidOperation
+    fn from(error: InvalidOperation) -> Self {
+        InvalidBlock::InvalidOperation(error)
     }
 }
 
 impl Display for InvalidBlock {
     fn fmt(&self, f: &mut Formatter<'_>) -> core::fmt::Result {
-        match *self {
-            InvalidBlock::Header => write!(f, "invalid beacon block header"),
-            InvalidBlock::InvalidOperation => write!(f, "invalid operation"),
+        match self {
+            InvalidBlock::Header(error) => write!(f, "invalid beacon block header"),
+            InvalidBlock::InvalidOperation(error) => write!(f, "invalid operation"),
         }
     }
 }
@@ -130,16 +136,28 @@ impl Display for InvalidOperation {
     fn fmt(&self, f: &mut Formatter<'_>) -> core::fmt::Result {
         match self {
             InvalidOperation::Attestation(invalid_attestation) => write!(f, "invalid attestation"),
-            InvalidOperation::IndexedAttestation(indexed_attestation) => write!(f, "invalid indexed attestation"),
+            InvalidOperation::IndexedAttestation(indexed_attestation) => {
+                write!(f, "invalid indexed attestation")
+            }
             InvalidOperation::Deposit(invalid_deposit) => write!(f, "invalid deposit"),
             InvalidOperation::Randao(blssignature) => {
                 write!(f, "invalid randao (Bls signature): {0:?}", blssignature)
             }
-            InvalidOperation::ProposerSlashing(invalid_proposer_slashing) => write!(f, "invalid proposer slashing"),
-            InvalidOperation::AttesterSlashing(invalifd_attester_slashing) => write!(f, "invalid attester slashing"),
-            InvalidOperation::VoluntaryExit(invalid_voluntary_exit) => write!(f, "invalid voluntary exit"),
-            InvalidOperation::SyncAggregate(invalid_sync_aggregate) => write!(f, "invalid sync aggregate"),
-            InvalidOperation::ExecutionPayload(invalid_execution_payload) => write!(f, "invalid execution payload"),
+            InvalidOperation::ProposerSlashing(invalid_proposer_slashing) => {
+                write!(f, "invalid proposer slashing")
+            }
+            InvalidOperation::AttesterSlashing(invalifd_attester_slashing) => {
+                write!(f, "invalid attester slashing")
+            }
+            InvalidOperation::VoluntaryExit(invalid_voluntary_exit) => {
+                write!(f, "invalid voluntary exit")
+            }
+            InvalidOperation::SyncAggregate(invalid_sync_aggregate) => {
+                write!(f, "invalid sync aggregate")
+            }
+            InvalidOperation::ExecutionPayload(invalid_execution_payload) => {
+                write!(f, "invalid execution payload")
+            }
         }
     }
 }
@@ -194,8 +212,14 @@ impl From<InvalidExecutionPayload> for InvalidOperation {
 
 #[derive(Debug)]
 pub enum InvalidBeaconBlockHeader {
-    StateSlotMismatch { state_slot: Slot, block_slot: Slot },
-    ParentBlockRootMismatch { expected: Root, provided: Root },
+    StateSlotMismatch {
+        state_slot: Slot,
+        block_slot: Slot,
+    },
+    ParentBlockRootMismatch {
+        expected: Root,
+        provided: Root,
+    },
     ProposerSlashed(ValidatorIndex),
     OlderThanLatestBlockHeader {
         block_slot: Slot,
@@ -210,11 +234,38 @@ pub enum InvalidBeaconBlockHeader {
 impl Display for InvalidBeaconBlockHeader {
     fn fmt(&self, f: &mut Formatter<'_>) -> core::fmt::Result {
         match self {
-            InvalidBeaconBlockHeader::StateSlotMismatch{state_slot, block_slot} => write!(f, "mismatch between state slot {} and block slot {}", state_slot, block_slot),
-            InvalidBeaconBlockHeader::ParentBlockRootMismatch{expected, provided} => write!(f, "mismatch between the block's parent root {:?} and the expected parent root {:?}", expected, provided),
-            InvalidBeaconBlockHeader::ProposerSlashed(validator_index)=> write!(f, "proposer with index {} is slashed", validator_index),
-            InvalidBeaconBlockHeader::OlderThanLatestBlockHeader{block_slot, latest_block_header_slot} => write!(f, "block slot {} is older than the latest block header slot {}", block_slot, latest_block_header_slot),
-            InvalidBeaconBlockHeader::ProposerIndexMismatch{block_proposer_index, proposer_index} => write!(f, "mismatch between the block proposer index {} and the state proposer index {}", block_proposer_index, proposer_index),
+            InvalidBeaconBlockHeader::StateSlotMismatch {
+                state_slot,
+                block_slot,
+            } => write!(
+                f,
+                "mismatch between state slot {} and block slot {}",
+                state_slot, block_slot
+            ),
+            InvalidBeaconBlockHeader::ParentBlockRootMismatch { expected, provided } => write!(
+                f,
+                "mismatch between the block's parent root {:?} and the expected parent root {:?}",
+                expected, provided
+            ),
+            InvalidBeaconBlockHeader::ProposerSlashed(validator_index) => {
+                write!(f, "proposer with index {} is slashed", validator_index)
+            }
+            InvalidBeaconBlockHeader::OlderThanLatestBlockHeader {
+                block_slot,
+                latest_block_header_slot,
+            } => write!(
+                f,
+                "block slot {} is older than the latest block header slot {}",
+                block_slot, latest_block_header_slot
+            ),
+            InvalidBeaconBlockHeader::ProposerIndexMismatch {
+                block_proposer_index,
+                proposer_index,
+            } => write!(
+                f,
+                "mismatch between the block proposer index {} and the state proposer index {}",
+                block_proposer_index, proposer_index
+            ),
         }
     }
 }
@@ -225,7 +276,10 @@ pub enum InvalidAttestation {
         expected_length: usize,
         length: usize,
     },
-    InvalidTargetEpoch { target: Epoch, current: Epoch },
+    InvalidTargetEpoch {
+        target: Epoch,
+        current: Epoch,
+    },
     InvalidSlot {
         slot: Slot,
         epoch: Epoch,
@@ -237,7 +291,10 @@ pub enum InvalidAttestation {
         lower_bound: Slot,
         upper_bound: Slot,
     },
-    InvalidIndex { index: usize, upper_bound: usize },
+    InvalidIndex {
+        index: usize,
+        upper_bound: usize,
+    },
     InvalidSource {
         expected: Checkpoint,
         source_checkpoint: Checkpoint,
@@ -269,18 +326,28 @@ pub enum InvalidIndexedAttestation {
 impl Display for InvalidIndexedAttestation {
     fn fmt(&self, f: &mut Formatter<'_>) -> core::fmt::Result {
         match self {
-            InvalidIndexedAttestation::AttestingIndicesEmpty => write!(f, "attesting indices are empty"),
-            InvalidIndexedAttestation::DuplicateIndices(validator_indices) => write!(f, "attesting indices are duplicated"),
-            InvalidIndexedAttestation::AttestingIndicesNotSorted => write!(f, "attesting indices are not sorted"),
-            InvalidIndexedAttestation::InvalidIndex(validator_index) => write!(f, "index in attesting set is invalid for this state"),
-
+            InvalidIndexedAttestation::AttestingIndicesEmpty => {
+                write!(f, "attesting indices are empty")
+            }
+            InvalidIndexedAttestation::DuplicateIndices(validator_indices) => {
+                write!(f, "attesting indices are duplicated")
+            }
+            InvalidIndexedAttestation::AttestingIndicesNotSorted => {
+                write!(f, "attesting indices are not sorted")
+            }
+            InvalidIndexedAttestation::InvalidIndex(validator_index) => {
+                write!(f, "index in attesting set is invalid for this state")
+            }
         }
     }
 }
 
 #[derive(Debug)]
 pub enum InvalidDeposit {
-    IncorrectCount { expected: usize, count: usize },
+    IncorrectCount {
+        expected: usize,
+        count: usize,
+    },
     InvalidProof {
         leaf: Node,
         branch: Vec<Node>,
@@ -301,7 +368,6 @@ impl Display for InvalidDeposit {
     }
 }
 
-
 #[derive(Debug)]
 pub enum InvalidProposerSlashing {
     SlotMismatch(Slot, Slot),
@@ -315,12 +381,24 @@ pub enum InvalidProposerSlashing {
 impl Display for InvalidProposerSlashing {
     fn fmt(&self, f: &mut Formatter<'_>) -> core::fmt::Result {
         match self {
-            InvalidProposerSlashing::SlotMismatch (slot_1, slot_2) => write!(f, "different slots: {} vs. {}", slot_1, slot_2),
-            InvalidProposerSlashing::ProposerMismatch (index_1, index_2) => write!(f, "different proposers: {} vs. {}", index_1, index_2),
-            InvalidProposerSlashing::HeadersAreEqual (beacon_block_header) => write!(f, "headers are equal: {:?}", beacon_block_header),
-            InvalidProposerSlashing::ProposerIsNotSlashable (index) => write!(f, "proposer with index {} is not slashable", index),
-            InvalidProposerSlashing::InvalidSignature (bls) => write!(f, "header has invalid signature: {:?}", bls),
-            InvalidProposerSlashing::InvalidIndex (index) => write!(f, "proposer with index {} is not in state", index),
+            InvalidProposerSlashing::SlotMismatch(slot_1, slot_2) => {
+                write!(f, "different slots: {} vs. {}", slot_1, slot_2)
+            }
+            InvalidProposerSlashing::ProposerMismatch(index_1, index_2) => {
+                write!(f, "different proposers: {} vs. {}", index_1, index_2)
+            }
+            InvalidProposerSlashing::HeadersAreEqual(beacon_block_header) => {
+                write!(f, "headers are equal: {:?}", beacon_block_header)
+            }
+            InvalidProposerSlashing::ProposerIsNotSlashable(index) => {
+                write!(f, "proposer with index {} is not slashable", index)
+            }
+            InvalidProposerSlashing::InvalidSignature(bls) => {
+                write!(f, "header has invalid signature: {:?}", bls)
+            }
+            InvalidProposerSlashing::InvalidIndex(index) => {
+                write!(f, "proposer with index {} is not in state", index)
+            }
         }
     }
 }
@@ -350,7 +428,10 @@ impl Display for InvalidAttesterSlashing {
 pub enum InvalidVoluntaryExit {
     InvalidIndex(ValidatorIndex),
     InactiveValidator(Epoch),
-    ValidatorAlreadyExited { index: ValidatorIndex, epoch: Epoch },
+    ValidatorAlreadyExited {
+        index: ValidatorIndex,
+        epoch: Epoch,
+    },
     EarlyExit {
         current_epoch: Epoch,
         exit_epoch: Epoch,
@@ -390,28 +471,46 @@ impl Display for InvalidSyncAggregate {
 
 #[derive(Debug)]
 pub enum InvalidExecutionPayload {
-    InvalidParentHash { provided: Hash32, expected: Hash32 },
+    InvalidParentHash {
+        provided: Hash32,
+        expected: Hash32,
+    },
     InvalidPrevRandao {
         provided: Bytes32,
         expected: Bytes32,
     },
-    InvalidTimestamp { provided: u64, expected: u64 },
+    InvalidTimestamp {
+        provided: u64,
+        expected: u64,
+    },
 }
 
 impl Display for InvalidExecutionPayload {
     fn fmt(&self, f: &mut Formatter<'_>) -> core::fmt::Result {
         match self {
-            InvalidExecutionPayload::InvalidParentHash {provided, expected} => write!(f, "expected parent hash {} but block has parent hash {}", expected, provided),
-            InvalidExecutionPayload::InvalidPrevRandao {provided, expected} => write!(f, "expected randao value {} but block has randao value {}", expected, provided),
-            InvalidExecutionPayload::InvalidTimestamp {provided, expected} => write!(f, "expected timestamp {} but block has timestamp {}", expected, provided),
+            InvalidExecutionPayload::InvalidParentHash { provided, expected } => write!(
+                f,
+                "expected parent hash {} but block has parent hash {}",
+                expected, provided
+            ),
+            InvalidExecutionPayload::InvalidPrevRandao { provided, expected } => write!(
+                f,
+                "expected randao value {} but block has randao value {}",
+                expected, provided
+            ),
+            InvalidExecutionPayload::InvalidTimestamp { provided, expected } => write!(
+                f,
+                "expected timestamp {} but block has timestamp {}",
+                expected, provided
+            ),
         }
     }
 }
 
 pub(crate) fn invalid_header_error(error: InvalidBeaconBlockHeader) -> Error {
-    Error::InvalidBlock
+    Error::InvalidBlock(Box::new(InvalidBlock::Header(error)))
 }
 
 pub(crate) fn invalid_operation_error(error: InvalidOperation) -> Error {
-    Error::InvalidBlock
+    Error::InvalidBlock(Box::new(InvalidBlock::InvalidOperation(error)))
 }

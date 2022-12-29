@@ -1,10 +1,10 @@
 use crate::phase0::{SignedBeaconBlockHeader, DEPOSIT_CONTRACT_TREE_DEPTH};
+use crate::prelude::*;
 use crate::primitives::{
     BlsPublicKey, BlsSignature, Bytes32, CommitteeIndex, Epoch, Gwei, Hash32, Root, Slot,
     ValidatorIndex,
 };
 use ssz_rs::prelude::*;
-use crate::prelude::*;
 
 #[derive(Default, Clone, Debug, SimpleSerialize, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]

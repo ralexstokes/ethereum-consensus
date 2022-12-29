@@ -1,4 +1,5 @@
 use crate::bytes::write_bytes_to_lower_hex;
+use crate::prelude::*;
 use crate::primitives::Bytes32;
 #[cfg(feature = "serde")]
 use crate::serde::{try_bytes_from_hex_str, HexError};
@@ -9,7 +10,6 @@ use serde;
 use sha2::{digest::FixedOutput, Digest, Sha256};
 use ssz_rs::prelude::*;
 use thiserror::Error;
-use crate::prelude::*;
 
 pub fn hash<D: AsRef<[u8]>>(data: D) -> Bytes32 {
     let mut result = vec![0u8; 32];
@@ -29,7 +29,10 @@ pub enum Error {
     #[cfg(feature = "serde")]
     Hex,
     EmptyAggregate,
-    EncodingError { provided: usize, expected: usize },
+    EncodingError {
+        provided: usize,
+        expected: usize,
+    },
     Randomness,
     BLST,
     InvalidSignature,
@@ -53,21 +56,24 @@ impl From<BLSTError> for Error {
     }
 }
 
-
 impl Display for Error {
     fn fmt(&self, f: &mut Formatter<'_>) -> core::fmt::Result {
         match self {
             Error::Hex => write!(f, "error deserializing hex-encoded input",),
-            Error::EmptyAggregate => write!(f, "inputs required for aggregation but none were provided",),
-            Error::EncodingError{provided, expected} => write!(f, "invalid length of encoding: expected {} bytes but only provided {} bytes", expected, provided),
+            Error::EmptyAggregate => {
+                write!(f, "inputs required for aggregation but none were provided",)
+            }
+            Error::EncodingError { provided, expected } => write!(
+                f,
+                "invalid length of encoding: expected {} bytes but only provided {} bytes",
+                expected, provided
+            ),
             Error::Randomness => write!(f, "randomness failure",),
             Error::BLST => write!(f, "lst error",),
             Error::InvalidSignature => write!(f, "invalid signature",),
         }
     }
 }
-
-
 
 #[derive(Debug)]
 pub struct BLSTError(String);
@@ -244,6 +250,19 @@ impl SecretKey {
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(feature = "serde", serde(into = "String", try_from = "String"))]
 pub struct PublicKey(ByteVector<BLS_PUBLIC_KEY_BYTES_LEN>);
+
+/*impl Ord for PublicKey {
+    fn cmp(&self, other: &Self) -> Ordering {
+        self.to_vec().cmp(&other.to_vec())
+    }
+}
+
+impl PartialOrd for PublicKey {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(self.cmp(other))
+    }
+}
+*/
 
 impl fmt::LowerHex for PublicKey {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {

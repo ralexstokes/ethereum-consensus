@@ -1,8 +1,8 @@
 //! A consensus clock
 use crate::configs;
 use crate::phase0 as presets;
-use crate::primitives::{Epoch, Slot};
 use crate::prelude::*;
+use crate::primitives::{Epoch, Slot};
 
 pub fn convert_timestamp_to_slot(timestamp: u64, genesis_time: u64, seconds_per_slot: u64) -> Slot {
     (timestamp - genesis_time) / seconds_per_slot
@@ -13,10 +13,15 @@ pub const SEPOLIA_GENESIS_TIME: u64 = 1655733600;
 pub const GOERLI_GENESIS_TIME: u64 = 1616508000;
 
 pub fn get_current_unix_time_in_secs() -> u64 {
-    SystemTime::now()
-        .duration_since(UNIX_EPOCH)
-        .unwrap()
-        .as_secs()
+    let now = Instant::now();
+
+    let unix_epoch = Instant::now();
+
+    now.duration_since(unix_epoch).as_secs()
+    /*SystemTime::now()
+    .duration_since(UNIX_EPOCH)
+    .unwrap()
+    .as_secs()*/
 }
 
 pub trait TimeProvider {

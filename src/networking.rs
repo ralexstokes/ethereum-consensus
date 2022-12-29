@@ -1,3 +1,4 @@
+use crate::prelude::*;
 use crate::primitives::Epoch;
 use enr;
 pub use multiaddr::Multiaddr;
@@ -5,7 +6,6 @@ use multihash::{Code, Error, Multihash};
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 use ssz_rs::prelude::Bitvector;
-use crate::prelude::*;
 use thiserror::Error;
 pub const ATTESTATION_SUBNET_COUNT: usize = 64;
 pub const GOSSIP_MAX_SIZE: usize = 2usize.pow(20);
@@ -126,7 +126,7 @@ impl Display for ParseError {
     fn fmt(&self, f: &mut Formatter<'_>) -> core::fmt::Result {
         match self {
             ParseError::B58 => write!(f, "base-58 decode error"),
-            ParseError::MultiHash=> write!(f, "decoding multihash failed"),
+            ParseError::MultiHash => write!(f, "decoding multihash failed"),
         }
     }
 }

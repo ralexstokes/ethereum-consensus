@@ -1,6 +1,6 @@
 use crate::bytes::write_bytes_to_lower_hex;
-use ssz_rs::prelude::*;
 use crate::prelude::*;
+use ssz_rs::prelude::*;
 
 #[derive(Default, Clone, Eq, SimpleSerialize)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]

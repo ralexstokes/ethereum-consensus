@@ -1,6 +1,7 @@
 use crate::phase0 as spec;
 
 use crate::crypto::{hash, verify_signature};
+use crate::prelude::*;
 use crate::primitives::{
     BlsPublicKey, Bytes32, DomainType, Gwei, ValidatorIndex, FAR_FUTURE_EPOCH,
 };
@@ -21,7 +22,6 @@ use spec::{
     ProposerSlashing, SignedVoluntaryExit, Validator, DEPOSIT_CONTRACT_TREE_DEPTH,
 };
 use ssz_rs::prelude::*;
-use crate::prelude::*;
 
 pub fn process_proposer_slashing<
     const SLOTS_PER_HISTORICAL_ROOT: usize,
@@ -145,9 +145,9 @@ pub fn process_attester_slashing<
 
     is_valid_indexed_attestation(state, attestation_2, context)?;
 
-    let indices_1: BTreeSet<ValidatorIndex> =
-        BTreeSet::from_iter(attestation_1.attesting_indices.iter().cloned());
-    let indices_2 = BTreeSet::from_iter(attestation_2.attesting_indices.iter().cloned());
+    let indices_1: HashSet<ValidatorIndex> =
+        HashSet::from_iter(attestation_1.attesting_indices.iter().cloned());
+    let indices_2 = HashSet::from_iter(attestation_2.attesting_indices.iter().cloned());
     let mut indices = indices_1
         .intersection(&indices_2)
         .cloned()
@@ -364,8 +364,9 @@ pub fn process_deposit<
 
     let public_key = &deposit.data.public_key;
     let amount = deposit.data.amount;
-    let validator_public_keys: BTreeSet<&BlsPublicKey> =
-        BTreeSet::from_iter(state.validators.iter().map(|v| &v.public_key));
+    let cloned_validators = state.validators.clone();
+    let validator_public_keys: HashSet<&BlsPublicKey> =
+        HashSet::from_iter(cloned_validators.iter().map(|v| &v.public_key));
     if !validator_public_keys.contains(public_key) {
         let mut deposit_message = DepositMessage {
             public_key: public_key.clone(),

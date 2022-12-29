@@ -11,6 +11,7 @@ pub use crate::altair::helpers::get_unslashed_participating_indices;
 pub use crate::altair::helpers::has_flag;
 pub use crate::altair::helpers::slash_validator;
 use crate::crypto::{fast_aggregate_verify, hash, verify_signature};
+use crate::prelude::*;
 use crate::primitives::{
     Bytes32, CommitteeIndex, Domain, DomainType, Epoch, ForkDigest, Gwei, Root, Slot,
     ValidatorIndex, Version, FAR_FUTURE_EPOCH, GENESIS_EPOCH,
@@ -25,7 +26,6 @@ use spec::{
     Validator,
 };
 use ssz_rs::prelude::*;
-use crate::prelude::*;
 
 pub fn compute_activation_exit_epoch(epoch: Epoch, context: &Context) -> Epoch {
     epoch + 1 + context.max_seed_lookahead
@@ -244,7 +244,7 @@ pub fn get_attesting_indices<
     data: &AttestationData,
     bits: &Bitlist<MAX_VALIDATORS_PER_COMMITTEE>,
     context: &Context,
-) -> Result<BTreeSet<ValidatorIndex>> {
+) -> Result<HashSet<ValidatorIndex>> {
     let committee = get_beacon_committee(state, data.slot, data.index, context)?;
     if bits.len() != committee.len() {
         return Err(invalid_operation_error(InvalidOperation::Attestation(
@@ -254,7 +254,7 @@ pub fn get_attesting_indices<
             },
         )));
     }
-    let mut indices = BTreeSet::new();
+    let mut indices = HashSet::new();
     for (i, validator_index) in committee.iter().enumerate() {
         if bits[i] {
             indices.insert(*validator_index);
@@ -659,7 +659,7 @@ pub fn get_total_active_balance<
     context: &Context,
 ) -> Result<Gwei> {
     let indices = get_active_validator_indices(state, get_current_epoch(state, context));
-    get_total_balance(state, &BTreeSet::from_iter(indices), context)
+    get_total_balance(state, &HashSet::from_iter(indices), context)
 }
 pub fn get_total_balance<
     const SLOTS_PER_HISTORICAL_ROOT: usize,
@@ -681,7 +681,7 @@ pub fn get_total_balance<
         MAX_VALIDATORS_PER_COMMITTEE,
         SYNC_COMMITTEE_SIZE,
     >,
-    indices: &BTreeSet<ValidatorIndex>,
+    indices: &HashSet<ValidatorIndex>,
     context: &Context,
 ) -> Result<Gwei> {
     let total_balance = indices
@@ -882,9 +882,9 @@ pub fn is_valid_indexed_attestation<
             ),
         ));
     }
-    let indices: BTreeSet<usize> = BTreeSet::from_iter(attesting_indices.iter().cloned());
+    let indices: HashSet<usize> = HashSet::from_iter(attesting_indices.iter().cloned());
     if indices.len() != indexed_attestation.attesting_indices.len() {
-        let mut seen = BTreeSet::new();
+        let mut seen = HashSet::new();
         let mut duplicates = vec![];
         for i in indices.iter() {
             if seen.contains(i) {

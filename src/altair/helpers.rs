@@ -172,7 +172,7 @@ pub fn get_unslashed_participating_indices<
     flag_index: usize,
     epoch: Epoch,
     context: &Context,
-) -> Result<BTreeSet<ValidatorIndex>> {
+) -> Result<HashSet<ValidatorIndex>> {
     let previous_epoch = get_previous_epoch(state, context);
     let current_epoch = get_current_epoch(state, context);
     let is_current = epoch == current_epoch;
@@ -197,7 +197,7 @@ pub fn get_unslashed_participating_indices<
             let not_slashed = !state.validators[i].slashed;
             did_participate && not_slashed
         })
-        .collect::<BTreeSet<_>>())
+        .collect::<HashSet<_>>())
 }
 
 // Return the flag indices that are satisfied by an attestation.

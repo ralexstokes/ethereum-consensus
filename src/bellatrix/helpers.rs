@@ -1,5 +1,6 @@
 use crate::bellatrix as spec;
 
+use crate::prelude::*;
 use crate::primitives::{Gwei, Slot, ValidatorIndex, GENESIS_SLOT};
 use crate::state_transition::{Context, Error, Result};
 use spec::{
@@ -8,7 +9,6 @@ use spec::{
     initiate_validator_exit, BeaconBlockBody, BeaconState, ExecutionPayload,
     ExecutionPayloadHeader, PROPOSER_WEIGHT, TIMELY_TARGET_FLAG_INDEX, WEIGHT_DENOMINATOR,
 };
-use crate::prelude::*;
 
 pub fn get_inactivity_penalty_deltas<
     const SLOTS_PER_HISTORICAL_ROOT: usize,

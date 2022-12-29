@@ -1,5 +1,6 @@
 use crate::phase0 as spec;
 
+use crate::prelude::*;
 use crate::primitives::{Epoch, Gwei, ValidatorIndex, GENESIS_EPOCH};
 use crate::state_transition::{Context, Error, Result};
 use integer_sqrt::IntegerSquareRoot;
@@ -12,7 +13,6 @@ use spec::{
     PendingAttestation, BASE_REWARDS_PER_EPOCH, JUSTIFICATION_BITS_LENGTH,
 };
 use ssz_rs::prelude::*;
-use crate::prelude::*;
 
 pub fn get_matching_source_attestations<
     'a,
@@ -153,8 +153,8 @@ pub fn get_unslashed_attesting_indices<
     >,
     attestations: impl IntoIterator<Item = &'a PendingAttestation<MAX_VALIDATORS_PER_COMMITTEE>>,
     context: &Context,
-) -> Result<BTreeSet<ValidatorIndex>> {
-    let mut output = BTreeSet::new();
+) -> Result<HashSet<ValidatorIndex>> {
+    let mut output = HashSet::new();
     for a in attestations {
         for index in get_attesting_indices(state, &a.data, &a.aggregation_bits, context)? {
             if !state.validators[index].slashed {

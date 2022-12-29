@@ -1,9 +1,9 @@
 use crate::phase0::{
     Attestation, AttesterSlashing, Deposit, Eth1Data, ProposerSlashing, SignedVoluntaryExit,
 };
+use crate::prelude::*;
 use crate::primitives::{BlsSignature, Bytes32, Root, Slot, ValidatorIndex};
 use ssz_rs::prelude::*;
-use crate::prelude::*;
 
 #[derive(Default, Debug, SimpleSerialize, Clone, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]

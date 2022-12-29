@@ -2,6 +2,7 @@
 use crate::bellatrix as spec;
 pub use crate::bellatrix::epoch_processing::process_epoch;
 pub use crate::bellatrix::epoch_processing::process_slashings;
+use crate::prelude::*;
 use crate::primitives::{Epoch, Gwei, ParticipationFlags, ValidatorIndex, GENESIS_EPOCH};
 use crate::state_transition::{Context, Result};
 use spec::get_inactivity_penalty_deltas;
@@ -15,7 +16,6 @@ use spec::{
     JUSTIFICATION_BITS_LENGTH, PARTICIPATION_FLAG_WEIGHTS, TIMELY_TARGET_FLAG_INDEX,
 };
 use ssz_rs::prelude::*;
-use crate::prelude::*;
 
 pub fn get_base_reward<
     const SLOTS_PER_HISTORICAL_ROOT: usize,

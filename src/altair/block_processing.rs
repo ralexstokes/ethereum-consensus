@@ -3,6 +3,7 @@ use crate::altair as spec;
 use crate::crypto::{eth_fast_aggregate_verify, verify_signature};
 use crate::domains::DomainType;
 use crate::prelude::*;
+use crate::prelude::*;
 use crate::primitives::{BlsPublicKey, ParticipationFlags, ValidatorIndex};
 use crate::signing::compute_signing_root;
 use crate::state_transition::{
@@ -21,7 +22,6 @@ use spec::{
     PARTICIPATION_FLAG_WEIGHTS, PROPOSER_WEIGHT, SYNC_REWARD_WEIGHT, WEIGHT_DENOMINATOR,
 };
 use ssz_rs::prelude::*;
-use crate::prelude::*;
 
 pub fn process_attestation<
     const SLOTS_PER_HISTORICAL_ROOT: usize,
@@ -202,8 +202,9 @@ pub fn process_deposit<
 
     let public_key = &deposit.data.public_key;
     let amount = deposit.data.amount;
-    let validator_public_keys: BTreeSet<&BlsPublicKey> =
-        BTreeSet::from_iter(state.validators.iter().map(|v| &v.public_key));
+    let cloned_validators = state.validators.clone();
+    let validator_public_keys: HashSet<&BlsPublicKey> =
+        cloned_validators.iter().map(|v| &v.public_key).collect();
     if !validator_public_keys.contains(public_key) {
         let mut deposit_message = DepositMessage {
             public_key: public_key.clone(),
@@ -315,13 +316,13 @@ pub fn process_sync_aggregate<
     let proposer_reward =
         participant_reward * PROPOSER_WEIGHT / (WEIGHT_DENOMINATOR - PROPOSER_WEIGHT);
 
+    let cloned_validators = state.validators.clone();
     // Apply participant and proposer rewards
-    let all_public_keys = state
-        .validators
+    let all_public_keys = cloned_validators
         .iter()
         .enumerate()
         .map(|(i, v)| (&v.public_key, i))
-        .collect::<BTreeMap<&BlsPublicKey, usize>>();
+        .collect::<HashMap<&BlsPublicKey, usize>>();
     let mut committee_indices: Vec<ValidatorIndex> = Vec::default();
     for public_key in state.current_sync_committee.public_keys.iter() {
         committee_indices.push(

@@ -7,6 +7,7 @@ pub use crate::bellatrix::helpers::is_merge_transition_block;
 pub use crate::bellatrix::helpers::is_merge_transition_complete;
 pub use crate::bellatrix::helpers::slash_validator;
 use crate::crypto::{eth_aggregate_public_keys, fast_aggregate_verify, hash, verify_signature};
+use crate::prelude::*;
 use crate::primitives::{
     Bytes32, CommitteeIndex, Domain, DomainType, Epoch, ForkDigest, Gwei, ParticipationFlags, Root,
     Slot, ValidatorIndex, Version, FAR_FUTURE_EPOCH, GENESIS_EPOCH,
@@ -23,7 +24,6 @@ use spec::{
     TIMELY_HEAD_FLAG_INDEX, TIMELY_SOURCE_FLAG_INDEX, TIMELY_TARGET_FLAG_INDEX, WEIGHT_DENOMINATOR,
 };
 use ssz_rs::prelude::*;
-use crate::prelude::*;
 
 pub fn add_flag(flags: ParticipationFlags, flag_index: usize) -> ParticipationFlags {
     let flag = 2u8.pow(flag_index as u32);
@@ -341,17 +341,18 @@ pub fn get_attesting_indices<
     data: &AttestationData,
     bits: &Bitlist<MAX_VALIDATORS_PER_COMMITTEE>,
     context: &Context,
-) -> Result<BTreeSet<ValidatorIndex>> {
+) -> Result<HashSet<ValidatorIndex>> {
     let committee = get_beacon_committee(state, data.slot, data.index, context)?;
     if bits.len() != committee.len() {
         return Err(invalid_operation_error(InvalidOperation::Attestation(
             InvalidAttestation::Bitfield {
                 expected_length: committee.len(),
+
                 length: bits.len(),
             },
         )));
     }
-    let mut indices = BTreeSet::new();
+    let mut indices = HashSet::new();
     for (i, validator_index) in committee.iter().enumerate() {
         if bits[i] {
             indices.insert(*validator_index);
@@ -1052,7 +1053,7 @@ pub fn get_total_active_balance<
     context: &Context,
 ) -> Result<Gwei> {
     let indices = get_active_validator_indices(state, get_current_epoch(state, context));
-    get_total_balance(state, &BTreeSet::from_iter(indices), context)
+    get_total_balance(state, &HashSet::from_iter(indices), context)
 }
 pub fn get_total_balance<
     const SLOTS_PER_HISTORICAL_ROOT: usize,
@@ -1082,7 +1083,7 @@ pub fn get_total_balance<
         MAX_BYTES_PER_TRANSACTION,
         MAX_TRANSACTIONS_PER_PAYLOAD,
     >,
-    indices: &BTreeSet<ValidatorIndex>,
+    indices: &HashSet<ValidatorIndex>,
     context: &Context,
 ) -> Result<Gwei> {
     let total_balance = indices
@@ -1124,7 +1125,7 @@ pub fn get_unslashed_participating_indices<
     flag_index: usize,
     epoch: Epoch,
     context: &Context,
-) -> Result<BTreeSet<ValidatorIndex>> {
+) -> Result<HashSet<ValidatorIndex>> {
     let previous_epoch = get_previous_epoch(state, context);
     let current_epoch = get_current_epoch(state, context);
     let is_current = epoch == current_epoch;
@@ -1147,7 +1148,7 @@ pub fn get_unslashed_participating_indices<
             let not_slashed = !state.validators[i].slashed;
             did_participate && not_slashed
         })
-        .collect::<BTreeSet<_>>())
+        .collect::<HashSet<_>>())
 }
 pub fn get_validator_churn_limit<
     const SLOTS_PER_HISTORICAL_ROOT: usize,
@@ -1383,9 +1384,9 @@ pub fn is_valid_indexed_attestation<
             ),
         ));
     }
-    let indices: BTreeSet<usize> = BTreeSet::from_iter(attesting_indices.iter().cloned());
+    let indices: HashSet<usize> = HashSet::from_iter(attesting_indices.iter().cloned());
     if indices.len() != indexed_attestation.attesting_indices.len() {
-        let mut seen = BTreeSet::new();
+        let mut seen = HashSet::new();
         let mut duplicates = vec![];
         for i in indices.iter() {
             if seen.contains(i) {

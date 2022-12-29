@@ -9,6 +9,7 @@ pub use crate::altair::epoch_processing::process_rewards_and_penalties;
 pub use crate::altair::epoch_processing::process_slashings;
 pub use crate::altair::epoch_processing::process_sync_committee_updates;
 
+use crate::prelude::*;
 use crate::primitives::{Epoch, Gwei, ValidatorIndex};
 use spec::{
     compute_activation_exit_epoch, get_block_root, get_current_epoch, get_previous_epoch,
@@ -17,7 +18,6 @@ use spec::{
     HistoricalBatchAccumulator, JUSTIFICATION_BITS_LENGTH,
 };
 use ssz_rs::prelude::*;
-use crate::prelude::*;
 
 use crate::state_transition::{Context, Result};
 pub fn get_finality_delay<
