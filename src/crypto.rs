@@ -9,7 +9,9 @@ use blst::{min_pk as bls_impl, BLST_ERROR};
 use serde;
 use sha2::{digest::FixedOutput, Digest, Sha256};
 use ssz_rs::prelude::*;
+#[cfg(feature = "serde")]
 use thiserror::Error;
+use error_chain::ChainedError;
 
 pub fn hash<D: AsRef<[u8]>>(data: D) -> Bytes32 {
     let mut result = vec![0u8; 32];
@@ -38,6 +40,7 @@ pub enum Error {
     InvalidSignature,
 }
 
+#[cfg(feature = "serde")]
 impl From<HexError> for Error {
     fn from(_: HexError) -> Self {
         Error::Hex
@@ -59,6 +62,7 @@ impl From<BLSTError> for Error {
 impl Display for Error {
     fn fmt(&self, f: &mut Formatter<'_>) -> core::fmt::Result {
         match self {
+            #[cfg(feature = "serde")]
             Error::Hex => write!(f, "error deserializing hex-encoded input",),
             Error::EmptyAggregate => {
                 write!(f, "inputs required for aggregation but none were provided",)

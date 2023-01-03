@@ -12,6 +12,7 @@ pub const MAINNET_GENESIS_TIME: u64 = 1606824023;
 pub const SEPOLIA_GENESIS_TIME: u64 = 1655733600;
 pub const GOERLI_GENESIS_TIME: u64 = 1616508000;
 
+#[cfg(feature = "std")]
 pub fn get_current_unix_time_in_secs() -> u64 {
     let now = Instant::now();
 

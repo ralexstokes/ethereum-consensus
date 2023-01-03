@@ -4,6 +4,7 @@ use crate::prelude::*;
 use crate::primitives::{BlsSignature, Bytes32, Epoch, Hash32, Root, Slot, ValidatorIndex};
 use crate::state_transition::Forks;
 use ssz_rs::prelude::*;
+#[cfg(feature = "serde")]
 use thiserror::Error;
 
 pub type Result<T> = core::result::Result<T, Error>;

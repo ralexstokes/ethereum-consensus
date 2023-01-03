@@ -5,7 +5,7 @@ use ssz_rs::prelude::*;
 #[derive(Default, Clone, Eq, SimpleSerialize)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct ByteVector<const N: usize>(
-    #[serde(with = "crate::serde::as_hex")] pub(crate) Vector<u8, N>,
+    #[cfg_attr(feature = "serde", serde(with = "crate::serde::as_hex"))] pub(crate) Vector<u8, N>,
 );
 
 impl<const N: usize> TryFrom<&[u8]> for ByteVector<N> {

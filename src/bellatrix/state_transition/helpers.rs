@@ -127,7 +127,7 @@ pub fn compute_proposer_index<
     loop {
         let shuffled_index = compute_shuffled_index((i % total) as usize, total, seed, context)?;
         let candidate_index = indices[shuffled_index];
-        let i_bytes: [u8; 8] = (i / 32).to_le_bytes();
+        let i_bytes: [u8; 4] = (i.saturating_div(32)).to_le_bytes();
         hash_input[32..].copy_from_slice(&i_bytes);
         let random_byte = hash(hash_input).as_ref()[(i % 32)] as u64;
         let effective_balance = state.validators[candidate_index].effective_balance;

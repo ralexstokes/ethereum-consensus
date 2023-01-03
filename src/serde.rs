@@ -1,10 +1,11 @@
 use crate::prelude::*;
 use hex::FromHexError;
+#[cfg_attr(feature = "serde")]
 use thiserror::Error;
 
 const HEX_ENCODING_PREFIX: &str = "0x";
 
-#[derive(Debug)]
+#[cfg_attr(feature = "serde",derive(Debug))]
 pub enum HexError {
     Hex,
     MissingPrefix,
