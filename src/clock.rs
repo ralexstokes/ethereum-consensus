@@ -3,6 +3,8 @@ use crate::configs;
 use crate::phase0 as presets;
 use crate::prelude::*;
 use crate::primitives::{Epoch, Slot};
+#[cfg(feature = "std")]
+use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
 pub fn convert_timestamp_to_slot(timestamp: u64, genesis_time: u64, seconds_per_slot: u64) -> Slot {
     (timestamp - genesis_time) / seconds_per_slot
@@ -14,15 +16,10 @@ pub const GOERLI_GENESIS_TIME: u64 = 1616508000;
 
 #[cfg(feature = "std")]
 pub fn get_current_unix_time_in_secs() -> u64 {
-    let now = Instant::now();
-
-    let unix_epoch = Instant::now();
-
-    now.duration_since(unix_epoch).as_secs()
-    /*SystemTime::now()
-    .duration_since(UNIX_EPOCH)
-    .unwrap()
-    .as_secs()*/
+    SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .unwrap()
+        .as_secs()
 }
 
 pub trait TimeProvider {
