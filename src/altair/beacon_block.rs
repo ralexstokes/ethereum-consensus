@@ -40,7 +40,6 @@ pub struct BeaconBlock<
     const MAX_VOLUNTARY_EXITS: usize,
     const SYNC_COMMITTEE_SIZE: usize,
 > {
-
     #[cfg_attr(feature = "serde", serde(with = "crate::serde::as_string"))]
     pub slot: Slot,
     #[cfg_attr(feature = "serde", serde(with = "crate::serde::as_string"))]

@@ -5,7 +5,6 @@ extern crate alloc;
 #[cfg(not(feature = "std"))]
 extern crate core;
 
-
 pub mod altair;
 pub mod bellatrix;
 pub mod builder;

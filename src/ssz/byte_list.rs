@@ -4,7 +4,9 @@ use ssz_rs::prelude::*;
 
 #[derive(Default, Clone, Eq, SimpleSerialize)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-pub struct ByteList<const N: usize>(#[cfg_attr(feature = "serde",serde(with = "crate::serde::as_hex"))] pub(crate) List<u8, N>);
+pub struct ByteList<const N: usize>(
+    #[cfg_attr(feature = "serde", serde(with = "crate::serde::as_hex"))] pub(crate) List<u8, N>,
+);
 
 impl<const N: usize> TryFrom<&[u8]> for ByteList<N> {
     type Error = ssz_rs::DeserializeError;

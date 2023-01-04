@@ -10,9 +10,9 @@ pub struct ValidatorRegistration {
     pub fee_recipient: ExecutionAddress,
     #[cfg_attr(feature = "serde", serde(with = "crate::serde::as_string"))]
     pub gas_limit: u64,
-    #[cfg_attr(feature = "serde",serde(with = "crate::serde::as_string"))]
+    #[cfg_attr(feature = "serde", serde(with = "crate::serde::as_string"))]
     pub timestamp: u64,
-    #[cfg_attr(feature = "serde",serde(rename = "pubkey"))]
+    #[cfg_attr(feature = "serde", serde(rename = "pubkey"))]
     pub public_key: BlsPublicKey,
 }
 

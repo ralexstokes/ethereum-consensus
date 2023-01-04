@@ -20,13 +20,13 @@ pub struct ExecutionPayload<
     pub receipts_root: Bytes32,
     pub logs_bloom: ByteVector<BYTES_PER_LOGS_BLOOM>,
     pub prev_randao: Bytes32,
-    #[cfg_attr(feature = "serde",serde(with = "crate::serde::as_string"))]
+    #[cfg_attr(feature = "serde", serde(with = "crate::serde::as_string"))]
     pub block_number: u64,
-    #[cfg_attr(feature = "serde",serde(with = "crate::serde::as_string"))]
+    #[cfg_attr(feature = "serde", serde(with = "crate::serde::as_string"))]
     pub gas_limit: u64,
-    #[cfg_attr(feature = "serde",serde(with = "crate::serde::as_string"))]
+    #[cfg_attr(feature = "serde", serde(with = "crate::serde::as_string"))]
     pub gas_used: u64,
-    #[cfg_attr(feature = "serde",serde(with = "crate::serde::as_string"))]
+    #[cfg_attr(feature = "serde", serde(with = "crate::serde::as_string"))]
     pub timestamp: u64,
     pub extra_data: ByteList<MAX_EXTRA_DATA_BYTES>,
     pub base_fee_per_gas: U256,
@@ -48,13 +48,13 @@ pub struct ExecutionPayloadHeader<
     pub receipts_root: Bytes32,
     pub logs_bloom: ByteVector<BYTES_PER_LOGS_BLOOM>,
     pub prev_randao: Bytes32,
-    #[cfg_attr(feature = "serde",serde(with = "crate::serde::as_string"))]
+    #[cfg_attr(feature = "serde", serde(with = "crate::serde::as_string"))]
     pub block_number: u64,
-    #[cfg_attr(feature = "serde",serde(with = "crate::serde::as_string"))]
+    #[cfg_attr(feature = "serde", serde(with = "crate::serde::as_string"))]
     pub gas_limit: u64,
-    #[cfg_attr(feature = "serde",serde(with = "crate::serde::as_string"))]
+    #[cfg_attr(feature = "serde", serde(with = "crate::serde::as_string"))]
     pub gas_used: u64,
-    #[cfg_attr(feature = "serde",serde(with = "crate::serde::as_string"))]
+    #[cfg_attr(feature = "serde", serde(with = "crate::serde::as_string"))]
     pub timestamp: u64,
     pub extra_data: ByteList<MAX_EXTRA_DATA_BYTES>,
     pub base_fee_per_gas: U256,
