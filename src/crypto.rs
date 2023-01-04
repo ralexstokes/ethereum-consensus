@@ -38,6 +38,7 @@ pub enum Error {
     Randomness,
     BLST,
     InvalidSignature,
+    KeyValidationFailed
 }
 
 #[cfg(feature = "serde")]
@@ -73,8 +74,9 @@ impl Display for Error {
                 expected, provided
             ),
             Error::Randomness => write!(f, "randomness failure",),
-            Error::BLST => write!(f, "lst error",),
+            Error::BLST => write!(f, "blst error",),
             Error::InvalidSignature => write!(f, "invalid signature",),
+            Error::KeyValidationFailed => write!(f, "key validation failed",),
         }
     }
 }
@@ -259,19 +261,6 @@ impl SecretKey {
 #[cfg_attr(feature = "serde", serde(into = "String", try_from = "String"))]
 pub struct PublicKey(ByteVector<BLS_PUBLIC_KEY_BYTES_LEN>);
 
-/*impl Ord for PublicKey {
-    fn cmp(&self, other: &Self) -> Ordering {
-        self.to_vec().cmp(&other.to_vec())
-    }
-}
-
-impl PartialOrd for PublicKey {
-    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-        Some(self.cmp(other))
-    }
-}
-*/
-
 impl fmt::LowerHex for PublicKey {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write_bytes_to_lower_hex(f, self.as_ref())
@@ -340,12 +329,10 @@ impl TryFrom<&PublicKey> for milagro_bls::PublicKey {
         let milagro_bls_public_key = milagro_bls::PublicKey::from_bytes(public_key.0.as_ref());
         let key_validate = Self::key_validate(&milagro_bls_public_key.clone().unwrap());
 
-        //Self::key_validate(milagro_bls_public_key).map_err(|err| BLSTError::from(err).into())
-
         if key_validate {
             Ok(milagro_bls_public_key.unwrap())
         } else {
-            Err(Error::InvalidSignature)
+            Err(Error::KeyValidationFailed)
         }
     }
 }
@@ -358,10 +345,8 @@ impl TryFrom<&PublicKey> for milagro_bls::AggregatePublicKey {
         let key_validate =
             milagro_bls::PublicKey::key_validate(&milagro_bls_public_key.clone().unwrap());
 
-        //Self::key_validate(milagro_bls_public_key).map_err(|err| BLSTError::from(err).into())
-
         if !key_validate {
-            return Err(Error::InvalidSignature);
+            return Err(Error::KeyValidationFailed);
         }
 
         let milagro_bls_aggregate_public_key = milagro_bls::AggregatePublicKey::from_public_key(
