@@ -94,13 +94,13 @@ impl From<milagro_bls::AmclError> for BLSTError {
             AmclError::AggregateEmptyPoints => {
                 unreachable!("do not create a BLSTError from a sucess")
             }
-            AmclError::HashToFieldError => "bad encoding",
-            AmclError::InvalidG1Size => "point not on curve",
-            AmclError::InvalidG2Size => "point not in group",
-            AmclError::InvalidSecretKeyRange => "aggregation type mismatch",
-            AmclError::InvalidSecretKeySize => "verification failed",
-            AmclError::InvalidYFlag => "public key is infinity",
-            AmclError::InvalidPoint => "bad scalar input",
+            AmclError::HashToFieldError => "hash to field  error",
+            AmclError::InvalidG1Size => "invalid  g1 size",
+            AmclError::InvalidG2Size => "invalid g2 size",
+            AmclError::InvalidSecretKeyRange => "invalid secret key range",
+            AmclError::InvalidSecretKeySize => "invalid secret key size",
+            AmclError::InvalidYFlag => "invalid y flag",
+            AmclError::InvalidPoint => "invalid point",
         };
         Self(inner.to_string())
     }
@@ -113,7 +113,6 @@ pub fn verify_signature(
 ) -> Result<(), Error> {
     let public_key: milagro_bls::PublicKey = public_key.try_into()?;
     let signature: milagro_bls::Signature = signature.try_into()?;
-    //let res = signature.verify(true, msg, BLS_DST, &[], &public_key, true);
     let res = signature.verify(msg, &public_key);
     if res == true {
         Ok(())
@@ -149,8 +148,7 @@ pub fn aggregate_verify(
         .collect::<Result<Vec<milagro_bls::PublicKey>, Error>>()?;
     let public_keys: Vec<&milagro_bls::PublicKey> = public_keys.iter().collect();
     let signature: milagro_bls::Signature = signature.try_into()?;
-    //let res = signature.aggregate_verify(true, msgs, BLS_DST, &public_keys, true);
-    let agg_sig = milagro_bls::AggregateSignature::new();
+    let agg_sig = milagro_bls::AggregateSignature::from_signature(&signature);
     let res = agg_sig.aggregate_verify(msgs, &public_keys);
     if res == true {
         Ok(())
