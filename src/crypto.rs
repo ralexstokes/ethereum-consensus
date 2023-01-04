@@ -169,8 +169,7 @@ pub fn fast_aggregate_verify(
         .collect::<Result<Vec<milagro_bls::PublicKey>, Error>>()?;
     let public_keys: Vec<&milagro_bls::PublicKey> = public_keys.iter().collect();
     let signature: milagro_bls::Signature = signature.try_into()?;
-    //let res = signature.fast_aggregate_verify(true, msg, BLS_DST, &public_keys);
-    let agg_sig = milagro_bls::AggregateSignature::new();
+    let agg_sig = milagro_bls::AggregateSignature::from_signature(&signature);
     let res = agg_sig.fast_aggregate_verify(msg, &public_keys);
     if res == true {
         Ok(())
