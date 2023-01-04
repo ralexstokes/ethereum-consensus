@@ -19,13 +19,14 @@ std = [
     "bs58/std",
     "getrandom/std",
     "serde/std",
+    "ssz-rs/std"
 ]
 
 serde = ["dep:hex", "serde_json"]
 
 [dependencies]
 getrandom = { version = "0.2.8", default-features=false, features = ["js"] }
-ssz-rs = { git = "https://github.com/Snowfork/ssz_rs", branch="feat/contribution" }
+ssz-rs = { git = "https://github.com/Snowfork/ssz_rs", branch="feat/contribution", default-features=false }
 rand = {version = "0.8.4", default-features = false}
 thiserror = {version = "1.0.30",  optional=true}
 error-chain={version = "0.12.4", default-features=false}
