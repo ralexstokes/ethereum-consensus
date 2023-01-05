@@ -16,18 +16,18 @@ fn main() -> std::result::Result<(), Box<dyn Error>> {
 
     let mut block = phase0::SignedBeaconBlock::default();
     block.message.slot = 1;
-    executor.apply_block(&mut block.into())?;
+    executor.apply_block(&mut block.into()).unwrap();
 
     let mut block = altair::SignedBeaconBlock::default();
     block.message.slot = executor.context.altair_fork_epoch * executor.context.slots_per_epoch;
-    executor.apply_block(&mut block.into())?;
+    executor.apply_block(&mut block.into()).unwrap();
 
     let mut block = bellatrix::SignedBeaconBlock::default();
     block.message.slot = executor.context.bellatrix_fork_epoch * executor.context.slots_per_epoch;
-    executor.apply_block(&mut block.into())?;
+    executor.apply_block(&mut block.into()).unwrap();
 
     let mut state = executor.state.bellatrix().unwrap();
-    let state_root = state.hash_tree_root()?;
+    let state_root = state.hash_tree_root().unwrap();
     dbg!(state_root);
     Ok(())
 }

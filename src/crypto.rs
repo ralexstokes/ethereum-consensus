@@ -38,7 +38,7 @@ pub enum Error {
     Randomness,
     BLST,
     InvalidSignature,
-    KeyValidationFailed
+    KeyValidationFailed,
 }
 
 #[cfg(feature = "serde")]
