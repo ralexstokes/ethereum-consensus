@@ -1,6 +1,6 @@
 use crate::prelude::*;
 use hex::FromHexError;
-#[cfg_attr(feature = "serde")]
+#[cfg(feature = "serde")]
 use thiserror::Error;
 
 const HEX_ENCODING_PREFIX: &str = "0x";

@@ -349,6 +349,10 @@ pub fn compute_proposer_index<
         let shuffled_index = compute_shuffled_index((i % total) as usize, total, seed, context)?;
         let candidate_index = indices[shuffled_index];
 
+        #[cfg(feature = "serde")]
+        let i_bytes: [u8; 8] = (i.saturating_div(32)).to_le_bytes();
+
+        #[cfg(not(feature = "serde"))]
         let i_bytes: [u8; 4] = (i.saturating_div(32)).to_le_bytes();
         hash_input[32..].copy_from_slice(&i_bytes);
         let random_byte = hash(hash_input).as_ref()[(i % 32)] as u64;
