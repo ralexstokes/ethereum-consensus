@@ -3,7 +3,6 @@ use crate::altair as spec;
 use crate::crypto::{eth_fast_aggregate_verify, verify_signature};
 use crate::domains::DomainType;
 use crate::prelude::*;
-use crate::prelude::*;
 use crate::primitives::{BlsPublicKey, ParticipationFlags, ValidatorIndex};
 use crate::signing::compute_signing_root;
 use crate::state_transition::{
