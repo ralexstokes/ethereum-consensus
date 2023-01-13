@@ -1,5 +1,6 @@
 pub mod altair;
 pub mod bellatrix;
+pub mod capella;
 pub mod builder;
 pub(crate) mod bytes;
 pub mod clock;
