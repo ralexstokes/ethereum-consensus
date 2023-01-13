@@ -3,7 +3,9 @@ use crate::capella::ExecutionPayloadHeader;
 use crate::phase0::{
     BeaconBlockHeader, Checkpoint, Eth1Data, Fork, Validator, JUSTIFICATION_BITS_LENGTH,
 };
-use crate::primitives::{Bytes32, Gwei, ParticipationFlags, Root, Slot, ValidatorIndex, WithdrawalIndex};
+use crate::primitives::{
+    Bytes32, Gwei, ParticipationFlags, Root, Slot, ValidatorIndex, WithdrawalIndex,
+};
 use ssz_rs::prelude::*;
 
 #[derive(Default, Debug, SimpleSerialize, Clone, PartialEq, Eq)]

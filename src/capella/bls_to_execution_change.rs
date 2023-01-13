@@ -1,5 +1,5 @@
-use ssz_rs::prelude::*;
 use crate::primitives::{BlsPublicKey, BlsSignature, ExecutionAddress, ValidatorIndex};
+use ssz_rs::prelude::*;
 
 #[derive(Default, Debug, Clone, SimpleSerialize, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]

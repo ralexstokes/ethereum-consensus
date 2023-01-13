@@ -4,26 +4,24 @@
 mod beacon_block;
 mod beacon_state;
 mod blinded_beacon_block;
-mod execution;
-mod withdrawal;
 mod bls_to_execution_change;
+mod execution;
 mod presets;
+mod withdrawal;
 
 pub use beacon_block::*;
 pub use beacon_state::*;
 pub use blinded_beacon_block::*;
-pub use execution::*;
 pub use bls_to_execution_change::*;
+pub use execution::*;
 pub use presets::Preset;
 
-pub use crate::bellatrix::{
-    Transaction
-};
 pub use crate::altair::{
     SyncAggregate, SyncAggregatorSelectionData, SyncCommittee, PARTICIPATION_FLAG_WEIGHTS,
     PROPOSER_WEIGHT, SYNC_REWARD_WEIGHT, TIMELY_HEAD_FLAG_INDEX, TIMELY_SOURCE_FLAG_INDEX,
     TIMELY_TARGET_FLAG_INDEX, WEIGHT_DENOMINATOR,
 };
+pub use crate::bellatrix::Transaction;
 pub use crate::phase0::{
     Attestation, AttestationData, AttesterSlashing, BeaconBlockHeader, Checkpoint, Deposit,
     DepositData, DepositMessage, Eth1Block, Eth1Data, Fork, ForkData, HistoricalBatchAccumulator,

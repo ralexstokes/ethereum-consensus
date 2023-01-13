@@ -5,8 +5,11 @@ pub use crate::altair::minimal::{
     SignedContributionAndProof, SyncAggregate, SyncCommittee, SyncCommitteeContribution,
     SyncCommitteeMessage,
 };
-pub use crate::bellatrix::minimal::{BYTES_PER_LOGS_BLOOM, MAX_BYTES_PER_TRANSACTION, MAX_EXTRA_DATA_BYTES, MAX_TRANSACTIONS_PER_PAYLOAD, PROPORTIONAL_SLASHING_MULTIPLIER_BELLATRIX};
 pub use crate::bellatrix::minimal::Transaction;
+pub use crate::bellatrix::minimal::{
+    BYTES_PER_LOGS_BLOOM, MAX_BYTES_PER_TRANSACTION, MAX_EXTRA_DATA_BYTES,
+    MAX_TRANSACTIONS_PER_PAYLOAD, PROPORTIONAL_SLASHING_MULTIPLIER_BELLATRIX,
+};
 use crate::capella;
 use crate::capella::presets::Preset;
 pub use crate::phase0::minimal::{
@@ -20,12 +23,12 @@ pub use capella::*;
 
 pub const MAX_WITHDRAWALS_PER_PAYLOAD: usize = 16;
 pub const MAX_BLS_TO_EXECUTION_CHANGES: usize = 16;
-pub const MAX_VALIDATORS_PER_WITHDRAWALS_SWEEP: usize =16384;
+pub const MAX_VALIDATORS_PER_WITHDRAWALS_SWEEP: usize = 16384;
 
 pub const PRESET: Preset = Preset {
     max_bls_to_execution_changes: MAX_BLS_TO_EXECUTION_CHANGES,
     max_withdrawals_per_payload: MAX_WITHDRAWALS_PER_PAYLOAD,
-    max_validators_per_withdrawals_sweep: MAX_VALIDATORS_PER_WITHDRAWALS_SWEEP
+    max_validators_per_withdrawals_sweep: MAX_VALIDATORS_PER_WITHDRAWALS_SWEEP,
 };
 
 pub type ExecutionPayload = capella::ExecutionPayload<
@@ -159,7 +162,7 @@ pub type NoOpExecutionEngine = capella::NoOpExecutionEngine<
     MAX_EXTRA_DATA_BYTES,
     MAX_BYTES_PER_TRANSACTION,
     MAX_TRANSACTIONS_PER_PAYLOAD,
-    MAX_WITHDRAWALS_PER_PAYLOAD
+    MAX_WITHDRAWALS_PER_PAYLOAD,
 >;
 
 pub type MockExecutionEngine<F> = capella::MockExecutionEngine<
