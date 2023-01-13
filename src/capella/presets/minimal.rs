@@ -21,9 +21,9 @@ pub use crate::phase0::minimal::{
 
 pub use capella::*;
 
-pub const MAX_WITHDRAWALS_PER_PAYLOAD: usize = 16;
+pub const MAX_WITHDRAWALS_PER_PAYLOAD: usize = 4;
 pub const MAX_BLS_TO_EXECUTION_CHANGES: usize = 16;
-pub const MAX_VALIDATORS_PER_WITHDRAWALS_SWEEP: usize = 16384;
+pub const MAX_VALIDATORS_PER_WITHDRAWALS_SWEEP: usize = 16;
 
 pub const PRESET: Preset = Preset {
     max_bls_to_execution_changes: MAX_BLS_TO_EXECUTION_CHANGES,
