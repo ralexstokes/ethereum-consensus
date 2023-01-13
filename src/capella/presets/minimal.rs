@@ -5,8 +5,8 @@ pub use crate::altair::minimal::{
     SignedContributionAndProof, SyncAggregate, SyncCommittee, SyncCommitteeContribution,
     SyncCommitteeMessage,
 };
-use crate::bellatrix::minimal::{BYTES_PER_LOGS_BLOOM, INACTIVITY_PENALTY_QUOTIENT_BELLATRIX, MAX_BYTES_PER_TRANSACTION, MAX_EXTRA_DATA_BYTES, MAX_TRANSACTIONS_PER_PAYLOAD, MIN_SLASHING_PENALTY_QUOTIENT_BELLATRIX, PROPORTIONAL_SLASHING_MULTIPLIER_BELLATRIX};
-use crate::bellatrix::minimal::Transaction;
+pub use crate::bellatrix::minimal::{BYTES_PER_LOGS_BLOOM, MAX_BYTES_PER_TRANSACTION, MAX_EXTRA_DATA_BYTES, MAX_TRANSACTIONS_PER_PAYLOAD, PROPORTIONAL_SLASHING_MULTIPLIER_BELLATRIX};
+pub use crate::bellatrix::minimal::Transaction;
 use crate::capella;
 use crate::capella::presets::Preset;
 pub use crate::phase0::minimal::{
