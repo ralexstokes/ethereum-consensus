@@ -675,8 +675,8 @@ impl Spec {
         for (_, module) in self.modules.iter_mut() {
             let fns = mem::take(&mut module.fns);
             let items = fns
-                .into_iter()
-                .map(|(_, decl)| Item::Fn(decl.node))
+                .into_values()
+                .map(|decl| Item::Fn(decl.node))
                 .collect::<Vec<_>>();
             let mut file = syn::File {
                 shebang: None,
