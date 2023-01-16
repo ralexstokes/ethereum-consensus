@@ -1,5 +1,5 @@
 use crate::altair::SyncCommittee;
-use crate::capella::ExecutionPayloadHeader;
+use crate::capella::{ExecutionPayloadHeader, HistoricalSummary};
 use crate::phase0::{
     BeaconBlockHeader, Checkpoint, Eth1Data, Fork, Validator, JUSTIFICATION_BITS_LENGTH,
 };
@@ -65,11 +65,4 @@ pub struct BeaconState<
     pub next_withdrawal_index: WithdrawalIndex,
     pub next_withdrawal_validator_index: ValidatorIndex,
     pub historical_summaries: List<HistoricalSummary, HISTORICAL_ROOTS_LIMIT>,
-}
-
-#[derive(Default, Debug, SimpleSerialize, Clone, PartialEq, Eq)]
-#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-pub struct HistoricalSummary {
-    pub block_summary_root: Root,
-    pub state_summary_root: Root,
 }

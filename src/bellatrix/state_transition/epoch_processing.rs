@@ -11,7 +11,7 @@ use spec::{
     get_next_sync_committee, get_previous_epoch, get_randao_mix, get_total_active_balance,
     get_total_balance, get_unslashed_participating_indices, get_validator_churn_limit,
     increase_balance, initiate_validator_exit, is_active_validator, is_eligible_for_activation,
-    is_eligible_for_activation_queue, BeaconState, Checkpoint, HistoricalBatchAccumulator,
+    is_eligible_for_activation_queue, BeaconState, Checkpoint, HistoricalSummary,
     JUSTIFICATION_BITS_LENGTH, PARTICIPATION_FLAG_WEIGHTS, TIMELY_TARGET_FLAG_INDEX,
 };
 use ssz_rs::prelude::*;
@@ -262,9 +262,9 @@ pub fn process_historical_roots_update<
     let next_epoch = get_current_epoch(state, context) + 1;
     let epochs_per_historical_root = context.slots_per_historical_root / context.slots_per_epoch;
     if next_epoch % epochs_per_historical_root == 0 {
-        let mut historical_batch = HistoricalBatchAccumulator {
-            block_roots_root: state.block_roots.hash_tree_root()?,
-            state_roots_root: state.state_roots.hash_tree_root()?,
+        let mut historical_batch = HistoricalSummary {
+            block_summary_root: state.block_roots.hash_tree_root()?,
+            state_summary_root: state.state_roots.hash_tree_root()?,
         };
         state
             .historical_roots

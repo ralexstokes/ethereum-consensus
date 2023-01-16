@@ -31,19 +31,19 @@ pub struct HistoricalBatch<const SLOTS_PER_HISTORICAL_ROOT: usize> {
 /// being of type `Vector<Root, N>`, a single `Root` is pulled out to allow Merkleization of each root to be
 /// performed manually (using the `ssz_rs` crate).
 ///
-/// Instead of requiring a full copy of the roots, the container is summarized as `HistoricalBatchAccumulator`
-/// with `block_roots_root` & `state_roots_root`.
+/// Instead of requiring a full copy of the roots, the container is summarized as `HistoricalSummary`
+/// with `block_summary_root` & `state_summary_root`.
 ///
 /// This design decision was chosen for memory optimization purposes, for example, in the
 /// `state_transition` crate's `process_historical_roots_update` function. Also note that the
 /// `HistoricalBatch` container has no need for serialization, otherwise, this design would pose an issue.
 ///
 /// For more information, see the comment here: <https://github.com/ralexstokes/ethereum-consensus/pull/37#discussion_r775995594>
-#[derive(Default, Debug, SimpleSerialize)]
+#[derive(Default, Debug, SimpleSerialize, Clone, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-pub struct HistoricalBatchAccumulator {
-    pub block_roots_root: Root,
-    pub state_roots_root: Root,
+pub struct HistoricalSummary {
+    pub block_summary_root: Root,
+    pub state_summary_root: Root,
 }
 
 #[derive(Default, Debug, SimpleSerialize, Clone, PartialEq, Eq)]

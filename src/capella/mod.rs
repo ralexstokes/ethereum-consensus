@@ -24,7 +24,7 @@ pub use crate::altair::{
 pub use crate::bellatrix::Transaction;
 pub use crate::phase0::{
     Attestation, AttestationData, AttesterSlashing, BeaconBlockHeader, Checkpoint, Deposit,
-    DepositData, DepositMessage, Eth1Block, Eth1Data, Fork, ForkData, HistoricalBatchAccumulator,
+    DepositData, DepositMessage, Eth1Block, Eth1Data, Fork, ForkData, HistoricalSummary,
     IndexedAttestation, ProposerSlashing, SignedBeaconBlockHeader, SignedVoluntaryExit,
     SigningData, Validator, VoluntaryExit, BASE_REWARDS_PER_EPOCH, DEPOSIT_CONTRACT_TREE_DEPTH,
     JUSTIFICATION_BITS_LENGTH,
