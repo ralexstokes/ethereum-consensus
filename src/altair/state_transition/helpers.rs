@@ -115,7 +115,7 @@ pub fn compute_proposer_index<
     let mut hash_input = [0u8; 40];
     hash_input[..32].copy_from_slice(seed.as_ref());
     loop {
-        let shuffled_index = compute_shuffled_index((i % total) as usize, total, seed, context)?;
+        let shuffled_index = compute_shuffled_index(i % total, total, seed, context)?;
         let candidate_index = indices[shuffled_index];
         let i_bytes: [u8; 8] = (i / 32).to_le_bytes();
         hash_input[32..].copy_from_slice(&i_bytes);
@@ -627,8 +627,7 @@ pub fn get_seed<
     domain_type: DomainType,
     context: &Context,
 ) -> Bytes32 {
-    let mix_epoch =
-        epoch + (context.epochs_per_historical_vector as u64 - context.min_seed_lookahead) - 1;
+    let mix_epoch = epoch + (context.epochs_per_historical_vector - context.min_seed_lookahead) - 1;
     let mix = get_randao_mix(state, mix_epoch);
     let mut input = [0u8; 44];
     input[..4].copy_from_slice(&domain_type.as_bytes());
@@ -788,7 +787,7 @@ pub fn initiate_validator_exit<
         .iter()
         .filter(|v| v.exit_epoch == exit_queue_epoch)
         .count();
-    if exit_queue_churn >= get_validator_churn_limit(state, context) as usize {
+    if exit_queue_churn >= get_validator_churn_limit(state, context) {
         exit_queue_epoch += 1;
     }
     state.validators[index].exit_epoch = exit_queue_epoch;

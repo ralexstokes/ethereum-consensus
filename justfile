@@ -1,5 +1,3 @@
-test:
-    cargo test
 download-integration-tests: clean-integration-tests
     #!/usr/bin/env sh
     TESTS_TAG=v1.1.10
@@ -16,12 +14,7 @@ clean-integration-tests:
     rm -rf consensus-spec-tests
 run-integration-tests:
     cargo test --features 'spec-tests' --test '*'
-fmt:
-    cargo fmt
-lint: fmt
-    cargo clippy --all-features
-build:
-    cargo build --all-features
+
 gen-spec:
     cargo run --features gen-spec --bin gen-spec
     cargo fix --allow-dirty
@@ -29,4 +22,15 @@ gen-spec:
 gen-tests:
     cargo run --features gen-tests --bin gen-tests
     cargo fmt
+
+test:
+    # NOTE: do not test `--all-features` here to only run unit tests
+    # partition much heavier "integration tests" to a separate command
+    cargo test
+fmt:
+    cargo fmt
+lint: fmt
+    cargo clippy --all-features
+build:
+    cargo build --all-features
 run-ci: lint build test
