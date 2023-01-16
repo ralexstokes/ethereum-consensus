@@ -1,12 +1,16 @@
+extern crate core;
+
 pub mod altair;
 pub mod bellatrix;
-pub mod capella;
 pub mod builder;
 pub(crate) mod bytes;
+pub mod capella;
 pub mod clock;
 pub mod configs;
 pub mod crypto;
+pub mod deneb;
 pub mod domains;
+pub mod kzg;
 pub mod networking;
 pub mod phase0;
 pub mod primitives;
