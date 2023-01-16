@@ -35,3 +35,5 @@ pub mod mainnet {
 pub mod minimal {
     pub use super::presets::minimal::*;
 }
+
+pub const BYTES_PER_FIELD_ELEMENT: usize = 32;

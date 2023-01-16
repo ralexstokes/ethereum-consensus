@@ -24,6 +24,7 @@ pub use deneb::*;
 
 pub const FIELD_ELEMENTS_PER_BLOB: usize = 4;
 pub const MAX_BLOBS_PER_BLOCK: usize = 4;
+pub const BYTES_PER_BLOB: usize = BYTES_PER_FIELD_ELEMENT * FIELD_ELEMENTS_PER_BLOB;
 
 pub const PRESET: Preset = Preset {
     field_elements_per_blob: FIELD_ELEMENTS_PER_BLOB,
@@ -145,6 +146,28 @@ pub type SignedBeaconBlock = deneb::SignedBeaconBlock<
     MAX_WITHDRAWALS_PER_PAYLOAD,
     MAX_BLS_TO_EXECUTION_CHANGES,
     MAX_BLOBS_PER_BLOCK,
+>;
+
+pub type Blob = deneb::Blob<BYTES_PER_BLOB>;
+
+pub type BlobsSidecar = deneb::BlobsSidecar<MAX_BLOBS_PER_BLOCK, BYTES_PER_BLOB>;
+
+pub type SignedBeaconBlockAndBlobsSidecar = deneb::SignedBeaconBlockAndBlobsSidecar<
+    MAX_PROPOSER_SLASHINGS,
+    MAX_VALIDATORS_PER_COMMITTEE,
+    MAX_ATTESTER_SLASHINGS,
+    MAX_ATTESTATIONS,
+    MAX_DEPOSITS,
+    MAX_VOLUNTARY_EXITS,
+    SYNC_COMMITTEE_SIZE,
+    BYTES_PER_LOGS_BLOOM,
+    MAX_EXTRA_DATA_BYTES,
+    MAX_BYTES_PER_TRANSACTION,
+    MAX_TRANSACTIONS_PER_PAYLOAD,
+    MAX_WITHDRAWALS_PER_PAYLOAD,
+    MAX_BLS_TO_EXECUTION_CHANGES,
+    MAX_BLOBS_PER_BLOCK,
+    BYTES_PER_BLOB,
 >;
 
 pub type NoOpExecutionEngine = deneb::NoOpExecutionEngine<
