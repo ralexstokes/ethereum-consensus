@@ -385,7 +385,7 @@ pub fn slash_validator<
     state.validators[slashed_index].slashed = true;
     state.validators[slashed_index].withdrawable_epoch = u64::max(
         state.validators[slashed_index].withdrawable_epoch,
-        epoch + context.epochs_per_slashings_vector as u64,
+        epoch + context.epochs_per_slashings_vector,
     );
     let slashings_index = epoch as usize % EPOCHS_PER_SLASHINGS_VECTOR;
     state.slashings[slashings_index] += state.validators[slashed_index].effective_balance;
