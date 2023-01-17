@@ -58,11 +58,7 @@ where
         let mut pre_blocks = vec![];
         let mut post_blocks = vec![];
         for i in 0..blocks_count {
-            let path = format!(
-                "{}/blocks_{}.ssz_snappy",
-                self.test_case_path.to_string(),
-                i
-            );
+            let path = format!("{}/blocks_{}.ssz_snappy", self.test_case_path, i);
             if let Some(fork_index) = self.meta.fork_block {
                 if i <= fork_index {
                     let block: A = load_snappy_ssz(&path).unwrap();

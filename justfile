@@ -28,9 +28,9 @@ test:
     # partition much heavier "integration tests" to a separate command
     cargo test
 fmt:
-    cargo fmt
+    cargo fmt --all
 lint: fmt
-    cargo clippy --all-features
+    cargo clippy --all-targets --all-features
 build:
-    cargo build --all-features
+    cargo build --all-targets --all-features
 run-ci: lint build test
