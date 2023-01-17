@@ -56,7 +56,7 @@ pub mod as_string {
     where
         S: serde::Serializer,
     {
-        let output = format!("{}", data);
+        let output = format!("{data}");
         serializer.collect_str(&output)
     }
 
@@ -89,7 +89,7 @@ pub mod collection_over_string {
     {
         let mut seq = serializer.serialize_seq(None)?;
         for elem in data.as_ref().iter() {
-            let rendered_elem = format!("{}", elem);
+            let rendered_elem = format!("{elem}");
             seq.serialize_element(&rendered_elem)?;
         }
         seq.end()
