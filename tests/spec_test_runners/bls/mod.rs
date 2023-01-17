@@ -64,8 +64,8 @@ impl AggregateVerifyTestCase {
             .input
             .pubkeys
             .iter()
+            .flatten()
             .cloned()
-            .filter_map(|k| k)
             .collect::<Vec<_>>();
         let messages = self
             .input

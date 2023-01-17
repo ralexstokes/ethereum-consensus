@@ -9,7 +9,7 @@ fn load_ssz_static_test_case(test_case_path: &str) -> (RootData, Vec<u8>) {
 
     let path = test_case_path.to_string() + "/serialized.ssz_snappy";
     let path = Path::new(&path);
-    let encoding = load_snappy_ssz_bytes(&path);
+    let encoding = load_snappy_ssz_bytes(path);
     (data, encoding)
 }
 
