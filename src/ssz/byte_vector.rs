@@ -39,13 +39,13 @@ impl<const N: usize> fmt::LowerHex for ByteVector<N> {
 
 impl<const N: usize> fmt::Debug for ByteVector<N> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "ByteVector<{}>({:#x})", N, self)
+        write!(f, "ByteVector<{N}>({self:#x})")
     }
 }
 
 impl<const N: usize> fmt::Display for ByteVector<N> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{:#x}", self)
+        write!(f, "{self:#x}")
     }
 }
 

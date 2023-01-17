@@ -25,7 +25,7 @@ pub trait TestCase: fmt::Debug {
         } else {
             self.verify_failure()
         };
-        assert!(result, "{:#?}", self)
+        assert!(result, "{self:#?}")
     }
 }
 

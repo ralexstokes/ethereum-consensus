@@ -34,7 +34,7 @@ where
 
         let mut blocks = vec![];
         for i in 0..blocks_count {
-            let path = format!("{}/blocks_{}.ssz_snappy", test_case_path, i);
+            let path = format!("{test_case_path}/blocks_{i}.ssz_snappy");
             let block: B = load_snappy_ssz(&path).unwrap();
             blocks.push(block);
         }
