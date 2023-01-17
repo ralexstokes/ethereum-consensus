@@ -43,7 +43,7 @@ impl<const N: usize> fmt::Debug for ByteList<N> {
 
 impl<const N: usize> fmt::Display for ByteList<N> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{:#x}", self)
+        write!(f, "{self:#x}")
     }
 }
 

@@ -12,5 +12,5 @@ fn main() {
     let sig = sk.sign(msg);
 
     let valid = verify_signature(&pk, msg, &sig).is_ok();
-    println!("Signature is valid: {:?}", valid);
+    println!("Signature is valid: {valid:?}");
 }

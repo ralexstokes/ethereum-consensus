@@ -161,7 +161,7 @@ mod tests {
         let id_repr = "QmYyQSo1c1Ym7orWxLYvCrM2EmxFTANf8wXmmE7DWjhx5N";
         let id: PeerId = PeerId::from_str(id_repr).unwrap();
         assert_eq!(
-            format!("{}", id),
+            format!("{id}"),
             "QmYyQSo1c1Ym7orWxLYvCrM2EmxFTANf8wXmmE7DWjhx5N"
         )
     }
