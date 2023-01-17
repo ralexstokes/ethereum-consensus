@@ -28,7 +28,7 @@ fn main() {
         .push(SignedVoluntaryExit::default());
 
     let block_json = serde_json::to_string(&block).unwrap();
-    println!("{}", block_json);
+    println!("{block_json}");
     let _: SignedBeaconBlock = serde_json::from_str(&block_json).unwrap();
 
     let mut state = BeaconState::default();
@@ -37,7 +37,7 @@ fn main() {
         .push(PendingAttestation::default());
 
     let state_json = serde_json::to_string(&state).unwrap();
-    println!("{}", state_json);
+    println!("{state_json}");
     let _: BeaconState = serde_json::from_str(&state_json).unwrap();
 
     let sync_committee = SyncCommittee::default();

@@ -39,7 +39,7 @@ where
 
         let mut deposits = vec![];
         for i in 0..meta.deposits_count {
-            let path = format!("{}/deposits_{}.ssz_snappy", test_case_path, i);
+            let path = format!("{test_case_path}/deposits_{i}.ssz_snappy");
             let deposit: D = load_snappy_ssz(&path).unwrap();
             deposits.push(deposit);
         }

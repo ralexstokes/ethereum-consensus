@@ -223,13 +223,13 @@ impl fmt::LowerHex for PublicKey {
 
 impl fmt::Debug for PublicKey {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "PublicKey({:#x})", self)
+        write!(f, "PublicKey({self:#x})")
     }
 }
 
 impl fmt::Display for PublicKey {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{:#x}", self)
+        write!(f, "{self:#x}")
     }
 }
 
@@ -345,13 +345,13 @@ impl fmt::LowerHex for Signature {
 
 impl fmt::Debug for Signature {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "Signature({:#x})", self)
+        write!(f, "Signature({self:#x})")
     }
 }
 
 impl fmt::Display for Signature {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{:#x}", self)
+        write!(f, "{self:#x}")
     }
 }
 

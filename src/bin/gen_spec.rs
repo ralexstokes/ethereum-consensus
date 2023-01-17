@@ -158,8 +158,7 @@ impl VisitMut for GenericsEditor {
         }) {
             let generics = &mut node.generics;
             for bound in BELLATRIX_BEACON_STATE_BOUNDS {
-                let param: GenericParam =
-                    syn::parse_str(&format!("const {}: usize", bound)).unwrap();
+                let param: GenericParam = syn::parse_str(&format!("const {bound}: usize")).unwrap();
                 generics.params.push(param);
             }
         }
@@ -436,7 +435,7 @@ struct Spec {
 }
 
 fn load_modules(spec: Specs, modules: &[Modules]) -> HashMap<Modules, Module> {
-    let module_dir = PathBuf::from(format!("src/{}", spec));
+    let module_dir = PathBuf::from(format!("src/{spec}"));
     let mut loaded_modules = HashMap::new();
     for &m in modules {
         let module = Module::new(m, spec);
