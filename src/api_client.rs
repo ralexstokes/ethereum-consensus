@@ -1,27 +1,30 @@
 // TODO: remove once things are all used
 #![allow(unused_variables)]
 
-use crate::error::ApiError;
-use crate::types::{
-    ApiResult, AttestationDuty, BalanceSummary, BeaconHeaderSummary, BeaconProposerRegistration,
-    BlockId, CommitteeDescriptor, CommitteeFilter, CommitteeSummary, CoordinateWithMetadata,
-    DepositContract, EventTopic, FinalityCheckpoints, GenesisDetails, HealthStatus, PeerSummary,
-    ProposerDuty, PublicKeyOrIndex, RootData, StateId, SyncCommitteeDescriptor, SyncCommitteeDuty,
-    SyncCommitteeSummary, SyncStatus, ValidatorStatus, ValidatorSummary, Value, VersionData,
+use crate::{
+    error::ApiError,
+    types::{
+        ApiResult, AttestationDuty, BalanceSummary, BeaconHeaderSummary,
+        BeaconProposerRegistration, BlockId, CommitteeDescriptor, CommitteeFilter,
+        CommitteeSummary, ConnectionOrientation, CoordinateWithMetadata, DepositContract,
+        EventTopic, FinalityCheckpoints, GenesisDetails, HealthStatus, NetworkIdentity,
+        PeerDescription, PeerState, PeerSummary, ProposerDuty, PublicKeyOrIndex, RootData, StateId,
+        SyncCommitteeDescriptor, SyncCommitteeDuty, SyncCommitteeSummary, SyncStatus,
+        ValidatorStatus, ValidatorSummary, Value, VersionData,
+    },
 };
-use crate::types::{ConnectionOrientation, NetworkIdentity, PeerDescription, PeerState};
-use ethereum_consensus::altair::mainnet::{
-    SignedContributionAndProof, SyncCommitteeContribution, SyncCommitteeMessage,
-};
-use ethereum_consensus::bellatrix::mainnet::{BlindedBeaconBlock, SignedBlindedBeaconBlock};
-use ethereum_consensus::builder::SignedValidatorRegistration;
-use ethereum_consensus::networking::PeerId;
-use ethereum_consensus::phase0::mainnet::{
-    Attestation, AttestationData, AttesterSlashing, BeaconBlock, BeaconState, Fork,
-    ProposerSlashing, SignedAggregateAndProof, SignedBeaconBlock, SignedVoluntaryExit,
-};
-use ethereum_consensus::primitives::{
-    Bytes32, CommitteeIndex, Epoch, RandaoReveal, Root, Slot, ValidatorIndex,
+use ethereum_consensus::{
+    altair::mainnet::{
+        SignedContributionAndProof, SyncCommitteeContribution, SyncCommitteeMessage,
+    },
+    bellatrix::mainnet::{BlindedBeaconBlock, SignedBlindedBeaconBlock},
+    builder::SignedValidatorRegistration,
+    networking::PeerId,
+    phase0::mainnet::{
+        Attestation, AttestationData, AttesterSlashing, BeaconBlock, BeaconState, Fork,
+        ProposerSlashing, SignedAggregateAndProof, SignedBeaconBlock, SignedVoluntaryExit,
+    },
+    primitives::{Bytes32, CommitteeIndex, Epoch, RandaoReveal, Root, Slot, ValidatorIndex},
 };
 use http::StatusCode;
 use itertools::Itertools;
@@ -76,10 +79,7 @@ pub struct Client {
 
 impl Client {
     pub fn new_with_client<U: Into<Url>>(client: reqwest::Client, endpoint: U) -> Self {
-        Self {
-            http: client,
-            endpoint: endpoint.into(),
-        }
+        Self { http: client, endpoint: endpoint.into() }
     }
 
     pub fn new<U: Into<Url>>(endpoint: U) -> Self {
@@ -324,9 +324,8 @@ impl Client {
         &self,
         id: BlockId,
     ) -> Result<Vec<Attestation>, Error> {
-        let result: Value<Vec<Attestation>> = self
-            .get(&format!("eth/v1/beacon/blocks/{id}/attestations"))
-            .await?;
+        let result: Value<Vec<Attestation>> =
+            self.get(&format!("eth/v1/beacon/blocks/{id}/attestations")).await?;
         Ok(result.data)
     }
 
@@ -353,8 +352,7 @@ impl Client {
     }
 
     pub async fn post_attestations(&self, attestations: &[Attestation]) -> Result<(), Error> {
-        self.post("eth/v1/beacon/pool/attestations", attestations)
-            .await
+        self.post("eth/v1/beacon/pool/attestations", attestations).await
     }
 
     pub async fn get_attester_slashings_from_pool(&self) -> Result<Vec<AttesterSlashing>, Error> {
@@ -367,8 +365,7 @@ impl Client {
         &self,
         attester_slashing: &AttesterSlashing,
     ) -> Result<(), Error> {
-        self.post("eth/v1/beacon/pool/attester_slashings", attester_slashing)
-            .await
+        self.post("eth/v1/beacon/pool/attester_slashings", attester_slashing).await
     }
 
     pub async fn get_proposer_slashings_from_pool(&self) -> Result<Vec<ProposerSlashing>, Error> {
@@ -381,16 +378,14 @@ impl Client {
         &self,
         proposer_slashing: &ProposerSlashing,
     ) -> Result<(), Error> {
-        self.post("eth/v1/beacon/pool/proposer_slashings", proposer_slashing)
-            .await
+        self.post("eth/v1/beacon/pool/proposer_slashings", proposer_slashing).await
     }
 
     pub async fn post_sync_committee_messages(
         &self,
         messages: &[SyncCommitteeMessage],
     ) -> Result<(), Error> {
-        self.post("eth/v1/beacon/pool/sync_committees", messages)
-            .await
+        self.post("eth/v1/beacon/pool/sync_committees", messages).await
     }
 
     pub async fn get_voluntary_exits_from_pool(&self) -> Result<Vec<SignedVoluntaryExit>, Error> {
@@ -425,9 +420,8 @@ impl Client {
     /* debug namespace */
     // v2 endpoint
     pub async fn get_state(&self, id: StateId) -> Result<BeaconState, Error> {
-        let result: Value<BeaconState> = self
-            .get(&format!("eth/v2/debug/beacon/states/{id}"))
-            .await?;
+        let result: Value<BeaconState> =
+            self.get(&format!("eth/v2/debug/beacon/states/{id}")).await?;
         Ok(result.data)
     }
 
@@ -515,10 +509,7 @@ impl Client {
         indices: &[ValidatorIndex],
     ) -> Result<(Root, Vec<AttestationDuty>), Error> {
         let endpoint = format!("eth/v1/validator/duties/attester/{epoch}");
-        let indices = indices
-            .iter()
-            .map(|index| index.to_string())
-            .collect::<Vec<_>>();
+        let indices = indices.iter().map(|index| index.to_string()).collect::<Vec<_>>();
         let response = self.http_post(&endpoint, &indices).await?;
         let mut result: Value<Vec<AttestationDuty>> = api_error_or_value(response).await?;
         let dependent_root_value = result
@@ -548,10 +539,7 @@ impl Client {
         indices: &[ValidatorIndex],
     ) -> Result<Vec<SyncCommitteeDuty>, Error> {
         let endpoint = format!("eth/v1/validator/duties/sync/{epoch}");
-        let indices = indices
-            .iter()
-            .map(|index| index.to_string())
-            .collect::<Vec<_>>();
+        let indices = indices.iter().map(|index| index.to_string()).collect::<Vec<_>>();
         let response = self.http_post(&endpoint, &indices).await?;
         let result: Value<Vec<SyncCommitteeDuty>> = api_error_or_value(response).await?;
         Ok(result.data)
@@ -624,8 +612,7 @@ impl Client {
         &self,
         registrations: &[BeaconProposerRegistration],
     ) -> Result<(), Error> {
-        self.post("eth/v1/validator/prepare_beacon_proposer", registrations)
-            .await
+        self.post("eth/v1/validator/prepare_beacon_proposer", registrations).await
     }
 
     // endpoint for builder registrations

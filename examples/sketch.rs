@@ -3,10 +3,7 @@ use ethereum_consensus::bellatrix::mainnet::BlindedBeaconBlock;
 use std::collections::HashMap;
 
 fn main() {
-    let block = Value {
-        meta: HashMap::new(),
-        data: BlindedBeaconBlock::default(),
-    };
+    let block = Value { meta: HashMap::new(), data: BlindedBeaconBlock::default() };
     let block_repr = serde_json::to_string(&block).unwrap();
     println!("{block_repr}");
 
