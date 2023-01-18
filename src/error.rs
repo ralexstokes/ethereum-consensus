@@ -1,7 +1,6 @@
 use http::StatusCode;
 use serde::{Deserialize, Serialize};
-use std::error::Error;
-use std::fmt;
+use std::{error::Error, fmt};
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct ApiError {
@@ -23,9 +22,6 @@ impl<'a> TryFrom<(u16, &'a str)> for ApiError {
 
     fn try_from((code, message): (u16, &'a str)) -> Result<Self, Self::Error> {
         let code = StatusCode::from_u16(code)?;
-        Ok(Self {
-            code,
-            message: message.to_string(),
-        })
+        Ok(Self { code, message: message.to_string() })
     }
 }

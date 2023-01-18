@@ -1,13 +1,14 @@
 use crate::error::ApiError;
-use ethereum_consensus::networking::{Enr, MetaData, Multiaddr, PeerId};
-use ethereum_consensus::phase0::mainnet::{Checkpoint, SignedBeaconBlockHeader, Validator};
-use ethereum_consensus::primitives::{
-    BlsPublicKey, ChainId, CommitteeIndex, Coordinate, Epoch, ExecutionAddress, Gwei, Root, Slot,
-    ValidatorIndex, Version,
+use ethereum_consensus::{
+    networking::{Enr, MetaData, Multiaddr, PeerId},
+    phase0::mainnet::{Checkpoint, SignedBeaconBlockHeader, Validator},
+    primitives::{
+        BlsPublicKey, ChainId, CommitteeIndex, Coordinate, Epoch, ExecutionAddress, Gwei, Root,
+        Slot, ValidatorIndex, Version,
+    },
 };
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
-use std::collections::HashMap;
-use std::fmt;
+use std::{collections::HashMap, fmt};
 
 #[derive(Serialize, Deserialize)]
 pub struct VersionData {

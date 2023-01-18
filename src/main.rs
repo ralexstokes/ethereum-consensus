@@ -1,5 +1,4 @@
-use beacon_api_client::Client;
-use beacon_api_client::StateId;
+use beacon_api_client::{Client, StateId};
 use url::Url;
 
 #[tokio::main]
@@ -8,10 +7,7 @@ async fn main() {
     let url: Url = Url::parse(s).unwrap();
     let client = Client::new(url);
 
-    let checkpoints = client
-        .get_finality_checkpoints(StateId::Finalized)
-        .await
-        .unwrap();
+    let checkpoints = client.get_finality_checkpoints(StateId::Finalized).await.unwrap();
 
     println!("previous checkpoint: {:?}", checkpoints.previous_justified);
     println!("current checkpoint: {:?}", checkpoints.current_justified);
