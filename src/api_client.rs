@@ -1,6 +1,3 @@
-// TODO: remove once things are all used
-#![allow(unused_variables)]
-
 use crate::{
     error::ApiError,
     types::{
@@ -434,7 +431,7 @@ impl Client {
 
     /* events namespace */
     // TODO: figure out return type
-    pub async fn get_events<T>(topics: &[EventTopic]) -> Result<T, Error> {
+    pub async fn get_events<T>(_topics: &[EventTopic]) -> Result<T, Error> {
         // get back "event: TOPIC, data: T"
         unimplemented!("")
     }
@@ -546,66 +543,129 @@ impl Client {
     }
 
     // v2 endpoint
-    pub async fn get_block(
+    pub async fn get_block_proposal(
+        &self,
         slot: Slot,
         randao_reveal: RandaoReveal,
-        graffiti: Bytes32,
+        graffiti: Option<Bytes32>,
     ) -> Result<BeaconBlock, Error> {
-        unimplemented!("")
+        let path = format!("eth/v2/validator/blocks/{slot}");
+        let target = self.endpoint.join(&path)?;
+        let mut request = self.http.get(target);
+        request = request.query(&[("randao_reveal", randao_reveal)]);
+        if let Some(graffiti) = graffiti {
+            request = request.query(&[("graffiti", graffiti)]);
+        }
+        let response = request.send().await?;
+        // TODO handle polymorphism...
+        let result: ApiResult<Value<BeaconBlock>> = response.json().await?;
+        match result {
+            ApiResult::Ok(result) => Ok(result.data),
+            ApiResult::Err(err) => Err(err.into()),
+        }
     }
 
-    pub async fn get_blinded_block(
+    pub async fn get_blinded_block_proposal(
+        &self,
         slot: Slot,
         randao_reveal: RandaoReveal,
-        graffiti: Bytes32,
+        graffiti: Option<Bytes32>,
     ) -> Result<BlindedBeaconBlock, Error> {
-        unimplemented!("")
+        let path = format!("eth/v2/validator/blinded_blocks/{slot}");
+        let target = self.endpoint.join(&path)?;
+        let mut request = self.http.get(target);
+        request = request.query(&[("randao_reveal", randao_reveal)]);
+        if let Some(graffiti) = graffiti {
+            request = request.query(&[("graffiti", graffiti)]);
+        }
+        let response = request.send().await?;
+        // TODO handle polymorphism...
+        let result: ApiResult<Value<BlindedBeaconBlock>> = response.json().await?;
+        match result {
+            ApiResult::Ok(result) => Ok(result.data),
+            ApiResult::Err(err) => Err(err.into()),
+        }
     }
 
     pub async fn get_attestation_data(
+        &self,
         slot: Slot,
         committee_index: CommitteeIndex,
     ) -> Result<AttestationData, Error> {
-        unimplemented!("")
+        let target = self.endpoint.join("eth/v1/validator/attestation_data")?;
+        let mut request = self.http.get(target);
+        request = request.query(&[("slot", slot)]);
+        request = request.query(&[("committee_index", committee_index)]);
+        let response = request.send().await?;
+        let result: ApiResult<Value<AttestationData>> = response.json().await?;
+        match result {
+            ApiResult::Ok(result) => Ok(result.data),
+            ApiResult::Err(err) => Err(err.into()),
+        }
     }
 
     pub async fn get_attestation_aggregate(
+        &self,
         attestation_data_root: Root,
         slot: Slot,
     ) -> Result<Attestation, Error> {
-        unimplemented!("")
+        let target = self.endpoint.join("eth/v1/validator/aggregate_attestation")?;
+        let mut request = self.http.get(target);
+        request = request.query(&[("attestation_data_root", attestation_data_root)]);
+        request = request.query(&[("slot", slot)]);
+        let response = request.send().await?;
+        let result: ApiResult<Value<Attestation>> = response.json().await?;
+        match result {
+            ApiResult::Ok(result) => Ok(result.data),
+            ApiResult::Err(err) => Err(err.into()),
+        }
     }
 
     pub async fn post_aggregates_with_proofs(
+        &self,
         aggregates_with_proofs: &[SignedAggregateAndProof],
     ) -> Result<(), Error> {
-        Ok(())
+        self.post("eth/v1/validator/aggregate_and_proofs", aggregates_with_proofs).await
     }
 
-    pub async fn subscribe_subnets_for_attestation(
+    pub async fn subscribe_subnets_for_attestation_committees(
+        &self,
         committee_descriptors: &[CommitteeDescriptor],
     ) -> Result<(), Error> {
-        Ok(())
+        self.post("eth/v1/validator/beacon_committee_subscriptions", committee_descriptors).await
     }
 
-    pub async fn subscribe_subnets_for_sync_committee(
+    pub async fn subscribe_subnets_for_sync_committees(
+        &self,
         sync_committee_descriptors: &[SyncCommitteeDescriptor],
     ) -> Result<(), Error> {
-        Ok(())
+        self.post("eth/v1/validator/sync_committee_subscriptions", sync_committee_descriptors).await
     }
 
     pub async fn get_sync_committee_contribution(
+        &self,
         slot: Slot,
         subcommittee_index: usize,
         beacon_block_root: Root,
     ) -> Result<SyncCommitteeContribution, Error> {
-        unimplemented!("")
+        let target = self.endpoint.join("eth/v1/validator/sync_committee_contribution")?;
+        let mut request = self.http.get(target);
+        request = request.query(&[("slot", slot)]);
+        request = request.query(&[("subcommittee_index", subcommittee_index)]);
+        request = request.query(&[("beacon_block_root", beacon_block_root)]);
+        let response = request.send().await?;
+        let result: ApiResult<Value<SyncCommitteeContribution>> = response.json().await?;
+        match result {
+            ApiResult::Ok(result) => Ok(result.data),
+            ApiResult::Err(err) => Err(err.into()),
+        }
     }
 
-    pub async fn post_contributions_with_proofs(
+    pub async fn post_sync_committee_contributions_with_proofs(
+        &self,
         contributions_with_proofs: &[SignedContributionAndProof],
     ) -> Result<(), Error> {
-        Ok(())
+        self.post("eth/v1/validator/contribution_and_proofs", contributions_with_proofs).await
     }
 
     pub async fn prepare_proposers(
@@ -617,8 +677,9 @@ impl Client {
 
     // endpoint for builder registrations
     pub async fn register_validators_with_builders(
+        &self,
         registrations: &[SignedValidatorRegistration],
     ) -> Result<(), Error> {
-        Ok(())
+        self.post("eth/v1/validator/register_validator", registrations).await
     }
 }

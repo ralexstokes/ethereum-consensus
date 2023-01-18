@@ -359,17 +359,26 @@ pub struct SyncCommitteeDuty {
     pub validator_sync_committee_indices: Vec<usize>,
 }
 
+#[derive(Serialize, Deserialize)]
 pub struct CommitteeDescriptor {
+    #[serde(with = "crate::serde::as_string")]
     pub validator_index: ValidatorIndex,
+    #[serde(with = "crate::serde::as_string")]
     pub committee_index: CommitteeIndex,
+    #[serde(with = "crate::serde::as_string")]
     pub committees_at_slot: usize,
+    #[serde(with = "crate::serde::as_string")]
     pub slot: Slot,
     pub is_aggregator: bool,
 }
 
+#[derive(Serialize, Deserialize)]
 pub struct SyncCommitteeDescriptor {
+    #[serde(with = "crate::serde::as_string")]
     pub validator_index: ValidatorIndex,
+    #[serde(with = "crate::serde::collection_over_string")]
     pub sync_committee_indices: Vec<usize>,
+    #[serde(with = "crate::serde::as_string")]
     pub until_epoch: Epoch,
 }
 
