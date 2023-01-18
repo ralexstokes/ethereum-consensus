@@ -412,7 +412,7 @@ impl Client {
     // v2 endpoint
     pub async fn get_state(&self, id: StateId) -> Result<BeaconState, Error> {
         let result: Value<BeaconState> = self
-            .get(&format!("eth/v2/debug/beacon/states/{}", id))
+            .get(&format!("eth/v2/debug/beacon/states/{id}"))
             .await?;
         Ok(result.data)
     }
@@ -461,7 +461,7 @@ impl Client {
 
     pub async fn get_peer(&self, peer_id: PeerId) -> Result<PeerDescription, Error> {
         let result: Value<PeerDescription> =
-            self.get(&format!("/eth/v1/node/peers/{}", peer_id)).await?;
+            self.get(&format!("/eth/v1/node/peers/{peer_id}")).await?;
         Ok(result.data)
     }
 

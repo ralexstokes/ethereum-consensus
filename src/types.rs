@@ -55,10 +55,10 @@ impl fmt::Display for StateId {
             StateId::Justified => "justified",
             StateId::Head => "head",
             StateId::Genesis => "genesis",
-            StateId::Slot(slot) => return write!(f, "{}", slot),
-            StateId::Root(root) => return write!(f, "{}", root),
+            StateId::Slot(slot) => return write!(f, "{slot}"),
+            StateId::Root(root) => return write!(f, "{root}"),
         };
-        write!(f, "{}", printable)
+        write!(f, "{printable}")
     }
 }
 
@@ -82,10 +82,10 @@ impl fmt::Display for BlockId {
             BlockId::Finalized => "finalized",
             BlockId::Head => "head",
             BlockId::Genesis => "genesis",
-            BlockId::Slot(slot) => return write!(f, "{}", slot),
-            BlockId::Root(root) => return write!(f, "{}", root),
+            BlockId::Slot(slot) => return write!(f, "{slot}"),
+            BlockId::Root(root) => return write!(f, "{root}"),
         };
-        write!(f, "{}", printable)
+        write!(f, "{printable}")
     }
 }
 
@@ -137,7 +137,7 @@ impl fmt::Display for ValidatorStatus {
             Self::Exited => "exited",
             Self::Withdrawal => "withdrawal",
         };
-        write!(f, "{}", printable)
+        write!(f, "{printable}")
     }
 }
 
@@ -153,7 +153,7 @@ impl fmt::Display for PublicKeyOrIndex {
             Self::PublicKey(ref pk) => pk.to_string(),
             Self::Index(i) => i.to_string(),
         };
-        write!(f, "{}", printable)
+        write!(f, "{printable}")
     }
 }
 
@@ -255,7 +255,7 @@ impl fmt::Display for PeerState {
             Self::Connected => "connected",
             Self::Disconnecting => "disconnecting",
         };
-        write!(f, "{}", printable)
+        write!(f, "{printable}")
     }
 }
 
@@ -272,7 +272,7 @@ impl fmt::Display for ConnectionOrientation {
             Self::Inbound => "inbound",
             Self::Outbound => "outbound",
         };
-        write!(f, "{}", printable)
+        write!(f, "{printable}")
     }
 }
 
