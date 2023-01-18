@@ -45,8 +45,22 @@ pub enum Error {
 
 pub async fn api_error_or_ok(response: reqwest::Response) -> Result<(), Error> {
     match response.status() {
-        reqwest::StatusCode::OK => Ok(()),
-        reqwest::StatusCode::ACCEPTED => Ok(()),
+        reqwest::StatusCode::OK | reqwest::StatusCode::ACCEPTED => Ok(()),
+        _ => {
+            let api_err = response.json::<ApiError>().await?;
+            Err(Error::Api(api_err))
+        }
+    }
+}
+
+async fn api_error_or_value<T: serde::de::DeserializeOwned>(
+    response: reqwest::Response,
+) -> Result<T, Error> {
+    match response.status() {
+        reqwest::StatusCode::OK | reqwest::StatusCode::ACCEPTED => {
+            let value = response.json().await?;
+            Ok(value)
+        }
         _ => {
             let api_err = response.json::<ApiError>().await?;
             Err(Error::Api(api_err))
@@ -505,12 +519,8 @@ impl Client {
             .iter()
             .map(|index| index.to_string())
             .collect::<Vec<_>>();
-        let mut result: Value<Vec<AttestationDuty>> = self
-            .http_post(&endpoint, &indices)
-            .await?
-            .json()
-            .await
-            .unwrap();
+        let response = self.http_post(&endpoint, &indices).await?;
+        let mut result: Value<Vec<AttestationDuty>> = api_error_or_value(response).await?;
         let dependent_root_value = result
             .meta
             .remove("dependent_root")
@@ -542,12 +552,8 @@ impl Client {
             .iter()
             .map(|index| index.to_string())
             .collect::<Vec<_>>();
-        let result: Value<Vec<SyncCommitteeDuty>> = self
-            .http_post(&endpoint, &indices)
-            .await?
-            .json()
-            .await
-            .unwrap();
+        let response = self.http_post(&endpoint, &indices).await?;
+        let result: Value<Vec<SyncCommitteeDuty>> = api_error_or_value(response).await?;
         Ok(result.data)
     }
 
