@@ -1,9 +1,9 @@
 test:
     cargo test
 fmt:
-    cargo fmt
+    cargo +nightly fmt --all
 lint: fmt
-    cargo clippy
+    cargo +nightly clippy --all-targets
 build:
-    cargo build
+    cargo build --all-targets
 run-ci: lint build test
