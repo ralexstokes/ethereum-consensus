@@ -29,7 +29,7 @@ pub use state_transition::*;
 pub use validator::*;
 
 pub const BASE_REWARDS_PER_EPOCH: u64 = 4;
-pub const DEPOSIT_CONTRACT_TREE_DEPTH: usize = 2usize.saturating_pow(5);
+pub const DEPOSIT_CONTRACT_TREE_DEPTH: usize = 32usize;
 pub const JUSTIFICATION_BITS_LENGTH: usize = 4;
 pub const DEPOSIT_DATA_LIST_BOUND: usize =
     2usize.saturating_pow(DEPOSIT_CONTRACT_TREE_DEPTH as u32);
