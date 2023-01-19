@@ -1,6 +1,5 @@
 use crate::altair;
 use crate::bellatrix::{BeaconState, Fork};
-use crate::prelude::*;
 use crate::state_transition::Context;
 use ssz_rs::prelude::*;
 

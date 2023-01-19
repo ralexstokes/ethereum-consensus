@@ -4,8 +4,6 @@ use crate::prelude::*;
 use crate::primitives::{BlsSignature, Bytes32, Epoch, Hash32, Root, Slot, ValidatorIndex};
 use crate::state_transition::Forks;
 use ssz_rs::prelude::*;
-#[cfg(feature = "serde")]
-use thiserror::Error;
 
 pub type Result<T> = core::result::Result<T, Error>;
 
@@ -75,16 +73,16 @@ impl From<Box<InvalidBlock>> for Error {
 impl Display for Error {
     fn fmt(&self, f: &mut Formatter<'_>) -> core::fmt::Result {
         match self {
-            Error::Merkleization(error) => write!(f, "merkleization error"),
-            Error::SimpleSerialize(error) => write!(f, "simple serialize error"),
-            Error::Crypto(eror) => write!(f, "crypto error"),
+            Error::Merkleization(_error) => write!(f, "merkleization error"),
+            Error::SimpleSerialize(_error) => write!(f, "simple serialize error"),
+            Error::Crypto(_error) => write!(f, "crypto error"),
             Error::OutOfBounds{requested, bound} => write!(f, "requested element {} but collection only has {} elements", requested, bound),
             Error::CollectionCannotBeEmpty => write!(f, "collection cannot be empty"),
             Error::InvalidShufflingIndex{index, total} => write!(f, "given index {} is greater than the total amount of indices {}", index, total),
             Error::SlotOutOfRange{requested, lower_bound, upper_bound}  => write!(f, "slot {} is outside of allowed range ({}, {})", requested, lower_bound, upper_bound),
             Error::Overflow => write!(f, "overflow error"),
             Error::Underflow => write!(f, "underflow error"),
-            Error::InvalidBlock(error) => write!(f, "invalid block"),
+            Error::InvalidBlock(_error) => write!(f, "invalid block"),
             Error::TransitionToPreviousSlot{requested, current} => write!(f, "an invalid transition to a past slot {} from slot {}", requested, current),
             Error::InvalidStateRoot => write!(f, "invalid state root"),
             Error::InvalidEpoch{requested,previous,current} => write!(f, "the requested epoch {} is not in the required current epoch {} or previous epoch {}", requested, current, previous),
@@ -114,8 +112,8 @@ impl From<InvalidOperation> for InvalidBlock {
 impl Display for InvalidBlock {
     fn fmt(&self, f: &mut Formatter<'_>) -> core::fmt::Result {
         match self {
-            InvalidBlock::Header(error) => write!(f, "invalid beacon block header"),
-            InvalidBlock::InvalidOperation(error) => write!(f, "invalid operation"),
+            InvalidBlock::Header(_error) => write!(f, "invalid beacon block header"),
+            InvalidBlock::InvalidOperation(_error) => write!(f, "invalid operation"),
         }
     }
 }
@@ -136,27 +134,27 @@ pub enum InvalidOperation {
 impl Display for InvalidOperation {
     fn fmt(&self, f: &mut Formatter<'_>) -> core::fmt::Result {
         match self {
-            InvalidOperation::Attestation(invalid_attestation) => write!(f, "invalid attestation"),
-            InvalidOperation::IndexedAttestation(indexed_attestation) => {
+            InvalidOperation::Attestation(_invalid_attestation) => write!(f, "invalid attestation"),
+            InvalidOperation::IndexedAttestation(_indexed_attestation) => {
                 write!(f, "invalid indexed attestation")
             }
-            InvalidOperation::Deposit(invalid_deposit) => write!(f, "invalid deposit"),
+            InvalidOperation::Deposit(_invalid_deposit) => write!(f, "invalid deposit"),
             InvalidOperation::Randao(blssignature) => {
                 write!(f, "invalid randao (Bls signature): {0:?}", blssignature)
             }
-            InvalidOperation::ProposerSlashing(invalid_proposer_slashing) => {
+            InvalidOperation::ProposerSlashing(_invalid_proposer_slashing) => {
                 write!(f, "invalid proposer slashing")
             }
-            InvalidOperation::AttesterSlashing(invalifd_attester_slashing) => {
+            InvalidOperation::AttesterSlashing(_invalifd_attester_slashing) => {
                 write!(f, "invalid attester slashing")
             }
-            InvalidOperation::VoluntaryExit(invalid_voluntary_exit) => {
+            InvalidOperation::VoluntaryExit(_invalid_voluntary_exit) => {
                 write!(f, "invalid voluntary exit")
             }
-            InvalidOperation::SyncAggregate(invalid_sync_aggregate) => {
+            InvalidOperation::SyncAggregate(_invalid_sync_aggregate) => {
                 write!(f, "invalid sync aggregate")
             }
-            InvalidOperation::ExecutionPayload(invalid_execution_payload) => {
+            InvalidOperation::ExecutionPayload(_invalid_execution_payload) => {
                 write!(f, "invalid execution payload")
             }
         }
@@ -330,13 +328,13 @@ impl Display for InvalidIndexedAttestation {
             InvalidIndexedAttestation::AttestingIndicesEmpty => {
                 write!(f, "attesting indices are empty")
             }
-            InvalidIndexedAttestation::DuplicateIndices(validator_indices) => {
+            InvalidIndexedAttestation::DuplicateIndices(_validator_indices) => {
                 write!(f, "attesting indices are duplicated")
             }
             InvalidIndexedAttestation::AttestingIndicesNotSorted => {
                 write!(f, "attesting indices are not sorted")
             }
-            InvalidIndexedAttestation::InvalidIndex(validator_index) => {
+            InvalidIndexedAttestation::InvalidIndex(_validator_index) => {
                 write!(f, "index in attesting set is invalid for this state")
             }
         }

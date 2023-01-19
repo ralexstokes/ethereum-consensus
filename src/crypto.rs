@@ -4,14 +4,11 @@ use crate::primitives::Bytes32;
 #[cfg(feature = "serde")]
 use crate::serde::{try_bytes_from_hex_str, HexError};
 use crate::ssz::ByteVector;
-use error_chain::ChainedError;
-use milagro_bls::{AggregatePublicKey, AggregateSignature, AmclError};
+use milagro_bls::{AggregatePublicKey, AmclError};
 #[cfg(feature = "serde")]
 use serde;
 use sha2::{digest::FixedOutput, Digest, Sha256};
 use ssz_rs::prelude::*;
-#[cfg(feature = "serde")]
-use thiserror::Error;
 
 pub fn hash<D: AsRef<[u8]>>(data: D) -> Bytes32 {
     let mut result = vec![0u8; 32];
@@ -21,7 +18,6 @@ pub fn hash<D: AsRef<[u8]>>(data: D) -> Bytes32 {
     Bytes32::try_from(result.as_ref()).expect("correct input")
 }
 
-const BLS_DST: &[u8] = b"BLS_SIG_BLS12381G2_XMD:SHA-256_SSWU_RO_POP_";
 const BLS_PUBLIC_KEY_BYTES_LEN: usize = 48;
 const BLS_SECRET_KEY_BYTES_LEN: usize = 32;
 const BLS_SIGNATURE_BYTES_LEN: usize = 96;
@@ -116,7 +112,7 @@ pub fn verify_signature(
     let public_key: milagro_bls::PublicKey = public_key.try_into()?;
     let signature: milagro_bls::Signature = signature.try_into()?;
     let res = signature.verify(msg, &public_key);
-    if res == true {
+    if res {
         Ok(())
     } else {
         Err(Error::InvalidSignature)
@@ -152,7 +148,7 @@ pub fn aggregate_verify(
     let signature: milagro_bls::Signature = signature.try_into()?;
     let agg_sig = milagro_bls::AggregateSignature::from_signature(&signature);
     let res = agg_sig.aggregate_verify(msgs, &public_keys);
-    if res == true {
+    if res {
         Ok(())
     } else {
         Err(Error::InvalidSignature)
@@ -173,7 +169,7 @@ pub fn fast_aggregate_verify(
     let signature: milagro_bls::Signature = signature.try_into()?;
     let agg_sig = milagro_bls::AggregateSignature::from_signature(&signature);
     let res = agg_sig.fast_aggregate_verify(msg, &public_keys);
-    if res == true {
+    if res {
         Ok(())
     } else {
         Err(Error::InvalidSignature)
@@ -251,7 +247,7 @@ impl SecretKey {
     }
 
     pub fn sign(&self, msg: &[u8]) -> Signature {
-        let inner = milagro_bls::Signature::new(&msg, &self.0);
+        let inner = milagro_bls::Signature::new(msg, &self.0);
         Signature::try_from(inner.as_bytes().as_ref()).unwrap()
     }
 }
@@ -349,9 +345,8 @@ impl TryFrom<&PublicKey> for milagro_bls::AggregatePublicKey {
             return Err(Error::KeyValidationFailed);
         }
 
-        let milagro_bls_aggregate_public_key = milagro_bls::AggregatePublicKey::from_public_key(
-            &milagro_bls_public_key.clone().unwrap(),
-        );
+        let milagro_bls_aggregate_public_key =
+            milagro_bls::AggregatePublicKey::from_public_key(&milagro_bls_public_key.unwrap());
 
         Ok(milagro_bls_aggregate_public_key)
     }

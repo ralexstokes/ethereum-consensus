@@ -18,7 +18,6 @@ pub use state_transition::{
     block_processing::*, epoch_processing::*, helpers::*, slot_processing::*, *,
 };
 
-use crate::prelude::*;
 pub use beacon_block::*;
 pub use beacon_state::*;
 pub use fork::*;

@@ -32,8 +32,8 @@ pub type ParticipationFlags = u8;
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct Coordinate {
     #[cfg_attr(feature = "serde", serde(with = "crate::serde::as_string"))]
-    slot: Slot,
-    root: Root,
+    pub slot: Slot,
+    pub root: Root,
 }
 
 pub const GENESIS_SLOT: Slot = 0;

@@ -1,7 +1,5 @@
 use crate::prelude::*;
 use hex::FromHexError;
-#[cfg(feature = "serde")]
-use thiserror::Error;
 
 const HEX_ENCODING_PREFIX: &str = "0x";
 
@@ -36,7 +34,6 @@ pub fn try_bytes_from_hex_str(s: &str) -> Result<Vec<u8>, HexError> {
 
 pub mod as_hex {
     use super::*;
-    use crate::prelude::*;
     use alloc::format;
     use serde::de::Deserialize;
 
