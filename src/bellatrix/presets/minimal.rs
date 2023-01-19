@@ -43,12 +43,8 @@ pub type ExecutionPayload = bellatrix::ExecutionPayload<
     MAX_TRANSACTIONS_PER_PAYLOAD,
 >;
 
-pub type ExecutionPayloadHeader = bellatrix::ExecutionPayloadHeader<
-    BYTES_PER_LOGS_BLOOM,
-    MAX_EXTRA_DATA_BYTES,
-    MAX_BYTES_PER_TRANSACTION,
-    MAX_TRANSACTIONS_PER_PAYLOAD,
->;
+pub type ExecutionPayloadHeader =
+    bellatrix::ExecutionPayloadHeader<BYTES_PER_LOGS_BLOOM, MAX_EXTRA_DATA_BYTES>;
 
 pub type BlindedBeaconBlock = bellatrix::BlindedBeaconBlock<
     MAX_PROPOSER_SLASHINGS,
@@ -60,8 +56,6 @@ pub type BlindedBeaconBlock = bellatrix::BlindedBeaconBlock<
     SYNC_COMMITTEE_SIZE,
     BYTES_PER_LOGS_BLOOM,
     MAX_EXTRA_DATA_BYTES,
-    MAX_BYTES_PER_TRANSACTION,
-    MAX_TRANSACTIONS_PER_PAYLOAD,
 >;
 
 pub type BlindedBeaconBlockBody = bellatrix::BlindedBeaconBlockBody<
@@ -74,8 +68,6 @@ pub type BlindedBeaconBlockBody = bellatrix::BlindedBeaconBlockBody<
     SYNC_COMMITTEE_SIZE,
     BYTES_PER_LOGS_BLOOM,
     MAX_EXTRA_DATA_BYTES,
-    MAX_BYTES_PER_TRANSACTION,
-    MAX_TRANSACTIONS_PER_PAYLOAD,
 >;
 
 pub type SignedBlindedBeaconBlock = bellatrix::SignedBlindedBeaconBlock<
@@ -88,8 +80,6 @@ pub type SignedBlindedBeaconBlock = bellatrix::SignedBlindedBeaconBlock<
     SYNC_COMMITTEE_SIZE,
     BYTES_PER_LOGS_BLOOM,
     MAX_EXTRA_DATA_BYTES,
-    MAX_BYTES_PER_TRANSACTION,
-    MAX_TRANSACTIONS_PER_PAYLOAD,
 >;
 
 pub type BeaconState = bellatrix::BeaconState<
@@ -103,8 +93,6 @@ pub type BeaconState = bellatrix::BeaconState<
     SYNC_COMMITTEE_SIZE,
     BYTES_PER_LOGS_BLOOM,
     MAX_EXTRA_DATA_BYTES,
-    MAX_BYTES_PER_TRANSACTION,
-    MAX_TRANSACTIONS_PER_PAYLOAD,
 >;
 
 pub type BeaconBlockBody = bellatrix::BeaconBlockBody<
