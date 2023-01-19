@@ -889,7 +889,7 @@ pub fn process_voluntary_exit<
         validator.activation_eligibility_epoch + context.shard_committee_period;
     if current_epoch < minimum_time_active {
         return Err(invalid_operation_error(InvalidOperation::VoluntaryExit(
-            InvalidVoluntaryExit::ValidatoIsNotActiveForLongEnough {
+            InvalidVoluntaryExit::ValidatorIsNotActiveForLongEnough {
                 current_epoch,
                 minimum_time_active,
             },

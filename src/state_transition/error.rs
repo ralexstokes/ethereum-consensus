@@ -202,7 +202,7 @@ pub enum InvalidVoluntaryExit {
         exit_epoch: Epoch,
     },
     #[error("validator needs to be active for a minimum period of time (from epoch {minimum_time_active}, currently in {current_epoch})")]
-    ValidatoIsNotActiveForLongEnough {
+    ValidatorIsNotActiveForLongEnough {
         current_epoch: Epoch,
         minimum_time_active: Epoch,
     },
