@@ -74,7 +74,7 @@ fn generate_module_decl_src<'a>(modules: impl Iterator<Item = &'a String>) -> St
         } else {
             module
         };
-        writeln!(src, "mod {};", module).unwrap();
+        writeln!(src, "mod {module};").unwrap();
     }
     src
 }
@@ -118,8 +118,7 @@ fn generate_suite_src(
 
     writeln!(
         src,
-        "use crate::spec_test_runners::{}::{};",
-        runner, test_case_type
+        "use crate::spec_test_runners::{runner}::{test_case_type};",
     )
     .unwrap();
 
@@ -152,7 +151,7 @@ fn generate_suite_src(
                     generics += ", usize"
                 }
             }
-            test_case_type = format!("{}::<{}>", test_case_type, generics);
+            test_case_type = format!("{test_case_type}::<{generics}>");
             if data.execution_handler.len() == 1 && data.execution_handler.contains_key(&Spec::All)
             {
                 execution_handler += &data.execution_handler[&Spec::All];
@@ -179,7 +178,7 @@ fn generate_suite_src(
     }
 
     if needs_spec_import {
-        writeln!(src, "use ethereum_consensus::{}::{} as spec;", fork, config).unwrap();
+        writeln!(src, "use ethereum_consensus::{fork}::{config} as spec;").unwrap();
         writeln!(src, "use ssz_rs::prelude::*;").unwrap();
     }
 
@@ -187,8 +186,7 @@ fn generate_suite_src(
     if matches!(runner, "transition") {
         writeln!(
             src,
-            "use ethereum_consensus::state_transition::{}::{{Executor, BeaconState}};",
-            config
+            "use ethereum_consensus::state_transition::{config}::{{Executor, BeaconState}};",
         )
         .unwrap();
         let pre_fork = match spec {
@@ -198,24 +196,22 @@ fn generate_suite_src(
         };
         writeln!(
             src,
-            "use ethereum_consensus::{}::{} as pre_spec;",
-            pre_fork, config
+            "use ethereum_consensus::{pre_fork}::{config} as pre_spec;",
         )
         .unwrap();
         writeln!(
             src,
-            "use ethereum_consensus::bellatrix::{}::NoOpExecutionEngine;",
-            config
+            "use ethereum_consensus::bellatrix::{config}::NoOpExecutionEngine;",
         )
         .unwrap();
     }
     if matches!(runner, "fork") {
         match spec {
             Spec::Altair => {
-                writeln!(src, "use ethereum_consensus::phase0::{} as phase0;", config).unwrap();
+                writeln!(src, "use ethereum_consensus::phase0::{config} as phase0;").unwrap();
             }
             Spec::Bellatrix => {
-                writeln!(src, "use ethereum_consensus::altair::{} as altair;", config).unwrap();
+                writeln!(src, "use ethereum_consensus::altair::{config} as altair;").unwrap();
             }
             _ => todo!("support other forks"),
         }
@@ -227,13 +223,12 @@ fn generate_suite_src(
         let test_src = format!(
             r#"
 #[test]
-fn test_{}() {{
-    let {} test_case = {}::from("{}");
-    {}
-    test_case.{};
+fn test_{test_case}() {{
+    let {mut_decl} test_case = {test_case_type}::from("{source_path}");
+    {preamble}
+    test_case.{execution_handler};
 }}
-"#,
-            test_case, mut_decl, test_case_type, source_path, preamble, execution_handler,
+"#
         );
         src += &test_src;
     }

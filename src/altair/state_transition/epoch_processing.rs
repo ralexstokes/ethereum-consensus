@@ -10,7 +10,7 @@ pub use crate::altair::epoch_processing::process_slashings;
 pub use crate::altair::epoch_processing::process_sync_committee_updates;
 
 use crate::prelude::*;
-use crate::primitives::{Epoch, Gwei, ValidatorIndex};
+use crate::state_transition::{Context, Result};
 use spec::{
     compute_activation_exit_epoch, get_block_root, get_current_epoch, get_previous_epoch,
     get_randao_mix, get_validator_churn_limit, initiate_validator_exit, is_active_validator,
@@ -19,7 +19,7 @@ use spec::{
 };
 use ssz_rs::prelude::*;
 
-use crate::state_transition::{Context, Result};
+use crate::primitives::{Epoch, Gwei, ValidatorIndex};
 pub fn get_finality_delay<
     const SLOTS_PER_HISTORICAL_ROOT: usize,
     const HISTORICAL_ROOTS_LIMIT: usize,

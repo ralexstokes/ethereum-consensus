@@ -37,13 +37,13 @@ impl<const N: usize> fmt::LowerHex for ByteList<N> {
 
 impl<const N: usize> fmt::Debug for ByteList<N> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "ByteList<{}>(0x{:x})", N, self)
+        write!(f, "ByteList<{}>(len={})({:#x})", N, self.len(), self)
     }
 }
 
 impl<const N: usize> fmt::Display for ByteList<N> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{:#x}", self)
+        write!(f, "{self:#x}")
     }
 }
 

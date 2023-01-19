@@ -25,17 +25,17 @@ pub trait TestCase: fmt::Debug {
         } else {
             self.verify_failure()
         };
-        assert!(result, "{:#?}", self)
+        assert!(result, "{self:#?}")
     }
 }
 
 pub fn load_yaml<T: for<'de> Deserialize<'de>>(path: &str) -> T {
-    let mut file = File::open(&path).expect("File does not exist");
+    let mut file = File::open(path).expect("File does not exist");
     let test_case: Result<T, _> = serde_yaml::from_reader(&mut file);
     match test_case {
         Ok(test_case) => test_case,
         Err(err) => {
-            let content = std::fs::read_to_string(&path).unwrap();
+            let content = std::fs::read_to_string(path).unwrap();
             panic!("{err} from {content} at {path:?}")
         }
     }
@@ -47,7 +47,7 @@ pub fn load_snappy_ssz_bytes(path: &Path) -> Vec<u8> {
     file.read_to_end(&mut data).unwrap();
 
     let mut decoder = snap::raw::Decoder::new();
-    decoder.decompress_vec(&mut data).unwrap()
+    decoder.decompress_vec(&data).unwrap()
 }
 
 pub fn load_snappy_ssz<T: ssz_rs::Deserialize>(path: &str) -> Option<T> {

@@ -8,7 +8,7 @@ pub fn write_bytes_to_lower_hex<T: AsRef<[u8]>>(
         write!(f, "0x")?;
     }
     for i in data.as_ref() {
-        write!(f, "{:02x}", i)?;
+        write!(f, "{i:02x}")?;
     }
     Ok(())
 }
