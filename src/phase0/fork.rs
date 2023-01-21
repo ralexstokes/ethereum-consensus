@@ -1,4 +1,4 @@
-use crate::prelude::*;
+use crate::lib::*;
 use crate::primitives::{Epoch, Root, Version};
 use ssz_rs::prelude::*;
 

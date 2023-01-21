@@ -1,4 +1,4 @@
-use crate::prelude::*;
+use crate::lib::*;
 use crate::primitives::{Bytes32, ExecutionAddress, Hash32, Root, U256};
 use crate::ssz::{ByteList, ByteVector};
 use crate::state_transition::{self, Error};

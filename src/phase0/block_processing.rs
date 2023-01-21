@@ -1,7 +1,7 @@
 use crate::phase0 as spec;
 
 use crate::crypto::{hash, verify_signature};
-use crate::prelude::*;
+use crate::lib::*;
 use crate::primitives::{
     BlsPublicKey, Bytes32, DomainType, Gwei, ValidatorIndex, FAR_FUTURE_EPOCH,
 };

@@ -1,5 +1,5 @@
 use crate::bytes::write_bytes_to_lower_hex;
-use crate::prelude::*;
+use crate::lib::*;
 use ssz_rs::prelude::*;
 
 #[derive(Default, Clone, Eq, SimpleSerialize)]

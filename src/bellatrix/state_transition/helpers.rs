@@ -7,7 +7,7 @@ pub use crate::bellatrix::helpers::is_merge_transition_block;
 pub use crate::bellatrix::helpers::is_merge_transition_complete;
 pub use crate::bellatrix::helpers::slash_validator;
 use crate::crypto::{eth_aggregate_public_keys, fast_aggregate_verify, hash, verify_signature};
-use crate::prelude::*;
+use crate::lib::*;
 use crate::primitives::{
     Bytes32, CommitteeIndex, Domain, DomainType, Epoch, ForkDigest, Gwei, ParticipationFlags, Root,
     Slot, ValidatorIndex, Version, FAR_FUTURE_EPOCH, GENESIS_EPOCH,

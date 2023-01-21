@@ -2,7 +2,7 @@ use crate::altair::{
     BeaconBlockHeader, Checkpoint, Eth1Data, Fork, SyncCommittee, Validator,
     JUSTIFICATION_BITS_LENGTH,
 };
-use crate::prelude::*;
+use crate::lib::*;
 use crate::primitives::{Bytes32, Gwei, ParticipationFlags, Root, Slot};
 use ssz_rs::prelude::*;
 

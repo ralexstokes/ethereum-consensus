@@ -1,7 +1,7 @@
 use crate::bellatrix as spec;
 
+use crate::lib::*;
 use crate::phase0::DEPOSIT_DATA_LIST_BOUND;
-use crate::prelude::*;
 use crate::primitives::{Gwei, Hash32, GENESIS_EPOCH};
 use crate::state_transition::{Context, Result};
 use spec::{

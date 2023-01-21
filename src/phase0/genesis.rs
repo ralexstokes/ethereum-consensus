@@ -1,6 +1,6 @@
 use crate::phase0 as spec;
 
-use crate::prelude::*;
+use crate::lib::*;
 use crate::primitives::{Gwei, Hash32, GENESIS_EPOCH};
 use crate::state_transition::{Context, Result};
 use spec::{

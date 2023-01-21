@@ -1,6 +1,6 @@
 use crate::altair as spec;
 
-use crate::prelude::*;
+use crate::lib::*;
 use crate::primitives::{Gwei, ParticipationFlags, ValidatorIndex, GENESIS_EPOCH};
 use crate::state_transition::{Context, Result};
 use spec::{

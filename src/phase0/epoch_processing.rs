@@ -1,6 +1,6 @@
 use crate::phase0 as spec;
 
-use crate::prelude::*;
+use crate::lib::*;
 use crate::primitives::{Epoch, Gwei, ValidatorIndex, GENESIS_EPOCH};
 use crate::state_transition::{Context, Error, Result};
 use integer_sqrt::IntegerSquareRoot;

@@ -1,8 +1,8 @@
+use crate::lib::*;
 use crate::phase0::{
     BeaconBlockHeader, Checkpoint, Eth1Data, Fork, PendingAttestation, Validator,
     JUSTIFICATION_BITS_LENGTH,
 };
-use crate::prelude::*;
 use crate::primitives::{Bytes32, Epoch, Gwei, Root, Slot};
 use ssz_rs::prelude::*;
 

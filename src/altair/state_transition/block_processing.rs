@@ -5,7 +5,7 @@ pub use crate::altair::block_processing::process_block;
 pub use crate::altair::block_processing::process_deposit;
 pub use crate::altair::block_processing::process_sync_aggregate;
 use crate::crypto::{hash, verify_signature};
-use crate::prelude::*;
+use crate::lib::*;
 use crate::state_transition::{
     invalid_header_error, invalid_operation_error, Context, InvalidAttesterSlashing,
     InvalidBeaconBlockHeader, InvalidDeposit, InvalidOperation, InvalidProposerSlashing,

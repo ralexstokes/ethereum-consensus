@@ -1,4 +1,4 @@
-use crate::prelude::*;
+use crate::lib::*;
 use hex::FromHexError;
 
 const HEX_ENCODING_PREFIX: &str = "0x";
@@ -62,7 +62,7 @@ pub mod as_hex {
 }
 
 pub mod as_string {
-    use crate::prelude::*;
+    use crate::lib::*;
     use alloc::format;
     use serde::de::Deserialize;
 
@@ -89,7 +89,7 @@ pub mod as_string {
 }
 
 pub mod collection_over_string {
-    use crate::prelude::*;
+    use crate::lib::*;
     use serde::de::{Deserializer, Error};
     use serde::ser::SerializeSeq;
 
@@ -144,7 +144,7 @@ pub mod collection_over_string {
 }
 
 pub mod as_b58 {
-    use crate::prelude::*;
+    use crate::lib::*;
     use serde::de::Deserialize;
 
     pub fn serialize<S, T: AsRef<[u8]>>(data: &T, serializer: S) -> Result<S::Ok, S::Error>

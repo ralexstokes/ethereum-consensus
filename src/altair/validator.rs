@@ -1,4 +1,4 @@
-use crate::prelude::*;
+use crate::lib::*;
 use crate::primitives::{BlsSignature, Root, Slot, ValidatorIndex};
 use ssz_rs::prelude::*;
 

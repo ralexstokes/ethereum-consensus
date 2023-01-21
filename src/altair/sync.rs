@@ -1,4 +1,4 @@
-use crate::prelude::*;
+use crate::lib::*;
 use crate::primitives::{BlsPublicKey, BlsSignature};
 use ssz_rs::prelude::*;
 

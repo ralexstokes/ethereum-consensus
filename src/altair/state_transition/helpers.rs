@@ -11,7 +11,7 @@ pub use crate::altair::helpers::get_unslashed_participating_indices;
 pub use crate::altair::helpers::has_flag;
 pub use crate::altair::helpers::slash_validator;
 use crate::crypto::{fast_aggregate_verify, hash, verify_signature};
-use crate::prelude::*;
+use crate::lib::*;
 use crate::primitives::{
     Bytes32, CommitteeIndex, Domain, DomainType, Epoch, ForkDigest, Gwei, Root, Slot,
     ValidatorIndex, Version, FAR_FUTURE_EPOCH, GENESIS_EPOCH,

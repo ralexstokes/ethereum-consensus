@@ -2,7 +2,7 @@
 use crate::bellatrix as spec;
 pub use crate::bellatrix::epoch_processing::process_epoch;
 pub use crate::bellatrix::epoch_processing::process_slashings;
-use crate::prelude::*;
+use crate::lib::*;
 use crate::primitives::{Epoch, Gwei, ParticipationFlags, ValidatorIndex, GENESIS_EPOCH};
 use crate::state_transition::{Context, Result};
 use spec::get_inactivity_penalty_deltas;

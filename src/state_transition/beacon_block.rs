@@ -2,8 +2,8 @@
 /// the state transition machinery can be polymorphic with respect to forks.
 use crate::altair;
 use crate::bellatrix;
+use crate::lib::*;
 use crate::phase0;
-use crate::prelude::*;
 
 #[derive(Debug)]
 pub enum SignedBeaconBlock<

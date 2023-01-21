@@ -3,7 +3,7 @@ use crate::bellatrix as spec;
 pub use crate::bellatrix::block_processing::process_block;
 pub use crate::bellatrix::block_processing::process_execution_payload;
 use crate::crypto::{eth_fast_aggregate_verify, hash, verify_signature};
-use crate::prelude::*;
+use crate::lib::*;
 use crate::primitives::{
     BlsPublicKey, Bytes32, DomainType, Gwei, ParticipationFlags, ValidatorIndex, FAR_FUTURE_EPOCH,
 };

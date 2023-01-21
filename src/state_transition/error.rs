@@ -1,6 +1,6 @@
 use crate::crypto::Error as CryptoError;
+use crate::lib::*;
 use crate::phase0::{AttestationData, BeaconBlockHeader, Checkpoint};
-use crate::prelude::*;
 use crate::primitives::{BlsSignature, Bytes32, Epoch, Hash32, Root, Slot, ValidatorIndex};
 use crate::state_transition::Forks;
 use ssz_rs::prelude::*;

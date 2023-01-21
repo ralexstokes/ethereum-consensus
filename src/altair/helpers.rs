@@ -2,7 +2,7 @@ use crate::altair as spec;
 
 use crate::crypto::{eth_aggregate_public_keys, hash};
 use crate::domains::DomainType;
-use crate::prelude::*;
+use crate::lib::*;
 use crate::primitives::{Epoch, Gwei, ParticipationFlags, ValidatorIndex};
 use crate::state_transition::{
     invalid_operation_error, Context, Error, InvalidAttestation, InvalidOperation, Result,

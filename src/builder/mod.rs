@@ -1,5 +1,5 @@
+use crate::lib::*;
 use crate::phase0::compute_domain;
-use crate::prelude::*;
 use crate::primitives::{BlsPublicKey, BlsSignature, Domain, DomainType, ExecutionAddress};
 use crate::state_transition::{Context, Error};
 use ssz_rs::prelude::*;

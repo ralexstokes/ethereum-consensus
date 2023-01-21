@@ -1,5 +1,5 @@
+use crate::lib::*;
 use crate::phase0::{SignedBeaconBlockHeader, DEPOSIT_CONTRACT_TREE_DEPTH};
-use crate::prelude::*;
 use crate::primitives::{
     BlsPublicKey, BlsSignature, Bytes32, CommitteeIndex, Epoch, Gwei, Hash32, Root, Slot,
     ValidatorIndex,

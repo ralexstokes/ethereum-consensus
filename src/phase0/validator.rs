@@ -1,5 +1,5 @@
+use crate::lib::*;
 use crate::phase0::Attestation;
-use crate::prelude::*;
 use crate::primitives::{BlsPublicKey, BlsSignature, Bytes32, Epoch, Gwei, Root, ValidatorIndex};
 use ssz_rs::prelude::*;
 

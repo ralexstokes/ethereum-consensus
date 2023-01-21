@@ -1,7 +1,7 @@
 //! A consensus clock
 use crate::configs;
+use crate::lib::*;
 use crate::phase0 as presets;
-use crate::prelude::*;
 use crate::primitives::{Epoch, Slot};
 #[cfg(feature = "std")]
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
