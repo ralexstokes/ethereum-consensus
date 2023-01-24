@@ -201,10 +201,12 @@ pub fn process_deposit<
 
     let public_key = &deposit.data.public_key;
     let amount = deposit.data.amount;
-    let cloned_validators = state.validators.clone();
-    let validator_public_keys: HashSet<&BlsPublicKey> =
-        cloned_validators.iter().map(|v| &v.public_key).collect();
-    if !validator_public_keys.contains(public_key) {
+    let validator_check = {
+        let validator_public_keys: HashSet<&BlsPublicKey> =
+            HashSet::from_iter(state.validators.iter().map(|v| &v.public_key));
+        validator_public_keys.contains(public_key)
+    };
+    if !validator_check {
         let mut deposit_message = DepositMessage {
             public_key: public_key.clone(),
             withdrawal_credentials: deposit.data.withdrawal_credentials.clone(),
@@ -315,21 +317,24 @@ pub fn process_sync_aggregate<
     let proposer_reward =
         participant_reward * PROPOSER_WEIGHT / (WEIGHT_DENOMINATOR - PROPOSER_WEIGHT);
 
-    let cloned_validators = state.validators.clone();
     // Apply participant and proposer rewards
-    let all_public_keys = cloned_validators
-        .iter()
-        .enumerate()
-        .map(|(i, v)| (&v.public_key, i))
-        .collect::<HashMap<&BlsPublicKey, usize>>();
-    let mut committee_indices: Vec<ValidatorIndex> = Vec::default();
-    for public_key in state.current_sync_committee.public_keys.iter() {
-        committee_indices.push(
-            *all_public_keys
-                .get(public_key)
-                .expect("validator public_key should exist"),
-        );
-    }
+    let committee_indices = {
+        let all_public_keys = state
+            .validators
+            .iter()
+            .enumerate()
+            .map(|(i, v)| (&v.public_key, i))
+            .collect::<HashMap<_, _>>();
+        let mut committee_indices: Vec<ValidatorIndex> = Vec::default();
+        for public_key in state.current_sync_committee.public_keys.iter() {
+            committee_indices.push(
+                *all_public_keys
+                    .get(public_key)
+                    .expect("validator public_key should exist"),
+            );
+        }
+        committee_indices
+    };
     for (participant_index, participation_bit) in zip(
         committee_indices.iter(),
         sync_aggregate.sync_committee_bits.iter(),

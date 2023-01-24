@@ -364,10 +364,12 @@ pub fn process_deposit<
 
     let public_key = &deposit.data.public_key;
     let amount = deposit.data.amount;
-    let cloned_validators = state.validators.clone();
-    let validator_public_keys: HashSet<&BlsPublicKey> =
-        HashSet::from_iter(cloned_validators.iter().map(|v| &v.public_key));
-    if !validator_public_keys.contains(public_key) {
+    let validator_check = {
+        let validator_public_keys: HashSet<&BlsPublicKey> =
+            HashSet::from_iter(state.validators.iter().map(|v| &v.public_key));
+        validator_public_keys.contains(public_key)
+    };
+    if !validator_check {
         let mut deposit_message = DepositMessage {
             public_key: public_key.clone(),
             withdrawal_credentials: deposit.data.withdrawal_credentials.clone(),
