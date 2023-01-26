@@ -32,6 +32,7 @@ pub struct BeaconBlockBody<
     pub deposits: List<Deposit, MAX_DEPOSITS>,
     pub voluntary_exits: List<SignedVoluntaryExit, MAX_VOLUNTARY_EXITS>,
     pub sync_aggregate: SyncAggregate<SYNC_COMMITTEE_SIZE>,
+    #[cfg_attr(feature = "serde", serde(default))]
     pub execution_payload: ExecutionPayload<
         BYTES_PER_LOGS_BLOOM,
         MAX_EXTRA_DATA_BYTES,
