@@ -40,8 +40,6 @@ pub struct ExecutionPayload<
 pub struct ExecutionPayloadHeader<
     const BYTES_PER_LOGS_BLOOM: usize,
     const MAX_EXTRA_DATA_BYTES: usize,
-    const MAX_BYTES_PER_TRANSACTION: usize,
-    const MAX_TRANSACTIONS_PER_PAYLOAD: usize,
 > {
     pub parent_hash: Hash32,
     pub fee_recipient: ExecutionAddress,
@@ -80,13 +78,7 @@ impl<
             MAX_TRANSACTIONS_PER_PAYLOAD,
             MAX_WITHDRAWALS_PER_PAYLOAD,
         >,
-    >
-    for ExecutionPayloadHeader<
-        BYTES_PER_LOGS_BLOOM,
-        MAX_EXTRA_DATA_BYTES,
-        MAX_BYTES_PER_TRANSACTION,
-        MAX_TRANSACTIONS_PER_PAYLOAD,
-    >
+    > for ExecutionPayloadHeader<BYTES_PER_LOGS_BLOOM, MAX_EXTRA_DATA_BYTES>
 {
     type Error = Error;
 
@@ -98,15 +90,8 @@ impl<
             MAX_TRANSACTIONS_PER_PAYLOAD,
             MAX_WITHDRAWALS_PER_PAYLOAD,
         >,
-    ) -> Result<
-        ExecutionPayloadHeader<
-            BYTES_PER_LOGS_BLOOM,
-            MAX_EXTRA_DATA_BYTES,
-            MAX_BYTES_PER_TRANSACTION,
-            MAX_TRANSACTIONS_PER_PAYLOAD,
-        >,
-        Self::Error,
-    > {
+    ) -> Result<ExecutionPayloadHeader<BYTES_PER_LOGS_BLOOM, MAX_EXTRA_DATA_BYTES>, Self::Error>
+    {
         let transactions_root = payload.transactions.hash_tree_root()?;
         let withdrawals_root = payload.withdrawals.hash_tree_root()?;
 
