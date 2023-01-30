@@ -80,6 +80,15 @@ pub fn upgrade_to_altair<
     >,
 > {
     let epoch = phase0::get_current_epoch(state, context);
+    let previous_epoch_participation = vec![0u8; state.validators.len()]
+        .try_into()
+        .map_err(|(_, err)| err)?;
+    let current_epoch_participation = vec![0u8; state.validators.len()]
+        .try_into()
+        .map_err(|(_, err)| err)?;
+    let inactivity_scores = vec![0u64; state.validators.len()]
+        .try_into()
+        .map_err(|(_, err)| err)?;
     let mut post_state = BeaconState {
         genesis_time: state.genesis_time,
         genesis_validators_root: state.genesis_validators_root,
@@ -100,13 +109,13 @@ pub fn upgrade_to_altair<
         balances: state.balances.clone(),
         randao_mixes: state.randao_mixes.clone(),
         slashings: state.slashings.clone(),
-        previous_epoch_participation: vec![0u8; state.validators.len()].try_into()?,
-        current_epoch_participation: vec![0u8; state.validators.len()].try_into()?,
+        previous_epoch_participation,
+        current_epoch_participation,
         justification_bits: state.justification_bits.clone(),
         previous_justified_checkpoint: state.previous_justified_checkpoint.clone(),
         current_justified_checkpoint: state.current_justified_checkpoint.clone(),
         finalized_checkpoint: state.finalized_checkpoint.clone(),
-        inactivity_scores: vec![0u64; state.validators.len()].try_into()?,
+        inactivity_scores,
         current_sync_committee: Default::default(),
         next_sync_committee: Default::default(),
     };

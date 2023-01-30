@@ -2,7 +2,7 @@ use crate::altair as spec;
 
 use crate::crypto::{eth_aggregate_public_keys, hash};
 use crate::domains::DomainType;
-use crate::primitives::{Epoch, Gwei, ParticipationFlags, ValidatorIndex};
+use crate::primitives::{BlsPublicKey, Epoch, Gwei, ParticipationFlags, ValidatorIndex};
 use crate::state_transition::{
     invalid_operation_error, Context, Error, InvalidAttestation, InvalidOperation, Result,
 };
@@ -111,7 +111,9 @@ pub fn get_next_sync_committee<
     let public_keys = indices
         .into_iter()
         .map(|i| state.validators[i].public_key.clone())
-        .collect::<Vector<_, SYNC_COMMITTEE_SIZE>>();
+        .collect::<Vec<_>>();
+    let public_keys = Vector::<BlsPublicKey, SYNC_COMMITTEE_SIZE>::try_from(public_keys)
+        .map_err(|(_, err)| err)?;
     let aggregate_public_key = eth_aggregate_public_keys(&public_keys)?;
 
     Ok(SyncCommittee::<SYNC_COMMITTEE_SIZE> {
