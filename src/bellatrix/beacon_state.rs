@@ -51,12 +51,18 @@ pub struct BeaconState<
     pub slashings: Vector<Gwei, EPOCHS_PER_SLASHINGS_VECTOR>,
     #[cfg_attr(
         feature = "serde",
-        serde(with = "crate::serde::collection_over_string")
+        serde(
+            with = "crate::serde::collection_over_string",
+            alias = "previous_epoch_attestations"
+        )
     )]
     pub previous_epoch_participation: List<ParticipationFlags, VALIDATOR_REGISTRY_LIMIT>,
     #[cfg_attr(
         feature = "serde",
-        serde(with = "crate::serde::collection_over_string")
+        serde(
+            with = "crate::serde::collection_over_string",
+            alias = "current_epoch_attestations"
+        )
     )]
     pub current_epoch_participation: List<ParticipationFlags, VALIDATOR_REGISTRY_LIMIT>,
     pub justification_bits: Bitvector<JUSTIFICATION_BITS_LENGTH>,
@@ -65,11 +71,15 @@ pub struct BeaconState<
     pub finalized_checkpoint: Checkpoint,
     #[cfg_attr(
         feature = "serde",
-        serde(with = "crate::serde::collection_over_string")
+        serde(with = "crate::serde::collection_over_string"),
+        serde(default)
     )]
     pub inactivity_scores: List<u64, VALIDATOR_REGISTRY_LIMIT>,
+    #[cfg_attr(feature = "serde", serde(default))]
     pub current_sync_committee: SyncCommittee<SYNC_COMMITTEE_SIZE>,
+    #[cfg_attr(feature = "serde", serde(default))]
     pub next_sync_committee: SyncCommittee<SYNC_COMMITTEE_SIZE>,
+    #[cfg_attr(feature = "serde", serde(default))]
     pub latest_execution_payload_header: ExecutionPayloadHeader<
         BYTES_PER_LOGS_BLOOM,
         MAX_EXTRA_DATA_BYTES,
