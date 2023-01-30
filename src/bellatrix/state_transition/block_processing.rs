@@ -922,6 +922,6 @@ pub fn xor(a: &Bytes32, b: &Bytes32) -> Bytes32 {
         .iter()
         .zip(b.iter())
         .map(|(a, b)| a ^ b)
-        .collect::<Vector<u8, 32>>();
-    ByteVector::<32>(inner)
+        .collect::<Vec<_>>();
+    ByteVector::<32>::try_from(inner.as_ref()).unwrap()
 }
