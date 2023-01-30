@@ -280,54 +280,6 @@ impl TryFrom<&PublicKey> for bls_impl::PublicKey {
     }
 }
 
-// impl PublicKey {
-//     pub fn validate(&self) -> bool {
-//         self.0.validate().is_ok()
-//     }
-
-//     pub fn as_bytes(&self) -> [u8; BLS_PUBLIC_KEY_BYTES_LEN] {
-//         self.0.to_bytes()
-//     }
-// }
-
-// impl Sized for PublicKey {
-//     fn is_variable_size() -> bool {
-//         false
-//     }
-
-//     fn size_hint() -> usize {
-//         BLS_PUBLIC_KEY_BYTES_LEN
-//     }
-// }
-
-// impl Serialize for PublicKey {
-//     fn serialize(&self, buffer: &mut Vec<u8>) -> Result<usize, SerializeError> {
-//         self.0.serialize(buffer)
-//     }
-// }
-
-// impl Deserialize for PublicKey {
-//     fn deserialize(encoding: &[u8]) -> Result<Self, DeserializeError>
-//     where
-//         Self: Sized,
-//     {
-//         Self::deserialize(encoding)
-//     }
-// }
-
-// impl Merkleized for PublicKey {
-//     fn hash_tree_root(&mut self) -> Result<Node, MerkleizationError> {
-//         self.0.hash_tree_root()
-//     }
-// }
-
-// impl SimpleSerialize for PublicKey {
-//     fn is_composite_type() -> bool {
-//         // NOTE: treat as Vector<u8, N>
-//         true
-//     }
-// }
-
 #[derive(Clone, Default, Hash, PartialEq, Eq, SimpleSerialize)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(feature = "serde", serde(into = "String", try_from = "String"))]
@@ -400,15 +352,6 @@ impl TryFrom<&Signature> for bls_impl::Signature {
     }
 }
 
-// impl Default for Signature {
-//     fn default() -> Self {
-//         Self(
-//             bls_impl::Signature::from_bytes(&encoding)
-//                 .expect("default is a well-formed signature"),
-//         )
-//     }
-// }
-
 const INFINITY_COMPRESSED_SIGNATURE: [u8; BLS_SIGNATURE_BYTES_LEN] = [
     192, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
@@ -417,62 +360,10 @@ const INFINITY_COMPRESSED_SIGNATURE: [u8; BLS_SIGNATURE_BYTES_LEN] = [
 ];
 
 impl Signature {
-    // pub fn as_bytes(&self) -> [u8; 96] {
-    //     self.0.to_bytes()
-    // }
-
     pub fn is_infinity(&self) -> bool {
         self.as_ref() == INFINITY_COMPRESSED_SIGNATURE
     }
 }
-
-// impl Sized for Signature {
-//     fn is_variable_size() -> bool {
-//         false
-//     }
-
-//     fn size_hint() -> usize {
-//         BLS_SIGNATURE_BYTES_LEN
-//     }
-// }
-
-// impl Serialize for Signature {
-//     fn serialize(&self, buffer: &mut Vec<u8>) -> Result<usize, SerializeError> {
-//         self.0.serialize(buffer)
-//         //     let start = buffer.len();
-//         //     buffer.extend_from_slice(&self.as_bytes());
-//         //     let encoded_length = buffer.len() - start;
-//         //     debug_assert!(encoded_length == Self::size_hint());
-//         //     Ok(encoded_length)
-//     }
-// }
-
-// impl Deserialize for Signature {
-//     fn deserialize(encoding: &[u8]) -> Result<Self, DeserializeError>
-//     where
-//         Self: Sized,
-//     {
-//         let signature = Self::try_from(encoding).map_err(|_| DeserializeError::InvalidInput)?;
-//         Ok(signature)
-//     }
-// }
-
-// impl Merkleized for Signature {
-//     fn hash_tree_root(&mut self) -> Result<Node, MerkleizationError> {
-//         self.0.hash_tree_root()
-//         // let mut buffer = vec![];
-//         // self.serialize(&mut buffer)?;
-//         // pack_bytes(&mut buffer);
-//         // merkleize(&buffer, None)
-//     }
-// }
-
-// impl SimpleSerialize for Signature {
-//     fn is_composite_type() -> bool {
-//         // NOTE: treat as Vector<u8, N>
-//         true
-//     }
-// }
 
 #[cfg(test)]
 mod tests {
