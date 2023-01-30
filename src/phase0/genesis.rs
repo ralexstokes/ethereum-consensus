@@ -62,9 +62,12 @@ pub fn initialize_beacon_state_from_eth1<
         body_root,
         ..Default::default()
     };
-    let randao_mixes = Vector::from_iter(
-        std::iter::repeat(eth1_block_hash).take(context.epochs_per_historical_vector as usize),
-    );
+    let randao_mixes = Vector::try_from(
+        std::iter::repeat(eth1_block_hash)
+            .take(context.epochs_per_historical_vector as usize)
+            .collect::<Vec<_>>(),
+    )
+    .unwrap();
     let mut state = BeaconState {
         genesis_time: eth1_timestamp + context.genesis_delay,
         fork,

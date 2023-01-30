@@ -14,7 +14,7 @@ gen-spec = ["syn", "prettyplease", "quote"]
 gen-tests = ["walkdir", "convert_case"]
 
 [dependencies]
-ssz-rs = { git = "https://github.com/ralexstokes/ssz-rs", rev = "cb08f1" }
+ssz-rs = { git = "https://github.com/ralexstokes/ssz-rs", rev = "5946af4a65a1e8547a8fc7cfb62e12637421b8f2" }
 blst = "0.3.6"
 rand = "0.8.4"
 thiserror = "1.0.30"
