@@ -403,6 +403,8 @@ pub enum ConsensusVersion {
     Phase0,
     Altair,
     Bellatrix,
+    Capella,
+    Deneb,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
