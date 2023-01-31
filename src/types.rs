@@ -397,14 +397,25 @@ pub struct Value<T: Serialize + DeserializeOwned> {
     pub meta: HashMap<String, serde_json::Value>,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
-#[serde(rename_all = "lowercase")]
-pub enum ConsensusVersion {
-    Phase0,
-    Altair,
-    Bellatrix,
-    Capella,
-    Deneb,
+/*
+`VersionedValue` captures:
+```json
+{
+    "version": "fork-version",
+    "data": { ... },
+    < optional additional metadata >,
+}
+
+And can be combined with Rust `enum`s to handle polymorphic {de,}serialization.
+```
+ */
+#[derive(serde::Serialize, serde::Deserialize, Debug)]
+#[serde(bound = "T: serde::Serialize + serde::de::DeserializeOwned")]
+pub struct VersionedValue<T: serde::Serialize + serde::de::DeserializeOwned> {
+    #[serde(flatten)]
+    pub payload: T,
+    #[serde(flatten)]
+    pub meta: HashMap<String, serde_json::Value>,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
