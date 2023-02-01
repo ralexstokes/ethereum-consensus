@@ -7,9 +7,9 @@ pub use crate::altair::block_processing::process_sync_aggregate;
 use crate::crypto::{hash, verify_signature};
 use crate::signing::compute_signing_root;
 
+use crate::lib::*;
 use crate::primitives::{Bytes32, DomainType, Gwei, ValidatorIndex, FAR_FUTURE_EPOCH};
 use crate::ssz::ByteVector;
-use crate::lib::*;
 use crate::state_transition::{
     invalid_header_error, invalid_operation_error, Context, InvalidAttesterSlashing,
     InvalidBeaconBlockHeader, InvalidDeposit, InvalidOperation, InvalidProposerSlashing,

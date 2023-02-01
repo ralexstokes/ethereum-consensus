@@ -31,8 +31,7 @@ pub enum Error {
         provided: usize,
         expected: usize,
     },
-    #[error("{0}")]
-    SimpleSerialize(#[from] SimpleSerializeError),
+    SimpleSerialize(SimpleSerializeError),
     Randomness,
     BLST,
     InvalidSignature,
@@ -49,6 +48,12 @@ impl From<HexError> for Error {
 impl From<rand::Error> for Error {
     fn from(_: rand::Error) -> Self {
         Error::Randomness
+    }
+}
+
+impl From<SimpleSerializeError> for Error {
+    fn from(err: SimpleSerializeError) -> Self {
+        Error::SimpleSerialize(err)
     }
 }
 
@@ -71,6 +76,9 @@ impl Display for Error {
                 "invalid length of encoding: expected {} bytes but only provided {} bytes",
                 expected, provided
             ),
+            Error::SimpleSerialize(err) => {
+                write!(f, "simple serialize error {}", err)
+            }
             Error::Randomness => write!(f, "randomness failure",),
             Error::BLST => write!(f, "blst error",),
             Error::InvalidSignature => write!(f, "invalid signature",),
