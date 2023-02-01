@@ -25,7 +25,7 @@ std = [
 
 [dependencies]
 getrandom = { version = "0.2.8", default-features=false, features = ["js"] }
-ssz-rs = { git = "https://github.com/ralexstokes/ssz-rs", rev = "5946af4a65a1e8547a8fc7cfb62e12637421b8f2", default-features=false, features=["serde", "std"] }
+ssz-rs = { git = "https://github.com/polytope-labs/ssz-rs", branch="dami/seun-multi-proofs", default-features=false, features=["serde", "std"] }
 rand = {version = "0.8.4", default-features = false}
 thiserror = {version = "1.0.30"}
 error-chain={version = "0.12.4", default-features=false}
