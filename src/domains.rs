@@ -10,6 +10,7 @@ pub enum DomainType {
     SyncCommittee,
     SyncCommitteeSelectionProof,
     ContributionAndProof,
+    BlsToExecutionChange,
     ApplicationMask,
     ApplicationBuilder,
 }

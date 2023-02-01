@@ -9,6 +9,7 @@ pub mod altair;
 pub mod bellatrix;
 pub mod builder;
 pub(crate) mod bytes;
+pub mod capella;
 #[cfg(feature = "std")]
 pub mod clock;
 pub mod configs;

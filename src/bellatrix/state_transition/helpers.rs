@@ -9,8 +9,8 @@ pub use crate::bellatrix::helpers::slash_validator;
 use crate::crypto::{eth_aggregate_public_keys, fast_aggregate_verify, hash, verify_signature};
 use crate::lib::*;
 use crate::primitives::{
-    Bytes32, CommitteeIndex, Domain, DomainType, Epoch, ForkDigest, Gwei, ParticipationFlags, Root,
-    Slot, ValidatorIndex, Version, FAR_FUTURE_EPOCH, GENESIS_EPOCH,
+    BlsPublicKey, Bytes32, CommitteeIndex, Domain, DomainType, Epoch, ForkDigest, Gwei,
+    ParticipationFlags, Root, Slot, ValidatorIndex, Version, FAR_FUTURE_EPOCH, GENESIS_EPOCH,
 };
 use crate::signing::compute_signing_root;
 use crate::state_transition::{
@@ -810,7 +810,7 @@ pub fn get_indexed_attestation<
         .into_iter()
         .collect::<Vec<_>>();
     attesting_indices.sort_unstable();
-    let attesting_indices = attesting_indices.try_into()?;
+    let attesting_indices = attesting_indices.try_into().map_err(|(_, err)| err)?;
     Ok(IndexedAttestation {
         attesting_indices,
         data: attestation.data.clone(),
@@ -851,7 +851,9 @@ pub fn get_next_sync_committee<
     let public_keys = indices
         .into_iter()
         .map(|i| state.validators[i].public_key.clone())
-        .collect::<Vector<_, SYNC_COMMITTEE_SIZE>>();
+        .collect::<Vec<_>>();
+    let public_keys = Vector::<BlsPublicKey, SYNC_COMMITTEE_SIZE>::try_from(public_keys)
+        .map_err(|(_, err)| err)?;
     let aggregate_public_key = eth_aggregate_public_keys(&public_keys)?;
     Ok(SyncCommittee::<SYNC_COMMITTEE_SIZE> {
         public_keys,
