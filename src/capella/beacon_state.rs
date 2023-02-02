@@ -56,13 +56,11 @@ pub struct BeaconState<
     pub inactivity_scores: List<u64, VALIDATOR_REGISTRY_LIMIT>,
     pub current_sync_committee: SyncCommittee<SYNC_COMMITTEE_SIZE>,
     pub next_sync_committee: SyncCommittee<SYNC_COMMITTEE_SIZE>,
-    pub latest_execution_payload_header: ExecutionPayloadHeader<
-        BYTES_PER_LOGS_BLOOM,
-        MAX_EXTRA_DATA_BYTES,
-        MAX_BYTES_PER_TRANSACTION,
-        MAX_TRANSACTIONS_PER_PAYLOAD,
-    >,
+    pub latest_execution_payload_header:
+        ExecutionPayloadHeader<BYTES_PER_LOGS_BLOOM, MAX_EXTRA_DATA_BYTES>,
+    #[serde(with = "crate::serde::as_string")]
     pub next_withdrawal_index: WithdrawalIndex,
+    #[serde(with = "crate::serde::as_string")]
     pub next_withdrawal_validator_index: ValidatorIndex,
     pub historical_summaries: List<HistoricalSummary, HISTORICAL_ROOTS_LIMIT>,
 }

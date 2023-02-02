@@ -39,12 +39,8 @@ pub type ExecutionPayload = capella::ExecutionPayload<
     MAX_WITHDRAWALS_PER_PAYLOAD,
 >;
 
-pub type ExecutionPayloadHeader = capella::ExecutionPayloadHeader<
-    BYTES_PER_LOGS_BLOOM,
-    MAX_EXTRA_DATA_BYTES,
-    MAX_BYTES_PER_TRANSACTION,
-    MAX_TRANSACTIONS_PER_PAYLOAD,
->;
+pub type ExecutionPayloadHeader =
+    capella::ExecutionPayloadHeader<BYTES_PER_LOGS_BLOOM, MAX_EXTRA_DATA_BYTES>;
 
 pub type BlindedBeaconBlock = capella::BlindedBeaconBlock<
     MAX_PROPOSER_SLASHINGS,

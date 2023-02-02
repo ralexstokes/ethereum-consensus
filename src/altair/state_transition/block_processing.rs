@@ -5,6 +5,10 @@ pub use crate::altair::block_processing::process_block;
 pub use crate::altair::block_processing::process_deposit;
 pub use crate::altair::block_processing::process_sync_aggregate;
 use crate::crypto::{hash, verify_signature};
+use crate::signing::compute_signing_root;
+
+use crate::primitives::{Bytes32, DomainType, Gwei, ValidatorIndex, FAR_FUTURE_EPOCH};
+use crate::ssz::ByteVector;
 use crate::state_transition::{
     invalid_header_error, invalid_operation_error, Context, InvalidAttesterSlashing,
     InvalidBeaconBlockHeader, InvalidDeposit, InvalidOperation, InvalidProposerSlashing,
@@ -17,10 +21,6 @@ use spec::{
     BeaconBlock, BeaconBlockBody, BeaconBlockHeader, BeaconState, Deposit, ProposerSlashing,
     SignedVoluntaryExit, Validator,
 };
-
-use crate::primitives::{Bytes32, DomainType, Gwei, ValidatorIndex, FAR_FUTURE_EPOCH};
-use crate::signing::compute_signing_root;
-use crate::ssz::ByteVector;
 use ssz_rs::prelude::*;
 use std::collections::HashSet;
 pub fn get_validator_from_deposit(deposit: &Deposit, context: &Context) -> Validator {
@@ -522,6 +522,6 @@ pub fn xor(a: &Bytes32, b: &Bytes32) -> Bytes32 {
         .iter()
         .zip(b.iter())
         .map(|(a, b)| a ^ b)
-        .collect::<Vector<u8, 32>>();
-    ByteVector::<32>(inner)
+        .collect::<Vec<_>>();
+    ByteVector::<32>::try_from(inner.as_ref()).unwrap()
 }

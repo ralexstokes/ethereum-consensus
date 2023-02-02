@@ -826,7 +826,7 @@ pub fn get_indexed_attestation<
     // a stable from unstable sort on the primitive `ValidatorIndex` type here.
     attesting_indices.sort_unstable();
 
-    let attesting_indices = attesting_indices.try_into()?;
+    let attesting_indices = attesting_indices.try_into().map_err(|(_, err)| err)?;
 
     Ok(IndexedAttestation {
         attesting_indices,
