@@ -63,7 +63,9 @@ pub struct BeaconState<
         MAX_BYTES_PER_TRANSACTION,
         MAX_TRANSACTIONS_PER_PAYLOAD,
     >,
+    #[serde(with = "crate::serde::as_string")]
     pub next_withdrawal_index: WithdrawalIndex,
+    #[serde(with = "crate::serde::as_string")]
     pub next_withdrawal_validator_index: ValidatorIndex,
     pub historical_summaries: List<HistoricalSummary, HISTORICAL_ROOTS_LIMIT>,
 }
