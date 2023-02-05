@@ -209,7 +209,6 @@ impl SecretKey {
 
 #[derive(Clone, Default, Hash, PartialEq, Eq, SimpleSerialize)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[cfg_attr(feature = "serde", serde(into = "String", try_from = "String"))]
 pub struct PublicKey(ByteVector<BLS_PUBLIC_KEY_BYTES_LEN>);
 
 impl fmt::Debug for PublicKey {
@@ -240,23 +239,6 @@ impl DerefMut for PublicKey {
     }
 }
 
-#[cfg(feature = "serde")]
-impl From<PublicKey> for String {
-    fn from(key: PublicKey) -> Self {
-        format!("{key}")
-    }
-}
-
-#[cfg(feature = "serde")]
-impl TryFrom<String> for PublicKey {
-    type Error = Error;
-
-    fn try_from(s: String) -> Result<Self, Error> {
-        let encoding = try_bytes_from_hex_str(&s)?;
-        Self::try_from(encoding.as_ref())
-    }
-}
-
 impl TryFrom<&[u8]> for PublicKey {
     type Error = Error;
 
@@ -277,7 +259,6 @@ impl TryFrom<&PublicKey> for bls_impl::PublicKey {
 
 #[derive(Clone, Default, Hash, PartialEq, Eq, SimpleSerialize)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[cfg_attr(feature = "serde", serde(into = "String", try_from = "String"))]
 pub struct Signature(ByteVector<BLS_SIGNATURE_BYTES_LEN>);
 
 impl fmt::Debug for Signature {
@@ -305,23 +286,6 @@ impl Deref for Signature {
 impl DerefMut for Signature {
     fn deref_mut(&mut self) -> &mut Self::Target {
         &mut self.0
-    }
-}
-
-#[cfg(feature = "serde")]
-impl From<Signature> for String {
-    fn from(signature: Signature) -> Self {
-        format!("{signature}")
-    }
-}
-
-#[cfg(feature = "serde")]
-impl TryFrom<String> for Signature {
-    type Error = Error;
-
-    fn try_from(s: String) -> Result<Self, Error> {
-        let encoding = try_bytes_from_hex_str(&s)?;
-        Self::try_from(encoding.as_ref())
     }
 }
 
@@ -578,5 +542,23 @@ mod tests {
         assert_eq!(signature, recovered_signature);
 
         assert!(verify_signature(&public_key, msg, &signature).is_ok());
+    }
+
+    #[test]
+    fn test_serde() {
+        let mut rng = thread_rng();
+        let sk = SecretKey::random(&mut rng).unwrap();
+        let pk = sk.public_key();
+        let msg = "message".as_bytes();
+        let sig = sk.sign(msg);
+
+        let serialized_key = serde_json::to_string(&pk).unwrap();
+        println!("{serialized_key}");
+        let recovered_key: PublicKey = serde_json::from_str(&serialized_key).unwrap();
+        assert_eq!(pk, recovered_key);
+        let serialized_signature = serde_json::to_string(&sig).unwrap();
+        println!("{serialized_signature}");
+        let recovered_signature: Signature = serde_json::from_str(&serialized_signature).unwrap();
+        assert_eq!(sig, recovered_signature);
     }
 }
