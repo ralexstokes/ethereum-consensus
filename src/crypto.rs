@@ -1,4 +1,3 @@
-use crate::bytes::write_bytes_to_lower_hex;
 use crate::primitives::Bytes32;
 #[cfg(feature = "serde")]
 use crate::serde::{try_bytes_from_hex_str, HexError};
@@ -213,21 +212,17 @@ impl SecretKey {
 #[cfg_attr(feature = "serde", serde(into = "String", try_from = "String"))]
 pub struct PublicKey(ByteVector<BLS_PUBLIC_KEY_BYTES_LEN>);
 
-impl fmt::LowerHex for PublicKey {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write_bytes_to_lower_hex(f, self.as_ref())
-    }
-}
-
 impl fmt::Debug for PublicKey {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "PublicKey({self:#x})")
+        let inner = &self.0;
+        write!(f, "PublicKey({inner})")
     }
 }
 
 impl fmt::Display for PublicKey {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{self:#x}")
+        let inner = &self.0;
+        write!(f, "{inner}")
     }
 }
 
@@ -285,21 +280,17 @@ impl TryFrom<&PublicKey> for bls_impl::PublicKey {
 #[cfg_attr(feature = "serde", serde(into = "String", try_from = "String"))]
 pub struct Signature(ByteVector<BLS_SIGNATURE_BYTES_LEN>);
 
-impl fmt::LowerHex for Signature {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write_bytes_to_lower_hex(f, self.as_ref())
-    }
-}
-
 impl fmt::Debug for Signature {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "Signature({self:#x})")
+        let inner = &self.0;
+        write!(f, "Signature({inner})")
     }
 }
 
 impl fmt::Display for Signature {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{self:#x}")
+        let inner = &self.0;
+        write!(f, "{inner}")
     }
 }
 
