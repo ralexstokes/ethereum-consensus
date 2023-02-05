@@ -153,7 +153,7 @@ pub fn is_valid_indexed_attestation<
     let signing_root = compute_signing_root(&mut indexed_attestation.data, domain)?;
     fast_aggregate_verify(
         &public_keys,
-        signing_root.as_bytes(),
+        signing_root.as_ref(),
         &indexed_attestation.signature,
     )
     .map_err(Into::into)
@@ -206,8 +206,7 @@ pub fn verify_block_signature<
     let signing_root = compute_signing_root(&mut signed_block.message, domain)?;
 
     let public_key = &proposer.public_key;
-    verify_signature(public_key, signing_root.as_bytes(), &signed_block.signature)
-        .map_err(Into::into)
+    verify_signature(public_key, signing_root.as_ref(), &signed_block.signature).map_err(Into::into)
 }
 
 pub fn get_domain<

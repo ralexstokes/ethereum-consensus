@@ -180,7 +180,7 @@ pub fn process_deposit<
     let branch = deposit
         .proof
         .iter()
-        .map(|node| Node::from_bytes(node.as_ref().try_into().unwrap()))
+        .map(|node| Node::try_from(node.as_ref()).expect("is valid instance"))
         .collect::<Vec<_>>();
     let leaf = deposit.data.hash_tree_root()?;
     let depth = DEPOSIT_CONTRACT_TREE_DEPTH + 1;
@@ -213,7 +213,7 @@ pub fn process_deposit<
         let domain = compute_domain(DomainType::Deposit, None, None, context)?;
         let signing_root = compute_signing_root(&mut deposit_message, domain)?;
 
-        if verify_signature(public_key, signing_root.as_bytes(), &deposit.data.signature).is_err() {
+        if verify_signature(public_key, signing_root.as_ref(), &deposit.data.signature).is_err() {
             // NOTE: explicitly return with no error and also no further mutations to `state`
             return Ok(());
         }
