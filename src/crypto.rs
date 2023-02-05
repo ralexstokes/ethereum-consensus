@@ -3,8 +3,6 @@ use crate::primitives::Bytes32;
 use crate::serde::{try_bytes_from_hex_str, HexError};
 use crate::ssz::ByteVector;
 use blst::{min_pk as bls_impl, BLST_ERROR};
-#[cfg(feature = "serde")]
-use serde;
 use sha2::{digest::FixedOutput, Digest, Sha256};
 use ssz_rs::prelude::*;
 use std::fmt;
