@@ -23,7 +23,7 @@ pub mod as_hex {
     use super::*;
     use serde::de::Deserialize;
 
-    pub fn serialize<S, T: AsRef<[u8]>>(data: &T, serializer: S) -> Result<S::Ok, S::Error>
+    pub fn serialize<S, T: AsRef<[u8]>>(data: T, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: serde::Serializer,
     {
@@ -52,7 +52,7 @@ pub mod as_string {
     use std::fmt;
     use std::str::FromStr;
 
-    pub fn serialize<S, T: fmt::Display>(data: &T, serializer: S) -> Result<S::Ok, S::Error>
+    pub fn serialize<S, T: fmt::Display>(data: T, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: serde::Serializer,
     {
