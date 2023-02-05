@@ -129,7 +129,7 @@ pub fn compute_proposer_index<
         let candidate_index = indices[shuffled_index];
         let i_bytes: [u8; 8] = (i / 32).to_le_bytes();
         hash_input[32..].copy_from_slice(&i_bytes);
-        let random_byte = hash(hash_input).as_ref()[(i % 32)] as u64;
+        let random_byte = hash(hash_input).as_ref()[i % 32] as u64;
         let effective_balance = state.validators[candidate_index].effective_balance;
         if effective_balance * max_byte >= context.max_effective_balance * random_byte {
             return Ok(candidate_index);
@@ -544,7 +544,7 @@ pub fn get_block_root_at_slot<
             upper_bound: state.slot + SLOTS_PER_HISTORICAL_ROOT as Slot,
         });
     }
-    Ok(&state.block_roots[(slot as usize % SLOTS_PER_HISTORICAL_ROOT)])
+    Ok(&state.block_roots[slot as usize % SLOTS_PER_HISTORICAL_ROOT])
 }
 pub fn get_committee_count_per_slot<
     const SLOTS_PER_HISTORICAL_ROOT: usize,
@@ -903,7 +903,7 @@ pub fn get_next_sync_committee_indices<
         let candidate_index = active_validator_indices[shuffled_index];
         let i_bytes: [u8; 8] = ((i / 32) as u64).to_le_bytes();
         hash_input[32..].copy_from_slice(&i_bytes);
-        let random_byte = hash(hash_input).as_ref()[(i % 32)] as u64;
+        let random_byte = hash(hash_input).as_ref()[i % 32] as u64;
         let effective_balance = state.validators[candidate_index].effective_balance;
         if effective_balance * max_random_byte >= context.max_effective_balance * random_byte {
             sync_committee_indices.push(candidate_index);

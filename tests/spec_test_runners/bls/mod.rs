@@ -121,9 +121,8 @@ impl FastAggregateVerifyTestCase {
             .input
             .pubkeys
             .iter()
-            .cloned()
-            .map(|repr| PublicKey::try_from(repr).unwrap())
-            .collect::<Vec<_>>();
+            .map(|repr| serde_yaml::from_str(repr).unwrap())
+            .collect::<Vec<PublicKey>>();
         let public_keys = public_keys.iter().collect::<Vec<_>>();
         fast_aggregate_verify(
             &public_keys,
@@ -147,13 +146,10 @@ impl TestCase for FastAggregateVerifyTestCase {
         if self.input.signature.is_none() {
             return true;
         }
-        if self
-            .input
-            .pubkeys
-            .iter()
-            .cloned()
-            .any(|key| PublicKey::try_from(key).is_err())
-        {
+        if self.input.pubkeys.iter().any(|key| {
+            let input: Result<PublicKey, _> = serde_yaml::from_str(key);
+            input.is_err()
+        }) {
             return true;
         }
 
@@ -318,9 +314,8 @@ impl EthFastAggregateVerifyTestCase {
             .input
             .public_keys
             .iter()
-            .cloned()
-            .map(|repr| PublicKey::try_from(repr).unwrap())
-            .collect::<Vec<_>>();
+            .map(|repr| serde_yaml::from_str(repr).unwrap())
+            .collect::<Vec<PublicKey>>();
         let public_keys = public_keys.iter().collect::<Vec<_>>();
         let message = self.input.message.as_ref();
         let signature = self.input.signature.as_ref().unwrap();
@@ -341,13 +336,11 @@ impl TestCase for EthFastAggregateVerifyTestCase {
         if self.input.signature.is_none() {
             return true;
         }
-        if self
-            .input
-            .public_keys
-            .iter()
-            .cloned()
-            .any(|key| PublicKey::try_from(key).is_err())
-        {
+
+        if self.input.public_keys.iter().any(|key| {
+            let input: Result<PublicKey, _> = serde_yaml::from_str(key);
+            input.is_err()
+        }) {
             return true;
         }
 
