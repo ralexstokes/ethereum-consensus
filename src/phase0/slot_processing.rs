@@ -1,6 +1,6 @@
 use crate::phase0 as spec;
 
-use crate::primitives::Slot;
+use crate::primitives::{Root, Slot};
 use crate::state_transition::{Context, Error, Result};
 use spec::{process_epoch, BeaconState};
 use ssz_rs::prelude::*;
