@@ -70,7 +70,7 @@ pub fn process_slot<
     let root_index = state.slot % context.slots_per_historical_root;
     state.state_roots[root_index as usize] = previous_state_root;
 
-    if state.latest_block_header.state_root == Node::default() {
+    if state.latest_block_header.state_root == Root::default() {
         state.latest_block_header.state_root = previous_state_root;
     }
 

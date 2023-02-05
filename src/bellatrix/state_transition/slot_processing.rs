@@ -1,6 +1,6 @@
 //! WARNING: This file was derived by the `gen-spec` utility. DO NOT EDIT MANUALLY.
 use crate::bellatrix as spec;
-use crate::primitives::Slot;
+use crate::primitives::{Root, Slot};
 use crate::state_transition::{Context, Error, Result};
 use spec::{process_epoch, BeaconState};
 use ssz_rs::prelude::*;
@@ -37,7 +37,7 @@ pub fn process_slot<
     let previous_state_root = state.hash_tree_root()?;
     let root_index = state.slot % context.slots_per_historical_root;
     state.state_roots[root_index as usize] = previous_state_root;
-    if state.latest_block_header.state_root == Node::default() {
+    if state.latest_block_header.state_root == Root::default() {
         state.latest_block_header.state_root = previous_state_root;
     }
     let previous_block_root = state.latest_block_header.hash_tree_root()?;

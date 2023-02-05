@@ -213,7 +213,7 @@ pub enum InvalidVoluntaryExit {
 #[derive(Debug, Error)]
 pub enum InvalidSyncAggregate {
     #[error("invalid sync committee aggregate signature {signature} signing over previous slot block root {root}")]
-    InvalidSignature { signature: BlsSignature, root: Node },
+    InvalidSignature { signature: BlsSignature, root: Root },
 }
 
 #[derive(Debug, Error)]
