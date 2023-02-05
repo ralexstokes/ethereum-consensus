@@ -1,4 +1,4 @@
-use crate::bytes::write_bytes_to_lower_hex;
+use super::write_bytes_to_lower_hex;
 use ssz_rs::prelude::*;
 use std::fmt;
 use std::hash::{Hash, Hasher};
