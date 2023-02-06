@@ -3,6 +3,7 @@ use crate::bellatrix;
 use crate::configs::{self, Config};
 use crate::phase0;
 use crate::primitives::{Epoch, ExecutionAddress, Gwei, Hash32, Slot, Version, U256};
+use crate::state_transition::Error;
 
 #[derive(Debug)]
 pub enum Forks {
@@ -235,7 +236,7 @@ impl Context {
         Self::from(phase0_preset, altair_preset, bellatrix_preset, config)
     }
 
-    pub fn fork(&self, slot: Slot) -> Forks {
+    pub fn fork_for(&self, slot: Slot) -> Forks {
         let epoch = slot / self.slots_per_epoch;
         if epoch >= self.capella_fork_epoch {
             Forks::Capella
@@ -245,6 +246,15 @@ impl Context {
             Forks::Altair
         } else {
             Forks::Phase0
+        }
+    }
+
+    pub fn genesis_time(&self) -> Result<u64, Error> {
+        match self.name {
+            "mainnet" => Ok(crate::clock::MAINNET_GENESIS_TIME),
+            "sepolia" => Ok(crate::clock::SEPOLIA_GENESIS_TIME),
+            "goerli" => Ok(crate::clock::GOERLI_GENESIS_TIME),
+            name => Err(Error::UnknownGenesisTime(name.to_string())),
         }
     }
 }

@@ -52,6 +52,8 @@ pub enum Error {
         source_fork: Forks,
         destination_fork: Forks,
     },
+    #[error("genesis time unknown for network {0}")]
+    UnknownGenesisTime(String),
 }
 
 #[derive(Debug, Error)]
