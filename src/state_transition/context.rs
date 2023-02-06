@@ -9,6 +9,7 @@ pub enum Forks {
     Phase0,
     Altair,
     Bellatrix,
+    Capella,
 }
 
 #[derive(Debug, Default, Clone)]
@@ -232,5 +233,18 @@ impl Context {
         let altair_preset = &altair::mainnet::PRESET;
         let bellatrix_preset = &bellatrix::mainnet::PRESET;
         Self::from(phase0_preset, altair_preset, bellatrix_preset, config)
+    }
+
+    pub fn fork(&self, slot: Slot) -> Forks {
+        let epoch = slot / self.slots_per_epoch;
+        if epoch >= self.capella_fork_epoch {
+            Forks::Capella
+        } else if epoch >= self.bellatrix_fork_epoch {
+            Forks::Bellatrix
+        } else if epoch >= self.altair_fork_epoch {
+            Forks::Altair
+        } else {
+            Forks::Phase0
+        }
     }
 }
