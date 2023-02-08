@@ -1,5 +1,6 @@
 use crate::altair;
 use crate::bellatrix;
+use crate::clock::{self, Clock, SystemTimeProvider};
 use crate::configs::{self, Config};
 use crate::phase0;
 use crate::primitives::{Epoch, ExecutionAddress, Gwei, Hash32, Slot, Version, U256};
@@ -278,6 +279,21 @@ impl Context {
             "sepolia" => Ok(crate::clock::SEPOLIA_GENESIS_TIME),
             "goerli" => Ok(crate::clock::GOERLI_GENESIS_TIME),
             name => Err(Error::UnknownGenesisTime(name.to_string())),
+        }
+    }
+
+    pub fn clock(&self, genesis_time: Option<u64>) -> Clock<SystemTimeProvider> {
+        match self.name.as_ref() {
+            "mainnet" => clock::for_mainnet(),
+            "sepolia" => clock::for_sepolia(),
+            "goerli" => clock::for_goerli(),
+            _ => {
+                // NOTE: the default genesis time here is usually seen on testnets
+                // where we have control over the genesis details
+                let genesis_time =
+                    genesis_time.unwrap_or(self.min_genesis_time + self.genesis_delay);
+                clock::from_system_time(genesis_time, self.seconds_per_slot, self.slots_per_epoch)
+            }
         }
     }
 }
