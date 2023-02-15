@@ -15,6 +15,7 @@ pub use blinded_beacon_block::*;
 pub use bls_to_execution_change::*;
 pub use execution::*;
 pub use presets::Preset;
+pub use withdrawal::*;
 
 pub use crate::altair::{
     SyncAggregate, SyncAggregatorSelectionData, SyncCommittee, PARTICIPATION_FLAG_WEIGHTS,
