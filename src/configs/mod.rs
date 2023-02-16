@@ -33,8 +33,8 @@ pub struct Config {
     pub capella_fork_version: Version,
     pub capella_fork_epoch: Epoch,
     #[serde(with = "crate::serde::as_hex")]
-    pub eip4844_fork_version: Version,
-    pub eip4844_fork_epoch: Epoch,
+    pub deneb_fork_version: Version,
+    pub deneb_fork_epoch: Epoch,
 
     pub seconds_per_slot: u64,
     pub seconds_per_eth1_block: u64,
