@@ -1,4 +1,4 @@
-use crate::bytes::write_bytes_to_lower_hex;
+use super::write_bytes_to_lower_hex;
 use ssz_rs::prelude::*;
 use std::fmt;
 use std::hash::{Hash, Hasher};
@@ -6,9 +6,7 @@ use std::ops::{Deref, DerefMut};
 
 #[derive(Default, Clone, Eq, SimpleSerialize)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-pub struct ByteVector<const N: usize>(
-    #[serde(with = "crate::serde::as_hex")] pub(crate) Vector<u8, N>,
-);
+pub struct ByteVector<const N: usize>(#[serde(with = "crate::serde::as_hex")] Vector<u8, N>);
 
 impl<const N: usize> TryFrom<&[u8]> for ByteVector<N> {
     type Error = ssz_rs::DeserializeError;

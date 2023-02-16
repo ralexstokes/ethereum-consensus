@@ -153,7 +153,7 @@ pub fn is_valid_indexed_attestation<
     let signing_root = compute_signing_root(&mut indexed_attestation.data, domain)?;
     fast_aggregate_verify(
         &public_keys,
-        signing_root.as_bytes(),
+        signing_root.as_ref(),
         &indexed_attestation.signature,
     )
     .map_err(Into::into)
@@ -206,8 +206,7 @@ pub fn verify_block_signature<
     let signing_root = compute_signing_root(&mut signed_block.message, domain)?;
 
     let public_key = &proposer.public_key;
-    verify_signature(public_key, signing_root.as_bytes(), &signed_block.signature)
-        .map_err(Into::into)
+    verify_signature(public_key, signing_root.as_ref(), &signed_block.signature).map_err(Into::into)
 }
 
 pub fn get_domain<
@@ -352,7 +351,7 @@ pub fn compute_proposer_index<
 
         let i_bytes: [u8; 8] = (i / 32).to_le_bytes();
         hash_input[32..].copy_from_slice(&i_bytes);
-        let random_byte = hash(hash_input).as_ref()[(i % 32)] as u64;
+        let random_byte = hash(hash_input).as_ref()[i % 32] as u64;
 
         let effective_balance = state.validators[candidate_index].effective_balance;
         if effective_balance * max_byte >= context.max_effective_balance * random_byte {
@@ -514,7 +513,7 @@ pub fn get_block_root_at_slot<
             upper_bound: state.slot + SLOTS_PER_HISTORICAL_ROOT as Slot,
         });
     }
-    Ok(&state.block_roots[(slot as usize % SLOTS_PER_HISTORICAL_ROOT)])
+    Ok(&state.block_roots[slot as usize % SLOTS_PER_HISTORICAL_ROOT])
 }
 
 pub fn get_randao_mix<

@@ -73,7 +73,7 @@ pub fn get_next_sync_committee_indices<
 
         let i_bytes: [u8; 8] = ((i / 32) as u64).to_le_bytes();
         hash_input[32..].copy_from_slice(&i_bytes);
-        let random_byte = hash(hash_input).as_ref()[(i % 32)] as u64;
+        let random_byte = hash(hash_input).as_ref()[i % 32] as u64;
         let effective_balance = state.validators[candidate_index].effective_balance;
 
         if effective_balance * max_random_byte >= context.max_effective_balance * random_byte {

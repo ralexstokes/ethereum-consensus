@@ -1,17 +1,21 @@
 use crate::altair;
 use crate::bellatrix;
+use crate::clock::{self, Clock, SystemTimeProvider};
 use crate::configs::{self, Config};
 use crate::phase0;
 use crate::primitives::{Epoch, ExecutionAddress, Gwei, Hash32, Slot, Version, U256};
+use crate::state_transition::Error;
 
 #[derive(Debug)]
 pub enum Forks {
     Phase0,
     Altair,
     Bellatrix,
+    Capella,
 }
 
 #[derive(Debug, Default, Clone)]
+#[cfg_attr(feature = "serde", derive(serde::Deserialize))]
 pub struct Context {
     // phase0 preset
     pub max_committees_per_slot: u64,
@@ -66,7 +70,7 @@ pub struct Context {
     pub max_extra_data_bytes: usize,
 
     // config
-    pub name: &'static str,
+    pub name: String,
 
     pub terminal_total_difficulty: U256,
     pub terminal_block_hash: Hash32,
@@ -83,8 +87,8 @@ pub struct Context {
     pub bellatrix_fork_epoch: Epoch,
     pub capella_fork_version: Version,
     pub capella_fork_epoch: Epoch,
-    pub sharding_fork_version: Version,
-    pub sharding_fork_epoch: Epoch,
+    pub eip4844_fork_version: Version,
+    pub eip4844_fork_epoch: Epoch,
 
     pub seconds_per_slot: u64,
     pub seconds_per_eth1_block: u64,
@@ -106,6 +110,28 @@ pub struct Context {
 }
 
 impl Context {
+    #[cfg(feature = "serde")]
+    pub fn try_from_file<P: AsRef<std::path::Path>>(config_file: P) -> Result<Self, Error> {
+        let mut file = std::fs::File::open(config_file)?;
+        let config: Config = serde_yaml::from_reader(&mut file)?;
+        let context = match config.preset_base.as_ref() {
+            "mainnet" => {
+                let phase0_preset = &phase0::mainnet::PRESET;
+                let altair_preset = &altair::mainnet::PRESET;
+                let bellatrix_preset = &bellatrix::mainnet::PRESET;
+                Self::from(phase0_preset, altair_preset, bellatrix_preset, &config)
+            }
+            "minimal" => {
+                let phase0_preset = &phase0::minimal::PRESET;
+                let altair_preset = &altair::minimal::PRESET;
+                let bellatrix_preset = &bellatrix::minimal::PRESET;
+                Self::from(phase0_preset, altair_preset, bellatrix_preset, &config)
+            }
+            other => return Err(Error::UnknownPreset(other.to_string())),
+        };
+        Ok(context)
+    }
+
     pub fn from(
         phase0_preset: &phase0::Preset,
         altair_preset: &altair::Preset,
@@ -169,7 +195,7 @@ impl Context {
             max_extra_data_bytes: bellatrix_preset.max_extra_data_bytes,
 
             // config
-            name: config.name,
+            name: config.name.to_string(),
             terminal_total_difficulty: config.terminal_total_difficulty.clone(),
             terminal_block_hash: config.terminal_block_hash.clone(),
             terminal_block_hash_activation_epoch: config.terminal_block_hash_activation_epoch,
@@ -183,8 +209,8 @@ impl Context {
             bellatrix_fork_epoch: config.bellatrix_fork_epoch,
             capella_fork_version: config.capella_fork_version,
             capella_fork_epoch: config.capella_fork_epoch,
-            sharding_fork_version: config.sharding_fork_version,
-            sharding_fork_epoch: config.sharding_fork_epoch,
+            eip4844_fork_version: config.eip4844_fork_version,
+            eip4844_fork_epoch: config.eip4844_fork_epoch,
             seconds_per_slot: config.seconds_per_slot,
             seconds_per_eth1_block: config.seconds_per_eth1_block,
             min_validator_withdrawability_delay: config.min_validator_withdrawability_delay,
@@ -232,5 +258,42 @@ impl Context {
         let altair_preset = &altair::mainnet::PRESET;
         let bellatrix_preset = &bellatrix::mainnet::PRESET;
         Self::from(phase0_preset, altair_preset, bellatrix_preset, config)
+    }
+
+    pub fn fork_for(&self, slot: Slot) -> Forks {
+        let epoch = slot / self.slots_per_epoch;
+        if epoch >= self.capella_fork_epoch {
+            Forks::Capella
+        } else if epoch >= self.bellatrix_fork_epoch {
+            Forks::Bellatrix
+        } else if epoch >= self.altair_fork_epoch {
+            Forks::Altair
+        } else {
+            Forks::Phase0
+        }
+    }
+
+    pub fn genesis_time(&self) -> Result<u64, Error> {
+        match self.name.as_ref() {
+            "mainnet" => Ok(crate::clock::MAINNET_GENESIS_TIME),
+            "sepolia" => Ok(crate::clock::SEPOLIA_GENESIS_TIME),
+            "goerli" => Ok(crate::clock::GOERLI_GENESIS_TIME),
+            name => Err(Error::UnknownGenesisTime(name.to_string())),
+        }
+    }
+
+    pub fn clock(&self, genesis_time: Option<u64>) -> Clock<SystemTimeProvider> {
+        match self.name.as_ref() {
+            "mainnet" => clock::for_mainnet(),
+            "sepolia" => clock::for_sepolia(),
+            "goerli" => clock::for_goerli(),
+            _ => {
+                // NOTE: the default genesis time here is usually seen on testnets
+                // where we have control over the genesis details
+                let genesis_time =
+                    genesis_time.unwrap_or(self.min_genesis_time + self.genesis_delay);
+                clock::from_system_time(genesis_time, self.seconds_per_slot, self.slots_per_epoch)
+            }
+        }
     }
 }

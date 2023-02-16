@@ -38,5 +38,5 @@ pub fn verify_signed_data<T: SimpleSerialize>(
     domain: Domain,
 ) -> Result<(), Error> {
     let signing_root = compute_signing_root(data, domain)?;
-    verify_signature(public_key, signing_root.as_bytes(), signature).map_err(Into::into)
+    verify_signature(public_key, signing_root.as_ref(), signature).map_err(Into::into)
 }

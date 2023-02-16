@@ -3,7 +3,6 @@ extern crate core;
 pub mod altair;
 pub mod bellatrix;
 pub mod builder;
-pub(crate) mod bytes;
 pub mod capella;
 pub mod clock;
 pub mod configs;

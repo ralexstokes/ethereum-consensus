@@ -15,6 +15,12 @@ pub enum Error {
     SimpleSerialize(#[from] SimpleSerializeError),
     #[error("{0}")]
     Crypto(#[from] CryptoError),
+    #[cfg(feature = "serde")]
+    #[error("{0}")]
+    Io(#[from] std::io::Error),
+    #[cfg(feature = "serde")]
+    #[error("{0}")]
+    Yaml(#[from] serde_yaml::Error),
     #[error("requested element {requested} but collection only has {bound} elements")]
     OutOfBounds { requested: usize, bound: usize },
     #[error("collection cannot be empty")]
@@ -52,6 +58,11 @@ pub enum Error {
         source_fork: Forks,
         destination_fork: Forks,
     },
+    #[error("genesis time unknown for network {0}")]
+    UnknownGenesisTime(String),
+    #[cfg(feature = "serde")]
+    #[error("an unknown preset {0} was supplied when constructing context")]
+    UnknownPreset(String),
 }
 
 #[derive(Debug, Error)]
@@ -213,7 +224,7 @@ pub enum InvalidVoluntaryExit {
 #[derive(Debug, Error)]
 pub enum InvalidSyncAggregate {
     #[error("invalid sync committee aggregate signature {signature} signing over previous slot block root {root}")]
-    InvalidSignature { signature: BlsSignature, root: Node },
+    InvalidSignature { signature: BlsSignature, root: Root },
 }
 
 #[derive(Debug, Error)]

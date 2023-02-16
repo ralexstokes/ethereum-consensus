@@ -23,7 +23,7 @@ pub mod as_hex {
     use super::*;
     use serde::de::Deserialize;
 
-    pub fn serialize<S, T: AsRef<[u8]>>(data: &T, serializer: S) -> Result<S::Ok, S::Error>
+    pub fn serialize<S, T: AsRef<[u8]>>(data: T, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: serde::Serializer,
     {
@@ -52,7 +52,7 @@ pub mod as_string {
     use std::fmt;
     use std::str::FromStr;
 
-    pub fn serialize<S, T: fmt::Display>(data: &T, serializer: S) -> Result<S::Ok, S::Error>
+    pub fn serialize<S, T: fmt::Display>(data: T, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: serde::Serializer,
     {
@@ -128,33 +128,5 @@ pub mod collection_over_string {
     {
         let data = deserializer.deserialize_seq(Visitor(PhantomData))?;
         T::try_from(data).map_err(|_| serde::de::Error::custom("failure to parse collection"))
-    }
-}
-
-pub mod as_b58 {
-    use serde::de::Deserialize;
-
-    pub fn serialize<S, T: AsRef<[u8]>>(data: &T, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: serde::Serializer,
-    {
-        let encoding = bs58::encode(data.as_ref()).into_string();
-        serializer.collect_str(&encoding)
-    }
-
-    pub fn deserialize<'de, D, T>(deserializer: D) -> Result<T, D::Error>
-    where
-        D: serde::Deserializer<'de>,
-        for<'a> T: TryFrom<&'a [u8]>,
-    {
-        let s = <String>::deserialize(deserializer)?;
-
-        let data = bs58::decode(s)
-            .into_vec()
-            .map_err(serde::de::Error::custom)?;
-
-        let inner = T::try_from(&data)
-            .map_err(|_| serde::de::Error::custom("type failed to parse bytes from base58 data"))?;
-        Ok(inner)
     }
 }
