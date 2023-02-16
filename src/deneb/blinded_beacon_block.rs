@@ -36,12 +36,8 @@ pub struct BlindedBeaconBlockBody<
     pub deposits: List<Deposit, MAX_DEPOSITS>,
     pub voluntary_exits: List<SignedVoluntaryExit, MAX_VOLUNTARY_EXITS>,
     pub sync_aggregate: SyncAggregate<SYNC_COMMITTEE_SIZE>,
-    pub execution_payload_header: ExecutionPayloadHeader<
-        BYTES_PER_LOGS_BLOOM,
-        MAX_EXTRA_DATA_BYTES,
-        MAX_BYTES_PER_TRANSACTION,
-        MAX_TRANSACTIONS_PER_PAYLOAD,
-    >,
+    pub execution_payload_header:
+        ExecutionPayloadHeader<BYTES_PER_LOGS_BLOOM, MAX_EXTRA_DATA_BYTES>,
     pub bls_to_execution_changes: List<SignedBlsToExecutionChange, MAX_BLS_TO_EXECUTION_CHANGES>,
     pub blob_kzg_commitments: List<KzgCommitment, MAX_BLOBS_PER_BLOCK>,
 }

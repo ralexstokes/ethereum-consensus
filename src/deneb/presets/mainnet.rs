@@ -39,12 +39,8 @@ pub type ExecutionPayload = deneb::ExecutionPayload<
     MAX_WITHDRAWALS_PER_PAYLOAD,
 >;
 
-pub type ExecutionPayloadHeader = deneb::ExecutionPayloadHeader<
-    BYTES_PER_LOGS_BLOOM,
-    MAX_EXTRA_DATA_BYTES,
-    MAX_BYTES_PER_TRANSACTION,
-    MAX_TRANSACTIONS_PER_PAYLOAD,
->;
+pub type ExecutionPayloadHeader =
+    deneb::ExecutionPayloadHeader<BYTES_PER_LOGS_BLOOM, MAX_EXTRA_DATA_BYTES>;
 
 pub type BlindedBeaconBlock = deneb::BlindedBeaconBlock<
     MAX_PROPOSER_SLASHINGS,
@@ -149,26 +145,11 @@ pub type SignedBeaconBlock = deneb::SignedBeaconBlock<
 >;
 
 pub type Blob = deneb::Blob<BYTES_PER_BLOB>;
-
-pub type BlobsSidecar = deneb::BlobsSidecar<MAX_BLOBS_PER_BLOCK, BYTES_PER_BLOB>;
-
-pub type SignedBeaconBlockAndBlobsSidecar = deneb::SignedBeaconBlockAndBlobsSidecar<
-    MAX_PROPOSER_SLASHINGS,
-    MAX_VALIDATORS_PER_COMMITTEE,
-    MAX_ATTESTER_SLASHINGS,
-    MAX_ATTESTATIONS,
-    MAX_DEPOSITS,
-    MAX_VOLUNTARY_EXITS,
-    SYNC_COMMITTEE_SIZE,
-    BYTES_PER_LOGS_BLOOM,
-    MAX_EXTRA_DATA_BYTES,
-    MAX_BYTES_PER_TRANSACTION,
-    MAX_TRANSACTIONS_PER_PAYLOAD,
-    MAX_WITHDRAWALS_PER_PAYLOAD,
-    MAX_BLS_TO_EXECUTION_CHANGES,
-    MAX_BLOBS_PER_BLOCK,
-    BYTES_PER_BLOB,
->;
+pub type BlobSidecar = deneb::BlobSidecar<BYTES_PER_BLOB>;
+pub type SignedBlobSidecar = deneb::SignedBlobSidecar<MAX_BLOBS_PER_BLOCK, BYTES_PER_BLOB>;
+pub type BlindedBlobSidecar = deneb::BlindedBlobSidecar<BYTES_PER_BLOB>;
+pub type SignedBlindedBlobSidecar =
+    deneb::SignedBlindedBlobSidecar<MAX_BLOBS_PER_BLOCK, BYTES_PER_BLOB>;
 
 pub type NoOpExecutionEngine = deneb::NoOpExecutionEngine<
     BYTES_PER_LOGS_BLOOM,

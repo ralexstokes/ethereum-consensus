@@ -12,6 +12,7 @@ pub type Epoch = u64;
 pub type CommitteeIndex = usize;
 pub type ValidatorIndex = usize;
 pub type WithdrawalIndex = usize;
+pub type BlobIndex = usize;
 pub type Gwei = u64;
 pub type Hash32 = Bytes32;
 
