@@ -28,7 +28,10 @@ pub struct AttestationData {
 #[derive(Default, Debug, SimpleSerialize, Clone, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct IndexedAttestation<const MAX_VALIDATORS_PER_COMMITTEE: usize> {
-    #[cfg_attr(feature = "serde", serde(with = "crate::serde::collection_over_string"))]
+    #[cfg_attr(
+        feature = "serde",
+        serde(with = "crate::serde::collection_over_string")
+    )]
     pub attesting_indices: List<ValidatorIndex, MAX_VALIDATORS_PER_COMMITTEE>,
     pub data: AttestationData,
     pub signature: BlsSignature,

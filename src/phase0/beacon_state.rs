@@ -73,10 +73,16 @@ pub struct BeaconState<
     #[cfg_attr(feature = "serde", serde(with = "crate::serde::as_string"))]
     pub eth1_deposit_index: u64,
     pub validators: List<Validator, VALIDATOR_REGISTRY_LIMIT>,
-    #[cfg_attr(feature = "serde", serde(with = "crate::serde::collection_over_string"))]
+    #[cfg_attr(
+        feature = "serde",
+        serde(with = "crate::serde::collection_over_string")
+    )]
     pub balances: List<Gwei, VALIDATOR_REGISTRY_LIMIT>,
     pub randao_mixes: Vector<Bytes32, EPOCHS_PER_HISTORICAL_VECTOR>,
-    #[cfg_attr(feature = "serde", serde(with = "crate::serde::collection_over_string"))]
+    #[cfg_attr(
+        feature = "serde",
+        serde(with = "crate::serde::collection_over_string")
+    )]
     pub slashings: Vector<Gwei, EPOCHS_PER_SLASHINGS_VECTOR>,
     pub previous_epoch_attestations:
         List<PendingAttestation<MAX_VALIDATORS_PER_COMMITTEE>, PENDING_ATTESTATIONS_BOUND>,
