@@ -17,7 +17,7 @@ gen-tests = ["walkdir", "convert_case"]
 ssz-rs = { git = "https://github.com/ralexstokes/ssz-rs", rev = "adf1a0b14cef90b9536f28ef89da1fab316465e1" }
 blst = "0.3.6"
 rand = "0.8.4"
-thiserror = "= 1.0.30"
+thiserror = "1.0.30"
 sha2 = "0.9.8"
 integer-sqrt = "0.1.5"
 enr = "0.6.2"
