@@ -289,7 +289,7 @@ impl TestCase for EthAggregatePubkeysTestCase {
 #[serde_as]
 #[derive(Debug, Deserialize)]
 struct EthFastAggregateVerifyInput {
-    #[serde(rename = "pubkeys")]
+    #[cfg_attr(feature = "serde", serde(rename = "pubkeys"))]
     public_keys: Vec<String>,
     message: Bytes32,
     #[serde_as(deserialize_as = "DefaultOnError")]

@@ -54,9 +54,9 @@ pub struct BlindedBeaconBlock<
     const MAX_BYTES_PER_TRANSACTION: usize,
     const MAX_TRANSACTIONS_PER_PAYLOAD: usize,
 > {
-    #[serde(with = "crate::serde::as_string")]
+    #[cfg_attr(feature = "serde", serde(with = "crate::serde::as_string"))]
     pub slot: Slot,
-    #[serde(with = "crate::serde::as_string")]
+    #[cfg_attr(feature = "serde", serde(with = "crate::serde::as_string"))]
     pub proposer_index: ValidatorIndex,
     pub parent_root: Root,
     pub state_root: Root,
