@@ -12,6 +12,12 @@ pub enum Error {
     Merkleization(MerkleizationError),
     SimpleSerialize(SimpleSerializeError),
     Crypto(CryptoError),
+    #[cfg(feature = "serde")]
+    #[error("{0}")]
+    Io(#[from] std::io::Error),
+    #[cfg(feature = "serde")]
+    #[error("{0}")]
+    Yaml(#[from] serde_yaml::Error),
     OutOfBounds {
         requested: usize,
         bound: usize,
@@ -44,6 +50,12 @@ pub enum Error {
         source_fork: Forks,
         destination_fork: Forks,
     },
+
+    #[error("genesis time unknown for network {0}")]
+    UnknownGenesisTime(String),
+    #[cfg(feature = "serde")]
+    #[error("an unknown preset {0} was supplied when constructing context")]
+    UnknownPreset(String),
 }
 
 impl From<SimpleSerializeError> for Error {

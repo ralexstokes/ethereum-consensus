@@ -1,9 +1,9 @@
-use crate::bytes::write_bytes_to_lower_hex;
-use crate::lib::*;
 use crate::primitives::Bytes32;
+use crate::lib::*;
 #[cfg(feature = "serde")]
 use crate::serde::{try_bytes_from_hex_str, HexError};
 use crate::ssz::ByteVector;
+use blst::{min_pk as bls_impl, BLST_ERROR};
 use milagro_bls::{AggregatePublicKey, AmclError};
 #[cfg(feature = "serde")]
 use serde;
@@ -264,24 +264,19 @@ impl SecretKey {
 
 #[derive(Clone, Default, Hash, PartialEq, Eq, SimpleSerialize)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[cfg_attr(feature = "serde", serde(into = "String", try_from = "String"))]
 pub struct PublicKey(ByteVector<BLS_PUBLIC_KEY_BYTES_LEN>);
-
-impl fmt::LowerHex for PublicKey {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write_bytes_to_lower_hex(f, self.as_ref())
-    }
-}
 
 impl fmt::Debug for PublicKey {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "PublicKey({self:#x})")
+        let inner = &self.0;
+        write!(f, "PublicKey({inner})")
     }
 }
 
 impl fmt::Display for PublicKey {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{self:#x}")
+        let inner = &self.0;
+        write!(f, "{inner}")
     }
 }
 
@@ -296,23 +291,6 @@ impl Deref for PublicKey {
 impl DerefMut for PublicKey {
     fn deref_mut(&mut self) -> &mut Self::Target {
         &mut self.0
-    }
-}
-
-#[cfg(feature = "serde")]
-impl From<PublicKey> for String {
-    fn from(key: PublicKey) -> Self {
-        format!("{key}")
-    }
-}
-
-#[cfg(feature = "serde")]
-impl TryFrom<String> for PublicKey {
-    type Error = Error;
-
-    fn try_from(s: String) -> Result<Self, Error> {
-        let encoding = try_bytes_from_hex_str(&s)?;
-        Self::try_from(encoding.as_ref())
     }
 }
 
@@ -374,24 +352,19 @@ impl TryFrom<milagro_bls::AggregatePublicKey> for PublicKey {
 
 #[derive(Clone, Default, Hash, PartialEq, Eq, SimpleSerialize)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[cfg_attr(feature = "serde", serde(into = "String", try_from = "String"))]
 pub struct Signature(ByteVector<BLS_SIGNATURE_BYTES_LEN>);
-
-impl fmt::LowerHex for Signature {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write_bytes_to_lower_hex(f, self.as_ref())
-    }
-}
 
 impl fmt::Debug for Signature {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "Signature({self:#x})")
+        let inner = &self.0;
+        write!(f, "Signature({inner})")
     }
 }
 
 impl fmt::Display for Signature {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{self:#x}")
+        let inner = &self.0;
+        write!(f, "{inner}")
     }
 }
 
@@ -406,23 +379,6 @@ impl Deref for Signature {
 impl DerefMut for Signature {
     fn deref_mut(&mut self) -> &mut Self::Target {
         &mut self.0
-    }
-}
-
-#[cfg(feature = "serde")]
-impl From<Signature> for String {
-    fn from(signature: Signature) -> Self {
-        format!("{signature}")
-    }
-}
-
-#[cfg(feature = "serde")]
-impl TryFrom<String> for Signature {
-    type Error = Error;
-
-    fn try_from(s: String) -> Result<Self, Error> {
-        let encoding = try_bytes_from_hex_str(&s)?;
-        Self::try_from(encoding.as_ref())
     }
 }
 
@@ -691,5 +647,23 @@ mod tests {
         assert_eq!(signature, recovered_signature);
 
         assert!(verify_signature(&public_key, msg, &signature).is_ok());
+    }
+
+    #[test]
+    fn test_serde() {
+        let mut rng = thread_rng();
+        let sk = SecretKey::random(&mut rng).unwrap();
+        let pk = sk.public_key();
+        let msg = "message".as_bytes();
+        let sig = sk.sign(msg);
+
+        let serialized_key = serde_json::to_string(&pk).unwrap();
+        println!("{serialized_key}");
+        let recovered_key: PublicKey = serde_json::from_str(&serialized_key).unwrap();
+        assert_eq!(pk, recovered_key);
+        let serialized_signature = serde_json::to_string(&sig).unwrap();
+        println!("{serialized_signature}");
+        let recovered_signature: Signature = serde_json::from_str(&serialized_signature).unwrap();
+        assert_eq!(sig, recovered_signature);
     }
 }

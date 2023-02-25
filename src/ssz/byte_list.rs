@@ -1,12 +1,10 @@
-use crate::bytes::write_bytes_to_lower_hex;
-use crate::lib::*;
+use super::write_bytes_to_lower_hex;
 use ssz_rs::prelude::*;
+use crate::lib::*;
 
 #[derive(Default, Clone, Eq, SimpleSerialize)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-pub struct ByteList<const N: usize>(
-    #[cfg_attr(feature = "serde", serde(with = "crate::serde::as_hex"))] pub(crate) List<u8, N>,
-);
+pub struct ByteList<const N: usize>(#[cfg_attr(feature = "serde", serde(with = "crate::serde::as_hex"))] List<u8, N>);
 
 impl<const N: usize> TryFrom<&[u8]> for ByteList<N> {
     type Error = ssz_rs::DeserializeError;
@@ -37,7 +35,7 @@ impl<const N: usize> fmt::LowerHex for ByteList<N> {
 
 impl<const N: usize> fmt::Debug for ByteList<N> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "ByteList<{}>(len={})({:#x})", N, self.len(), self)
+        write!(f, "ByteList<{N}>(len={})({:#x})", self.len(), self)
     }
 }
 

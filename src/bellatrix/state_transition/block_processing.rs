@@ -368,7 +368,7 @@ pub fn process_deposit<
     let branch = deposit
         .proof
         .iter()
-        .map(|node| Node::from_bytes(node.as_ref().try_into().unwrap()))
+        .map(|node| Node::try_from(node.as_ref()).expect("is valid instance"))
         .collect::<Vec<_>>();
     let leaf = deposit.data.hash_tree_root()?;
     let depth = DEPOSIT_CONTRACT_TREE_DEPTH + 1;
@@ -401,7 +401,7 @@ pub fn process_deposit<
         };
         let domain = compute_domain(DomainType::Deposit, None, None, context)?;
         let signing_root = compute_signing_root(&mut deposit_message, domain)?;
-        if verify_signature(public_key, signing_root.as_bytes(), &deposit.data.signature).is_err() {
+        if verify_signature(public_key, signing_root.as_ref(), &deposit.data.signature).is_err() {
             return Ok(());
         }
         state
@@ -630,13 +630,7 @@ pub fn process_proposer_slashing<
     ] {
         let signing_root = compute_signing_root(&mut signed_header.message, domain)?;
         let public_key = &proposer.public_key;
-        if verify_signature(
-            public_key,
-            signing_root.as_bytes(),
-            &signed_header.signature,
-        )
-        .is_err()
-        {
+        if verify_signature(public_key, signing_root.as_ref(), &signed_header.signature).is_err() {
             return Err(invalid_operation_error(InvalidOperation::ProposerSlashing(
                 InvalidProposerSlashing::InvalidSignature(signed_header.signature.clone()),
             )));
@@ -699,7 +693,7 @@ pub fn process_randao<
     let signing_root = compute_signing_root(&mut epoch, domain)?;
     if verify_signature(
         &proposer.public_key,
-        signing_root.as_bytes(),
+        signing_root.as_ref(),
         &body.randao_reveal,
     )
     .is_err()
@@ -910,7 +904,7 @@ pub fn process_voluntary_exit<
     let public_key = &validator.public_key;
     if verify_signature(
         public_key,
-        signing_root.as_bytes(),
+        signing_root.as_ref(),
         &signed_voluntary_exit.signature,
     )
     .is_err()
