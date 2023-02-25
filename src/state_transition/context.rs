@@ -1,9 +1,12 @@
 use crate::altair;
 use crate::bellatrix;
+#[cfg(all(feature = "serde", feature = "std"))]
 use crate::clock::{self, Clock, SystemTimeProvider};
 use crate::configs::{self, Config};
+use crate::lib::*;
 use crate::phase0;
 use crate::primitives::{Epoch, ExecutionAddress, Gwei, Hash32, Slot, Version, U256};
+#[cfg(all(feature = "serde", feature = "std"))]
 use crate::state_transition::Error;
 
 #[derive(Debug)]
@@ -111,6 +114,7 @@ pub struct Context {
 
 impl Context {
     #[cfg(feature = "serde")]
+    #[cfg(feature = "std")]
     pub fn try_from_file<P: AsRef<std::path::Path>>(config_file: P) -> Result<Self, Error> {
         let mut file = std::fs::File::open(config_file)?;
         let config: Config = serde_yaml::from_reader(&mut file)?;
@@ -273,6 +277,7 @@ impl Context {
         }
     }
 
+    #[cfg(feature = "std")]
     pub fn genesis_time(&self) -> Result<u64, Error> {
         match self.name.as_ref() {
             "mainnet" => Ok(crate::clock::MAINNET_GENESIS_TIME),
@@ -282,6 +287,7 @@ impl Context {
         }
     }
 
+    #[cfg(feature = "std")]
     pub fn clock(&self, genesis_time: Option<u64>) -> Clock<SystemTimeProvider> {
         match self.name.as_ref() {
             "mainnet" => clock::for_mainnet(),

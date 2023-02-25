@@ -4,7 +4,9 @@ use ssz_rs::prelude::*;
 
 #[derive(Default, Clone, Eq, SimpleSerialize)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-pub struct ByteVector<const N: usize>( #[cfg_attr(feature = "serde", serde(with = "crate::serde::as_hex"))] Vector<u8, N>);
+pub struct ByteVector<const N: usize>(
+    #[cfg_attr(feature = "serde", serde(with = "crate::serde::as_hex"))] Vector<u8, N>,
+);
 
 impl<const N: usize> TryFrom<&[u8]> for ByteVector<N> {
     type Error = ssz_rs::DeserializeError;

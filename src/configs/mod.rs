@@ -2,6 +2,7 @@ pub mod goerli;
 pub mod mainnet;
 pub mod minimal;
 pub mod sepolia;
+use crate::lib::*;
 
 use crate::primitives::{Epoch, ExecutionAddress, Gwei, Hash32, Version, U256};
 
@@ -19,20 +20,20 @@ pub struct Config {
 
     pub min_genesis_active_validator_count: usize,
     pub min_genesis_time: u64,
-    #[serde(with = "crate::serde::as_hex")]
+    #[cfg_attr(feature = "serde", serde(with = "crate::serde::as_hex"))]
     pub genesis_fork_version: Version,
     pub genesis_delay: u64,
 
-    #[serde(with = "crate::serde::as_hex")]
+    #[cfg_attr(feature = "serde", serde(with = "crate::serde::as_hex"))]
     pub altair_fork_version: Version,
     pub altair_fork_epoch: Epoch,
-    #[serde(with = "crate::serde::as_hex")]
+    #[cfg_attr(feature = "serde", serde(with = "crate::serde::as_hex"))]
     pub bellatrix_fork_version: Version,
     pub bellatrix_fork_epoch: Epoch,
-    #[serde(with = "crate::serde::as_hex")]
+    #[cfg_attr(feature = "serde", serde(with = "crate::serde::as_hex"))]
     pub capella_fork_version: Version,
     pub capella_fork_epoch: Epoch,
-    #[serde(with = "crate::serde::as_hex")]
+    #[cfg_attr(feature = "serde", serde(with = "crate::serde::as_hex"))]
     pub eip4844_fork_version: Version,
     pub eip4844_fork_epoch: Epoch,
 

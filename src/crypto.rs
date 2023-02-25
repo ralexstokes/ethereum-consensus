@@ -1,9 +1,8 @@
-use crate::primitives::Bytes32;
 use crate::lib::*;
+use crate::primitives::Bytes32;
 #[cfg(feature = "serde")]
 use crate::serde::{try_bytes_from_hex_str, HexError};
 use crate::ssz::ByteVector;
-use blst::{min_pk as bls_impl, BLST_ERROR};
 use milagro_bls::{AggregatePublicKey, AmclError};
 #[cfg(feature = "serde")]
 use serde;
@@ -658,11 +657,11 @@ mod tests {
         let sig = sk.sign(msg);
 
         let serialized_key = serde_json::to_string(&pk).unwrap();
-        println!("{serialized_key}");
+        log::info!("{serialized_key}");
         let recovered_key: PublicKey = serde_json::from_str(&serialized_key).unwrap();
         assert_eq!(pk, recovered_key);
         let serialized_signature = serde_json::to_string(&sig).unwrap();
-        println!("{serialized_signature}");
+        log::info!("{serialized_signature}");
         let recovered_signature: Signature = serde_json::from_str(&serialized_signature).unwrap();
         assert_eq!(sig, recovered_signature);
     }

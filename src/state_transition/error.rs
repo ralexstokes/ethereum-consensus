@@ -12,11 +12,12 @@ pub enum Error {
     Merkleization(MerkleizationError),
     SimpleSerialize(SimpleSerializeError),
     Crypto(CryptoError),
-    #[cfg(feature = "serde")]
+    #[cfg(all(feature = "serde", feature = "std"))]
     #[error("{0}")]
     Io(#[from] std::io::Error),
-    #[cfg(feature = "serde")]
+    #[cfg(all(feature = "serde", feature = "std"))]
     #[error("{0}")]
+    #[cfg(feature = "serde")]
     Yaml(#[from] serde_yaml::Error),
     OutOfBounds {
         requested: usize,
@@ -51,10 +52,8 @@ pub enum Error {
         destination_fork: Forks,
     },
 
-    #[error("genesis time unknown for network {0}")]
     UnknownGenesisTime(String),
     #[cfg(feature = "serde")]
-    #[error("an unknown preset {0} was supplied when constructing context")]
     UnknownPreset(String),
 }
 
@@ -99,6 +98,9 @@ impl Display for Error {
             Error::InvalidStateRoot => write!(f, "invalid state root"),
             Error::InvalidEpoch{requested,previous,current} => write!(f, "the requested epoch {} is not in the required current epoch {} or previous epoch {}", requested, current, previous),
             Error::IncompatibleForks{source_fork, destination_fork} => write!(f, "transition requested from a later fork {:?} to an earlier fork {:?}", destination_fork, source_fork),
+            Error::UnknownGenesisTime(error) => write!(f, "genesis time unknown for network {}", error),
+            #[cfg(feature = "serde")]
+            Error::UnknownPreset(error) => write!(f, "an unknown preset {} was supplied when constructing context", error),
         }
     }
 }

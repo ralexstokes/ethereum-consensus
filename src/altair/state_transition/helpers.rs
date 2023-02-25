@@ -117,7 +117,7 @@ pub fn compute_proposer_index<
     loop {
         let shuffled_index = compute_shuffled_index(i % total, total, seed, context)?;
         let candidate_index = indices[shuffled_index];
-        #[cfg(not(feature = "serde"))]
+        #[cfg(target_arch = "wasm32")]
         let i_bytes: [u8; 4] = (i / 32).to_le_bytes();
 
         #[cfg(feature = "serde")]
