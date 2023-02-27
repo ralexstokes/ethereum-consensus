@@ -8,9 +8,9 @@ pub use crate::altair::epoch_processing::process_participation_flag_updates;
 pub use crate::altair::epoch_processing::process_rewards_and_penalties;
 pub use crate::altair::epoch_processing::process_slashings;
 pub use crate::altair::epoch_processing::process_sync_committee_updates;
-use crate::primitives::{Epoch, Gwei, ValidatorIndex};
-
+#[cfg(not(feature = "std"))]
 use crate::lib::*;
+use crate::primitives::{Epoch, Gwei, ValidatorIndex};
 use crate::state_transition::{Context, Result};
 
 use ssz_rs::prelude::*;

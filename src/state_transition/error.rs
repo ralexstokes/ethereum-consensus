@@ -13,12 +13,9 @@ pub enum Error {
     SimpleSerialize(SimpleSerializeError),
     Crypto(CryptoError),
     #[cfg(all(feature = "serde", feature = "std"))]
-    #[error("{0}")]
-    Io(#[from] std::io::Error),
+    Io(std::io::Error),
     #[cfg(all(feature = "serde", feature = "std"))]
-    #[error("{0}")]
-    #[cfg(feature = "serde")]
-    Yaml(#[from] serde_yaml::Error),
+    Yaml(serde_yaml::Error),
     OutOfBounds {
         requested: usize,
         bound: usize,
@@ -57,6 +54,20 @@ pub enum Error {
     UnknownPreset(String),
 }
 
+#[cfg(all(feature = "serde", feature = "std"))]
+impl From<std::io::Error> for Error {
+    fn from(error: std::io::Error) -> Self {
+        Error::Io(error)
+    }
+}
+
+#[cfg(all(feature = "serde", feature = "std"))]
+impl From<serde_yaml::Error> for Error {
+    fn from(error: serde_yaml::Error) -> Self {
+        Error::Yaml(error)
+    }
+}
+
 impl From<SimpleSerializeError> for Error {
     fn from(error: SimpleSerializeError) -> Self {
         Error::SimpleSerialize(error)
@@ -86,6 +97,10 @@ impl Display for Error {
         match self {
             Error::Merkleization(_error) => write!(f, "merkleization error"),
             Error::SimpleSerialize(_error) => write!(f, "simple serialize error"),
+            #[cfg(all(feature = "serde", feature = "std"))]
+            Error::Io(err) => write!(f, "{:?}", err),
+            #[cfg(all(feature = "serde", feature = "std"))]
+            Error::Yaml(err) => write!(f, "{:?}", err),
             Error::Crypto(_error) => write!(f, "crypto error"),
             Error::OutOfBounds{requested, bound} => write!(f, "requested element {} but collection only has {} elements", requested, bound),
             Error::CollectionCannotBeEmpty => write!(f, "collection cannot be empty"),
@@ -99,7 +114,7 @@ impl Display for Error {
             Error::InvalidEpoch{requested,previous,current} => write!(f, "the requested epoch {} is not in the required current epoch {} or previous epoch {}", requested, current, previous),
             Error::IncompatibleForks{source_fork, destination_fork} => write!(f, "transition requested from a later fork {:?} to an earlier fork {:?}", destination_fork, source_fork),
             Error::UnknownGenesisTime(error) => write!(f, "genesis time unknown for network {}", error),
-            #[cfg(feature = "serde")]
+            #[cfg(feature = "std")]
             Error::UnknownPreset(error) => write!(f, "an unknown preset {} was supplied when constructing context", error),
         }
     }

@@ -1,9 +1,6 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
-#[cfg(not(feature = "std"))]
 extern crate alloc;
-#[cfg(not(feature = "std"))]
-extern crate core;
 
 pub mod altair;
 pub mod bellatrix;
@@ -26,12 +23,8 @@ pub mod state_transition;
 
 mod lib {
     mod core {
-        #[cfg(not(feature = "std"))]
         pub use core::*;
     }
-
-    #[cfg(not(feature = "std"))]
-    extern crate alloc;
 
     pub use self::core::{any, cmp, iter, slice};
 
@@ -57,19 +50,13 @@ mod lib {
     #[cfg(not(feature = "std"))]
     pub use alloc::boxed::Box;
 
-    #[cfg(not(feature = "std"))]
-    pub use alloc::string::String;
-    #[cfg(not(feature = "std"))]
-    pub use alloc::{vec, vec::Vec};
-    #[cfg(not(feature = "std"))]
-    pub use hashbrown::{HashMap, HashSet};
-
-    #[cfg(not(feature = "std"))]
     pub use alloc::format;
-    #[cfg(not(feature = "std"))]
     pub use alloc::str::FromStr;
     #[cfg(not(feature = "std"))]
+    pub use alloc::string::String;
     pub use alloc::string::ToString;
-    #[cfg(not(feature = "std"))]
     pub use alloc::sync::Arc;
+    #[cfg(not(feature = "std"))]
+    pub use alloc::{vec, vec::Vec};
+    pub use hashbrown::{HashMap, HashSet};
 }

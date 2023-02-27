@@ -6,7 +6,6 @@ use multihash::{Code, Error, Multihash};
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 use ssz_rs::prelude::Bitvector;
-use thiserror::Error;
 pub const ATTESTATION_SUBNET_COUNT: usize = 64;
 pub const GOSSIP_MAX_SIZE: usize = 2usize.pow(20);
 pub const MAX_REQUEST_BLOCKS: usize = 2usize.pow(10);
