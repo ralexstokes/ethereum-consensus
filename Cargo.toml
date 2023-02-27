@@ -28,7 +28,7 @@ std = [
 [dependencies]
 # Needed for compilation to wasm target
 getrandom = { version = "0.2.8", default-features = false, features = ["js"] }
-ssz-rs = { git = "https://github.com/polytope-labs/ssz-rs",rev = "adf1a0b14cef90b9536f28ef89da1fab316465e1", default-features=false, features=["serde", "std"] }
+ssz-rs = { git = "https://github.com/ralexstokes/ssz-rs",rev = "adf1a0b14cef90b9536f28ef89da1fab316465e1", default-features=false, features=["serde", "std"] }
 rand = {version = "0.8.4", default-features = false }
 error-chain={version = "0.12.4", default-features=false }
 sha2 = { version ="0.9.8", default-features = false }
