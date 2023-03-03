@@ -1,5 +1,4 @@
 use crate::primitives::Epoch;
-#[cfg(feature = "serde")]
 use ssz_rs::prelude::Bitvector;
 use std::time::Duration;
 
