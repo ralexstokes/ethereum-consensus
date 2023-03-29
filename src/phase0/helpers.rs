@@ -97,22 +97,22 @@ pub fn is_valid_indexed_attestation<
         ));
     }
 
-    // List of indices is non-empty given check above. Begin iteration from one because a list with
-    // a single entry is "sorted" and contains no duplicates.
+    // List of indices is non-empty given check above. Begin iteration from the second element
+    // because a list with a single entry is "sorted" and contains no duplicates.
     let mut prev = attesting_indices[0];
     let mut duplicates = HashSet::new();
-    for index in attesting_indices.as_slice()[1..].iter() {
-        if *index < prev {
+    for &index in &attesting_indices[1..] {
+        if index < prev {
             return Err(invalid_operation_error(
                 InvalidOperation::IndexedAttestation(
                     InvalidIndexedAttestation::AttestingIndicesNotSorted,
                 ),
             ));
         }
-        if *index == prev {
-            duplicates.insert(*index);
+        if index == prev {
+            duplicates.insert(index);
         }
-        prev = *index;
+        prev = index;
     }
     if !duplicates.is_empty() {
         return Err(invalid_operation_error(
@@ -123,14 +123,14 @@ pub fn is_valid_indexed_attestation<
     }
 
     let mut public_keys = vec![];
-    for index in attesting_indices.iter() {
+    for &index in &attesting_indices[..] {
         let public_key = state
             .validators
-            .get(*index)
+            .get(index)
             .map(|v| &v.public_key)
             .ok_or_else(|| {
                 invalid_operation_error(InvalidOperation::IndexedAttestation(
-                    InvalidIndexedAttestation::InvalidIndex(*index),
+                    InvalidIndexedAttestation::InvalidIndex(index),
                 ))
             })?;
         public_keys.push(public_key);
