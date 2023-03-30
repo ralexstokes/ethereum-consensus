@@ -97,41 +97,33 @@ pub fn is_valid_indexed_attestation<
         ));
     }
 
-    let is_sorted = attesting_indices
-        .windows(2)
-        .map(|pair| {
-            let a = &pair[0];
-            let b = &pair[1];
-            a < b
-        })
-        .all(|x| x);
-    if !is_sorted {
-        return Err(invalid_operation_error(
-            InvalidOperation::IndexedAttestation(
-                InvalidIndexedAttestation::AttestingIndicesNotSorted,
-            ),
-        ));
-    }
-
-    let indices: HashSet<usize> = HashSet::from_iter(attesting_indices.iter().cloned());
-    if indices.len() != indexed_attestation.attesting_indices.len() {
-        let mut seen = HashSet::new();
-        let mut duplicates = vec![];
-        for i in indices.iter() {
-            if seen.contains(i) {
-                duplicates.push(*i);
-            } else {
-                seen.insert(i);
-            }
+    // List of indices is non-empty given check above. Begin iteration from the second element
+    // because a list with a single entry is "sorted" and contains no duplicates.
+    let mut prev = attesting_indices[0];
+    let mut duplicates = HashSet::new();
+    for &index in &attesting_indices[1..] {
+        if index < prev {
+            return Err(invalid_operation_error(
+                InvalidOperation::IndexedAttestation(
+                    InvalidIndexedAttestation::AttestingIndicesNotSorted,
+                ),
+            ));
         }
+        if index == prev {
+            duplicates.insert(index);
+        }
+        prev = index;
+    }
+    if !duplicates.is_empty() {
         return Err(invalid_operation_error(
             InvalidOperation::IndexedAttestation(InvalidIndexedAttestation::DuplicateIndices(
-                duplicates,
+                Vec::from_iter(duplicates.into_iter()),
             )),
         ));
     }
+
     let mut public_keys = vec![];
-    for index in indices {
+    for &index in &attesting_indices[..] {
         let public_key = state
             .validators
             .get(index)
