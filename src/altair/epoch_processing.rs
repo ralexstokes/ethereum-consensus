@@ -1,5 +1,6 @@
 use crate::altair as spec;
 
+use crate::lib::*;
 use crate::primitives::{Gwei, ParticipationFlags, ValidatorIndex, GENESIS_EPOCH};
 use crate::state_transition::{Context, Result};
 use spec::{
@@ -12,7 +13,6 @@ use spec::{
     weigh_justification_and_finalization, BeaconState, PARTICIPATION_FLAG_WEIGHTS,
     TIMELY_TARGET_FLAG_INDEX,
 };
-use std::mem;
 
 // Return the base reward for the validator defined by `index` with respect to the current `state`
 pub fn get_base_reward<

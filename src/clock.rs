@@ -1,9 +1,9 @@
 //! A consensus clock
 use crate::configs;
+use crate::lib::*;
 use crate::phase0 as presets;
 use crate::primitives::{Epoch, Slot};
-use std::ops::Deref;
-use std::sync::Arc;
+#[cfg(feature = "std")]
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
 pub fn convert_timestamp_to_slot(timestamp: u64, genesis_time: u64, seconds_per_slot: u64) -> Slot {
@@ -14,6 +14,7 @@ pub const MAINNET_GENESIS_TIME: u64 = 1606824023;
 pub const SEPOLIA_GENESIS_TIME: u64 = 1655733600;
 pub const GOERLI_GENESIS_TIME: u64 = 1616508000;
 
+#[cfg(feature = "std")]
 pub fn get_current_unix_time_in_secs() -> u64 {
     SystemTime::now()
         .duration_since(UNIX_EPOCH)

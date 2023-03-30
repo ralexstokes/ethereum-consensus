@@ -11,6 +11,7 @@ pub use crate::altair::helpers::get_unslashed_participating_indices;
 pub use crate::altair::helpers::has_flag;
 pub use crate::altair::helpers::slash_validator;
 use crate::crypto::{fast_aggregate_verify, hash, verify_signature};
+use crate::lib::*;
 use crate::primitives::{
     Bytes32, CommitteeIndex, Domain, DomainType, Epoch, ForkDigest, Gwei, Root, Slot,
     ValidatorIndex, Version, FAR_FUTURE_EPOCH, GENESIS_EPOCH,
@@ -25,8 +26,7 @@ use spec::{
     Validator,
 };
 use ssz_rs::prelude::*;
-use std::cmp;
-use std::collections::HashSet;
+
 pub fn compute_activation_exit_epoch(epoch: Epoch, context: &Context) -> Epoch {
     epoch + 1 + context.max_seed_lookahead
 }
@@ -117,7 +117,7 @@ pub fn compute_proposer_index<
     loop {
         let shuffled_index = compute_shuffled_index(i % total, total, seed, context)?;
         let candidate_index = indices[shuffled_index];
-        let i_bytes: [u8; 8] = (i / 32).to_le_bytes();
+        let i_bytes: [u8; 8] = ((i / 32) as u64).to_le_bytes();
         hash_input[32..].copy_from_slice(&i_bytes);
         let random_byte = hash(hash_input).as_ref()[i % 32] as u64;
         let effective_balance = state.validators[candidate_index].effective_balance;
@@ -254,7 +254,7 @@ pub fn get_attesting_indices<
             },
         )));
     }
-    let mut indices = HashSet::with_capacity(bits.capacity());
+    let mut indices = HashSet::new();
     for (i, validator_index) in committee.iter().enumerate() {
         if bits[i] {
             indices.insert(*validator_index);

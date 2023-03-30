@@ -1,4 +1,5 @@
 use crate::altair::{SyncAggregate, SyncCommittee};
+use crate::lib::*;
 use crate::phase0::BeaconBlockHeader;
 use crate::primitives::{Bytes32, Version};
 use ssz_rs::prelude::*;

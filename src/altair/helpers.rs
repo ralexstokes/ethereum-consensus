@@ -2,6 +2,7 @@ use crate::altair as spec;
 
 use crate::crypto::{eth_aggregate_public_keys, hash};
 use crate::domains::DomainType;
+use crate::lib::*;
 use crate::primitives::{BlsPublicKey, Epoch, Gwei, ParticipationFlags, ValidatorIndex};
 use crate::state_transition::{
     invalid_operation_error, Context, Error, InvalidAttestation, InvalidOperation, Result,
@@ -16,7 +17,6 @@ use spec::{
     TIMELY_HEAD_FLAG_INDEX, TIMELY_SOURCE_FLAG_INDEX, TIMELY_TARGET_FLAG_INDEX, WEIGHT_DENOMINATOR,
 };
 use ssz_rs::Vector;
-use std::collections::HashSet;
 
 // Return a new ``ParticipationFlags`` adding ``flag_index`` to ``flags``
 pub fn add_flag(flags: ParticipationFlags, flag_index: usize) -> ParticipationFlags {

@@ -1,3 +1,4 @@
+use crate::lib::*;
 use crate::phase0::{
     Attestation, AttesterSlashing, Deposit, Eth1Data, ProposerSlashing, SignedVoluntaryExit,
 };
@@ -35,9 +36,9 @@ pub struct BeaconBlock<
     const MAX_DEPOSITS: usize,
     const MAX_VOLUNTARY_EXITS: usize,
 > {
-    #[serde(with = "crate::serde::as_string")]
+    #[cfg_attr(feature = "serde", serde(with = "crate::serde::as_string"))]
     pub slot: Slot,
-    #[serde(with = "crate::serde::as_string")]
+    #[cfg_attr(feature = "serde", serde(with = "crate::serde::as_string"))]
     pub proposer_index: ValidatorIndex,
     pub parent_root: Root,
     pub state_root: Root,
@@ -75,9 +76,9 @@ pub struct SignedBeaconBlock<
 #[derive(Default, Debug, SimpleSerialize, Clone, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct BeaconBlockHeader {
-    #[serde(with = "crate::serde::as_string")]
+    #[cfg_attr(feature = "serde", serde(with = "crate::serde::as_string"))]
     pub slot: Slot,
-    #[serde(with = "crate::serde::as_string")]
+    #[cfg_attr(feature = "serde", serde(with = "crate::serde::as_string"))]
     pub proposer_index: ValidatorIndex,
     pub parent_root: Root,
     pub state_root: Root,

@@ -1,3 +1,4 @@
+use crate::lib::*;
 use crate::primitives::Hash32;
 use ssz_rs::prelude::*;
 

@@ -2,6 +2,8 @@ use crate::altair::{
     add_flag, get_attestation_participation_flag_indices, get_attesting_indices,
     get_next_sync_committee, BeaconState, Fork,
 };
+#[cfg(not(feature = "std"))]
+use crate::lib::*;
 use crate::phase0;
 use crate::state_transition::{Context, Result};
 use ssz_rs::prelude::*;

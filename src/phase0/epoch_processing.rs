@@ -1,5 +1,6 @@
 use crate::phase0 as spec;
 
+use crate::lib::*;
 use crate::primitives::{Epoch, Gwei, ValidatorIndex, GENESIS_EPOCH};
 use crate::state_transition::{Context, Error, Result};
 use integer_sqrt::IntegerSquareRoot;
@@ -12,8 +13,6 @@ use spec::{
     PendingAttestation, BASE_REWARDS_PER_EPOCH, JUSTIFICATION_BITS_LENGTH,
 };
 use ssz_rs::prelude::*;
-use std::collections::HashSet;
-use std::mem;
 
 pub fn get_matching_source_attestations<
     'a,

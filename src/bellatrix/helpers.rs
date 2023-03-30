@@ -1,5 +1,6 @@
 use crate::bellatrix as spec;
 
+use crate::lib::*;
 use crate::primitives::{Gwei, Slot, ValidatorIndex, GENESIS_SLOT};
 use crate::state_transition::{Context, Error, Result};
 use spec::{

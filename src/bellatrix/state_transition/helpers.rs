@@ -7,6 +7,7 @@ pub use crate::bellatrix::helpers::is_merge_transition_block;
 pub use crate::bellatrix::helpers::is_merge_transition_complete;
 pub use crate::bellatrix::helpers::slash_validator;
 use crate::crypto::{eth_aggregate_public_keys, fast_aggregate_verify, hash, verify_signature};
+use crate::lib::*;
 use crate::primitives::{
     BlsPublicKey, Bytes32, CommitteeIndex, Domain, DomainType, Epoch, ForkDigest, Gwei,
     ParticipationFlags, Root, Slot, ValidatorIndex, Version, FAR_FUTURE_EPOCH, GENESIS_EPOCH,
@@ -23,8 +24,7 @@ use spec::{
     TIMELY_HEAD_FLAG_INDEX, TIMELY_SOURCE_FLAG_INDEX, TIMELY_TARGET_FLAG_INDEX, WEIGHT_DENOMINATOR,
 };
 use ssz_rs::prelude::*;
-use std::cmp;
-use std::collections::HashSet;
+
 pub fn add_flag(flags: ParticipationFlags, flag_index: usize) -> ParticipationFlags {
     let flag = 2u8.pow(flag_index as u32);
     flags | flag
@@ -127,7 +127,8 @@ pub fn compute_proposer_index<
     loop {
         let shuffled_index = compute_shuffled_index(i % total, total, seed, context)?;
         let candidate_index = indices[shuffled_index];
-        let i_bytes: [u8; 8] = (i / 32).to_le_bytes();
+
+        let i_bytes: [u8; 8] = ((i / 32) as u64).to_le_bytes();
         hash_input[32..].copy_from_slice(&i_bytes);
         let random_byte = hash(hash_input).as_ref()[i % 32] as u64;
         let effective_balance = state.validators[candidate_index].effective_balance;
@@ -347,11 +348,12 @@ pub fn get_attesting_indices<
         return Err(invalid_operation_error(InvalidOperation::Attestation(
             InvalidAttestation::Bitfield {
                 expected_length: committee.len(),
+
                 length: bits.len(),
             },
         )));
     }
-    let mut indices = HashSet::with_capacity(bits.capacity());
+    let mut indices = HashSet::new();
     for (i, validator_index) in committee.iter().enumerate() {
         if bits[i] {
             indices.insert(*validator_index);

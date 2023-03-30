@@ -1,5 +1,6 @@
 use crate::altair as spec;
 
+use crate::lib::*;
 use crate::phase0::DEPOSIT_DATA_LIST_BOUND;
 use crate::primitives::{Gwei, Hash32, GENESIS_EPOCH};
 use crate::state_transition::{Context, Result};
@@ -65,7 +66,7 @@ pub fn initialize_beacon_state_from_eth1<
         ..Default::default()
     };
     let randao_mixes = Vector::try_from(
-        std::iter::repeat(eth1_block_hash)
+        repeat(eth1_block_hash)
             .take(context.epochs_per_historical_vector as usize)
             .collect::<Vec<_>>(),
     )

@@ -1,3 +1,4 @@
+use crate::lib::*;
 use crate::phase0::compute_domain;
 use crate::primitives::{BlsPublicKey, BlsSignature, Domain, DomainType, ExecutionAddress};
 use crate::state_transition::{Context, Error};
@@ -7,11 +8,11 @@ use ssz_rs::prelude::*;
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct ValidatorRegistration {
     pub fee_recipient: ExecutionAddress,
-    #[serde(with = "crate::serde::as_string")]
+    #[cfg_attr(feature = "serde", serde(with = "crate::serde::as_string"))]
     pub gas_limit: u64,
-    #[serde(with = "crate::serde::as_string")]
+    #[cfg_attr(feature = "serde", serde(with = "crate::serde::as_string"))]
     pub timestamp: u64,
-    #[serde(rename = "pubkey")]
+    #[cfg_attr(feature = "serde", serde(rename = "pubkey"))]
     pub public_key: BlsPublicKey,
 }
 

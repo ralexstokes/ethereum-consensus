@@ -1,3 +1,4 @@
+use crate::lib::*;
 use crate::phase0::{SignedBeaconBlockHeader, DEPOSIT_CONTRACT_TREE_DEPTH};
 use crate::primitives::{
     BlsPublicKey, BlsSignature, Bytes32, CommitteeIndex, Epoch, Gwei, Hash32, Root, Slot,
@@ -8,7 +9,7 @@ use ssz_rs::prelude::*;
 #[derive(Default, Clone, Debug, SimpleSerialize, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct Checkpoint {
-    #[serde(with = "crate::serde::as_string")]
+    #[cfg_attr(feature = "serde", serde(with = "crate::serde::as_string"))]
     pub epoch: Epoch,
     pub root: Root,
 }
@@ -16,9 +17,9 @@ pub struct Checkpoint {
 #[derive(Default, Clone, Debug, SimpleSerialize, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct AttestationData {
-    #[serde(with = "crate::serde::as_string")]
+    #[cfg_attr(feature = "serde", serde(with = "crate::serde::as_string"))]
     pub slot: Slot,
-    #[serde(with = "crate::serde::as_string")]
+    #[cfg_attr(feature = "serde", serde(with = "crate::serde::as_string"))]
     pub index: CommitteeIndex,
     pub beacon_block_root: Root,
     pub source: Checkpoint,
@@ -28,7 +29,10 @@ pub struct AttestationData {
 #[derive(Default, Debug, SimpleSerialize, Clone, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct IndexedAttestation<const MAX_VALIDATORS_PER_COMMITTEE: usize> {
-    #[serde(with = "crate::serde::collection_over_string")]
+    #[cfg_attr(
+        feature = "serde",
+        serde(with = "crate::serde::collection_over_string")
+    )]
     pub attesting_indices: List<ValidatorIndex, MAX_VALIDATORS_PER_COMMITTEE>,
     pub data: AttestationData,
     pub signature: BlsSignature,
@@ -39,9 +43,9 @@ pub struct IndexedAttestation<const MAX_VALIDATORS_PER_COMMITTEE: usize> {
 pub struct PendingAttestation<const MAX_VALIDATORS_PER_COMMITTEE: usize> {
     pub aggregation_bits: Bitlist<MAX_VALIDATORS_PER_COMMITTEE>,
     pub data: AttestationData,
-    #[serde(with = "crate::serde::as_string")]
+    #[cfg_attr(feature = "serde", serde(with = "crate::serde::as_string"))]
     pub inclusion_delay: Slot,
-    #[serde(with = "crate::serde::as_string")]
+    #[cfg_attr(feature = "serde", serde(with = "crate::serde::as_string"))]
     pub proposer_index: ValidatorIndex,
 }
 
@@ -57,7 +61,7 @@ pub struct Attestation<const MAX_VALIDATORS_PER_COMMITTEE: usize> {
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct Eth1Data {
     pub deposit_root: Root,
-    #[serde(with = "crate::serde::as_string")]
+    #[cfg_attr(feature = "serde", serde(with = "crate::serde::as_string"))]
     pub deposit_count: u64,
     pub block_hash: Hash32,
 }
@@ -65,20 +69,20 @@ pub struct Eth1Data {
 #[derive(Default, Debug, SimpleSerialize, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct DepositMessage {
-    #[serde(rename = "pubkey")]
+    #[cfg_attr(feature = "serde", serde(rename = "pubkey"))]
     pub public_key: BlsPublicKey,
     pub withdrawal_credentials: Bytes32,
-    #[serde(with = "crate::serde::as_string")]
+    #[cfg_attr(feature = "serde", serde(with = "crate::serde::as_string"))]
     pub amount: Gwei,
 }
 
 #[derive(Default, Debug, Clone, SimpleSerialize, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct DepositData {
-    #[serde(rename = "pubkey")]
+    #[cfg_attr(feature = "serde", serde(rename = "pubkey"))]
     pub public_key: BlsPublicKey,
     pub withdrawal_credentials: Bytes32,
-    #[serde(with = "crate::serde::as_string")]
+    #[cfg_attr(feature = "serde", serde(with = "crate::serde::as_string"))]
     pub amount: Gwei,
     pub signature: BlsSignature,
 }
@@ -113,9 +117,9 @@ pub struct Deposit {
 #[derive(Default, Debug, SimpleSerialize, Clone, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct VoluntaryExit {
-    #[serde(with = "crate::serde::as_string")]
+    #[cfg_attr(feature = "serde", serde(with = "crate::serde::as_string"))]
     pub epoch: Epoch,
-    #[serde(with = "crate::serde::as_string")]
+    #[cfg_attr(feature = "serde", serde(with = "crate::serde::as_string"))]
     pub validator_index: ValidatorIndex,
 }
 

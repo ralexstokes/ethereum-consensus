@@ -1,14 +1,27 @@
+use crate::lib::*;
 use hex::FromHexError;
-use thiserror::Error;
 
 const HEX_ENCODING_PREFIX: &str = "0x";
 
-#[derive(Debug, Error)]
+#[cfg_attr(feature = "serde", derive(Debug))]
 pub enum HexError {
-    #[error("{0}")]
-    Hex(#[from] FromHexError),
-    #[error("missing prefix `{HEX_ENCODING_PREFIX}` when deserializing hex data")]
+    Hex,
     MissingPrefix,
+}
+
+impl From<FromHexError> for HexError {
+    fn from(_: FromHexError) -> Self {
+        HexError::Hex
+    }
+}
+
+impl Display for HexError {
+    fn fmt(&self, f: &mut Formatter<'_>) -> core::fmt::Result {
+        match self {
+            HexError::Hex => write!(f, ""),
+            HexError::MissingPrefix => write!(f, "missing prefix  when deserializing hex data"),
+        }
+    }
 }
 
 pub fn try_bytes_from_hex_str(s: &str) -> Result<Vec<u8>, HexError> {
@@ -21,6 +34,7 @@ pub fn try_bytes_from_hex_str(s: &str) -> Result<Vec<u8>, HexError> {
 
 pub mod as_hex {
     use super::*;
+    use alloc::format;
     use serde::de::Deserialize;
 
     pub fn serialize<S, T: AsRef<[u8]>>(data: T, serializer: S) -> Result<S::Ok, S::Error>
@@ -48,9 +62,9 @@ pub mod as_hex {
 }
 
 pub mod as_string {
+    use crate::lib::*;
+    use alloc::format;
     use serde::de::Deserialize;
-    use std::fmt;
-    use std::str::FromStr;
 
     pub fn serialize<S, T: fmt::Display>(data: T, serializer: S) -> Result<S::Ok, S::Error>
     where
@@ -75,11 +89,9 @@ pub mod as_string {
 }
 
 pub mod collection_over_string {
+    use crate::lib::*;
     use serde::de::{Deserializer, Error};
     use serde::ser::SerializeSeq;
-    use std::fmt;
-    use std::marker::PhantomData;
-    use std::str::FromStr;
 
     pub fn serialize<S, T, U>(data: T, serializer: S) -> Result<S::Ok, S::Error>
     where

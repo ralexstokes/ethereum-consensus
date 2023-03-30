@@ -1,6 +1,7 @@
 use crate::phase0 as spec;
 
 use crate::crypto::{hash, verify_signature};
+use crate::lib::*;
 use crate::primitives::{
     BlsPublicKey, Bytes32, DomainType, Gwei, ValidatorIndex, FAR_FUTURE_EPOCH,
 };
@@ -21,7 +22,6 @@ use spec::{
     ProposerSlashing, SignedVoluntaryExit, Validator, DEPOSIT_CONTRACT_TREE_DEPTH,
 };
 use ssz_rs::prelude::*;
-use std::collections::HashSet;
 
 pub fn process_proposer_slashing<
     const SLOTS_PER_HISTORICAL_ROOT: usize,
@@ -358,9 +358,12 @@ pub fn process_deposit<
 
     let public_key = &deposit.data.public_key;
     let amount = deposit.data.amount;
-    let validator_public_keys: HashSet<&BlsPublicKey> =
-        HashSet::from_iter(state.validators.iter().map(|v| &v.public_key));
-    if !validator_public_keys.contains(public_key) {
+    let validator_check = {
+        let validator_public_keys: HashSet<&BlsPublicKey> =
+            HashSet::from_iter(state.validators.iter().map(|v| &v.public_key));
+        validator_public_keys.contains(public_key)
+    };
+    if !validator_check {
         let mut deposit_message = DepositMessage {
             public_key: public_key.clone(),
             withdrawal_credentials: deposit.data.withdrawal_credentials.clone(),

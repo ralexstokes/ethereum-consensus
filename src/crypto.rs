@@ -1,13 +1,13 @@
+use crate::lib::*;
 use crate::primitives::Bytes32;
 #[cfg(feature = "serde")]
 use crate::serde::{try_bytes_from_hex_str, HexError};
 use crate::ssz::ByteVector;
-use blst::{min_pk as bls_impl, BLST_ERROR};
+use milagro_bls::{AggregatePublicKey, AmclError};
+#[cfg(feature = "serde")]
+use serde;
 use sha2::{digest::FixedOutput, Digest, Sha256};
 use ssz_rs::prelude::*;
-use std::fmt;
-use std::ops::{Deref, DerefMut};
-use thiserror::Error;
 
 pub fn hash<D: AsRef<[u8]>>(data: D) -> Bytes32 {
     let mut result = vec![0u8; 32];
@@ -17,43 +17,97 @@ pub fn hash<D: AsRef<[u8]>>(data: D) -> Bytes32 {
     Bytes32::try_from(result.as_ref()).expect("correct input")
 }
 
-const BLS_DST: &[u8] = b"BLS_SIG_BLS12381G2_XMD:SHA-256_SSWU_RO_POP_";
 const BLS_PUBLIC_KEY_BYTES_LEN: usize = 48;
 const BLS_SECRET_KEY_BYTES_LEN: usize = 32;
 const BLS_SIGNATURE_BYTES_LEN: usize = 96;
 
-#[derive(Debug, Error)]
+#[derive(Debug)]
 pub enum Error {
     #[cfg(feature = "serde")]
-    #[error("error deserializing hex-encoded input: {0}")]
-    Hex(#[from] HexError),
-    #[error("inputs required for aggregation but none were provided")]
+    Hex,
     EmptyAggregate,
-    #[error("{0}")]
-    SimpleSerialize(#[from] SimpleSerializeError),
-    #[error("randomness failure: {0}")]
-    Randomness(#[from] rand::Error),
-    #[error("blst error: {0}")]
-    BLST(#[from] BLSTError),
-    #[error("invalid signature")]
+    EncodingError {
+        provided: usize,
+        expected: usize,
+    },
+    SimpleSerialize(SimpleSerializeError),
+    Randomness,
+    BLST,
     InvalidSignature,
+    KeyValidationFailed,
 }
 
-#[derive(Debug, Error)]
-#[error("{0}")]
+#[cfg(feature = "serde")]
+impl From<HexError> for Error {
+    fn from(_: HexError) -> Self {
+        Error::Hex
+    }
+}
+
+impl From<rand::Error> for Error {
+    fn from(_: rand::Error) -> Self {
+        Error::Randomness
+    }
+}
+
+impl From<SimpleSerializeError> for Error {
+    fn from(err: SimpleSerializeError) -> Self {
+        Error::SimpleSerialize(err)
+    }
+}
+
+impl From<BLSTError> for Error {
+    fn from(_: BLSTError) -> Self {
+        Error::BLST
+    }
+}
+
+impl Display for Error {
+    fn fmt(&self, f: &mut Formatter<'_>) -> core::fmt::Result {
+        match self {
+            #[cfg(feature = "serde")]
+            Error::Hex => write!(f, "error deserializing hex-encoded input",),
+            Error::EmptyAggregate => {
+                write!(f, "inputs required for aggregation but none were provided",)
+            }
+            Error::EncodingError { provided, expected } => write!(
+                f,
+                "invalid length of encoding: expected {} bytes but only provided {} bytes",
+                expected, provided
+            ),
+            Error::SimpleSerialize(err) => {
+                write!(f, "simple serialize error {}", err)
+            }
+            Error::Randomness => write!(f, "randomness failure",),
+            Error::BLST => write!(f, "blst error",),
+            Error::InvalidSignature => write!(f, "invalid signature",),
+            Error::KeyValidationFailed => write!(f, "key validation failed",),
+        }
+    }
+}
+
+#[derive(Debug)]
 pub struct BLSTError(String);
 
-impl From<BLST_ERROR> for BLSTError {
-    fn from(err: BLST_ERROR) -> Self {
+impl fmt::Display for BLSTError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.0)
+    }
+}
+
+impl From<milagro_bls::AmclError> for BLSTError {
+    fn from(err: AmclError) -> Self {
         let inner = match err {
-            BLST_ERROR::BLST_SUCCESS => unreachable!("do not create a BLSTError from a sucess"),
-            BLST_ERROR::BLST_BAD_ENCODING => "bad encoding",
-            BLST_ERROR::BLST_POINT_NOT_ON_CURVE => "point not on curve",
-            BLST_ERROR::BLST_POINT_NOT_IN_GROUP => "point not in group",
-            BLST_ERROR::BLST_AGGR_TYPE_MISMATCH => "aggregation type mismatch",
-            BLST_ERROR::BLST_VERIFY_FAIL => "verification failed",
-            BLST_ERROR::BLST_PK_IS_INFINITY => "public key is infinity",
-            BLST_ERROR::BLST_BAD_SCALAR => "bad scalar input",
+            AmclError::AggregateEmptyPoints => {
+                unreachable!("do not create a BLSTError from a sucess")
+            }
+            AmclError::HashToFieldError => "hash to field  error",
+            AmclError::InvalidG1Size => "invalid  g1 size",
+            AmclError::InvalidG2Size => "invalid g2 size",
+            AmclError::InvalidSecretKeyRange => "invalid secret key range",
+            AmclError::InvalidSecretKeySize => "invalid secret key size",
+            AmclError::InvalidYFlag => "invalid y flag",
+            AmclError::InvalidPoint => "invalid point",
         };
         Self(inner.to_string())
     }
@@ -64,10 +118,10 @@ pub fn verify_signature(
     msg: &[u8],
     signature: &Signature,
 ) -> Result<(), Error> {
-    let public_key: bls_impl::PublicKey = public_key.try_into()?;
-    let signature: bls_impl::Signature = signature.try_into()?;
-    let res = signature.verify(true, msg, BLS_DST, &[], &public_key, true);
-    if res == BLST_ERROR::BLST_SUCCESS {
+    let public_key: milagro_bls::PublicKey = public_key.try_into()?;
+    let signature: milagro_bls::Signature = signature.try_into()?;
+    let res = signature.verify(msg, &public_key);
+    if res {
         Ok(())
     } else {
         Err(Error::InvalidSignature)
@@ -81,13 +135,13 @@ pub fn aggregate(signatures: &[Signature]) -> Result<Signature, Error> {
 
     let signatures = signatures
         .iter()
-        .map(bls_impl::Signature::try_from)
-        .collect::<Result<Vec<bls_impl::Signature>, Error>>()?;
-    let signatures: Vec<&bls_impl::Signature> = signatures.iter().collect();
+        .map(milagro_bls::Signature::try_from)
+        .collect::<Result<Vec<milagro_bls::Signature>, Error>>()?;
+    let signatures: Vec<&milagro_bls::Signature> = signatures.iter().collect();
 
-    bls_impl::AggregateSignature::aggregate(&signatures, true)
-        .map(|s| Signature::try_from(s.to_signature().to_bytes().as_ref()).unwrap())
-        .map_err(|e| BLSTError::from(e).into())
+    let aggregate_signature = milagro_bls::AggregateSignature::aggregate(&signatures);
+
+    Signature::try_from(aggregate_signature)
 }
 
 pub fn aggregate_verify(
@@ -97,12 +151,13 @@ pub fn aggregate_verify(
 ) -> Result<(), Error> {
     let public_keys = public_keys
         .iter()
-        .map(bls_impl::PublicKey::try_from)
-        .collect::<Result<Vec<bls_impl::PublicKey>, Error>>()?;
-    let public_keys: Vec<&bls_impl::PublicKey> = public_keys.iter().collect();
-    let signature: bls_impl::Signature = signature.try_into()?;
-    let res = signature.aggregate_verify(true, msgs, BLS_DST, &public_keys, true);
-    if res == BLST_ERROR::BLST_SUCCESS {
+        .map(milagro_bls::PublicKey::try_from)
+        .collect::<Result<Vec<milagro_bls::PublicKey>, Error>>()?;
+    let public_keys: Vec<&milagro_bls::PublicKey> = public_keys.iter().collect();
+    let signature: milagro_bls::Signature = signature.try_into()?;
+    let agg_sig = milagro_bls::AggregateSignature::from_signature(&signature);
+    let res = agg_sig.aggregate_verify(msgs, &public_keys);
+    if res {
         Ok(())
     } else {
         Err(Error::InvalidSignature)
@@ -117,12 +172,13 @@ pub fn fast_aggregate_verify(
     let public_keys = public_keys
         .iter()
         .cloned()
-        .map(bls_impl::PublicKey::try_from)
-        .collect::<Result<Vec<bls_impl::PublicKey>, Error>>()?;
-    let public_keys: Vec<&bls_impl::PublicKey> = public_keys.iter().collect();
-    let signature: bls_impl::Signature = signature.try_into()?;
-    let res = signature.fast_aggregate_verify(true, msg, BLS_DST, &public_keys);
-    if res == BLST_ERROR::BLST_SUCCESS {
+        .map(milagro_bls::PublicKey::try_from)
+        .collect::<Result<Vec<milagro_bls::PublicKey>, Error>>()?;
+    let public_keys: Vec<&milagro_bls::PublicKey> = public_keys.iter().collect();
+    let signature: milagro_bls::Signature = signature.try_into()?;
+    let agg_sig = milagro_bls::AggregateSignature::from_signature(&signature);
+    let res = agg_sig.fast_aggregate_verify(msg, &public_keys);
+    if res {
         Ok(())
     } else {
         Err(Error::InvalidSignature)
@@ -136,12 +192,12 @@ pub fn eth_aggregate_public_keys(public_keys: &[PublicKey]) -> Result<PublicKey,
     }
     let public_keys = public_keys
         .iter()
-        .map(bls_impl::PublicKey::try_from)
-        .collect::<Result<Vec<bls_impl::PublicKey>, Error>>()?;
-    let public_keys: Vec<&bls_impl::PublicKey> = public_keys.iter().collect();
+        .map(milagro_bls::PublicKey::try_from)
+        .collect::<Result<Vec<milagro_bls::PublicKey>, Error>>()?;
+    let public_keys: Vec<&milagro_bls::PublicKey> = public_keys.iter().collect();
 
-    bls_impl::AggregatePublicKey::aggregate(&public_keys, true)
-        .map(|agg_pk| PublicKey::try_from(agg_pk.to_public_key().to_bytes().as_ref()).unwrap())
+    milagro_bls::AggregatePublicKey::aggregate(&public_keys)
+        .map(|agg_pk| PublicKey::try_from(agg_pk).unwrap())
         .map_err(|e| BLSTError::from(e).into())
 }
 
@@ -157,11 +213,11 @@ pub fn eth_fast_aggregate_verify(
     }
 }
 
-#[derive(Clone, Default)]
+#[derive(Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Deserialize))]
 #[cfg_attr(feature = "spec-tests", derive(Debug))]
 #[cfg_attr(feature = "serde", serde(try_from = "String"))]
-pub struct SecretKey(bls_impl::SecretKey);
+pub struct SecretKey(milagro_bls::SecretKey);
 
 #[cfg(feature = "serde")]
 impl TryFrom<String> for SecretKey {
@@ -177,7 +233,7 @@ impl TryFrom<&[u8]> for SecretKey {
     type Error = Error;
 
     fn try_from(data: &[u8]) -> Result<Self, Self::Error> {
-        let inner = bls_impl::SecretKey::from_bytes(data).map_err(BLSTError::from)?;
+        let inner = milagro_bls::SecretKey::from_bytes(data).map_err(BLSTError::from)?;
         Ok(Self(inner))
     }
 }
@@ -190,18 +246,18 @@ impl SecretKey {
     }
 
     pub fn key_gen(ikm: &[u8]) -> Result<Self, Error> {
-        let sk = bls_impl::SecretKey::key_gen(ikm, &[]).map_err(BLSTError::from)?;
+        let sk = milagro_bls::SecretKey::key_generate(ikm, &[]).map_err(BLSTError::from)?;
         Ok(Self(sk))
     }
 
     pub fn public_key(&self) -> PublicKey {
-        let pk = self.0.sk_to_pk();
-        PublicKey::try_from(pk.to_bytes().as_ref()).unwrap()
+        let pk = milagro_bls::PublicKey::from_secret_key(&self.0);
+        PublicKey::try_from(pk.as_bytes().as_ref()).unwrap()
     }
 
     pub fn sign(&self, msg: &[u8]) -> Signature {
-        let inner = self.0.sign(msg, BLS_DST, &[]);
-        Signature::try_from(inner.to_bytes().as_ref()).unwrap()
+        let inner = milagro_bls::Signature::new(msg, &self.0);
+        Signature::try_from(inner.as_bytes().as_ref()).unwrap()
     }
 }
 
@@ -247,11 +303,49 @@ impl TryFrom<&[u8]> for PublicKey {
     }
 }
 
-impl TryFrom<&PublicKey> for bls_impl::PublicKey {
+impl TryFrom<&PublicKey> for milagro_bls::PublicKey {
     type Error = Error;
 
     fn try_from(public_key: &PublicKey) -> Result<Self, Error> {
-        Self::key_validate(public_key.0.as_ref()).map_err(|err| BLSTError::from(err).into())
+        let milagro_bls_public_key = milagro_bls::PublicKey::from_bytes(public_key.0.as_ref());
+        let key_validate = Self::key_validate(&milagro_bls_public_key.clone().unwrap());
+
+        if key_validate {
+            Ok(milagro_bls_public_key.unwrap())
+        } else {
+            Err(Error::KeyValidationFailed)
+        }
+    }
+}
+
+impl TryFrom<&PublicKey> for milagro_bls::AggregatePublicKey {
+    type Error = Error;
+
+    fn try_from(public_key: &PublicKey) -> Result<Self, Error> {
+        let milagro_bls_public_key = milagro_bls::PublicKey::from_bytes(public_key.0.as_ref());
+        let key_validate =
+            milagro_bls::PublicKey::key_validate(&milagro_bls_public_key.clone().unwrap());
+
+        if !key_validate {
+            return Err(Error::KeyValidationFailed);
+        }
+
+        let milagro_bls_aggregate_public_key =
+            milagro_bls::AggregatePublicKey::from_public_key(&milagro_bls_public_key.unwrap());
+
+        Ok(milagro_bls_aggregate_public_key)
+    }
+}
+
+impl TryFrom<milagro_bls::AggregatePublicKey> for PublicKey {
+    type Error = Error;
+
+    fn try_from(aggregate_public_key: AggregatePublicKey) -> Result<Self, Self::Error> {
+        let public_key = milagro_bls::PublicKey {
+            point: aggregate_public_key.point,
+        };
+
+        PublicKey::try_from(public_key.as_bytes().as_slice())
     }
 }
 
@@ -297,11 +391,23 @@ impl TryFrom<&[u8]> for Signature {
     }
 }
 
-impl TryFrom<&Signature> for bls_impl::Signature {
+impl TryFrom<&Signature> for milagro_bls::Signature {
     type Error = Error;
 
     fn try_from(signature: &Signature) -> Result<Self, Error> {
         Self::from_bytes(signature.0.as_ref()).map_err(|err| BLSTError::from(err).into())
+    }
+}
+
+impl TryFrom<milagro_bls::AggregateSignature> for Signature {
+    type Error = Error;
+
+    fn try_from(aggregate_signature: milagro_bls::AggregateSignature) -> Result<Self, Self::Error> {
+        let signature = milagro_bls::Signature {
+            point: aggregate_signature.point,
+        };
+
+        Signature::try_from(signature.as_bytes().as_slice())
     }
 }
 
@@ -551,11 +657,11 @@ mod tests {
         let sig = sk.sign(msg);
 
         let serialized_key = serde_json::to_string(&pk).unwrap();
-        println!("{serialized_key}");
+        log::info!("{serialized_key}");
         let recovered_key: PublicKey = serde_json::from_str(&serialized_key).unwrap();
         assert_eq!(pk, recovered_key);
         let serialized_signature = serde_json::to_string(&sig).unwrap();
-        println!("{serialized_signature}");
+        log::info!("{serialized_signature}");
         let recovered_signature: Signature = serde_json::from_str(&serialized_signature).unwrap();
         assert_eq!(sig, recovered_signature);
     }

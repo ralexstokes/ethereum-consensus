@@ -1,3 +1,4 @@
+use crate::lib::*;
 use crate::primitives::Epoch;
 use enr;
 pub use multiaddr::Multiaddr;
@@ -5,10 +6,6 @@ use multihash::{Code, Error, Multihash};
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 use ssz_rs::prelude::Bitvector;
-use std::fmt;
-use std::time::Duration;
-use std::{convert::TryFrom, str::FromStr};
-use thiserror::Error;
 pub const ATTESTATION_SUBNET_COUNT: usize = 64;
 pub const GOSSIP_MAX_SIZE: usize = 2usize.pow(20);
 pub const MAX_REQUEST_BLOCKS: usize = 2usize.pow(10);
@@ -112,12 +109,25 @@ impl<'de> Deserialize<'de> for PeerId {
     }
 }
 
-#[derive(Debug, Error)]
+#[derive(Debug)]
 pub enum ParseError {
-    #[error("base-58 decode error: {0}")]
-    B58(#[from] bs58::decode::Error),
-    #[error("decoding multihash failed")]
+    B58,
     MultiHash,
+}
+
+impl From<bs58::decode::Error> for ParseError {
+    fn from(_: bs58::decode::Error) -> Self {
+        ParseError::B58
+    }
+}
+
+impl Display for ParseError {
+    fn fmt(&self, f: &mut Formatter<'_>) -> core::fmt::Result {
+        match self {
+            ParseError::B58 => write!(f, "base-58 decode error"),
+            ParseError::MultiHash => write!(f, "decoding multihash failed"),
+        }
+    }
 }
 
 impl FromStr for PeerId {

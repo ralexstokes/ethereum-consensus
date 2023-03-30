@@ -1,12 +1,12 @@
 use super::write_bytes_to_lower_hex;
+use crate::lib::*;
 use ssz_rs::prelude::*;
-use std::fmt;
-use std::hash::{Hash, Hasher};
-use std::ops::{Deref, DerefMut};
 
 #[derive(Default, Clone, Eq, SimpleSerialize)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-pub struct ByteList<const N: usize>(#[serde(with = "crate::serde::as_hex")] List<u8, N>);
+pub struct ByteList<const N: usize>(
+    #[cfg_attr(feature = "serde", serde(with = "crate::serde::as_hex"))] List<u8, N>,
+);
 
 impl<const N: usize> TryFrom<&[u8]> for ByteList<N> {
     type Error = ssz_rs::DeserializeError;

@@ -1,3 +1,4 @@
+use crate::lib::*;
 use crate::primitives::{BlsPublicKey, BlsSignature};
 use ssz_rs::prelude::*;
 
@@ -11,8 +12,8 @@ pub struct SyncAggregate<const SYNC_COMMITTEE_SIZE: usize> {
 #[derive(Default, Debug, SimpleSerialize, Clone, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct SyncCommittee<const SYNC_COMMITTEE_SIZE: usize> {
-    #[serde(rename = "pubkeys")]
+    #[cfg_attr(feature = "serde", serde(rename = "pubkeys"))]
     pub public_keys: Vector<BlsPublicKey, SYNC_COMMITTEE_SIZE>,
-    #[serde(rename = "aggregate_pubkey")]
+    #[cfg_attr(feature = "serde", serde(rename = "aggregate_pubkey"))]
     pub aggregate_public_key: BlsPublicKey,
 }
