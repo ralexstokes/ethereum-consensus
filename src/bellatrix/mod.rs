@@ -11,6 +11,7 @@ mod fork;
 mod fork_choice;
 mod genesis;
 mod helpers;
+mod networking;
 mod presets;
 mod state_transition_bellatrix;
 
@@ -26,6 +27,7 @@ pub use execution::*;
 pub use fork::*;
 pub use fork_choice::*;
 pub use genesis::*;
+pub use networking::*;
 pub use presets::Preset;
 
 pub use crate::altair::{

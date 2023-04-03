@@ -5,7 +5,7 @@ The consensus spec tests repo is [here](https://github.com/ethereum/consensus-sp
 In order to run tests against the consensus spec test repo, use the following commands:
 
 ```
-just build-integration-tests
+just download-integration-tests
 just run-integration-tests
 ```
 
