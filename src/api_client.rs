@@ -475,7 +475,7 @@ impl Client {
         Ok(result.data)
     }
 
-    pub async fn get_node_version(self) -> Result<String, Error> {
+    pub async fn get_node_version(&self) -> Result<String, Error> {
         let result: Value<VersionData> = self.get("eth/v1/node/version").await?;
         Ok(result.data.version)
     }
