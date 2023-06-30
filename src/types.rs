@@ -74,13 +74,13 @@ impl FromStr for StateId {
             "genesis" => Ok(StateId::Genesis),
             _ => {
                 if s.parse::<u64>().is_ok() {
-                    return Ok(StateId::Slot(s.parse::<u64>().unwrap()))
+                    Ok(StateId::Slot(s.parse::<u64>().unwrap()))
                 } else if try_bytes_from_hex_str(s).is_ok() {
-                    return Ok(StateId::Root(
+                    Ok(StateId::Root(
                         try_bytes_from_hex_str(s).unwrap().as_slice().try_into().unwrap(),
                     ))
                 } else {
-                    return Err("invalid input to state_id")
+                    Err("invalid input to state_id")
                 }
             }
         }
