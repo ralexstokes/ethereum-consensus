@@ -1,15 +1,17 @@
-use beacon_api_client::{Client, StateId};
+pub mod api_client;
 use url::Url;
+pub mod cli;
+pub mod error;
+pub mod serde;
+pub mod types;
+use clap::Parser;
 
 #[tokio::main]
 async fn main() {
-    let s = "http://127.0.0.1:8003/";
-    let url: Url = Url::parse(s).unwrap();
-    let client = Client::new(url);
-
-    let checkpoints = client.get_finality_checkpoints(StateId::Finalized).await.unwrap();
-
-    println!("previous checkpoint: {:?}", checkpoints.previous_justified);
-    println!("current checkpoint: {:?}", checkpoints.current_justified);
-    println!("finalized checkpoint: {:?}", checkpoints.finalized);
+    // read in args from CLI
+    let args = cli::CliConfig::parse();
+    // instantiate client and pass to run_cli
+    let url: Url = Url::parse(&args.endpoint).unwrap();
+    let client = api_client::Client::new(url);
+    cli::run_cli(client, args).await;
 }
