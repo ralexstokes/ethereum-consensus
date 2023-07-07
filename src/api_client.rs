@@ -430,9 +430,7 @@ impl Client {
     }
 
     /* events namespace */
-    // TODO: figure out return type
     pub async fn get_events<T>(_topics: &[EventTopic]) -> Result<T, Error> {
-        // get back "event: TOPIC, data: T"
         unimplemented!("")
     }
 
@@ -557,7 +555,6 @@ impl Client {
             request = request.query(&[("graffiti", graffiti)]);
         }
         let response = request.send().await?;
-        // TODO handle polymorphism...
         let result: ApiResult<Value<BeaconBlock>> = response.json().await?;
         match result {
             ApiResult::Ok(result) => Ok(result.data),
@@ -579,7 +576,6 @@ impl Client {
             request = request.query(&[("graffiti", graffiti)]);
         }
         let response = request.send().await?;
-        // TODO handle polymorphism...
         let result: ApiResult<Value<BlindedBeaconBlock>> = response.json().await?;
         match result {
             ApiResult::Ok(result) => Ok(result.data),
