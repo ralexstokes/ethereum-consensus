@@ -238,7 +238,7 @@ impl Client {
         &self,
         id: StateId,
         epoch: Option<Epoch>,
-    ) -> Result<Vec<SyncCommitteeSummary>, Error> {
+    ) -> Result<SyncCommitteeSummary, Error> {
         let path = format!("eth/v1/beacon/states/{id}/sync_committees");
         let target = self.endpoint.join(&path)?;
         let mut request = self.http.get(target);
@@ -246,7 +246,7 @@ impl Client {
             request = request.query(&[("epoch", epoch)]);
         }
         let response = request.send().await?;
-        let result: ApiResult<Value<Vec<SyncCommitteeSummary>>> = response.json().await?;
+        let result: ApiResult<Value<SyncCommitteeSummary>> = response.json().await?;
         match result {
             ApiResult::Ok(result) => Ok(result.data),
             ApiResult::Err(err) => Err(err.into()),
