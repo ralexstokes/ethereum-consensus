@@ -6,13 +6,18 @@ use std::ops::Deref;
 use std::sync::Arc;
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
-pub fn convert_timestamp_to_slot(timestamp: u64, genesis_time: u64, seconds_per_slot: u64) -> Slot {
-    (timestamp - genesis_time) / seconds_per_slot
-}
-
 pub const MAINNET_GENESIS_TIME: u64 = 1606824023;
 pub const SEPOLIA_GENESIS_TIME: u64 = 1655733600;
 pub const GOERLI_GENESIS_TIME: u64 = 1616508000;
+
+pub fn convert_timestamp_to_slot(
+    timestamp: u64,
+    genesis_time: u64,
+    seconds_per_slot: u64,
+) -> Option<Slot> {
+    let delta = timestamp.checked_sub(genesis_time)?;
+    Some(delta / seconds_per_slot)
+}
 
 pub fn get_current_unix_time_in_secs() -> u64 {
     SystemTime::now()
@@ -116,22 +121,20 @@ impl<T: TimeProvider + Send + Sync> Clock<T> {
         current_time < self.genesis_time
     }
 
-    // Return the current slot.
-    // Panics if before genesis.
-    pub fn current_slot(&self) -> Slot {
+    // Return the current slot, or `None` if before genesis.
+    pub fn current_slot(&self) -> Option<Slot> {
         self.slot_at_time(self.get_current_time())
     }
 
     #[inline]
-    fn slot_at_time(&self, current_time: u64) -> Slot {
-        let span = current_time - self.genesis_time;
-        span / self.seconds_per_slot
+    fn slot_at_time(&self, current_time: u64) -> Option<Slot> {
+        convert_timestamp_to_slot(current_time, self.genesis_time, self.seconds_per_slot)
     }
 
-    // Return the current epoch.
-    // Panics if before genesis.
-    pub fn current_epoch(&self) -> Epoch {
-        self.epoch_for(self.current_slot())
+    // Return the current epoch, or `None` if before genesis.
+    pub fn current_epoch(&self) -> Option<Epoch> {
+        let current_slot = self.current_slot()?;
+        Some(self.epoch_for(current_slot))
     }
 
     #[inline]
@@ -144,7 +147,7 @@ impl<T: TimeProvider + Send + Sync> Clock<T> {
         if self.before_genesis_at(current_time) {
             Duration::from_secs(self.genesis_time - current_time)
         } else {
-            let current_slot = self.slot_at_time(current_time);
+            let current_slot = self.slot_at_time(current_time).expect("is after genesis");
             let next_slot = current_slot + 1;
             let next_slot_in_secs = next_slot * self.seconds_per_slot + self.genesis_time;
             Duration::from_secs(next_slot_in_secs - current_time)
@@ -154,6 +157,7 @@ impl<T: TimeProvider + Send + Sync> Clock<T> {
 
 #[cfg(feature = "async")]
 use tokio_stream::Stream;
+
 #[cfg(feature = "async")]
 impl<T: TimeProvider + Send + Sync> Clock<T> {
     pub fn stream_slots(&self) -> impl Stream<Item = Slot> + '_ {
@@ -161,7 +165,7 @@ impl<T: TimeProvider + Send + Sync> Clock<T> {
             loop {
                 let duration_until_next_slot = self.duration_until_next_slot();
                 tokio::time::sleep(duration_until_next_slot).await;
-                yield self.current_slot();
+                yield self.current_slot().expect("after genesis");
             }
         }
     }
@@ -208,15 +212,15 @@ mod tests {
         let time_provider = new_ticker(seconds_per_slot);
         let clock = Clock::new(0, seconds_per_slot, 32, time_provider.clone());
         assert_eq!(clock.duration_until_next_slot().as_secs(), 12);
-        assert_eq!(clock.current_slot(), 0);
+        assert_eq!(clock.current_slot().unwrap(), 0);
         time_provider.tick();
         assert_eq!(clock.duration_until_next_slot().as_secs(), 11);
-        assert_eq!(clock.current_slot(), 0);
+        assert_eq!(clock.current_slot().unwrap(), 0);
         for _ in 0..12 {
             time_provider.tick();
         }
         assert_eq!(clock.duration_until_next_slot().as_secs(), 11);
-        assert_eq!(clock.current_slot(), 1);
+        assert_eq!(clock.current_slot().unwrap(), 1);
     }
 
     #[test]
@@ -227,6 +231,8 @@ mod tests {
         assert_eq!(clock.duration_until_next_slot().as_secs(), 10);
         time_provider.tick();
         assert_eq!(clock.duration_until_next_slot().as_secs(), 9);
+
+        assert!(clock.current_slot().is_none());
     }
 
     #[cfg(feature = "async")]
