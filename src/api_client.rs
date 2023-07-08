@@ -47,6 +47,7 @@ async fn api_error_or_value<T: serde::de::DeserializeOwned>(
     }
 }
 
+#[allow(clippy::type_complexity)]
 #[derive(Clone)]
 pub struct Client<A, B, C, D, E, F, G, H, I, J> {
     http: reqwest::Client,
