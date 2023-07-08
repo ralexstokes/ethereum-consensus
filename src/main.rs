@@ -1,4 +1,4 @@
-use beacon_api_client::{Client, StateId};
+use beacon_api_client::{mainnet::Client, StateId};
 use url::Url;
 
 #[tokio::main]

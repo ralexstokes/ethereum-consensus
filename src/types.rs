@@ -1,7 +1,7 @@
-use crate::error::ApiError;
+use crate::ApiError;
 use ethereum_consensus::{
     networking::{Enr, MetaData, Multiaddr, PeerId},
-    phase0::mainnet::{Checkpoint, SignedBeaconBlockHeader, Validator},
+    phase0::{Checkpoint, SignedBeaconBlockHeader, Validator},
     primitives::{
         BlsPublicKey, ChainId, CommitteeIndex, Coordinate, Epoch, ExecutionAddress, Gwei, Root,
         Slot, ValidatorIndex, Version,
