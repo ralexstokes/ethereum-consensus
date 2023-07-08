@@ -1,5 +1,4 @@
 use crate::{
-    error::ApiError,
     types::{
         ApiResult, AttestationDuty, BalanceSummary, BeaconHeaderSummary,
         BeaconProposerRegistration, BlockId, CommitteeDescriptor, CommitteeFilter,
@@ -9,39 +8,19 @@ use crate::{
         SyncCommitteeDescriptor, SyncCommitteeDuty, SyncCommitteeSummary, SyncStatus,
         ValidatorStatus, ValidatorSummary, Value, VersionData,
     },
+    ApiError, Error,
 };
 use ethereum_consensus::{
-    altair::mainnet::{
-        SignedContributionAndProof, SyncCommitteeContribution, SyncCommitteeMessage,
-    },
-    bellatrix::mainnet::{BlindedBeaconBlock, SignedBlindedBeaconBlock},
+    altair::SyncCommitteeMessage,
     builder::SignedValidatorRegistration,
     networking::PeerId,
-    phase0::mainnet::{
-        Attestation, AttestationData, AttesterSlashing, BeaconBlock, BeaconState, Fork,
-        ProposerSlashing, SignedAggregateAndProof, SignedBeaconBlock, SignedVoluntaryExit,
-    },
+    phase0::{AttestationData, Fork, ProposerSlashing, SignedVoluntaryExit},
     primitives::{Bytes32, CommitteeIndex, Epoch, RandaoReveal, Root, Slot, ValidatorIndex},
 };
 use http::StatusCode;
 use itertools::Itertools;
 use std::collections::HashMap;
-use thiserror::Error;
-use url::{ParseError, Url};
-
-#[derive(Debug, Error)]
-pub enum Error {
-    #[error("could not parse URL: {0}")]
-    Url(#[from] ParseError),
-    #[error("could not send request: {0}")]
-    Http(#[from] reqwest::Error),
-    #[error("error from API: {0}")]
-    Api(#[from] ApiError),
-    #[error("missing expected data in response: {0}")]
-    MissingExpectedData(String),
-    #[error("json error: {0}")]
-    Json(#[from] serde_json::Error),
-}
+use url::Url;
 
 pub async fn api_error_or_ok(response: reqwest::Response) -> Result<(), Error> {
     match response.status() {
@@ -68,15 +47,41 @@ async fn api_error_or_value<T: serde::de::DeserializeOwned>(
     }
 }
 
+#[allow(clippy::type_complexity)]
 #[derive(Clone)]
-pub struct Client {
+pub struct Client<A, B, C, D, E, F, G, H, I, J> {
     http: reqwest::Client,
     endpoint: Url,
+    _phantom: std::marker::PhantomData<(A, B, C, D, E, F, G, H, I, J)>,
 }
 
-impl Client {
+impl<
+        SignedContributionAndProof: serde::Serialize,
+        SyncCommitteeContribution: serde::Serialize + serde::de::DeserializeOwned,
+        BlindedBeaconBlock: serde::Serialize + serde::de::DeserializeOwned,
+        SignedBlindedBeaconBlock: serde::Serialize + serde::de::DeserializeOwned,
+        Attestation: serde::Serialize + serde::de::DeserializeOwned,
+        AttesterSlashing: serde::Serialize + serde::de::DeserializeOwned,
+        BeaconBlock: serde::Serialize + serde::de::DeserializeOwned,
+        BeaconState: serde::Serialize + serde::de::DeserializeOwned,
+        SignedAggregateAndProof: serde::Serialize,
+        SignedBeaconBlock: serde::Serialize + serde::de::DeserializeOwned,
+    >
+    Client<
+        SignedContributionAndProof,
+        SyncCommitteeContribution,
+        BlindedBeaconBlock,
+        SignedBlindedBeaconBlock,
+        Attestation,
+        AttesterSlashing,
+        BeaconBlock,
+        BeaconState,
+        SignedAggregateAndProof,
+        SignedBeaconBlock,
+    >
+{
     pub fn new_with_client<U: Into<Url>>(client: reqwest::Client, endpoint: U) -> Self {
-        Self { http: client, endpoint: endpoint.into() }
+        Self { http: client, endpoint: endpoint.into(), _phantom: std::marker::PhantomData }
     }
 
     pub fn new<U: Into<Url>>(endpoint: U) -> Self {

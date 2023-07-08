@@ -1,4 +1,4 @@
-use beacon_api_client::Client;
+use beacon_api_client::mainnet::Client;
 use ethereum_consensus::builder::SignedValidatorRegistration;
 use url::Url;
 
