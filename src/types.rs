@@ -1,6 +1,7 @@
 use crate::ApiError;
 use ethereum_consensus::{
-    networking::{Enr, MetaData, Multiaddr, PeerId},
+    altair::MetaData,
+    networking::{Enr, Multiaddr, PeerId},
     phase0::{Checkpoint, SignedBeaconBlockHeader, Validator},
     primitives::{
         BlsPublicKey, ChainId, CommitteeIndex, Coordinate, Epoch, ExecutionAddress, Gwei, Root,
