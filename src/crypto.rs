@@ -163,6 +163,13 @@ pub fn eth_fast_aggregate_verify(
 #[cfg_attr(feature = "serde", serde(try_from = "String"))]
 pub struct SecretKey(bls_impl::SecretKey);
 
+#[cfg(not(feature = "spec-tests"))]
+impl fmt::Debug for SecretKey {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_tuple("SecretKey").finish()
+    }
+}
+
 #[cfg(feature = "serde")]
 impl TryFrom<String> for SecretKey {
     type Error = Error;
