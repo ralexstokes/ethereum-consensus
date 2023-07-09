@@ -35,9 +35,9 @@ impl TimeProvider for SystemTimeProvider {
 }
 
 #[derive(Clone)]
-pub struct Clock<T: TimeProvider>(Arc<Inner<T>>);
+pub struct Clock<T: TimeProvider + Send + Sync>(Arc<Inner<T>>);
 
-impl<T: TimeProvider> Deref for Clock<T> {
+impl<T: TimeProvider + Send + Sync> Deref for Clock<T> {
     type Target = Inner<T>;
 
     fn deref(&self) -> &Self::Target {
@@ -87,7 +87,7 @@ pub fn for_goerli() -> Clock<SystemTimeProvider> {
     from_system_time(genesis_time, seconds_per_slot, slots_per_epoch)
 }
 
-impl<T: TimeProvider> Clock<T> {
+impl<T: TimeProvider + Send + Sync> Clock<T> {
     pub fn new(
         genesis_time: u64,
         seconds_per_slot: u64,
@@ -155,7 +155,7 @@ impl<T: TimeProvider> Clock<T> {
 #[cfg(feature = "async")]
 use tokio_stream::Stream;
 #[cfg(feature = "async")]
-impl<T: TimeProvider> Clock<T> {
+impl<T: TimeProvider + Send + Sync> Clock<T> {
     pub fn stream_slots(&self) -> impl Stream<Item = Slot> + '_ {
         async_stream::stream! {
             loop {

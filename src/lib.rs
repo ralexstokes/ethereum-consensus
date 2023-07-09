@@ -1,3 +1,6 @@
+#![allow(unknown_lints)]
+#![allow(hidden_glob_reexports)]
+
 pub mod altair;
 pub mod bellatrix;
 pub mod builder;
