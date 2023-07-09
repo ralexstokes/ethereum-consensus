@@ -117,7 +117,7 @@ pub fn is_valid_indexed_attestation<
     if !duplicates.is_empty() {
         return Err(invalid_operation_error(
             InvalidOperation::IndexedAttestation(InvalidIndexedAttestation::DuplicateIndices(
-                Vec::from_iter(duplicates.into_iter()),
+                Vec::from_iter(duplicates),
             )),
         ));
     }
