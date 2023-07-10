@@ -1,8 +1,8 @@
-pub mod api_client;
-pub mod cli;
-pub mod error;
-pub mod serde;
-pub mod types;
+mod api_client;
+mod cli;
+mod error;
+mod serde;
+mod types;
 
 pub use api_client::*;
 pub use cli::*;

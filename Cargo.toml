@@ -7,7 +7,8 @@ license = "MIT OR Apache-2.0"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [features]
-default = ["clap"]
+default = ["cli"]
+cli = ["clap"]
 
 [dependencies]
 tokio = { version = "1.0", features = ["full"] }
@@ -19,6 +20,6 @@ http = "0.2.7"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0.81"
 itertools = "0.10.3"
-clap = {version = "4.1.1", features = ["derive"], optional=true }
+clap = {version = "4.3.10", features = ["derive"], optional = true }
 thiserror = "1.0.30"
 ethereum-consensus = { git = "https://github.com/ralexstokes/ethereum-consensus", rev="de14cb1399ae694275a65fb94702e859c9e15430" }
