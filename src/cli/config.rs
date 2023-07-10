@@ -37,14 +37,6 @@ impl GenesisArg {
 }
 
 #[derive(Debug, Clone, Args)]
-pub struct RootArg {
+pub struct StateIdArg {
     pub state_id: StateId,
-}
-
-impl RootArg {
-    pub async fn execute(&self, client: &Client) {
-        let id = &self.state_id;
-        let out = client.get_state_root(id.to_owned()).await.unwrap();
-        println!("{}", out);
-    }
 }
