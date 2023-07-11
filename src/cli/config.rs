@@ -1,29 +1,39 @@
-use crate::{api_client::Client, types::StateId};
+use crate::types::StateId;
 use clap::{Args, Parser, Subcommand};
-use std::fmt;
 
 #[derive(Debug, Parser)]
-#[clap(version, about = "Beacon API client")]
+#[command(author, version, about, long_about = None)]
+#[command(propagate_version = true)]
 pub struct CliConfig {
-    #[clap(long)]
+    #[arg(long)]
     pub endpoint: String,
-    #[clap(subcommand)]
+    #[command(subcommand)]
     pub namespace: Namespace,
 }
 
-#[derive(Debug, Clone, Subcommand)]
+#[derive(Debug, Subcommand)]
 pub enum Namespace {
     #[clap(subcommand)]
     Beacon(BeaconMethod),
 }
 
-#[derive(Debug, Clone, Subcommand)]
+#[derive(Debug, Subcommand)]
 pub enum BeaconMethod {
     Genesis,
     Root(StateIdArg),
 }
 
-#[derive(Debug, Clone, Args)]
+#[derive(Args, Debug)]
 pub struct StateIdArg {
+    #[arg(
+        value_parser = clap::value_parser!(StateId),
+        long_help = "Identifier for the state under consideration. Possible values are:
+    head
+    genesis
+    finalized
+    justified
+    <slot>
+    <hex-encoded root with 0x prefix>",
+    )]
     pub state_id: StateId,
 }
