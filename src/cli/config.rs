@@ -17,24 +17,23 @@ pub enum Namespace {
     Beacon(BeaconMethod),
 }
 
-
 #[derive(Debug, Clone, Subcommand)]
 pub enum BeaconMethod {
     Genesis,
     Root(StateIdArg),
 }
 
-#[derive(Debug, Clone, Args)]
-pub struct GenesisArg {
-    genesis: Option<StateId>,
-}
+// #[derive(Debug, Clone, Args)]
+// pub struct GenesisArg {
+//     genesis: Option<StateId>,
+// }
 
-impl GenesisArg {
-    pub async fn execute(&self, client: &Client) {
-        let out = client.get_genesis_details().await.unwrap();
-        println!("{:?}", out);
-    }
-}
+// impl GenesisArg {
+//     pub async fn execute(&self, client: &Client) {
+//         let out = client.get_genesis_details().await.unwrap();
+//         println!("{:?}", out);
+//     }
+// }
 
 #[derive(Debug, Clone, Args)]
 pub struct StateIdArg {

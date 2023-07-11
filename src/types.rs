@@ -66,30 +66,43 @@ impl fmt::Display for StateId {
 
 impl FromStr for StateId {
     type Err = String;
-    
+
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
             "finalized" => Ok(StateId::Finalized),
             "justified" => Ok(StateId::Justified),
             "head" => Ok(StateId::Head),
             "genesis" => Ok(StateId::Genesis),
-            _ => {
-                match s.parse::<Slot>() {
-                    Ok(slot) => Ok(Self::Slot(slot)),
-                    Err(_) => match try_bytes_from_hex_str(s) {
-                        Ok(root_data) => {
-                            let root = Root::try_from(&root_data).map_err(|err| format!("could not parse state identifier by root from the provided argument {s}: {err}")?;
-                            Ok(Self::Root(root))
-                        }
-                        Err(err) => {
-                            let err = format!("could not parse state identifier by root from the provided argument {s}: {err}");
-                            Err(err)                        
-                        }
+            _ => match s.parse::<Slot>() {
+                Ok(slot) => Ok(Self::Slot(slot)),
+                Err(_) => match try_bytes_from_hex_str(s) {
+                    Ok(root_data) => {
+                        let root = Root::try_from(&root_data[..]).map_err(|err| format!("could not parse state identifier by root from the provided argument {s}: {err}"))?;
+                        Ok(Self::Root(root))
                     }
-            }
+                    Err(err) => {
+                        let err = format!("could not parse state identifier by root from the provided argument {s}: {err}");
+                        Err(err)
+                    }
+                },
+            },
         }
     }
 }
+//            _ => {
+//                 if s.parse::<u64>().is_ok() {
+//                     Ok(StateId::Slot(s.parse::<u64>().unwrap()))
+//                 } else if try_bytes_from_hex_str(s).is_ok() {
+//                     Ok(StateId::Root(
+//                         try_bytes_from_hex_str(s).unwrap().as_slice().try_into().unwrap(),
+//                     ))
+//                 } else {
+//                     Err("invalid input to state_id".to_string())
+//                 }
+//             }
+//     }
+// }
+// }
 
 #[derive(Serialize, Deserialize)]
 pub struct RootData {
