@@ -7,6 +7,7 @@ mod blinded_beacon_block;
 mod blinded_blob_sidecar;
 mod blob_sidecar;
 mod execution;
+mod networking;
 mod presets;
 
 pub use beacon_block::*;
@@ -15,6 +16,7 @@ pub use blinded_beacon_block::*;
 pub use blinded_blob_sidecar::*;
 pub use blob_sidecar::*;
 pub use execution::*;
+pub use networking::*;
 pub use presets::Preset;
 
 pub use crate::altair::{

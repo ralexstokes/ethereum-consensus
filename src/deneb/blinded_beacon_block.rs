@@ -24,7 +24,7 @@ pub struct BlindedBeaconBlockBody<
     const MAX_TRANSACTIONS_PER_PAYLOAD: usize,
     const MAX_WITHDRAWALS_PER_PAYLOAD: usize,
     const MAX_BLS_TO_EXECUTION_CHANGES: usize,
-    const MAX_BLOBS_PER_BLOCK: usize,
+    const MAX_BLOB_COMMITMENTS_PER_BLOCK: usize,
 > {
     pub randao_reveal: BlsSignature,
     pub eth1_data: Eth1Data,
@@ -39,7 +39,7 @@ pub struct BlindedBeaconBlockBody<
     pub execution_payload_header:
         ExecutionPayloadHeader<BYTES_PER_LOGS_BLOOM, MAX_EXTRA_DATA_BYTES>,
     pub bls_to_execution_changes: List<SignedBlsToExecutionChange, MAX_BLS_TO_EXECUTION_CHANGES>,
-    pub blob_kzg_commitments: List<KzgCommitment, MAX_BLOBS_PER_BLOCK>,
+    pub blob_kzg_commitments: List<KzgCommitment, MAX_BLOB_COMMITMENTS_PER_BLOCK>,
 }
 
 #[derive(Default, Debug, Clone, SimpleSerialize)]

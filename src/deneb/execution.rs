@@ -30,10 +30,13 @@ pub struct ExecutionPayload<
     pub timestamp: u64,
     pub extra_data: ByteList<MAX_EXTRA_DATA_BYTES>,
     pub base_fee_per_gas: U256,
-    pub excess_data_gas: U256,
     pub block_hash: Hash32,
     pub transactions: List<Transaction<MAX_BYTES_PER_TRANSACTION>, MAX_TRANSACTIONS_PER_PAYLOAD>,
     pub withdrawals: List<Withdrawal, MAX_WITHDRAWALS_PER_PAYLOAD>,
+    #[serde(with = "crate::serde::as_string")]
+    pub data_gas_used: u64,
+    #[serde(with = "crate::serde::as_string")]
+    pub excess_data_gas: u64,
 }
 
 #[derive(Default, Debug, Clone, SimpleSerialize, PartialEq, Eq)]
@@ -58,10 +61,13 @@ pub struct ExecutionPayloadHeader<
     pub timestamp: u64,
     pub extra_data: ByteList<MAX_EXTRA_DATA_BYTES>,
     pub base_fee_per_gas: U256,
-    pub excess_data_gas: U256,
     pub block_hash: Hash32,
     pub transactions_root: Root,
     pub withdrawals_root: Root,
+    #[serde(with = "crate::serde::as_string")]
+    pub data_gas_used: u64,
+    #[serde(with = "crate::serde::as_string")]
+    pub excess_data_gas: u64,
 }
 
 impl<
@@ -110,10 +116,11 @@ impl<
             timestamp: payload.timestamp,
             extra_data: payload.extra_data.clone(),
             base_fee_per_gas: payload.base_fee_per_gas.clone(),
-            excess_data_gas: payload.excess_data_gas.clone(),
             block_hash: payload.block_hash.clone(),
             transactions_root,
             withdrawals_root,
+            data_gas_used: payload.data_gas_used,
+            excess_data_gas: payload.excess_data_gas,
         })
     }
 }

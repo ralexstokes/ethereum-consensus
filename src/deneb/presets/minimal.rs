@@ -23,11 +23,14 @@ pub use crate::phase0::minimal::{
 pub use deneb::*;
 
 pub const FIELD_ELEMENTS_PER_BLOB: usize = 4;
-pub const MAX_BLOBS_PER_BLOCK: usize = 4;
+pub const MAX_BLOB_COMMITMENTS_PER_BLOCK: usize = 16;
+pub const MAX_BLOBS_PER_BLOCK: usize = 6;
 pub const BYTES_PER_BLOB: usize = BYTES_PER_FIELD_ELEMENT * FIELD_ELEMENTS_PER_BLOB;
+pub const MAX_REQUEST_BLOB_SIDECARS: usize = MAX_REQUEST_BLOCKS_DENEB * MAX_BLOBS_PER_BLOCK;
 
 pub const PRESET: Preset = Preset {
     field_elements_per_blob: FIELD_ELEMENTS_PER_BLOB,
+    max_blob_commitments_per_block: MAX_BLOB_COMMITMENTS_PER_BLOCK,
     max_blobs_per_block: MAX_BLOBS_PER_BLOCK,
 };
 

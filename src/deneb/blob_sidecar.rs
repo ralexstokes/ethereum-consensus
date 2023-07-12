@@ -11,7 +11,7 @@ pub struct BlobSidecar<const BYTES_PER_BLOB: usize> {
     pub block_root: Root,
     #[serde(with = "crate::serde::as_string")]
     pub index: BlobIndex,
-    pub block_slot: Slot,
+    pub slot: Slot,
     pub block_parent_root: Root,
     #[serde(with = "crate::serde::as_string")]
     pub proposer_index: ValidatorIndex,
