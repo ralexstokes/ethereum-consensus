@@ -1,7 +1,8 @@
-use crate::error::ApiError;
+use crate::ApiError;
 use ethereum_consensus::{
-    networking::{Enr, MetaData, Multiaddr, PeerId},
-    phase0::mainnet::{Checkpoint, SignedBeaconBlockHeader, Validator},
+    altair::MetaData,
+    networking::{Enr, Multiaddr, PeerId},
+    phase0::{Checkpoint, SignedBeaconBlockHeader, Validator},
     primitives::{
         BlsPublicKey, ChainId, CommitteeIndex, Coordinate, Epoch, ExecutionAddress, Gwei, Root,
         Slot, ValidatorIndex, Version,
@@ -236,22 +237,25 @@ pub struct CommitteeFilter {
     pub slot: Option<Slot>,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Debug)]
+pub struct Committee(
+    #[serde(with = "crate::serde::collection_over_string")] pub Vec<ValidatorIndex>,
+);
+
+#[derive(Serialize, Deserialize, Debug)]
 pub struct CommitteeSummary {
     #[serde(with = "crate::serde::as_string")]
     pub index: CommitteeIndex,
     #[serde(with = "crate::serde::as_string")]
     pub slot: Slot,
-    #[serde(with = "crate::serde::collection_over_string")]
-    pub validators: Vec<ValidatorIndex>,
+    pub validators: Committee,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct SyncCommitteeSummary {
     #[serde(with = "crate::serde::collection_over_string")]
     pub validators: Vec<ValidatorIndex>,
-    // TODO fix serde here
-    pub validator_aggregates: Vec<Vec<ValidatorIndex>>,
+    pub validator_aggregates: Vec<Committee>,
 }
 
 #[derive(Serialize, Deserialize)]
