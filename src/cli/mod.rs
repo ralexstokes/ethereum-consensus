@@ -1,7 +1,5 @@
 mod config;
-
-use crate::api_client::Client;
-
+use crate::mainnet::Client;
 pub use config::CliConfig;
 use config::{BeaconMethod, Namespace::Beacon};
 

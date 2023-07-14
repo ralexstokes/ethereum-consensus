@@ -1,12 +1,12 @@
 mod api_client;
-mod cli;
 mod api_error;
+mod cli;
 mod serde;
 mod types;
 
 pub use api_client::*;
-pub use cli::*;
 pub use api_error::*;
+pub use cli::*;
 pub use error::*;
 pub use presets::*;
 pub use types::*;

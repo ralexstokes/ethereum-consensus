@@ -1,4 +1,4 @@
-use beacon_api_client::{run_cli, CliConfig, mainnet::Client};
+use beacon_api_client::{mainnet::Client, run_cli, CliConfig};
 use clap::Parser;
 use url::Url;
 
