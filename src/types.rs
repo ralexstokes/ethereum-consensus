@@ -7,9 +7,10 @@ use ethereum_consensus::{
         BlsPublicKey, ChainId, CommitteeIndex, Coordinate, Epoch, ExecutionAddress, Gwei, Root,
         Slot, ValidatorIndex, Version,
     },
+    serde::try_bytes_from_hex_str,
 };
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
-use std::{collections::HashMap, fmt};
+use std::{collections::HashMap, fmt, str::FromStr};
 
 #[derive(Serialize, Deserialize)]
 pub struct VersionData {
@@ -31,7 +32,7 @@ pub struct DepositContract {
     pub address: ExecutionAddress,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct GenesisDetails {
     #[serde(with = "crate::serde::as_string")]
     pub genesis_time: u64,
@@ -40,7 +41,7 @@ pub struct GenesisDetails {
     pub genesis_fork_version: Version,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Clone, Debug)]
 pub enum StateId {
     Head,
     Genesis,
@@ -61,6 +62,32 @@ impl fmt::Display for StateId {
             StateId::Root(root) => return write!(f, "{root}"),
         };
         write!(f, "{printable}")
+    }
+}
+
+impl FromStr for StateId {
+    type Err = String;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+            "finalized" => Ok(StateId::Finalized),
+            "justified" => Ok(StateId::Justified),
+            "head" => Ok(StateId::Head),
+            "genesis" => Ok(StateId::Genesis),
+            _ => match s.parse::<Slot>() {
+                Ok(slot) => Ok(Self::Slot(slot)),
+                Err(_) => match try_bytes_from_hex_str(s) {
+                    Ok(root_data) => {
+                        let root = Root::try_from(root_data.as_ref()).map_err(|err| format!("could not parse state identifier by root from the provided argument {s}: {err}"))?;
+                        Ok(Self::Root(root))
+                    }
+                    Err(err) => {
+                        let err = format!("could not parse state identifier by root from the provided argument {s}: {err}");
+                        Err(err)
+                    }
+                },
+            },
+        }
     }
 }
 
