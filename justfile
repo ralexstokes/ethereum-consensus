@@ -16,12 +16,14 @@ run-integration-tests:
     cargo test --features 'spec-tests' --test '*'
 
 gen-spec:
-    cargo run --features gen-spec --bin gen-spec
-    cargo fix --allow-dirty
-    cargo fmt
+    @echo "this is broken right now, sorry"
+    # cargo run --features gen-spec --bin gen-spec
+    # cargo fix --allow-dirty
+    # cargo fmt
 gen-tests:
-    cargo run --features gen-tests --bin gen-tests
-    cargo fmt
+    @echo "this is broken right now, sorry"
+    # cargo run --features gen-tests --bin gen-tests
+    # cargo fmt
 
 test:
     # NOTE: do not test `--all-features` here to only run unit tests

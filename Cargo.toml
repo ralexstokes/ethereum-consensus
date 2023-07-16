@@ -4,4 +4,5 @@ resolver = "2"
 members = [
     "ethereum-consensus",
     "ethereum-consensus-test-gen",
+    "ethereum-consensus-spec-gen",
 ]
