@@ -1,6 +1,8 @@
-use crate::crypto::{verify_signature, SecretKey};
-use crate::primitives::{BlsPublicKey, BlsSignature, Domain, Root};
-use crate::state_transition::Error;
+use crate::{
+    crypto::{verify_signature, SecretKey},
+    primitives::{BlsPublicKey, BlsSignature, Domain, Root},
+    state_transition::Error,
+};
 use ssz_rs::prelude::*;
 
 #[derive(Default, Debug, SimpleSerialize)]
@@ -15,10 +17,7 @@ pub fn compute_signing_root<T: SimpleSerialize>(
 ) -> Result<Root, Error> {
     let object_root = ssz_object.hash_tree_root()?;
 
-    let mut s = SigningData {
-        object_root,
-        domain,
-    };
+    let mut s = SigningData { object_root, domain };
     s.hash_tree_root().map_err(Error::Merkleization)
 }
 

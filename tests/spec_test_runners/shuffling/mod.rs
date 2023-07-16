@@ -1,7 +1,7 @@
 use crate::test_utils::{load_yaml, Config};
-use ethereum_consensus::phase0::compute_shuffled_index;
-use ethereum_consensus::primitives::Bytes32;
-use ethereum_consensus::state_transition::Context;
+use ethereum_consensus::{
+    phase0::compute_shuffled_index, primitives::Bytes32, state_transition::Context,
+};
 use serde::Deserialize;
 
 #[derive(Debug, Deserialize)]
@@ -23,11 +23,8 @@ impl CoreTestCase {
 
         let data: ShufflingTestData = load_yaml(&path);
 
-        let config = if test_case_path.contains("minimal") {
-            Config::Minimal
-        } else {
-            Config::Mainnet
-        };
+        let config =
+            if test_case_path.contains("minimal") { Config::Minimal } else { Config::Mainnet };
 
         Self { data, config }
     }

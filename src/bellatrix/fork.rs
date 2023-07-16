@@ -1,6 +1,8 @@
-use crate::altair;
-use crate::bellatrix::{BeaconState, Fork};
-use crate::state_transition::Context;
+use crate::{
+    altair,
+    bellatrix::{BeaconState, Fork},
+    state_transition::Context,
+};
 use ssz_rs::prelude::*;
 
 pub fn upgrade_to_bellatrix<

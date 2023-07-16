@@ -1,7 +1,9 @@
 use crate::phase0 as spec;
 
-use crate::primitives::{Gwei, Hash32, GENESIS_EPOCH};
-use crate::state_transition::{Context, Result};
+use crate::{
+    primitives::{Gwei, Hash32, GENESIS_EPOCH},
+    state_transition::{Context, Result},
+};
 use spec::{
     get_active_validator_indices, process_deposit, BeaconBlock, BeaconBlockBody, BeaconBlockHeader,
     BeaconState, Deposit, DepositData, Eth1Data, Fork, DEPOSIT_DATA_LIST_BOUND,
@@ -58,10 +60,7 @@ pub fn initialize_beacon_state_from_eth1<
         MAX_VOLUNTARY_EXITS,
     >::default();
     let body_root = latest_block_body.hash_tree_root()?;
-    let latest_block_header = BeaconBlockHeader {
-        body_root,
-        ..Default::default()
-    };
+    let latest_block_header = BeaconBlockHeader { body_root, ..Default::default() };
     let randao_mixes = Vector::try_from(
         std::iter::repeat(eth1_block_hash)
             .take(context.epochs_per_historical_vector as usize)
@@ -126,13 +125,13 @@ pub fn is_valid_genesis_state<
     context: &Context,
 ) -> bool {
     if state.genesis_time < context.min_genesis_time {
-        return false;
+        return false
     }
 
-    if get_active_validator_indices(state, GENESIS_EPOCH).len()
-        < context.min_genesis_active_validator_count
+    if get_active_validator_indices(state, GENESIS_EPOCH).len() <
+        context.min_genesis_active_validator_count
     {
-        return false;
+        return false
     }
 
     true
@@ -173,8 +172,5 @@ pub fn get_genesis_block<
         MAX_VOLUNTARY_EXITS,
     >,
 > {
-    Ok(BeaconBlock {
-        state_root: genesis_state.hash_tree_root()?,
-        ..Default::default()
-    })
+    Ok(BeaconBlock { state_root: genesis_state.hash_tree_root()?, ..Default::default() })
 }

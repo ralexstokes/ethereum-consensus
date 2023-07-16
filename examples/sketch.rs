@@ -1,7 +1,9 @@
-use ethereum_consensus::altair::mainnet as altair;
-use ethereum_consensus::bellatrix::mainnet as bellatrix;
-use ethereum_consensus::phase0::mainnet as phase0;
-use ethereum_consensus::state_transition::{Context, Validation};
+use ethereum_consensus::{
+    altair::mainnet as altair,
+    bellatrix::mainnet as bellatrix,
+    phase0::mainnet as phase0,
+    state_transition::{Context, Validation},
+};
 
 fn main() {
     let context = Context::for_mainnet();

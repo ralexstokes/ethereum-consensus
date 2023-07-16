@@ -1,10 +1,12 @@
 use crate::test_utils::{load_yaml, TestCase};
-use ethereum_consensus::crypto::{
-    aggregate, aggregate_verify, eth_aggregate_public_keys, eth_fast_aggregate_verify,
-    fast_aggregate_verify, verify_signature, PublicKey, SecretKey, Signature,
+use ethereum_consensus::{
+    crypto::{
+        aggregate, aggregate_verify, eth_aggregate_public_keys, eth_fast_aggregate_verify,
+        fast_aggregate_verify, verify_signature, PublicKey, SecretKey, Signature,
+    },
+    primitives::Bytes32,
+    serde as eth_serde,
 };
-use ethereum_consensus::primitives::Bytes32;
-use ethereum_consensus::serde as eth_serde;
 use serde::Deserialize;
 use serde_with::{serde_as, DefaultOnError};
 
@@ -60,19 +62,8 @@ impl AggregateVerifyTestCase {
     }
 
     pub fn run(&self) -> bool {
-        let public_keys = self
-            .input
-            .pubkeys
-            .iter()
-            .flatten()
-            .cloned()
-            .collect::<Vec<_>>();
-        let messages = self
-            .input
-            .messages
-            .iter()
-            .map(|m| m.as_ref())
-            .collect::<Vec<_>>();
+        let public_keys = self.input.pubkeys.iter().flatten().cloned().collect::<Vec<_>>();
+        let messages = self.input.messages.iter().map(|m| m.as_ref()).collect::<Vec<_>>();
         let signature = self.input.signature.as_ref().unwrap();
         aggregate_verify(&public_keys, &messages, signature).is_ok()
     }
@@ -89,7 +80,7 @@ impl TestCase for AggregateVerifyTestCase {
 
     fn verify_failure(&self) -> bool {
         if self.input.signature.is_none() {
-            return true;
+            return true
         }
         !self.run()
     }
@@ -144,13 +135,13 @@ impl TestCase for FastAggregateVerifyTestCase {
 
     fn verify_failure(&self) -> bool {
         if self.input.signature.is_none() {
-            return true;
+            return true
         }
         if self.input.pubkeys.iter().any(|key| {
             let input: Result<PublicKey, _> = serde_yaml::from_str(key);
             input.is_err()
         }) {
-            return true;
+            return true
         }
 
         !self.run()
@@ -185,12 +176,7 @@ impl TestCase for SignTestCase {
     }
 
     fn verify_success(&self) -> bool {
-        let signature = self
-            .input
-            .privkey
-            .as_ref()
-            .unwrap()
-            .sign(self.input.message.as_ref());
+        let signature = self.input.privkey.as_ref().unwrap().sign(self.input.message.as_ref());
         &signature == self.output.as_ref().unwrap()
     }
 
@@ -242,10 +228,10 @@ impl TestCase for VerifyTestCase {
 
     fn verify_failure(&self) -> bool {
         if self.input.signature.is_none() {
-            return true;
+            return true
         }
         if self.input.pubkey.is_none() {
-            return true;
+            return true
         }
         !self.run()
     }
@@ -334,14 +320,14 @@ impl TestCase for EthFastAggregateVerifyTestCase {
 
     fn verify_failure(&self) -> bool {
         if self.input.signature.is_none() {
-            return true;
+            return true
         }
 
         if self.input.public_keys.iter().any(|key| {
             let input: Result<PublicKey, _> = serde_yaml::from_str(key);
             input.is_err()
         }) {
-            return true;
+            return true
         }
 
         !self.run()

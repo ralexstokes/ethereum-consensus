@@ -1,8 +1,10 @@
 use super::write_bytes_to_lower_hex;
 use ssz_rs::prelude::*;
-use std::fmt;
-use std::hash::{Hash, Hasher};
-use std::ops::{Deref, DerefMut};
+use std::{
+    fmt,
+    hash::{Hash, Hasher},
+    ops::{Deref, DerefMut},
+};
 
 #[derive(Default, Clone, Eq, SimpleSerialize)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]

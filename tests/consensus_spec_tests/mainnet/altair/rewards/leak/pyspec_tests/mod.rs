@@ -20,13 +20,7 @@ fn test_empty_leak() {
         let head_deltas = spec::get_flag_index_deltas(state, flag_index, context).unwrap();
         let inactivity_penalty_deltas =
             spec::get_inactivity_penalty_deltas(state, context).unwrap();
-        (
-            source_deltas,
-            target_deltas,
-            head_deltas,
-            None,
-            inactivity_penalty_deltas,
-        )
+        (source_deltas, target_deltas, head_deltas, None, inactivity_penalty_deltas)
     });
 }
 
@@ -43,13 +37,7 @@ fn test_full_but_partial_participation_leak() {
         let head_deltas = spec::get_flag_index_deltas(state, flag_index, context).unwrap();
         let inactivity_penalty_deltas =
             spec::get_inactivity_penalty_deltas(state, context).unwrap();
-        (
-            source_deltas,
-            target_deltas,
-            head_deltas,
-            None,
-            inactivity_penalty_deltas,
-        )
+        (source_deltas, target_deltas, head_deltas, None, inactivity_penalty_deltas)
     });
 }
 
@@ -68,13 +56,7 @@ fn test_full_leak() {
         let head_deltas = spec::get_flag_index_deltas(state, flag_index, context).unwrap();
         let inactivity_penalty_deltas =
             spec::get_inactivity_penalty_deltas(state, context).unwrap();
-        (
-            source_deltas,
-            target_deltas,
-            head_deltas,
-            None,
-            inactivity_penalty_deltas,
-        )
+        (source_deltas, target_deltas, head_deltas, None, inactivity_penalty_deltas)
     });
 }
 
@@ -93,13 +75,7 @@ fn test_full_random_leak() {
         let head_deltas = spec::get_flag_index_deltas(state, flag_index, context).unwrap();
         let inactivity_penalty_deltas =
             spec::get_inactivity_penalty_deltas(state, context).unwrap();
-        (
-            source_deltas,
-            target_deltas,
-            head_deltas,
-            None,
-            inactivity_penalty_deltas,
-        )
+        (source_deltas, target_deltas, head_deltas, None, inactivity_penalty_deltas)
     });
 }
 
@@ -116,13 +92,7 @@ fn test_full_random_seven_epoch_leak() {
         let head_deltas = spec::get_flag_index_deltas(state, flag_index, context).unwrap();
         let inactivity_penalty_deltas =
             spec::get_inactivity_penalty_deltas(state, context).unwrap();
-        (
-            source_deltas,
-            target_deltas,
-            head_deltas,
-            None,
-            inactivity_penalty_deltas,
-        )
+        (source_deltas, target_deltas, head_deltas, None, inactivity_penalty_deltas)
     });
 }
 
@@ -139,13 +109,7 @@ fn test_full_random_ten_epoch_leak() {
         let head_deltas = spec::get_flag_index_deltas(state, flag_index, context).unwrap();
         let inactivity_penalty_deltas =
             spec::get_inactivity_penalty_deltas(state, context).unwrap();
-        (
-            source_deltas,
-            target_deltas,
-            head_deltas,
-            None,
-            inactivity_penalty_deltas,
-        )
+        (source_deltas, target_deltas, head_deltas, None, inactivity_penalty_deltas)
     });
 }
 
@@ -164,13 +128,7 @@ fn test_half_full_leak() {
         let head_deltas = spec::get_flag_index_deltas(state, flag_index, context).unwrap();
         let inactivity_penalty_deltas =
             spec::get_inactivity_penalty_deltas(state, context).unwrap();
-        (
-            source_deltas,
-            target_deltas,
-            head_deltas,
-            None,
-            inactivity_penalty_deltas,
-        )
+        (source_deltas, target_deltas, head_deltas, None, inactivity_penalty_deltas)
     });
 }
 
@@ -189,13 +147,7 @@ fn test_quarter_full_leak() {
         let head_deltas = spec::get_flag_index_deltas(state, flag_index, context).unwrap();
         let inactivity_penalty_deltas =
             spec::get_inactivity_penalty_deltas(state, context).unwrap();
-        (
-            source_deltas,
-            target_deltas,
-            head_deltas,
-            None,
-            inactivity_penalty_deltas,
-        )
+        (source_deltas, target_deltas, head_deltas, None, inactivity_penalty_deltas)
     });
 }
 
@@ -212,13 +164,7 @@ fn test_some_very_low_effective_balances_that_attested_leak() {
         let head_deltas = spec::get_flag_index_deltas(state, flag_index, context).unwrap();
         let inactivity_penalty_deltas =
             spec::get_inactivity_penalty_deltas(state, context).unwrap();
-        (
-            source_deltas,
-            target_deltas,
-            head_deltas,
-            None,
-            inactivity_penalty_deltas,
-        )
+        (source_deltas, target_deltas, head_deltas, None, inactivity_penalty_deltas)
     });
 }
 
@@ -235,13 +181,7 @@ fn test_some_very_low_effective_balances_that_did_not_attest_leak() {
         let head_deltas = spec::get_flag_index_deltas(state, flag_index, context).unwrap();
         let inactivity_penalty_deltas =
             spec::get_inactivity_penalty_deltas(state, context).unwrap();
-        (
-            source_deltas,
-            target_deltas,
-            head_deltas,
-            None,
-            inactivity_penalty_deltas,
-        )
+        (source_deltas, target_deltas, head_deltas, None, inactivity_penalty_deltas)
     });
 }
 
@@ -258,13 +198,7 @@ fn test_with_exited_validators_leak() {
         let head_deltas = spec::get_flag_index_deltas(state, flag_index, context).unwrap();
         let inactivity_penalty_deltas =
             spec::get_inactivity_penalty_deltas(state, context).unwrap();
-        (
-            source_deltas,
-            target_deltas,
-            head_deltas,
-            None,
-            inactivity_penalty_deltas,
-        )
+        (source_deltas, target_deltas, head_deltas, None, inactivity_penalty_deltas)
     });
 }
 
@@ -281,13 +215,7 @@ fn test_with_not_yet_activated_validators_leak() {
         let head_deltas = spec::get_flag_index_deltas(state, flag_index, context).unwrap();
         let inactivity_penalty_deltas =
             spec::get_inactivity_penalty_deltas(state, context).unwrap();
-        (
-            source_deltas,
-            target_deltas,
-            head_deltas,
-            None,
-            inactivity_penalty_deltas,
-        )
+        (source_deltas, target_deltas, head_deltas, None, inactivity_penalty_deltas)
     });
 }
 
@@ -304,12 +232,6 @@ fn test_with_slashed_validators_leak() {
         let head_deltas = spec::get_flag_index_deltas(state, flag_index, context).unwrap();
         let inactivity_penalty_deltas =
             spec::get_inactivity_penalty_deltas(state, context).unwrap();
-        (
-            source_deltas,
-            target_deltas,
-            head_deltas,
-            None,
-            inactivity_penalty_deltas,
-        )
+        (source_deltas, target_deltas, head_deltas, None, inactivity_penalty_deltas)
     });
 }

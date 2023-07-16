@@ -1,6 +1,8 @@
 use crate::test_utils::{load_snappy_ssz, load_yaml, Config};
-use ethereum_consensus::primitives::{Bytes32, Hash32};
-use ethereum_consensus::state_transition::{Context, Result};
+use ethereum_consensus::{
+    primitives::{Bytes32, Hash32},
+    state_transition::{Context, Result},
+};
 use serde::Deserialize;
 use std::fmt;
 
@@ -55,19 +57,10 @@ where
         let path = test_case_path.to_string() + "/state.ssz_snappy";
         let state: S = load_snappy_ssz(&path).unwrap();
 
-        let config = if test_case_path.contains("minimal") {
-            Config::Minimal
-        } else {
-            Config::Mainnet
-        };
+        let config =
+            if test_case_path.contains("minimal") { Config::Minimal } else { Config::Mainnet };
 
-        Self {
-            eth1,
-            deposits,
-            execution_payload_header,
-            state,
-            config,
-        }
+        Self { eth1, deposits, execution_payload_header, state, config }
     }
 
     pub fn execute<F>(&mut self, f: F)
@@ -113,11 +106,7 @@ where
             todo!("support preset");
         };
 
-        Self {
-            state,
-            is_valid,
-            config,
-        }
+        Self { state, is_valid, config }
     }
 
     pub fn execute<F>(&mut self, f: F)

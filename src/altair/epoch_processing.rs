@@ -1,7 +1,9 @@
 use crate::altair as spec;
 
-use crate::primitives::{Gwei, ParticipationFlags, ValidatorIndex, GENESIS_EPOCH};
-use crate::state_transition::{Context, Result};
+use crate::{
+    primitives::{Gwei, ParticipationFlags, ValidatorIndex, GENESIS_EPOCH},
+    state_transition::{Context, Result},
+};
 use spec::{
     decrease_balance, get_base_reward_per_increment, get_current_epoch,
     get_eligible_validator_indices, get_flag_index_deltas, get_inactivity_penalty_deltas,
@@ -66,10 +68,11 @@ pub fn process_justification_and_finalization<
     context: &Context,
 ) -> Result<()> {
     // Initial FFG checkpoint values have a `0x00` stub for `root`.
-    // Skip FFG updates in the first two epochs to avoid corner cases that might result in modifying this stub.
+    // Skip FFG updates in the first two epochs to avoid corner cases that might result in modifying
+    // this stub.
     let current_epoch = get_current_epoch(state, context);
     if current_epoch <= GENESIS_EPOCH + 1 {
-        return Ok(());
+        return Ok(())
     }
 
     let previous_indices = get_unslashed_participating_indices(
@@ -121,7 +124,7 @@ pub fn process_inactivity_updates<
     // Skip the genesis epoch as score updates are based on the previous epoch participation
     let current_epoch = get_current_epoch(state, context);
     if current_epoch == GENESIS_EPOCH {
-        return Ok(());
+        return Ok(())
     }
 
     let eligible_validator_indices =
@@ -142,10 +145,8 @@ pub fn process_inactivity_updates<
         }
         // Decrease the inactivity score of all eligible validators during a leak-free epoch
         if not_is_leaking {
-            state.inactivity_scores[index] -= u64::min(
-                context.inactivity_score_recovery_rate,
-                state.inactivity_scores[index],
-            );
+            state.inactivity_scores[index] -=
+                u64::min(context.inactivity_score_recovery_rate, state.inactivity_scores[index]);
         }
     }
     Ok(())
@@ -173,10 +174,11 @@ pub fn process_rewards_and_penalties<
     >,
     context: &Context,
 ) -> Result<()> {
-    // No rewards are applied at the end of `GENESIS_EPOCH` because rewards are for work done in the previous epoch
+    // No rewards are applied at the end of `GENESIS_EPOCH` because rewards are for work done in the
+    // previous epoch
     let current_epoch = get_current_epoch(state, context);
     if current_epoch == GENESIS_EPOCH {
-        return Ok(());
+        return Ok(())
     }
 
     let mut deltas = Vec::new();
@@ -218,9 +220,8 @@ pub fn process_participation_flag_updates<
     let current_participation = mem::take(&mut state.current_epoch_participation);
     state.previous_epoch_participation = current_participation;
     let rotate_participation = vec![ParticipationFlags::default(); state.validators.len()];
-    state.current_epoch_participation = rotate_participation
-        .try_into()
-        .expect("should convert from Vec to List");
+    state.current_epoch_participation =
+        rotate_participation.try_into().expect("should convert from Vec to List");
     Ok(())
 }
 
@@ -254,8 +255,8 @@ pub fn process_slashings<
     );
     for i in 0..state.validators.len() {
         let validator = &state.validators[i];
-        if validator.slashed
-            && (epoch + context.epochs_per_slashings_vector / 2) == validator.withdrawable_epoch
+        if validator.slashed &&
+            (epoch + context.epochs_per_slashings_vector / 2) == validator.withdrawable_epoch
         {
             let increment = context.effective_balance_increment;
             let penalty_numerator =

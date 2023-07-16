@@ -1,8 +1,7 @@
 // WARNING!
 // This file was generated with `gen-tests`. Do NOT edit manually.
 
-use crate::spec_test_runners::bls::AggregateTestCase;
-use crate::test_utils::TestCase;
+use crate::{spec_test_runners::bls::AggregateTestCase, test_utils::TestCase};
 
 #[test]
 fn test_aggregate_0_x_0000000000000000000000000000000000000000000000000000000000000000() {

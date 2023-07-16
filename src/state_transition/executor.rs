@@ -1,8 +1,6 @@
-use crate::altair;
-use crate::bellatrix;
-use crate::phase0;
-use crate::state_transition::{
-    BeaconState, Context, Error, Forks, Result, SignedBeaconBlock, Validation,
+use crate::{
+    altair, bellatrix, phase0,
+    state_transition::{BeaconState, Context, Error, Forks, Result, SignedBeaconBlock, Validation},
 };
 
 #[derive(Debug)]
@@ -118,11 +116,7 @@ impl<
         execution_engine: E,
         context: Context,
     ) -> Self {
-        Self {
-            state,
-            execution_engine,
-            context,
-        }
+        Self { state, execution_engine, context }
     }
 
     pub fn apply_block(

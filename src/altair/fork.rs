@@ -1,9 +1,11 @@
-use crate::altair::{
-    add_flag, get_attestation_participation_flag_indices, get_attesting_indices,
-    get_next_sync_committee, BeaconState, Fork,
+use crate::{
+    altair::{
+        add_flag, get_attestation_participation_flag_indices, get_attesting_indices,
+        get_next_sync_committee, BeaconState, Fork,
+    },
+    phase0,
+    state_transition::{Context, Result},
 };
-use crate::phase0;
-use crate::state_transition::{Context, Result};
 use ssz_rs::prelude::*;
 
 fn translate_participation<
@@ -80,15 +82,12 @@ pub fn upgrade_to_altair<
     >,
 > {
     let epoch = phase0::get_current_epoch(state, context);
-    let previous_epoch_participation = vec![0u8; state.validators.len()]
-        .try_into()
-        .map_err(|(_, err)| err)?;
-    let current_epoch_participation = vec![0u8; state.validators.len()]
-        .try_into()
-        .map_err(|(_, err)| err)?;
-    let inactivity_scores = vec![0u64; state.validators.len()]
-        .try_into()
-        .map_err(|(_, err)| err)?;
+    let previous_epoch_participation =
+        vec![0u8; state.validators.len()].try_into().map_err(|(_, err)| err)?;
+    let current_epoch_participation =
+        vec![0u8; state.validators.len()].try_into().map_err(|(_, err)| err)?;
+    let inactivity_scores =
+        vec![0u64; state.validators.len()].try_into().map_err(|(_, err)| err)?;
     let mut post_state = BeaconState {
         genesis_time: state.genesis_time,
         genesis_validators_root: state.genesis_validators_root,

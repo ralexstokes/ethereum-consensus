@@ -1,8 +1,10 @@
 use convert_case::{Case, Casing};
-use std::collections::HashMap;
-use std::fmt::Write;
-use std::fs;
-use std::path::{Component, Path, PathBuf};
+use std::{
+    collections::HashMap,
+    fmt::Write,
+    fs,
+    path::{Component, Path, PathBuf},
+};
 use walkdir::{DirEntry, Error, WalkDir};
 
 type TestIndex = HashMap<
@@ -28,7 +30,7 @@ fn insert_test(tests: &mut TestIndex, path: &Path) -> bool {
 
     // NOTE: these tests are handled elsewhere outside this repo.
     if runner == "ssz_generic" {
-        return false;
+        return false
     }
 
     let tests = tests.entry(runner).or_default();
@@ -69,11 +71,7 @@ fn generate_module_decl_src<'a>(modules: impl Iterator<Item = &'a String>) -> St
     let mut src = String::new();
     for module in modules {
         let module = prefix_if_starts_with_reserved(module);
-        let module = if module == "phase_0" {
-            "phase0".to_string()
-        } else {
-            module
-        };
+        let module = if module == "phase_0" { "phase0".to_string() } else { module };
         writeln!(src, "mod {module};").unwrap();
     }
     src
@@ -95,10 +93,7 @@ fn is_leaf(entry: &DirEntry) -> bool {
 }
 
 fn leaf_dirs(path: &PathBuf) -> impl Iterator<Item = DirEntry> {
-    WalkDir::new(path)
-        .into_iter()
-        .filter(|e| is_leaf(e.as_ref().unwrap()))
-        .map(|e| e.unwrap())
+    WalkDir::new(path).into_iter().filter(|e| is_leaf(e.as_ref().unwrap())).map(|e| e.unwrap())
 }
 
 fn generate_suite_src(
@@ -116,11 +111,7 @@ fn generate_suite_src(
 "#
     .to_string();
 
-    writeln!(
-        src,
-        "use crate::spec_test_runners::{runner}::{test_case_type};",
-    )
-    .unwrap();
+    writeln!(src, "use crate::spec_test_runners::{runner}::{test_case_type};",).unwrap();
 
     let needs_trait_import = matches!(runner, "bls");
 
@@ -194,16 +185,9 @@ fn generate_suite_src(
             Spec::Bellatrix => "altair",
             _ => unimplemented!("support other forks"),
         };
-        writeln!(
-            src,
-            "use ethereum_consensus::{pre_fork}::{config} as pre_spec;",
-        )
-        .unwrap();
-        writeln!(
-            src,
-            "use ethereum_consensus::bellatrix::{config}::NoOpExecutionEngine;",
-        )
-        .unwrap();
+        writeln!(src, "use ethereum_consensus::{pre_fork}::{config} as pre_spec;",).unwrap();
+        writeln!(src, "use ethereum_consensus::bellatrix::{config}::NoOpExecutionEngine;",)
+            .unwrap();
     }
     if matches!(runner, "fork") {
         match spec {

@@ -25,18 +25,10 @@ where
         let path = test_case_path.to_string() + "/attestation.ssz_snappy";
         let operation: T = load_snappy_ssz(&path).unwrap();
 
-        let config = if test_case_path.contains("minimal") {
-            Config::Minimal
-        } else {
-            Config::Mainnet
-        };
+        let config =
+            if test_case_path.contains("minimal") { Config::Minimal } else { Config::Mainnet };
 
-        Self {
-            pre,
-            post,
-            operation,
-            config,
-        }
+        Self { pre, post, operation, config }
     }
 
     pub fn execute<F>(&mut self, f: F)
@@ -80,18 +72,10 @@ where
         let path = test_case_path.to_string() + "/attester_slashing.ssz_snappy";
         let operation: T = load_snappy_ssz(&path).unwrap();
 
-        let config = if test_case_path.contains("minimal") {
-            Config::Minimal
-        } else {
-            Config::Mainnet
-        };
+        let config =
+            if test_case_path.contains("minimal") { Config::Minimal } else { Config::Mainnet };
 
-        Self {
-            pre,
-            post,
-            operation,
-            config,
-        }
+        Self { pre, post, operation, config }
     }
 
     pub fn execute<F>(&mut self, f: F)
@@ -135,18 +119,10 @@ where
         let path = test_case_path.to_string() + "/block.ssz_snappy";
         let operation: T = load_snappy_ssz(&path).unwrap();
 
-        let config = if test_case_path.contains("minimal") {
-            Config::Minimal
-        } else {
-            Config::Mainnet
-        };
+        let config =
+            if test_case_path.contains("minimal") { Config::Minimal } else { Config::Mainnet };
 
-        Self {
-            pre,
-            post,
-            operation,
-            config,
-        }
+        Self { pre, post, operation, config }
     }
 
     pub fn execute<F>(&mut self, f: F)
@@ -190,18 +166,10 @@ where
         let path = test_case_path.to_string() + "/deposit.ssz_snappy";
         let operation = load_snappy_ssz::<T>(&path);
 
-        let config = if test_case_path.contains("minimal") {
-            Config::Minimal
-        } else {
-            Config::Mainnet
-        };
+        let config =
+            if test_case_path.contains("minimal") { Config::Minimal } else { Config::Mainnet };
 
-        Self {
-            pre,
-            post,
-            operation,
-            config,
-        }
+        Self { pre, post, operation, config }
     }
 
     pub fn execute<F>(&mut self, f: F)
@@ -249,18 +217,10 @@ where
         let path = test_case_path.to_string() + "/proposer_slashing.ssz_snappy";
         let operation = load_snappy_ssz::<T>(&path);
 
-        let config = if test_case_path.contains("minimal") {
-            Config::Minimal
-        } else {
-            Config::Mainnet
-        };
+        let config =
+            if test_case_path.contains("minimal") { Config::Minimal } else { Config::Mainnet };
 
-        Self {
-            pre,
-            post,
-            operation,
-            config,
-        }
+        Self { pre, post, operation, config }
     }
 
     pub fn execute<F>(&mut self, f: F)
@@ -308,18 +268,10 @@ where
         let path = test_case_path.to_string() + "/voluntary_exit.ssz_snappy";
         let operation: T = load_snappy_ssz(&path).unwrap();
 
-        let config = if test_case_path.contains("minimal") {
-            Config::Minimal
-        } else {
-            Config::Mainnet
-        };
+        let config =
+            if test_case_path.contains("minimal") { Config::Minimal } else { Config::Mainnet };
 
-        Self {
-            pre,
-            post,
-            operation,
-            config,
-        }
+        Self { pre, post, operation, config }
     }
 
     pub fn execute<F>(&mut self, f: F)
@@ -363,18 +315,10 @@ where
         let path = test_case_path.to_string() + "/sync_aggregate.ssz_snappy";
         let operation: T = load_snappy_ssz(&path).unwrap();
 
-        let config = if test_case_path.contains("minimal") {
-            Config::Minimal
-        } else {
-            Config::Mainnet
-        };
+        let config =
+            if test_case_path.contains("minimal") { Config::Minimal } else { Config::Mainnet };
 
-        Self {
-            pre,
-            post,
-            operation,
-            config,
-        }
+        Self { pre, post, operation, config }
     }
 
     pub fn execute<F>(&mut self, f: F)
@@ -427,19 +371,10 @@ where
         let path = test_case_path.to_string() + "/execution.yaml";
         let execution_validity: ExecutionValidity = load_yaml(&path);
 
-        let config = if test_case_path.contains("minimal") {
-            Config::Minimal
-        } else {
-            Config::Mainnet
-        };
+        let config =
+            if test_case_path.contains("minimal") { Config::Minimal } else { Config::Mainnet };
 
-        Self {
-            pre,
-            post,
-            operation,
-            execution_validity,
-            config,
-        }
+        Self { pre, post, operation, execution_validity, config }
     }
 
     pub fn execute<F>(&mut self, f: F)

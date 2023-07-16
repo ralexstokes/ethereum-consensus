@@ -2,10 +2,11 @@
 // This file was generated with `gen-tests`. Do NOT edit manually.
 
 use crate::spec_test_runners::transition::CoreTestCase;
-use ethereum_consensus::altair::mainnet as pre_spec;
-use ethereum_consensus::bellatrix::mainnet as spec;
-use ethereum_consensus::bellatrix::mainnet::NoOpExecutionEngine;
-use ethereum_consensus::state_transition::mainnet::{BeaconState, Executor};
+use ethereum_consensus::{
+    altair::mainnet as pre_spec,
+    bellatrix::{mainnet as spec, mainnet::NoOpExecutionEngine},
+    state_transition::mainnet::{BeaconState, Executor},
+};
 use ssz_rs::prelude::*;
 
 #[test]

@@ -39,18 +39,10 @@ where
             blocks.push(block);
         }
 
-        let config = if test_case_path.contains("minimal") {
-            Config::Minimal
-        } else {
-            Config::Mainnet
-        };
+        let config =
+            if test_case_path.contains("minimal") { Config::Minimal } else { Config::Mainnet };
 
-        Self {
-            pre,
-            post,
-            blocks,
-            config,
-        }
+        Self { pre, post, blocks, config }
     }
 
     pub fn execute<F>(&mut self, f: F)
@@ -61,12 +53,7 @@ where
             Config::Minimal => Context::for_minimal(),
             Config::Mainnet => Context::for_mainnet(),
         };
-        let result = f(
-            &mut self.pre,
-            &mut self.blocks,
-            Validation::Enabled,
-            &context,
-        );
+        let result = f(&mut self.pre, &mut self.blocks, Validation::Enabled, &context);
         if let Some(post) = self.post.as_ref() {
             assert_eq!(&self.pre, post);
         } else {

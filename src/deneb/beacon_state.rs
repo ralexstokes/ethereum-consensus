@@ -1,11 +1,9 @@
-use crate::altair::SyncCommittee;
-use crate::capella::HistoricalSummary;
-use crate::deneb::ExecutionPayloadHeader;
-use crate::phase0::{
-    BeaconBlockHeader, Checkpoint, Eth1Data, Fork, Validator, JUSTIFICATION_BITS_LENGTH,
-};
-use crate::primitives::{
-    Bytes32, Gwei, ParticipationFlags, Root, Slot, ValidatorIndex, WithdrawalIndex,
+use crate::{
+    altair::SyncCommittee,
+    capella::HistoricalSummary,
+    deneb::ExecutionPayloadHeader,
+    phase0::{BeaconBlockHeader, Checkpoint, Eth1Data, Fork, Validator, JUSTIFICATION_BITS_LENGTH},
+    primitives::{Bytes32, Gwei, ParticipationFlags, Root, Slot, ValidatorIndex, WithdrawalIndex},
 };
 use ssz_rs::prelude::*;
 

@@ -3,8 +3,10 @@ pub mod block_processing;
 pub mod epoch_processing;
 pub mod helpers;
 pub mod slot_processing;
-use crate::altair as spec;
-use crate::state_transition::{Context, Error, Result, Validation};
+use crate::{
+    altair as spec,
+    state_transition::{Context, Error, Result, Validation},
+};
 use spec::{process_block, process_slots, verify_block_signature, BeaconState, SignedBeaconBlock};
 use ssz_rs::prelude::*;
 pub fn state_transition<

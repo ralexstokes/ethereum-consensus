@@ -1,5 +1,7 @@
-use crate::phase0::Attestation;
-use crate::primitives::{BlsPublicKey, BlsSignature, Bytes32, Epoch, Gwei, Root, ValidatorIndex};
+use crate::{
+    phase0::Attestation,
+    primitives::{BlsPublicKey, BlsSignature, Bytes32, Epoch, Gwei, Root, ValidatorIndex},
+};
 use ssz_rs::prelude::*;
 
 #[derive(Default, Debug, SimpleSerialize, Clone, PartialEq, Eq)]

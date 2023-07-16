@@ -3,8 +3,7 @@ pub use multiaddr::Multiaddr;
 use multihash::{Code, Error, Multihash};
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
-use std::fmt;
-use std::{convert::TryFrom, str::FromStr};
+use std::{convert::TryFrom, fmt, str::FromStr};
 use thiserror::Error;
 
 pub const MAX_INLINE_KEY_LENGTH: usize = 42;
@@ -142,9 +141,6 @@ mod tests {
     fn test_id_str_format() {
         let id_repr = "QmYyQSo1c1Ym7orWxLYvCrM2EmxFTANf8wXmmE7DWjhx5N";
         let id: PeerId = PeerId::from_str(id_repr).unwrap();
-        assert_eq!(
-            format!("{id}"),
-            "QmYyQSo1c1Ym7orWxLYvCrM2EmxFTANf8wXmmE7DWjhx5N"
-        )
+        assert_eq!(format!("{id}"), "QmYyQSo1c1Ym7orWxLYvCrM2EmxFTANf8wXmmE7DWjhx5N")
     }
 }

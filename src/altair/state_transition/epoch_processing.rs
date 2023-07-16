@@ -1,15 +1,14 @@
 //! WARNING: This file was derived by the `gen-spec` utility. DO NOT EDIT MANUALLY.
-use crate::altair as spec;
-pub use crate::altair::epoch_processing::get_base_reward;
-pub use crate::altair::epoch_processing::process_epoch;
-pub use crate::altair::epoch_processing::process_inactivity_updates;
-pub use crate::altair::epoch_processing::process_justification_and_finalization;
-pub use crate::altair::epoch_processing::process_participation_flag_updates;
-pub use crate::altair::epoch_processing::process_rewards_and_penalties;
-pub use crate::altair::epoch_processing::process_slashings;
-pub use crate::altair::epoch_processing::process_sync_committee_updates;
-use crate::primitives::{Epoch, Gwei, ValidatorIndex};
-use crate::state_transition::{Context, Result};
+pub use crate::altair::epoch_processing::{
+    get_base_reward, process_epoch, process_inactivity_updates,
+    process_justification_and_finalization, process_participation_flag_updates,
+    process_rewards_and_penalties, process_slashings, process_sync_committee_updates,
+};
+use crate::{
+    altair as spec,
+    primitives::{Epoch, Gwei, ValidatorIndex},
+    state_transition::{Context, Result},
+};
 
 use ssz_rs::prelude::*;
 
@@ -120,8 +119,8 @@ pub fn process_effective_balance_updates<
     for i in 0..state.validators.len() {
         let validator = &mut state.validators[i];
         let balance = state.balances[i];
-        if balance + downward_threshold < validator.effective_balance
-            || validator.effective_balance + upward_threshold < balance
+        if balance + downward_threshold < validator.effective_balance ||
+            validator.effective_balance + upward_threshold < balance
         {
             validator.effective_balance = Gwei::min(
                 balance - balance % context.effective_balance_increment,
@@ -186,9 +185,7 @@ pub fn process_historical_roots_update<
             block_summary_root: state.block_roots.hash_tree_root()?,
             state_summary_root: state.state_roots.hash_tree_root()?,
         };
-        state
-            .historical_roots
-            .push(historical_batch.hash_tree_root()?)
+        state.historical_roots.push(historical_batch.hash_tree_root()?)
     }
     Ok(())
 }
@@ -247,34 +244,32 @@ pub fn process_registry_updates<
         if is_eligible_for_activation_queue(validator, context) {
             validator.activation_eligibility_epoch = current_epoch + 1;
         }
-        if is_active_validator(validator, current_epoch)
-            && validator.effective_balance <= context.ejection_balance
+        if is_active_validator(validator, current_epoch) &&
+            validator.effective_balance <= context.ejection_balance
         {
             initiate_validator_exit(state, i, context);
         }
     }
-    let mut activation_queue = state
-        .validators
-        .iter()
-        .enumerate()
-        .filter_map(|(index, validator)| {
-            if is_eligible_for_activation(state, validator) {
-                Some(index)
-            } else {
-                None
-            }
-        })
-        .collect::<Vec<ValidatorIndex>>();
+    let mut activation_queue =
+        state
+            .validators
+            .iter()
+            .enumerate()
+            .filter_map(|(index, validator)| {
+                if is_eligible_for_activation(state, validator) {
+                    Some(index)
+                } else {
+                    None
+                }
+            })
+            .collect::<Vec<ValidatorIndex>>();
     activation_queue.sort_by(|&i, &j| {
         let a = &state.validators[i];
         let b = &state.validators[j];
         (a.activation_eligibility_epoch, i).cmp(&(b.activation_eligibility_epoch, j))
     });
     let activation_exit_epoch = compute_activation_exit_epoch(current_epoch, context);
-    for i in activation_queue
-        .into_iter()
-        .take(get_validator_churn_limit(state, context))
-    {
+    for i in activation_queue.into_iter().take(get_validator_churn_limit(state, context)) {
         let validator = &mut state.validators[i];
         validator.activation_epoch = activation_exit_epoch;
     }
@@ -335,9 +330,7 @@ pub fn weigh_justification_and_finalization<
     let old_previous_justified_checkpoint = state.previous_justified_checkpoint.clone();
     let old_current_justified_checkpoint = state.current_justified_checkpoint.clone();
     state.previous_justified_checkpoint = state.current_justified_checkpoint.clone();
-    state
-        .justification_bits
-        .copy_within(..JUSTIFICATION_BITS_LENGTH - 1, 1);
+    state.justification_bits.copy_within(..JUSTIFICATION_BITS_LENGTH - 1, 1);
     state.justification_bits.set(0, false);
     if previous_epoch_target_balance * 3 >= total_active_balance * 2 {
         state.current_justified_checkpoint = Checkpoint {

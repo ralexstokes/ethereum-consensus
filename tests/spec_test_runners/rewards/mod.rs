@@ -1,6 +1,5 @@
 use crate::test_utils::{load_snappy_ssz, Config};
-use ethereum_consensus::primitives::Gwei;
-use ethereum_consensus::state_transition::Context;
+use ethereum_consensus::{primitives::Gwei, state_transition::Context};
 use ssz_rs::prelude::*;
 use std::fmt;
 // NOTE: constant across presets
@@ -55,11 +54,8 @@ where
         let path = test_case_path.to_string() + "/inactivity_penalty_deltas.ssz_snappy";
         let inactivity_penalty_deltas: Deltas = load_snappy_ssz(&path).unwrap();
 
-        let config = if test_case_path.contains("minimal") {
-            Config::Minimal
-        } else {
-            Config::Mainnet
-        };
+        let config =
+            if test_case_path.contains("minimal") { Config::Minimal } else { Config::Mainnet };
 
         Self {
             pre,
@@ -133,11 +129,8 @@ where
         let path = test_case_path.to_string() + "/inactivity_penalty_deltas.ssz_snappy";
         let inactivity_penalty_deltas: Deltas = load_snappy_ssz(&path).unwrap();
 
-        let config = if test_case_path.contains("minimal") {
-            Config::Minimal
-        } else {
-            Config::Mainnet
-        };
+        let config =
+            if test_case_path.contains("minimal") { Config::Minimal } else { Config::Mainnet };
 
         Self {
             pre,
@@ -211,11 +204,8 @@ where
         let path = test_case_path.to_string() + "/inactivity_penalty_deltas.ssz_snappy";
         let inactivity_penalty_deltas: Deltas = load_snappy_ssz(&path).unwrap();
 
-        let config = if test_case_path.contains("minimal") {
-            Config::Minimal
-        } else {
-            Config::Mainnet
-        };
+        let config =
+            if test_case_path.contains("minimal") { Config::Minimal } else { Config::Mainnet };
 
         Self {
             pre,

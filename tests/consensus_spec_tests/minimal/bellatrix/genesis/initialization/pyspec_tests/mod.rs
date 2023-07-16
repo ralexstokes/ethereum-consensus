@@ -30,11 +30,7 @@ fn test_initialize_beacon_state_from_eth_1() {
                 { spec::MAX_BYTES_PER_TRANSACTION },
                 { spec::MAX_TRANSACTIONS_PER_PAYLOAD },
             >(
-                eth1_block_hash,
-                eth1_timestamp,
-                deposits,
-                execution_payload_header,
-                context,
+                eth1_block_hash, eth1_timestamp, deposits, execution_payload_header, context
             )
         },
     );
@@ -65,11 +61,7 @@ fn test_initialize_beacon_state_one_topup_activation() {
                 { spec::MAX_BYTES_PER_TRANSACTION },
                 { spec::MAX_TRANSACTIONS_PER_PAYLOAD },
             >(
-                eth1_block_hash,
-                eth1_timestamp,
-                deposits,
-                execution_payload_header,
-                context,
+                eth1_block_hash, eth1_timestamp, deposits, execution_payload_header, context
             )
         },
     );
@@ -100,11 +92,7 @@ fn test_initialize_beacon_state_random_invalid_genesis() {
                 { spec::MAX_BYTES_PER_TRANSACTION },
                 { spec::MAX_TRANSACTIONS_PER_PAYLOAD },
             >(
-                eth1_block_hash,
-                eth1_timestamp,
-                deposits,
-                execution_payload_header,
-                context,
+                eth1_block_hash, eth1_timestamp, deposits, execution_payload_header, context
             )
         },
     );
@@ -135,11 +123,7 @@ fn test_initialize_beacon_state_random_valid_genesis() {
                 { spec::MAX_BYTES_PER_TRANSACTION },
                 { spec::MAX_TRANSACTIONS_PER_PAYLOAD },
             >(
-                eth1_block_hash,
-                eth1_timestamp,
-                deposits,
-                execution_payload_header,
-                context,
+                eth1_block_hash, eth1_timestamp, deposits, execution_payload_header, context
             )
         },
     );
@@ -170,11 +154,7 @@ fn test_initialize_beacon_state_some_small_balances() {
                 { spec::MAX_BYTES_PER_TRANSACTION },
                 { spec::MAX_TRANSACTIONS_PER_PAYLOAD },
             >(
-                eth1_block_hash,
-                eth1_timestamp,
-                deposits,
-                execution_payload_header,
-                context,
+                eth1_block_hash, eth1_timestamp, deposits, execution_payload_header, context
             )
         },
     );
@@ -205,11 +185,7 @@ fn test_initialize_post_transition() {
                 { spec::MAX_BYTES_PER_TRANSACTION },
                 { spec::MAX_TRANSACTIONS_PER_PAYLOAD },
             >(
-                eth1_block_hash,
-                eth1_timestamp,
-                deposits,
-                execution_payload_header,
-                context,
+                eth1_block_hash, eth1_timestamp, deposits, execution_payload_header, context
             )
         },
     );
@@ -240,11 +216,7 @@ fn test_initialize_pre_transition_empty_payload() {
                 { spec::MAX_BYTES_PER_TRANSACTION },
                 { spec::MAX_TRANSACTIONS_PER_PAYLOAD },
             >(
-                eth1_block_hash,
-                eth1_timestamp,
-                deposits,
-                execution_payload_header,
-                context,
+                eth1_block_hash, eth1_timestamp, deposits, execution_payload_header, context
             )
         },
     );
@@ -275,11 +247,7 @@ fn test_initialize_pre_transition_no_param() {
                 { spec::MAX_BYTES_PER_TRANSACTION },
                 { spec::MAX_TRANSACTIONS_PER_PAYLOAD },
             >(
-                eth1_block_hash,
-                eth1_timestamp,
-                deposits,
-                execution_payload_header,
-                context,
+                eth1_block_hash, eth1_timestamp, deposits, execution_payload_header, context
             )
         },
     );

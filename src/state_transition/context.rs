@@ -1,10 +1,11 @@
-use crate::altair;
-use crate::bellatrix;
-use crate::clock::{self, Clock, SystemTimeProvider};
-use crate::configs::{self, Config};
-use crate::phase0;
-use crate::primitives::{Epoch, ExecutionAddress, Gwei, Hash32, Slot, Version, U256};
-use crate::state_transition::Error;
+use crate::{
+    altair, bellatrix,
+    clock::{self, Clock, SystemTimeProvider},
+    configs::{self, Config},
+    phase0,
+    primitives::{Epoch, ExecutionAddress, Gwei, Hash32, Slot, Version, U256},
+    state_transition::Error,
+};
 
 #[derive(Debug)]
 pub enum Forks {

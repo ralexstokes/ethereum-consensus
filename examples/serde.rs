@@ -1,40 +1,28 @@
 #![cfg(feature = "serde")]
 
-use ethereum_consensus::altair::mainnet::SyncCommittee;
-use ethereum_consensus::bellatrix::mainnet::ExecutionPayloadHeader;
-use ethereum_consensus::phase0::mainnet::{
-    Attestation, AttesterSlashing, BeaconState, Deposit, PendingAttestation, ProposerSlashing,
-    SignedBeaconBlock, SignedVoluntaryExit,
+use ethereum_consensus::{
+    altair::mainnet::SyncCommittee,
+    bellatrix::mainnet::ExecutionPayloadHeader,
+    phase0::mainnet::{
+        Attestation, AttesterSlashing, BeaconState, Deposit, PendingAttestation, ProposerSlashing,
+        SignedBeaconBlock, SignedVoluntaryExit,
+    },
 };
 
 fn main() {
     let mut block = SignedBeaconBlock::default();
-    block
-        .message
-        .body
-        .proposer_slashings
-        .push(ProposerSlashing::default());
-    block
-        .message
-        .body
-        .attester_slashings
-        .push(AttesterSlashing::default());
+    block.message.body.proposer_slashings.push(ProposerSlashing::default());
+    block.message.body.attester_slashings.push(AttesterSlashing::default());
     block.message.body.attestations.push(Attestation::default());
     block.message.body.deposits.push(Deposit::default());
-    block
-        .message
-        .body
-        .voluntary_exits
-        .push(SignedVoluntaryExit::default());
+    block.message.body.voluntary_exits.push(SignedVoluntaryExit::default());
 
     let block_json = serde_json::to_string(&block).unwrap();
     println!("{block_json}");
     let _: SignedBeaconBlock = serde_json::from_str(&block_json).unwrap();
 
     let mut state = BeaconState::default();
-    state
-        .current_epoch_attestations
-        .push(PendingAttestation::default());
+    state.current_epoch_attestations.push(PendingAttestation::default());
 
     let state_json = serde_json::to_string(&state).unwrap();
     println!("{state_json}");

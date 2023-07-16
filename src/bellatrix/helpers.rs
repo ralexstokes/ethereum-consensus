@@ -1,7 +1,9 @@
 use crate::bellatrix as spec;
 
-use crate::primitives::{Gwei, Slot, ValidatorIndex, GENESIS_SLOT};
-use crate::state_transition::{Context, Error, Result};
+use crate::{
+    primitives::{Gwei, Slot, ValidatorIndex, GENESIS_SLOT},
+    state_transition::{Context, Error, Result},
+};
 use spec::{
     decrease_balance, get_beacon_proposer_index, get_current_epoch, get_eligible_validator_indices,
     get_previous_epoch, get_unslashed_participating_indices, increase_balance,
@@ -105,8 +107,8 @@ pub fn slash_validator<
     decrease_balance(
         state,
         slashed_index,
-        state.validators[slashed_index].effective_balance
-            / context.min_slashing_penalty_quotient_bellatrix,
+        state.validators[slashed_index].effective_balance /
+            context.min_slashing_penalty_quotient_bellatrix,
     );
     let proposer_index = get_beacon_proposer_index(state, context)?;
     let whistleblower_index = whistleblower_index.unwrap_or(proposer_index);
@@ -115,11 +117,7 @@ pub fn slash_validator<
     let proposer_reward_scaling_factor = PROPOSER_WEIGHT / WEIGHT_DENOMINATOR;
     let proposer_reward = whistleblower_reward * proposer_reward_scaling_factor;
     increase_balance(state, proposer_index, proposer_reward);
-    increase_balance(
-        state,
-        whistleblower_index,
-        whistleblower_reward - proposer_reward,
-    );
+    increase_balance(state, whistleblower_index, whistleblower_reward - proposer_reward);
     Ok(())
 }
 

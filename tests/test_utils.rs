@@ -1,10 +1,7 @@
 #![cfg(feature = "spec-tests")]
 
 use serde::Deserialize;
-use std::fmt;
-use std::fs::File;
-use std::io::Read;
-use std::path::Path;
+use std::{fmt, fs::File, io::Read, path::Path};
 
 #[derive(Debug)]
 pub enum Config {
@@ -20,11 +17,8 @@ pub trait TestCase: fmt::Debug {
     fn verify_failure(&self) -> bool;
 
     fn execute(&self) {
-        let result = if self.should_succeed() {
-            self.verify_success()
-        } else {
-            self.verify_failure()
-        };
+        let result =
+            if self.should_succeed() { self.verify_success() } else { self.verify_failure() };
         assert!(result, "{self:#?}")
     }
 }
@@ -53,7 +47,7 @@ pub fn load_snappy_ssz_bytes(path: &Path) -> Vec<u8> {
 pub fn load_snappy_ssz<T: ssz_rs::Deserialize>(path: &str) -> Option<T> {
     let path = Path::new(path);
     if !path.exists() {
-        return None;
+        return None
     }
     let buffer = load_snappy_ssz_bytes(path);
 

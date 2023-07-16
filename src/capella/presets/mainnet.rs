@@ -1,23 +1,22 @@
-pub use crate::altair::mainnet::SYNC_COMMITTEE_SIZE;
-pub use crate::altair::mainnet::{
-    AggregateAndProof, Attestation, AttesterSlashing, ContributionAndProof, HistoricalBatch,
-    IndexedAttestation, LightClientUpdate, PendingAttestation, SignedAggregateAndProof,
-    SignedContributionAndProof, SyncAggregate, SyncCommittee, SyncCommitteeContribution,
-    SyncCommitteeMessage,
+pub use crate::{
+    altair::mainnet::{
+        AggregateAndProof, Attestation, AttesterSlashing, ContributionAndProof, HistoricalBatch,
+        IndexedAttestation, LightClientUpdate, PendingAttestation, SignedAggregateAndProof,
+        SignedContributionAndProof, SyncAggregate, SyncCommittee, SyncCommitteeContribution,
+        SyncCommitteeMessage, SYNC_COMMITTEE_SIZE,
+    },
+    bellatrix::mainnet::{
+        Transaction, BYTES_PER_LOGS_BLOOM, MAX_BYTES_PER_TRANSACTION, MAX_EXTRA_DATA_BYTES,
+        MAX_TRANSACTIONS_PER_PAYLOAD, PROPORTIONAL_SLASHING_MULTIPLIER_BELLATRIX,
+    },
+    phase0::mainnet::{
+        EPOCHS_PER_HISTORICAL_VECTOR, EPOCHS_PER_SLASHINGS_VECTOR, ETH1_DATA_VOTES_BOUND,
+        HISTORICAL_ROOTS_LIMIT, MAX_ATTESTATIONS, MAX_ATTESTER_SLASHINGS, MAX_DEPOSITS,
+        MAX_PROPOSER_SLASHINGS, MAX_VALIDATORS_PER_COMMITTEE, MAX_VOLUNTARY_EXITS,
+        SLOTS_PER_HISTORICAL_ROOT, VALIDATOR_REGISTRY_LIMIT,
+    },
 };
-pub use crate::bellatrix::mainnet::Transaction;
-pub use crate::bellatrix::mainnet::{
-    BYTES_PER_LOGS_BLOOM, MAX_BYTES_PER_TRANSACTION, MAX_EXTRA_DATA_BYTES,
-    MAX_TRANSACTIONS_PER_PAYLOAD, PROPORTIONAL_SLASHING_MULTIPLIER_BELLATRIX,
-};
-use crate::capella;
-use crate::capella::presets::Preset;
-pub use crate::phase0::mainnet::{
-    EPOCHS_PER_HISTORICAL_VECTOR, EPOCHS_PER_SLASHINGS_VECTOR, ETH1_DATA_VOTES_BOUND,
-    HISTORICAL_ROOTS_LIMIT, MAX_ATTESTATIONS, MAX_ATTESTER_SLASHINGS, MAX_DEPOSITS,
-    MAX_PROPOSER_SLASHINGS, MAX_VALIDATORS_PER_COMMITTEE, MAX_VOLUNTARY_EXITS,
-    SLOTS_PER_HISTORICAL_ROOT, VALIDATOR_REGISTRY_LIMIT,
-};
+use crate::{capella, capella::presets::Preset};
 
 pub use capella::*;
 

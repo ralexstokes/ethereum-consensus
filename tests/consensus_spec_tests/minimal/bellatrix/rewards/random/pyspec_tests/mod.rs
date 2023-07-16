@@ -20,13 +20,7 @@ fn test_full_random_0() {
         let head_deltas = spec::get_flag_index_deltas(state, flag_index, context).unwrap();
         let inactivity_penalty_deltas =
             spec::get_inactivity_penalty_deltas(state, context).unwrap();
-        (
-            source_deltas,
-            target_deltas,
-            head_deltas,
-            None,
-            inactivity_penalty_deltas,
-        )
+        (source_deltas, target_deltas, head_deltas, None, inactivity_penalty_deltas)
     });
 }
 
@@ -45,13 +39,7 @@ fn test_full_random_1() {
         let head_deltas = spec::get_flag_index_deltas(state, flag_index, context).unwrap();
         let inactivity_penalty_deltas =
             spec::get_inactivity_penalty_deltas(state, context).unwrap();
-        (
-            source_deltas,
-            target_deltas,
-            head_deltas,
-            None,
-            inactivity_penalty_deltas,
-        )
+        (source_deltas, target_deltas, head_deltas, None, inactivity_penalty_deltas)
     });
 }
 
@@ -70,13 +58,7 @@ fn test_full_random_2() {
         let head_deltas = spec::get_flag_index_deltas(state, flag_index, context).unwrap();
         let inactivity_penalty_deltas =
             spec::get_inactivity_penalty_deltas(state, context).unwrap();
-        (
-            source_deltas,
-            target_deltas,
-            head_deltas,
-            None,
-            inactivity_penalty_deltas,
-        )
+        (source_deltas, target_deltas, head_deltas, None, inactivity_penalty_deltas)
     });
 }
 
@@ -95,13 +77,7 @@ fn test_full_random_3() {
         let head_deltas = spec::get_flag_index_deltas(state, flag_index, context).unwrap();
         let inactivity_penalty_deltas =
             spec::get_inactivity_penalty_deltas(state, context).unwrap();
-        (
-            source_deltas,
-            target_deltas,
-            head_deltas,
-            None,
-            inactivity_penalty_deltas,
-        )
+        (source_deltas, target_deltas, head_deltas, None, inactivity_penalty_deltas)
     });
 }
 
@@ -120,13 +96,7 @@ fn test_full_random_4() {
         let head_deltas = spec::get_flag_index_deltas(state, flag_index, context).unwrap();
         let inactivity_penalty_deltas =
             spec::get_inactivity_penalty_deltas(state, context).unwrap();
-        (
-            source_deltas,
-            target_deltas,
-            head_deltas,
-            None,
-            inactivity_penalty_deltas,
-        )
+        (source_deltas, target_deltas, head_deltas, None, inactivity_penalty_deltas)
     });
 }
 
@@ -143,13 +113,7 @@ fn test_full_random_low_balances_0() {
         let head_deltas = spec::get_flag_index_deltas(state, flag_index, context).unwrap();
         let inactivity_penalty_deltas =
             spec::get_inactivity_penalty_deltas(state, context).unwrap();
-        (
-            source_deltas,
-            target_deltas,
-            head_deltas,
-            None,
-            inactivity_penalty_deltas,
-        )
+        (source_deltas, target_deltas, head_deltas, None, inactivity_penalty_deltas)
     });
 }
 
@@ -166,13 +130,7 @@ fn test_full_random_low_balances_1() {
         let head_deltas = spec::get_flag_index_deltas(state, flag_index, context).unwrap();
         let inactivity_penalty_deltas =
             spec::get_inactivity_penalty_deltas(state, context).unwrap();
-        (
-            source_deltas,
-            target_deltas,
-            head_deltas,
-            None,
-            inactivity_penalty_deltas,
-        )
+        (source_deltas, target_deltas, head_deltas, None, inactivity_penalty_deltas)
     });
 }
 
@@ -189,13 +147,7 @@ fn test_full_random_misc_balances() {
         let head_deltas = spec::get_flag_index_deltas(state, flag_index, context).unwrap();
         let inactivity_penalty_deltas =
             spec::get_inactivity_penalty_deltas(state, context).unwrap();
-        (
-            source_deltas,
-            target_deltas,
-            head_deltas,
-            None,
-            inactivity_penalty_deltas,
-        )
+        (source_deltas, target_deltas, head_deltas, None, inactivity_penalty_deltas)
     });
 }
 
@@ -212,13 +164,7 @@ fn test_full_random_without_leak_0() {
         let head_deltas = spec::get_flag_index_deltas(state, flag_index, context).unwrap();
         let inactivity_penalty_deltas =
             spec::get_inactivity_penalty_deltas(state, context).unwrap();
-        (
-            source_deltas,
-            target_deltas,
-            head_deltas,
-            None,
-            inactivity_penalty_deltas,
-        )
+        (source_deltas, target_deltas, head_deltas, None, inactivity_penalty_deltas)
     });
 }
 
@@ -235,12 +181,6 @@ fn test_full_random_without_leak_and_current_exit_0() {
         let head_deltas = spec::get_flag_index_deltas(state, flag_index, context).unwrap();
         let inactivity_penalty_deltas =
             spec::get_inactivity_penalty_deltas(state, context).unwrap();
-        (
-            source_deltas,
-            target_deltas,
-            head_deltas,
-            None,
-            inactivity_penalty_deltas,
-        )
+        (source_deltas, target_deltas, head_deltas, None, inactivity_penalty_deltas)
     });
 }

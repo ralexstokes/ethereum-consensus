@@ -1,18 +1,19 @@
 use quote::{format_ident, ToTokens};
-use std::collections::HashMap;
-use std::collections::HashSet;
-use std::fmt;
-use std::fs::{self};
+use std::{
+    collections::{HashMap, HashSet},
+    fmt,
+    fs::{self},
+};
 
-use std::mem;
-use std::path::{Path, PathBuf};
+use std::{
+    mem,
+    path::{Path, PathBuf},
+};
 
-use syn::visit::Visit;
-use syn::visit_mut::VisitMut;
 use syn::{
-    parse_quote, punctuated::Punctuated, token::Comma, ConstParam, FnArg, GenericArgument,
-    GenericParam, Ident, Item, ItemConst, ItemFn, ItemMod, ItemUse, PathArguments, PathSegment,
-    Signature, Type, UseTree,
+    parse_quote, punctuated::Punctuated, token::Comma, visit::Visit, visit_mut::VisitMut,
+    ConstParam, FnArg, GenericArgument, GenericParam, Ident, Item, ItemConst, ItemFn, ItemMod,
+    ItemUse, PathArguments, PathSegment, Signature, Type, UseTree,
 };
 
 const ATTESTATION_BOUND_IDENT: &str = "PENDING_ATTESTATIONS_BOUND";
@@ -50,20 +51,13 @@ struct ImportEditor {
 
 impl ImportEditor {
     fn new(imports_to_filter: HashSet<String>) -> Self {
-        Self {
-            all_imports: Default::default(),
-            imports_to_filter,
-        }
+        Self { all_imports: Default::default(), imports_to_filter }
     }
 
     fn into_items(self) -> Vec<ItemUse> {
         let mut items = vec![];
         for (path, tree) in self.all_imports {
-            let prefix = path
-                .iter()
-                .map(|node| node.to_string())
-                .collect::<Vec<_>>()
-                .join("::");
+            let prefix = path.iter().map(|node| node.to_string()).collect::<Vec<_>>().join("::");
             let names = tree
                 .iter()
                 .map(|node| node.to_token_stream().to_string())
@@ -115,8 +109,8 @@ impl VisitMut for GenericsEditor {
         if let Type::Path(ty) = node {
             if ty.path.segments.len() == 1 {
                 let segment = &mut ty.path.segments[0];
-                if segment.ident == "BeaconState"
-                    || segment.ident.to_string().contains("BeaconBlock")
+                if segment.ident == "BeaconState" ||
+                    segment.ident.to_string().contains("BeaconBlock")
                 {
                     if let PathArguments::AngleBracketed(arguments) = &mut segment.arguments {
                         for bound in BELLATRIX_BEACON_STATE_BOUNDS {
@@ -140,17 +134,17 @@ impl VisitMut for GenericsEditor {
                         if let Type::Path(ty) = &*ty.elem {
                             ty
                         } else {
-                            return false;
+                            return false
                         }
                     }
                     _ => return false,
                 };
                 if ty.path.segments.len() == 1 {
                     let segment = &ty.path.segments[0];
-                    if segment.ident == "BeaconState"
-                        || segment.ident.to_string().contains("BeaconBlock")
+                    if segment.ident == "BeaconState" ||
+                        segment.ident.to_string().contains("BeaconBlock")
                     {
-                        return true;
+                        return true
                     }
                 }
             }
@@ -241,19 +235,15 @@ impl Module {
     }
 
     fn parse_if_exists(mut self, module_dir: &Path) -> Option<Self> {
-        let path = if matches!(self.spec, Specs::Bellatrix)
-            && matches!(self.module, Modules::StateTransition)
+        let path = if matches!(self.spec, Specs::Bellatrix) &&
+            matches!(self.module, Modules::StateTransition)
         {
-            module_dir
-                .join("state_transition_bellatrix")
-                .with_extension("rs")
+            module_dir.join("state_transition_bellatrix").with_extension("rs")
         } else {
-            module_dir
-                .join(self.module.to_string())
-                .with_extension("rs")
+            module_dir.join(self.module.to_string()).with_extension("rs")
         };
         if !path.exists() {
-            return None;
+            return None
         }
 
         let source = fs::read_to_string(path).unwrap();
@@ -290,23 +280,12 @@ impl Module {
 
     fn unify_uses(&mut self) {
         let uses = mem::take(&mut self.uses);
-        let items = uses
-            .into_iter()
-            .map(|decl| Item::Use(decl.node))
-            .collect::<Vec<_>>();
-        let file = syn::File {
-            shebang: None,
-            attrs: vec![],
-            items,
-        };
+        let items = uses.into_iter().map(|decl| Item::Use(decl.node)).collect::<Vec<_>>();
+        let file = syn::File { shebang: None, attrs: vec![], items };
         let imports_to_filter = self.get_imports_to_filter();
         let mut editor = ImportEditor::new(imports_to_filter);
         editor.visit_file(&file);
-        self.uses = editor
-            .into_items()
-            .into_iter()
-            .map(|node| UseDecl { node })
-            .collect();
+        self.uses = editor.into_items().into_iter().map(|node| UseDecl { node }).collect();
     }
 
     fn merge(&mut self, previous: &Self) {
@@ -323,7 +302,7 @@ impl Module {
         self.consts = self.consts.union(&previous.consts).cloned().collect();
         for (fn_name, fn_decl) in &previous.fns {
             if self.fns.contains_key(fn_name) {
-                continue;
+                continue
             }
             self.fns.insert(fn_name.clone(), fn_decl.clone());
         }
@@ -356,17 +335,14 @@ impl Module {
         let spec_import: ItemUse = syn::parse_str(&spec_item).unwrap();
         items.push(Item::Use(spec_import));
         for fn_to_import in &self.fns_to_import {
-            let module = if matches!(self.spec, Specs::Bellatrix)
-                && matches!(self.module, Modules::StateTransition)
+            let module = if matches!(self.spec, Specs::Bellatrix) &&
+                matches!(self.module, Modules::StateTransition)
             {
                 "state_transition_bellatrix".to_string()
             } else {
                 self.module.to_string()
             };
-            let use_repr = format!(
-                "pub use crate::{}::{}::{};",
-                self.spec, module, fn_to_import
-            );
+            let use_repr = format!("pub use crate::{}::{}::{};", self.spec, module, fn_to_import);
             let use_item: ItemUse = syn::parse_str(&use_repr).unwrap();
             items.push(Item::Use(use_item));
         }
@@ -382,7 +358,7 @@ impl Module {
         fn_names.sort();
         for fn_name in fn_names {
             if self.fns_to_import.contains(fn_name) {
-                continue;
+                continue
             }
             let fn_item = self.fns.get(fn_name).unwrap();
             items.push(Item::Fn(fn_item.node.clone()));
@@ -402,20 +378,14 @@ impl<'ast> Visit<'ast> for Module {
 
     fn visit_item_fn(&mut self, node: &'ast ItemFn) {
         let fn_name = node.sig.ident.to_string();
-        let fn_decl = FnDecl {
-            node: node.clone(),
-            item_index: self.item_index,
-        };
+        let fn_decl = FnDecl { node: node.clone(), item_index: self.item_index };
         self.item_index += 1;
         self.fns.insert(fn_name, fn_decl);
         syn::visit::visit_item_fn(self, node)
     }
 
     fn visit_item_const(&mut self, node: &'ast ItemConst) {
-        let const_decl = ConstDecl {
-            node: node.clone(),
-            item_index: self.item_index,
-        };
+        let const_decl = ConstDecl { node: node.clone(), item_index: self.item_index };
         self.item_index += 1;
         self.consts.insert(const_decl);
         syn::visit::visit_item_const(self, node)
@@ -487,10 +457,8 @@ impl Spec {
     fn merge(&mut self, previous_spec: Self) {
         for module_name in ALL_MODULES {
             let previous_module = previous_spec.modules.get(module_name).unwrap();
-            let module = self
-                .modules
-                .entry(*module_name)
-                .or_insert_with_key(|m| Module::new(*m, self.spec));
+            let module =
+                self.modules.entry(*module_name).or_insert_with_key(|m| Module::new(*m, self.spec));
             module.merge(previous_module);
         }
     }
@@ -531,7 +499,7 @@ impl Spec {
                         if let GenericParam::Const(param) = param {
                             let ident = param.ident.to_string();
                             if ident == ATTESTATION_BOUND_IDENT {
-                                return false;
+                                return false
                             }
                         }
                         true
@@ -673,28 +641,15 @@ impl Spec {
     fn patch_bellatrix_types(&mut self) {
         for (_, module) in self.modules.iter_mut() {
             let fns = mem::take(&mut module.fns);
-            let items = fns
-                .into_values()
-                .map(|decl| Item::Fn(decl.node))
-                .collect::<Vec<_>>();
-            let mut file = syn::File {
-                shebang: None,
-                attrs: vec![],
-                items,
-            };
+            let items = fns.into_values().map(|decl| Item::Fn(decl.node)).collect::<Vec<_>>();
+            let mut file = syn::File { shebang: None, attrs: vec![], items };
             let mut generics_editor = GenericsEditor::new();
             generics_editor.visit_file_mut(&mut file);
             module.fns = file
                 .items
                 .into_iter()
                 .map(|item| match item {
-                    Item::Fn(node) => (
-                        node.sig.ident.to_string(),
-                        FnDecl {
-                            node,
-                            item_index: 0,
-                        },
-                    ),
+                    Item::Fn(node) => (node.sig.ident.to_string(), FnDecl { node, item_index: 0 }),
                     _ => unreachable!(),
                 })
                 .collect();
@@ -722,11 +677,7 @@ impl Spec {
             let warning = parse_quote! {
                 //! WARNING: This file was derived by the `gen-spec` utility. DO NOT EDIT MANUALLY.
             };
-            let target_file = syn::File {
-                shebang: None,
-                attrs: vec![warning],
-                items,
-            };
+            let target_file = syn::File { shebang: None, attrs: vec![warning], items };
             let output = prettyplease::unparse(&target_file);
             let mut module_name = module_name.to_string();
             if module_name == "state_transition" {
@@ -764,8 +715,6 @@ impl Generator {
 fn main() {
     // NOTE: must run specs from beginning, in chronological order
     let specs = vec![Specs::Phase0, Specs::Altair, Specs::Bellatrix];
-    let generator = Generator {
-        specs_to_generate: specs,
-    };
+    let generator = Generator { specs_to_generate: specs };
     generator.run();
 }
