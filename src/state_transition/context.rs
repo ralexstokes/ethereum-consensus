@@ -12,6 +12,7 @@ pub enum Forks {
     Altair,
     Bellatrix,
     Capella,
+    Deneb,
 }
 
 #[derive(Debug, Default, Clone)]
@@ -87,8 +88,8 @@ pub struct Context {
     pub bellatrix_fork_epoch: Epoch,
     pub capella_fork_version: Version,
     pub capella_fork_epoch: Epoch,
-    pub eip4844_fork_version: Version,
-    pub eip4844_fork_epoch: Epoch,
+    pub deneb_fork_version: Version,
+    pub deneb_fork_epoch: Epoch,
 
     pub seconds_per_slot: u64,
     pub seconds_per_eth1_block: u64,
@@ -209,8 +210,8 @@ impl Context {
             bellatrix_fork_epoch: config.bellatrix_fork_epoch,
             capella_fork_version: config.capella_fork_version,
             capella_fork_epoch: config.capella_fork_epoch,
-            eip4844_fork_version: config.eip4844_fork_version,
-            eip4844_fork_epoch: config.eip4844_fork_epoch,
+            deneb_fork_version: config.deneb_fork_version,
+            deneb_fork_epoch: config.deneb_fork_epoch,
             seconds_per_slot: config.seconds_per_slot,
             seconds_per_eth1_block: config.seconds_per_eth1_block,
             min_validator_withdrawability_delay: config.min_validator_withdrawability_delay,
@@ -262,7 +263,9 @@ impl Context {
 
     pub fn fork_for(&self, slot: Slot) -> Forks {
         let epoch = slot / self.slots_per_epoch;
-        if epoch >= self.capella_fork_epoch {
+        if epoch >= self.deneb_fork_epoch {
+            Forks::Deneb
+        } else if epoch >= self.capella_fork_epoch {
             Forks::Capella
         } else if epoch >= self.bellatrix_fork_epoch {
             Forks::Bellatrix

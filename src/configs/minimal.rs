@@ -12,8 +12,8 @@ pub const BELLATRIX_FORK_VERSION: Version = [2, 0, 0, 1];
 pub const BELLATRIX_FORK_EPOCH: Epoch = FAR_FUTURE_EPOCH;
 pub const CAPELLA_FORK_VERSION: Version = [3, 0, 0, 1];
 pub const CAPELLA_FORK_EPOCH: Epoch = FAR_FUTURE_EPOCH;
-pub const EIP4844_FORK_VERSION: Version = [4, 0, 0, 1];
-pub const EIP4844_FORK_EPOCH: Epoch = FAR_FUTURE_EPOCH;
+pub const DENEB_FORK_VERSION: Version = [4, 0, 0, 1];
+pub const DENEB_FORK_EPOCH: Epoch = FAR_FUTURE_EPOCH;
 pub const SECONDS_PER_SLOT: u64 = 6;
 pub const SECONDS_PER_ETH1_BLOCK: u64 = 14;
 pub const MIN_VALIDATOR_WITHDRAWABILITY_DELAY: Epoch = 256;
@@ -60,8 +60,8 @@ pub fn config() -> Config {
         bellatrix_fork_epoch: BELLATRIX_FORK_EPOCH,
         capella_fork_version: CAPELLA_FORK_VERSION,
         capella_fork_epoch: CAPELLA_FORK_EPOCH,
-        eip4844_fork_version: EIP4844_FORK_VERSION,
-        eip4844_fork_epoch: EIP4844_FORK_EPOCH,
+        deneb_fork_version: DENEB_FORK_VERSION,
+        deneb_fork_epoch: DENEB_FORK_EPOCH,
         seconds_per_slot: SECONDS_PER_SLOT,
         seconds_per_eth1_block: SECONDS_PER_ETH1_BLOCK,
         min_validator_withdrawability_delay: MIN_VALIDATOR_WITHDRAWABILITY_DELAY,
