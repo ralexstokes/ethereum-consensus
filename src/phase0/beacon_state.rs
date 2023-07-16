@@ -1,8 +1,10 @@
-use crate::phase0::{
-    BeaconBlockHeader, Checkpoint, Eth1Data, Fork, PendingAttestation, Validator,
-    JUSTIFICATION_BITS_LENGTH,
+use crate::{
+    phase0::{
+        BeaconBlockHeader, Checkpoint, Eth1Data, Fork, PendingAttestation, Validator,
+        JUSTIFICATION_BITS_LENGTH,
+    },
+    primitives::{Bytes32, Epoch, Gwei, Root, Slot},
 };
-use crate::primitives::{Bytes32, Epoch, Gwei, Root, Slot};
 use ssz_rs::prelude::*;
 
 pub(super) const fn get_eth1_data_votes_bound(
@@ -26,17 +28,18 @@ pub struct HistoricalBatch<const SLOTS_PER_HISTORICAL_ROOT: usize> {
     pub state_roots: Vector<Root, SLOTS_PER_HISTORICAL_ROOT>,
 }
 
-/// `HistoricalBatch` is to be used as a "summary" Merkleized container and is simply a wrapper around
-/// `block_roots` & `state_roots` (and their respective Merkle roots). Instead of the `_roots`
-/// being of type `Vector<Root, N>`, a single `Root` is pulled out to allow Merkleization of each root to be
-/// performed manually (using the `ssz_rs` crate).
+/// `HistoricalBatch` is to be used as a "summary" Merkleized container and is simply a wrapper
+/// around `block_roots` & `state_roots` (and their respective Merkle roots). Instead of the
+/// `_roots` being of type `Vector<Root, N>`, a single `Root` is pulled out to allow Merkleization
+/// of each root to be performed manually (using the `ssz_rs` crate).
 ///
-/// Instead of requiring a full copy of the roots, the container is summarized as `HistoricalSummary`
-/// with `block_summary_root` & `state_summary_root`.
+/// Instead of requiring a full copy of the roots, the container is summarized as
+/// `HistoricalSummary` with `block_summary_root` & `state_summary_root`.
 ///
 /// This design decision was chosen for memory optimization purposes, for example, in the
 /// `state_transition` crate's `process_historical_roots_update` function. Also note that the
-/// `HistoricalBatch` container has no need for serialization, otherwise, this design would pose an issue.
+/// `HistoricalBatch` container has no need for serialization, otherwise, this design would pose an
+/// issue.
 ///
 /// For more information, see the comment here: <https://github.com/ralexstokes/ethereum-consensus/pull/37#discussion_r775995594>
 #[derive(Default, Debug, SimpleSerialize, Clone, PartialEq, Eq)]

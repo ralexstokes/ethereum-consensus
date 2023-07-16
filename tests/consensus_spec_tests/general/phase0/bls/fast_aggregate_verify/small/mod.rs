@@ -1,8 +1,7 @@
 // WARNING!
 // This file was generated with `gen-tests`. Do NOT edit manually.
 
-use crate::spec_test_runners::bls::FastAggregateVerifyTestCase;
-use crate::test_utils::TestCase;
+use crate::{spec_test_runners::bls::FastAggregateVerifyTestCase, test_utils::TestCase};
 
 #[test]
 fn test_fast_aggregate_verify_extra_pubkey_4_f_079_f_946446_fabf() {

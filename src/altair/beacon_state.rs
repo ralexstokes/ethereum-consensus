@@ -1,8 +1,10 @@
-use crate::altair::{
-    BeaconBlockHeader, Checkpoint, Eth1Data, Fork, SyncCommittee, Validator,
-    JUSTIFICATION_BITS_LENGTH,
+use crate::{
+    altair::{
+        BeaconBlockHeader, Checkpoint, Eth1Data, Fork, SyncCommittee, Validator,
+        JUSTIFICATION_BITS_LENGTH,
+    },
+    primitives::{Bytes32, Gwei, ParticipationFlags, Root, Slot},
 };
-use crate::primitives::{Bytes32, Gwei, ParticipationFlags, Root, Slot};
 use ssz_rs::prelude::*;
 
 #[derive(Default, Debug, SimpleSerialize, Clone, PartialEq, Eq)]

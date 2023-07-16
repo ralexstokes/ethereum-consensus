@@ -1,7 +1,9 @@
 //! WARNING: This file was derived by the `gen-spec` utility. DO NOT EDIT MANUALLY.
-use crate::altair as spec;
-use crate::primitives::{Root, Slot};
-use crate::state_transition::{Context, Error, Result};
+use crate::{
+    altair as spec,
+    primitives::{Root, Slot},
+    state_transition::{Context, Error, Result},
+};
 use spec::{process_epoch, BeaconState};
 use ssz_rs::prelude::*;
 pub fn process_slot<
@@ -61,10 +63,7 @@ pub fn process_slots<
     context: &Context,
 ) -> Result<()> {
     if state.slot >= slot {
-        return Err(Error::TransitionToPreviousSlot {
-            requested: slot,
-            current: state.slot,
-        });
+        return Err(Error::TransitionToPreviousSlot { requested: slot, current: state.slot })
     }
     while state.slot < slot {
         process_slot(state, context)?;

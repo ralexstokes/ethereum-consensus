@@ -1,30 +1,31 @@
 use crate::phase0 as spec;
 
-use crate::crypto::{fast_aggregate_verify, hash, verify_signature};
-use crate::primitives::{
-    Bytes32, CommitteeIndex, Domain, DomainType, Epoch, ForkDigest, Gwei, Root, Slot,
-    ValidatorIndex, Version, FAR_FUTURE_EPOCH, GENESIS_EPOCH,
-};
-use crate::signing::compute_signing_root;
-use crate::state_transition::{
-    invalid_operation_error, Context, Error, InvalidAttestation, InvalidIndexedAttestation,
-    InvalidOperation, Result,
+use crate::{
+    crypto::{fast_aggregate_verify, hash, verify_signature},
+    primitives::{
+        Bytes32, CommitteeIndex, Domain, DomainType, Epoch, ForkDigest, Gwei, Root, Slot,
+        ValidatorIndex, Version, FAR_FUTURE_EPOCH, GENESIS_EPOCH,
+    },
+    signing::compute_signing_root,
+    state_transition::{
+        invalid_operation_error, Context, Error, InvalidAttestation, InvalidIndexedAttestation,
+        InvalidOperation, Result,
+    },
 };
 use spec::{
     Attestation, AttestationData, BeaconState, ForkData, IndexedAttestation, SignedBeaconBlock,
     Validator,
 };
 use ssz_rs::prelude::*;
-use std::cmp;
-use std::collections::HashSet;
+use std::{cmp, collections::HashSet};
 
 pub fn is_active_validator(validator: &Validator, epoch: Epoch) -> bool {
     validator.activation_epoch <= epoch && epoch < validator.exit_epoch
 }
 
 pub fn is_eligible_for_activation_queue(validator: &Validator, context: &Context) -> bool {
-    validator.activation_eligibility_epoch == FAR_FUTURE_EPOCH
-        && validator.effective_balance == context.max_effective_balance
+    validator.activation_eligibility_epoch == FAR_FUTURE_EPOCH &&
+        validator.effective_balance == context.max_effective_balance
 }
 
 pub fn is_eligible_for_activation<
@@ -49,14 +50,14 @@ pub fn is_eligible_for_activation<
     >,
     validator: &Validator,
 ) -> bool {
-    validator.activation_eligibility_epoch <= state.finalized_checkpoint.epoch
-        && validator.activation_epoch == FAR_FUTURE_EPOCH
+    validator.activation_eligibility_epoch <= state.finalized_checkpoint.epoch &&
+        validator.activation_epoch == FAR_FUTURE_EPOCH
 }
 
 pub fn is_slashable_validator(validator: &Validator, epoch: Epoch) -> bool {
-    !validator.slashed
-        && validator.activation_epoch <= epoch
-        && epoch < validator.withdrawable_epoch
+    !validator.slashed &&
+        validator.activation_epoch <= epoch &&
+        epoch < validator.withdrawable_epoch
 }
 
 pub fn is_slashable_attestation_data(data_1: &AttestationData, data_2: &AttestationData) -> bool {
@@ -92,9 +93,9 @@ pub fn is_valid_indexed_attestation<
     let attesting_indices = &indexed_attestation.attesting_indices;
 
     if attesting_indices.is_empty() {
-        return Err(invalid_operation_error(
-            InvalidOperation::IndexedAttestation(InvalidIndexedAttestation::AttestingIndicesEmpty),
-        ));
+        return Err(invalid_operation_error(InvalidOperation::IndexedAttestation(
+            InvalidIndexedAttestation::AttestingIndicesEmpty,
+        )))
     }
 
     // List of indices is non-empty given check above. Begin iteration from the second element
@@ -103,11 +104,9 @@ pub fn is_valid_indexed_attestation<
     let mut duplicates = HashSet::new();
     for &index in &attesting_indices[1..] {
         if index < prev {
-            return Err(invalid_operation_error(
-                InvalidOperation::IndexedAttestation(
-                    InvalidIndexedAttestation::AttestingIndicesNotSorted,
-                ),
-            ));
+            return Err(invalid_operation_error(InvalidOperation::IndexedAttestation(
+                InvalidIndexedAttestation::AttestingIndicesNotSorted,
+            )))
         }
         if index == prev {
             duplicates.insert(index);
@@ -115,24 +114,18 @@ pub fn is_valid_indexed_attestation<
         prev = index;
     }
     if !duplicates.is_empty() {
-        return Err(invalid_operation_error(
-            InvalidOperation::IndexedAttestation(InvalidIndexedAttestation::DuplicateIndices(
-                Vec::from_iter(duplicates),
-            )),
-        ));
+        return Err(invalid_operation_error(InvalidOperation::IndexedAttestation(
+            InvalidIndexedAttestation::DuplicateIndices(Vec::from_iter(duplicates)),
+        )))
     }
 
     let mut public_keys = vec![];
     for &index in &attesting_indices[..] {
-        let public_key = state
-            .validators
-            .get(index)
-            .map(|v| &v.public_key)
-            .ok_or_else(|| {
-                invalid_operation_error(InvalidOperation::IndexedAttestation(
-                    InvalidIndexedAttestation::InvalidIndex(index),
-                ))
-            })?;
+        let public_key = state.validators.get(index).map(|v| &v.public_key).ok_or_else(|| {
+            invalid_operation_error(InvalidOperation::IndexedAttestation(
+                InvalidIndexedAttestation::InvalidIndex(index),
+            ))
+        })?;
         public_keys.push(public_key);
     }
 
@@ -143,12 +136,8 @@ pub fn is_valid_indexed_attestation<
         context,
     )?;
     let signing_root = compute_signing_root(&mut indexed_attestation.data, domain)?;
-    fast_aggregate_verify(
-        &public_keys,
-        signing_root.as_ref(),
-        &indexed_attestation.signature,
-    )
-    .map_err(Into::into)
+    fast_aggregate_verify(&public_keys, signing_root.as_ref(), &indexed_attestation.signature)
+        .map_err(Into::into)
 }
 
 pub fn verify_block_signature<
@@ -190,10 +179,7 @@ pub fn verify_block_signature<
     let proposer = state
         .validators
         .get(proposer_index)
-        .ok_or(Error::OutOfBounds {
-            requested: proposer_index,
-            bound: state.validators.len(),
-        })?;
+        .ok_or(Error::OutOfBounds { requested: proposer_index, bound: state.validators.len() })?;
     let domain = get_domain(state, DomainType::BeaconProposer, None, context)?;
     let signing_root = compute_signing_root(&mut signed_block.message, domain)?;
 
@@ -232,12 +218,7 @@ pub fn get_domain<
         state.fork.current_version
     };
 
-    compute_domain(
-        domain_type,
-        Some(fork_version),
-        Some(state.genesis_validators_root),
-        context,
-    )
+    compute_domain(domain_type, Some(fork_version), Some(state.genesis_validators_root), context)
 }
 
 pub fn get_current_epoch<
@@ -272,10 +253,7 @@ pub fn compute_shuffled_index(
     context: &Context,
 ) -> Result<usize> {
     if index >= index_count {
-        return Err(Error::InvalidShufflingIndex {
-            index,
-            total: index_count,
-        });
+        return Err(Error::InvalidShufflingIndex { index, total: index_count })
     }
 
     let mut pivot_input = [0u8; 33];
@@ -329,7 +307,7 @@ pub fn compute_proposer_index<
     context: &Context,
 ) -> Result<ValidatorIndex> {
     if indices.is_empty() {
-        return Err(Error::CollectionCannotBeEmpty);
+        return Err(Error::CollectionCannotBeEmpty)
     }
     let max_byte = u8::MAX as u64;
     let mut i = 0;
@@ -347,7 +325,7 @@ pub fn compute_proposer_index<
 
         let effective_balance = state.validators[candidate_index].effective_balance;
         if effective_balance * max_byte >= context.max_effective_balance * random_byte {
-            return Ok(candidate_index);
+            return Ok(candidate_index)
         }
         i += 1
     }
@@ -411,12 +389,9 @@ pub fn compute_fork_data_root(
     current_version: Version,
     genesis_validators_root: Root,
 ) -> Result<Root> {
-    ForkData {
-        current_version,
-        genesis_validators_root,
-    }
-    .hash_tree_root()
-    .map_err(Error::Merkleization)
+    ForkData { current_version, genesis_validators_root }
+        .hash_tree_root()
+        .map_err(Error::Merkleization)
 }
 
 pub fn get_previous_epoch<
@@ -503,7 +478,7 @@ pub fn get_block_root_at_slot<
             requested: slot,
             lower_bound: state.slot - 1,
             upper_bound: state.slot + SLOTS_PER_HISTORICAL_ROOT as Slot,
-        });
+        })
     }
     Ok(&state.block_roots[slot as usize % SLOTS_PER_HISTORICAL_ROOT])
 }
@@ -656,9 +631,9 @@ pub fn get_committee_count_per_slot<
         1,
         u64::min(
             context.max_committees_per_slot,
-            get_active_validator_indices(state, epoch).len() as u64
-                / context.slots_per_epoch
-                / context.target_committee_size,
+            get_active_validator_indices(state, epoch).len() as u64 /
+                context.slots_per_epoch /
+                context.target_committee_size,
         ),
     ) as usize
 }
@@ -753,9 +728,7 @@ pub fn get_total_balance<
 ) -> Result<Gwei> {
     let total_balance = indices
         .iter()
-        .try_fold(Gwei::default(), |acc, i| {
-            acc.checked_add(state.validators[*i].effective_balance)
-        })
+        .try_fold(Gwei::default(), |acc, i| acc.checked_add(state.validators[*i].effective_balance))
         .ok_or(Error::Overflow)?;
     Ok(u64::max(total_balance, context.effective_balance_increment))
 }
@@ -854,11 +827,8 @@ pub fn get_attesting_indices<
 
     if bits.len() != committee.len() {
         return Err(invalid_operation_error(InvalidOperation::Attestation(
-            InvalidAttestation::Bitfield {
-                expected_length: committee.len(),
-                length: bits.len(),
-            },
-        )));
+            InvalidAttestation::Bitfield { expected_length: committee.len(), length: bits.len() },
+        )))
     }
 
     let mut indices = HashSet::with_capacity(bits.capacity());
@@ -952,7 +922,7 @@ pub fn initiate_validator_exit<
     context: &Context,
 ) {
     if state.validators[index].exit_epoch != FAR_FUTURE_EPOCH {
-        return;
+        return
     }
 
     let mut exit_epochs: Vec<Epoch> = state
@@ -962,18 +932,12 @@ pub fn initiate_validator_exit<
         .map(|v| v.exit_epoch)
         .collect();
 
-    exit_epochs.push(compute_activation_exit_epoch(
-        get_current_epoch(state, context),
-        context,
-    ));
+    exit_epochs.push(compute_activation_exit_epoch(get_current_epoch(state, context), context));
 
     let mut exit_queue_epoch = *exit_epochs.iter().max().unwrap();
 
-    let exit_queue_churn = state
-        .validators
-        .iter()
-        .filter(|v| v.exit_epoch == exit_queue_epoch)
-        .count();
+    let exit_queue_churn =
+        state.validators.iter().filter(|v| v.exit_epoch == exit_queue_epoch).count();
 
     if exit_queue_churn >= get_validator_churn_limit(state, context) {
         exit_queue_epoch += 1
@@ -1031,11 +995,7 @@ pub fn slash_validator<
         state.validators[slashed_index].effective_balance / context.whistleblower_reward_quotient;
     let proposer_reward = whistleblower_reward / context.proposer_reward_quotient;
     increase_balance(state, proposer_index, proposer_reward);
-    increase_balance(
-        state,
-        whistleblower_index,
-        whistleblower_reward - proposer_reward,
-    );
+    increase_balance(state, whistleblower_index, whistleblower_reward - proposer_reward);
     Ok(())
 }
 
@@ -1063,17 +1023,13 @@ pub fn get_eligible_validator_indices<
     context: &Context,
 ) -> impl Iterator<Item = ValidatorIndex> + 'a {
     let previous_epoch = get_previous_epoch(state, context);
-    state
-        .validators
-        .iter()
-        .enumerate()
-        .filter_map(move |(i, validator)| {
-            if is_active_validator(validator, previous_epoch)
-                || (validator.slashed && previous_epoch + 1 < validator.withdrawable_epoch)
-            {
-                Some(i)
-            } else {
-                None
-            }
-        })
+    state.validators.iter().enumerate().filter_map(move |(i, validator)| {
+        if is_active_validator(validator, previous_epoch) ||
+            (validator.slashed && previous_epoch + 1 < validator.withdrawable_epoch)
+        {
+            Some(i)
+        } else {
+            None
+        }
+    })
 }

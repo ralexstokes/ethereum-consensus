@@ -1,6 +1,8 @@
-pub use crate::crypto::{PublicKey as BlsPublicKey, Signature as BlsSignature};
-pub use crate::domains::DomainType;
 use crate::ssz::ByteVector;
+pub use crate::{
+    crypto::{PublicKey as BlsPublicKey, Signature as BlsSignature},
+    domains::DomainType,
+};
 use ssz_rs::prelude::*;
 
 pub use ssz_rs::prelude::U256;
@@ -56,10 +58,7 @@ mod tests {
     fn test_serde() {
         let bytes = Bytes32::default();
         let json = serde_json::to_string(&bytes).unwrap();
-        assert_eq!(
-            json,
-            "\"0x0000000000000000000000000000000000000000000000000000000000000000\""
-        );
+        assert_eq!(json, "\"0x0000000000000000000000000000000000000000000000000000000000000000\"");
         let bytes_roundtrip: Bytes32 = serde_json::from_str(&json).unwrap();
         assert_eq!(bytes, bytes_roundtrip);
     }

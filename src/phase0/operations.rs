@@ -1,7 +1,9 @@
-use crate::phase0::{SignedBeaconBlockHeader, DEPOSIT_CONTRACT_TREE_DEPTH};
-use crate::primitives::{
-    BlsPublicKey, BlsSignature, Bytes32, CommitteeIndex, Epoch, Gwei, Hash32, Root, Slot,
-    ValidatorIndex,
+use crate::{
+    phase0::{SignedBeaconBlockHeader, DEPOSIT_CONTRACT_TREE_DEPTH},
+    primitives::{
+        BlsPublicKey, BlsSignature, Bytes32, CommitteeIndex, Epoch, Gwei, Hash32, Root, Slot,
+        ValidatorIndex,
+    },
 };
 use ssz_rs::prelude::*;
 

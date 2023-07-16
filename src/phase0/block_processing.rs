@@ -1,15 +1,15 @@
 use crate::phase0 as spec;
 
-use crate::crypto::{hash, verify_signature};
-use crate::primitives::{
-    BlsPublicKey, Bytes32, DomainType, Gwei, ValidatorIndex, FAR_FUTURE_EPOCH,
-};
-use crate::signing::compute_signing_root;
-use crate::ssz::ByteVector;
-use crate::state_transition::{
-    invalid_header_error, invalid_operation_error, Context, InvalidAttestation,
-    InvalidAttesterSlashing, InvalidBeaconBlockHeader, InvalidDeposit, InvalidOperation,
-    InvalidProposerSlashing, InvalidVoluntaryExit, Result,
+use crate::{
+    crypto::{hash, verify_signature},
+    primitives::{BlsPublicKey, Bytes32, DomainType, Gwei, ValidatorIndex, FAR_FUTURE_EPOCH},
+    signing::compute_signing_root,
+    ssz::ByteVector,
+    state_transition::{
+        invalid_header_error, invalid_operation_error, Context, InvalidAttestation,
+        InvalidAttesterSlashing, InvalidBeaconBlockHeader, InvalidDeposit, InvalidOperation,
+        InvalidProposerSlashing, InvalidVoluntaryExit, Result,
+    },
 };
 use spec::{
     compute_domain, compute_epoch_at_slot, get_beacon_committee, get_beacon_proposer_index,
@@ -52,7 +52,7 @@ pub fn process_proposer_slashing<
     if header_1.slot != header_2.slot {
         return Err(invalid_operation_error(InvalidOperation::ProposerSlashing(
             InvalidProposerSlashing::SlotMismatch(header_1.slot, header_2.slot),
-        )));
+        )))
     }
 
     if header_1.proposer_index != header_2.proposer_index {
@@ -61,13 +61,13 @@ pub fn process_proposer_slashing<
                 header_1.proposer_index,
                 header_2.proposer_index,
             ),
-        )));
+        )))
     }
 
     if header_1 == header_2 {
         return Err(invalid_operation_error(InvalidOperation::ProposerSlashing(
             InvalidProposerSlashing::HeadersAreEqual(header_1.clone()),
-        )));
+        )))
     }
 
     let proposer_index = header_1.proposer_index;
@@ -79,21 +79,20 @@ pub fn process_proposer_slashing<
     if !is_slashable_validator(proposer, get_current_epoch(state, context)) {
         return Err(invalid_operation_error(InvalidOperation::ProposerSlashing(
             InvalidProposerSlashing::ProposerIsNotSlashable(header_1.proposer_index),
-        )));
+        )))
     }
 
     let epoch = compute_epoch_at_slot(header_1.slot, context);
     let domain = get_domain(state, DomainType::BeaconProposer, Some(epoch), context)?;
-    for signed_header in [
-        &mut proposer_slashing.signed_header_1,
-        &mut proposer_slashing.signed_header_2,
-    ] {
+    for signed_header in
+        [&mut proposer_slashing.signed_header_1, &mut proposer_slashing.signed_header_2]
+    {
         let signing_root = compute_signing_root(&mut signed_header.message, domain)?;
         let public_key = &proposer.public_key;
         if verify_signature(public_key, signing_root.as_ref(), &signed_header.signature).is_err() {
             return Err(invalid_operation_error(InvalidOperation::ProposerSlashing(
                 InvalidProposerSlashing::InvalidSignature(signed_header.signature.clone()),
-            )));
+            )))
         }
     }
 
@@ -132,7 +131,7 @@ pub fn process_attester_slashing<
                 Box::new(attestation_1.data.clone()),
                 Box::new(attestation_2.data.clone()),
             ),
-        )));
+        )))
     }
 
     is_valid_indexed_attestation(state, attestation_1, context)?;
@@ -142,10 +141,7 @@ pub fn process_attester_slashing<
     let indices_1: HashSet<ValidatorIndex> =
         HashSet::from_iter(attestation_1.attesting_indices.iter().cloned());
     let indices_2 = HashSet::from_iter(attestation_2.attesting_indices.iter().cloned());
-    let mut indices = indices_1
-        .intersection(&indices_2)
-        .cloned()
-        .collect::<Vec<_>>();
+    let mut indices = indices_1.intersection(&indices_2).cloned().collect::<Vec<_>>();
     indices.sort_unstable();
 
     let mut slashed_any = false;
@@ -201,7 +197,7 @@ pub fn process_attestation<
                 target: data.target.epoch,
                 current: current_epoch,
             },
-        )));
+        )))
     }
 
     let attestation_epoch = compute_epoch_at_slot(data.slot, context);
@@ -212,7 +208,7 @@ pub fn process_attestation<
                 epoch: attestation_epoch,
                 target: data.target.epoch,
             },
-        )));
+        )))
     }
 
     let attestation_has_delay = data.slot + context.min_attestation_inclusion_delay <= state.slot;
@@ -226,17 +222,14 @@ pub fn process_attestation<
                 lower_bound: data.slot + context.slots_per_epoch,
                 upper_bound: data.slot + context.min_attestation_inclusion_delay,
             },
-        )));
+        )))
     }
 
     let committee_count = get_committee_count_per_slot(state, data.target.epoch, context);
     if data.index >= committee_count {
         return Err(invalid_operation_error(InvalidOperation::Attestation(
-            InvalidAttestation::InvalidIndex {
-                index: data.index,
-                upper_bound: committee_count,
-            },
-        )));
+            InvalidAttestation::InvalidIndex { index: data.index, upper_bound: committee_count },
+        )))
     }
 
     let committee = get_beacon_committee(state, data.slot, data.index, context)?;
@@ -247,7 +240,7 @@ pub fn process_attestation<
                 expected_length: committee.len(),
                 length: attestation.aggregation_bits.len(),
             },
-        )));
+        )))
     }
 
     // NOTE: swap order of these wrt the spec to avoid mutation
@@ -272,7 +265,7 @@ pub fn process_attestation<
                     source_checkpoint: data.source.clone(),
                     current: current_epoch,
                 },
-            )));
+            )))
         }
         state.current_epoch_attestations.push(pending_attestation);
     } else {
@@ -283,7 +276,7 @@ pub fn process_attestation<
                     source_checkpoint: data.source.clone(),
                     current: current_epoch,
                 },
-            )));
+            )))
         }
         state.previous_epoch_attestations.push(pending_attestation);
     }
@@ -344,14 +337,8 @@ pub fn process_deposit<
     let root = &state.eth1_data.deposit_root;
     if !is_valid_merkle_branch(&leaf, branch.iter(), depth, index, root) {
         return Err(invalid_operation_error(InvalidOperation::Deposit(
-            InvalidDeposit::InvalidProof {
-                leaf,
-                branch,
-                depth,
-                index,
-                root: *root,
-            },
-        )));
+            InvalidDeposit::InvalidProof { leaf, branch, depth, index, root: *root },
+        )))
     }
 
     state.eth1_deposit_index += 1;
@@ -371,19 +358,13 @@ pub fn process_deposit<
 
         if verify_signature(public_key, signing_root.as_ref(), &deposit.data.signature).is_err() {
             // NOTE: explicitly return with no error and also no further mutations to `state`
-            return Ok(());
+            return Ok(())
         }
 
-        state
-            .validators
-            .push(get_validator_from_deposit(deposit, context));
+        state.validators.push(get_validator_from_deposit(deposit, context));
         state.balances.push(amount);
     } else {
-        let index = state
-            .validators
-            .iter()
-            .position(|v| &v.public_key == public_key)
-            .unwrap();
+        let index = state.validators.iter().position(|v| &v.public_key == public_key).unwrap();
 
         increase_balance(state, index, amount);
     }
@@ -415,20 +396,17 @@ pub fn process_voluntary_exit<
     context: &Context,
 ) -> Result<()> {
     let voluntary_exit = &mut signed_voluntary_exit.message;
-    let validator = state
-        .validators
-        .get(voluntary_exit.validator_index)
-        .ok_or_else(|| {
-            invalid_operation_error(InvalidOperation::VoluntaryExit(
-                InvalidVoluntaryExit::InvalidIndex(voluntary_exit.validator_index),
-            ))
-        })?;
+    let validator = state.validators.get(voluntary_exit.validator_index).ok_or_else(|| {
+        invalid_operation_error(InvalidOperation::VoluntaryExit(
+            InvalidVoluntaryExit::InvalidIndex(voluntary_exit.validator_index),
+        ))
+    })?;
     let current_epoch = get_current_epoch(state, context);
 
     if !is_active_validator(validator, current_epoch) {
         return Err(invalid_operation_error(InvalidOperation::VoluntaryExit(
             InvalidVoluntaryExit::InactiveValidator(current_epoch),
-        )));
+        )))
     }
 
     if validator.exit_epoch != FAR_FUTURE_EPOCH {
@@ -437,16 +415,13 @@ pub fn process_voluntary_exit<
                 index: voluntary_exit.validator_index,
                 epoch: validator.exit_epoch,
             },
-        )));
+        )))
     }
 
     if current_epoch < voluntary_exit.epoch {
         return Err(invalid_operation_error(InvalidOperation::VoluntaryExit(
-            InvalidVoluntaryExit::EarlyExit {
-                current_epoch,
-                exit_epoch: voluntary_exit.epoch,
-            },
-        )));
+            InvalidVoluntaryExit::EarlyExit { current_epoch, exit_epoch: voluntary_exit.epoch },
+        )))
     }
 
     let minimum_time_active =
@@ -457,28 +432,19 @@ pub fn process_voluntary_exit<
                 current_epoch,
                 minimum_time_active,
             },
-        )));
+        )))
     }
 
-    let domain = get_domain(
-        state,
-        DomainType::VoluntaryExit,
-        Some(voluntary_exit.epoch),
-        context,
-    )?;
+    let domain = get_domain(state, DomainType::VoluntaryExit, Some(voluntary_exit.epoch), context)?;
     let signing_root = compute_signing_root(voluntary_exit, domain)?;
 
     let public_key = &validator.public_key;
-    if verify_signature(
-        public_key,
-        signing_root.as_ref(),
-        &signed_voluntary_exit.signature,
-    )
-    .is_err()
+    if verify_signature(public_key, signing_root.as_ref(), &signed_voluntary_exit.signature)
+        .is_err()
     {
         return Err(invalid_operation_error(InvalidOperation::VoluntaryExit(
             InvalidVoluntaryExit::InvalidSignature(signed_voluntary_exit.signature.clone()),
-        )));
+        )))
     }
 
     initiate_validator_exit(state, voluntary_exit.validator_index, context);
@@ -522,41 +488,33 @@ pub fn process_block_header<
     context: &Context,
 ) -> Result<()> {
     if block.slot != state.slot {
-        return Err(invalid_header_error(
-            InvalidBeaconBlockHeader::StateSlotMismatch {
-                state_slot: state.slot,
-                block_slot: block.slot,
-            },
-        ));
+        return Err(invalid_header_error(InvalidBeaconBlockHeader::StateSlotMismatch {
+            state_slot: state.slot,
+            block_slot: block.slot,
+        }))
     }
 
     if block.slot <= state.latest_block_header.slot {
-        return Err(invalid_header_error(
-            InvalidBeaconBlockHeader::OlderThanLatestBlockHeader {
-                block_slot: block.slot,
-                latest_block_header_slot: state.latest_block_header.slot,
-            },
-        ));
+        return Err(invalid_header_error(InvalidBeaconBlockHeader::OlderThanLatestBlockHeader {
+            block_slot: block.slot,
+            latest_block_header_slot: state.latest_block_header.slot,
+        }))
     }
 
     let proposer_index = get_beacon_proposer_index(state, context)?;
     if block.proposer_index != proposer_index {
-        return Err(invalid_header_error(
-            InvalidBeaconBlockHeader::ProposerIndexMismatch {
-                block_proposer_index: block.proposer_index,
-                proposer_index,
-            },
-        ));
+        return Err(invalid_header_error(InvalidBeaconBlockHeader::ProposerIndexMismatch {
+            block_proposer_index: block.proposer_index,
+            proposer_index,
+        }))
     }
 
     let expected_parent_root = state.latest_block_header.hash_tree_root()?;
     if block.parent_root != expected_parent_root {
-        return Err(invalid_header_error(
-            InvalidBeaconBlockHeader::ParentBlockRootMismatch {
-                expected: expected_parent_root,
-                provided: block.parent_root,
-            },
-        ));
+        return Err(invalid_header_error(InvalidBeaconBlockHeader::ParentBlockRootMismatch {
+            expected: expected_parent_root,
+            provided: block.parent_root,
+        }))
     }
 
     state.latest_block_header = BeaconBlockHeader {
@@ -569,20 +527,14 @@ pub fn process_block_header<
 
     let proposer = &state.validators[block.proposer_index];
     if proposer.slashed {
-        return Err(invalid_header_error(
-            InvalidBeaconBlockHeader::ProposerSlashed(proposer_index),
-        ));
+        return Err(invalid_header_error(InvalidBeaconBlockHeader::ProposerSlashed(proposer_index)))
     }
 
     Ok(())
 }
 
 pub fn xor(a: &Bytes32, b: &Bytes32) -> Bytes32 {
-    let inner = a
-        .iter()
-        .zip(b.iter())
-        .map(|(a, b)| a ^ b)
-        .collect::<Vec<_>>();
+    let inner = a.iter().zip(b.iter()).map(|(a, b)| a ^ b).collect::<Vec<_>>();
     ByteVector::<32>::try_from(inner.as_ref()).unwrap()
 }
 
@@ -629,22 +581,11 @@ pub fn process_randao<
     let domain = get_domain(state, DomainType::Randao, Some(epoch), context)?;
     let signing_root = compute_signing_root(&mut epoch, domain)?;
 
-    if verify_signature(
-        &proposer.public_key,
-        signing_root.as_ref(),
-        &body.randao_reveal,
-    )
-    .is_err()
-    {
-        return Err(invalid_operation_error(InvalidOperation::Randao(
-            body.randao_reveal.clone(),
-        )));
+    if verify_signature(&proposer.public_key, signing_root.as_ref(), &body.randao_reveal).is_err() {
+        return Err(invalid_operation_error(InvalidOperation::Randao(body.randao_reveal.clone())))
     }
 
-    let mix = xor(
-        get_randao_mix(state, epoch),
-        &hash(body.randao_reveal.as_ref()),
-    );
+    let mix = xor(get_randao_mix(state, epoch), &hash(body.randao_reveal.as_ref()));
     let mix_index = epoch % context.epochs_per_historical_vector;
     state.randao_mixes[mix_index as usize] = mix;
     Ok(())
@@ -687,11 +628,8 @@ pub fn process_eth1_data<
 ) {
     state.eth1_data_votes.push(body.eth1_data.clone());
 
-    let votes_count = state
-        .eth1_data_votes
-        .iter()
-        .filter(|&vote| *vote == body.eth1_data)
-        .count() as u64;
+    let votes_count =
+        state.eth1_data_votes.iter().filter(|&vote| *vote == body.eth1_data).count() as u64;
 
     if votes_count * 2 > context.epochs_per_eth1_voting_period * context.slots_per_epoch {
         state.eth1_data = body.eth1_data.clone();
@@ -744,7 +682,7 @@ pub fn process_operations<
                 expected: expected_deposit_count,
                 count: body.deposits.len(),
             },
-        )));
+        )))
     }
 
     body.proposer_slashings
@@ -753,12 +691,8 @@ pub fn process_operations<
     body.attester_slashings
         .iter_mut()
         .try_for_each(|op| process_attester_slashing(state, op, context))?;
-    body.attestations
-        .iter()
-        .try_for_each(|op| process_attestation(state, op, context))?;
-    body.deposits
-        .iter_mut()
-        .try_for_each(|op| process_deposit(state, op, context))?;
+    body.attestations.iter().try_for_each(|op| process_attestation(state, op, context))?;
+    body.deposits.iter_mut().try_for_each(|op| process_deposit(state, op, context))?;
     body.voluntary_exits
         .iter_mut()
         .try_for_each(|op| process_voluntary_exit(state, op, context))?;

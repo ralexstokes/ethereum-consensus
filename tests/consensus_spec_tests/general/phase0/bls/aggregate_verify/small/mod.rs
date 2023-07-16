@@ -1,8 +1,7 @@
 // WARNING!
 // This file was generated with `gen-tests`. Do NOT edit manually.
 
-use crate::spec_test_runners::bls::AggregateVerifyTestCase;
-use crate::test_utils::TestCase;
+use crate::{spec_test_runners::bls::AggregateVerifyTestCase, test_utils::TestCase};
 
 #[test]
 fn test_aggregate_verify_infinity_pubkey() {

@@ -1,7 +1,9 @@
 use crate::bellatrix as spec;
 
-use crate::primitives::Gwei;
-use crate::state_transition::{Context, Result};
+use crate::{
+    primitives::Gwei,
+    state_transition::{Context, Result},
+};
 use spec::{
     decrease_balance, get_current_epoch, get_total_active_balance,
     process_effective_balance_updates, process_eth1_data_reset, process_historical_roots_update,
@@ -49,8 +51,8 @@ pub fn process_slashings<
     );
     for i in 0..state.validators.len() {
         let validator = &state.validators[i];
-        if validator.slashed
-            && (epoch + context.epochs_per_slashings_vector / 2) == validator.withdrawable_epoch
+        if validator.slashed &&
+            (epoch + context.epochs_per_slashings_vector / 2) == validator.withdrawable_epoch
         {
             let increment = context.effective_balance_increment;
             let penalty_numerator =

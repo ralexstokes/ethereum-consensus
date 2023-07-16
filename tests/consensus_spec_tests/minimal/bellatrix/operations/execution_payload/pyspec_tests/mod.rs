@@ -18,14 +18,12 @@ fn test_bad_everything_regular_payload() {
                 Ok(())
             } else {
                 // NOTE: exact error is not specified for this test
-                Err(Error::InvalidBlock(Box::new(
-                    InvalidBlock::InvalidOperation(InvalidOperation::ExecutionPayload(
-                        InvalidExecutionPayload::InvalidTimestamp {
-                            provided: 0,
-                            expected: 0,
-                        },
-                    )),
-                )))
+                Err(Error::InvalidBlock(Box::new(InvalidBlock::InvalidOperation(
+                    InvalidOperation::ExecutionPayload(InvalidExecutionPayload::InvalidTimestamp {
+                        provided: 0,
+                        expected: 0,
+                    }),
+                ))))
             }
         });
         spec::process_execution_payload(state, operation, execution_engine, context)
@@ -45,14 +43,12 @@ fn test_bad_execution_first_payload() {
                 Ok(())
             } else {
                 // NOTE: exact error is not specified for this test
-                Err(Error::InvalidBlock(Box::new(
-                    InvalidBlock::InvalidOperation(InvalidOperation::ExecutionPayload(
-                        InvalidExecutionPayload::InvalidTimestamp {
-                            provided: 0,
-                            expected: 0,
-                        },
-                    )),
-                )))
+                Err(Error::InvalidBlock(Box::new(InvalidBlock::InvalidOperation(
+                    InvalidOperation::ExecutionPayload(InvalidExecutionPayload::InvalidTimestamp {
+                        provided: 0,
+                        expected: 0,
+                    }),
+                ))))
             }
         });
         spec::process_execution_payload(state, operation, execution_engine, context)
@@ -72,14 +68,12 @@ fn test_bad_execution_regular_payload() {
                 Ok(())
             } else {
                 // NOTE: exact error is not specified for this test
-                Err(Error::InvalidBlock(Box::new(
-                    InvalidBlock::InvalidOperation(InvalidOperation::ExecutionPayload(
-                        InvalidExecutionPayload::InvalidTimestamp {
-                            provided: 0,
-                            expected: 0,
-                        },
-                    )),
-                )))
+                Err(Error::InvalidBlock(Box::new(InvalidBlock::InvalidOperation(
+                    InvalidOperation::ExecutionPayload(InvalidExecutionPayload::InvalidTimestamp {
+                        provided: 0,
+                        expected: 0,
+                    }),
+                ))))
             }
         });
         spec::process_execution_payload(state, operation, execution_engine, context)
@@ -99,14 +93,12 @@ fn test_bad_parent_hash_regular_payload() {
                 Ok(())
             } else {
                 // NOTE: exact error is not specified for this test
-                Err(Error::InvalidBlock(Box::new(
-                    InvalidBlock::InvalidOperation(InvalidOperation::ExecutionPayload(
-                        InvalidExecutionPayload::InvalidTimestamp {
-                            provided: 0,
-                            expected: 0,
-                        },
-                    )),
-                )))
+                Err(Error::InvalidBlock(Box::new(InvalidBlock::InvalidOperation(
+                    InvalidOperation::ExecutionPayload(InvalidExecutionPayload::InvalidTimestamp {
+                        provided: 0,
+                        expected: 0,
+                    }),
+                ))))
             }
         });
         spec::process_execution_payload(state, operation, execution_engine, context)
@@ -126,14 +118,12 @@ fn test_bad_random_first_payload() {
                 Ok(())
             } else {
                 // NOTE: exact error is not specified for this test
-                Err(Error::InvalidBlock(Box::new(
-                    InvalidBlock::InvalidOperation(InvalidOperation::ExecutionPayload(
-                        InvalidExecutionPayload::InvalidTimestamp {
-                            provided: 0,
-                            expected: 0,
-                        },
-                    )),
-                )))
+                Err(Error::InvalidBlock(Box::new(InvalidBlock::InvalidOperation(
+                    InvalidOperation::ExecutionPayload(InvalidExecutionPayload::InvalidTimestamp {
+                        provided: 0,
+                        expected: 0,
+                    }),
+                ))))
             }
         });
         spec::process_execution_payload(state, operation, execution_engine, context)
@@ -153,14 +143,12 @@ fn test_bad_random_regular_payload() {
                 Ok(())
             } else {
                 // NOTE: exact error is not specified for this test
-                Err(Error::InvalidBlock(Box::new(
-                    InvalidBlock::InvalidOperation(InvalidOperation::ExecutionPayload(
-                        InvalidExecutionPayload::InvalidTimestamp {
-                            provided: 0,
-                            expected: 0,
-                        },
-                    )),
-                )))
+                Err(Error::InvalidBlock(Box::new(InvalidBlock::InvalidOperation(
+                    InvalidOperation::ExecutionPayload(InvalidExecutionPayload::InvalidTimestamp {
+                        provided: 0,
+                        expected: 0,
+                    }),
+                ))))
             }
         });
         spec::process_execution_payload(state, operation, execution_engine, context)
@@ -180,14 +168,12 @@ fn test_bad_timestamp_first_payload() {
                 Ok(())
             } else {
                 // NOTE: exact error is not specified for this test
-                Err(Error::InvalidBlock(Box::new(
-                    InvalidBlock::InvalidOperation(InvalidOperation::ExecutionPayload(
-                        InvalidExecutionPayload::InvalidTimestamp {
-                            provided: 0,
-                            expected: 0,
-                        },
-                    )),
-                )))
+                Err(Error::InvalidBlock(Box::new(InvalidBlock::InvalidOperation(
+                    InvalidOperation::ExecutionPayload(InvalidExecutionPayload::InvalidTimestamp {
+                        provided: 0,
+                        expected: 0,
+                    }),
+                ))))
             }
         });
         spec::process_execution_payload(state, operation, execution_engine, context)
@@ -207,14 +193,12 @@ fn test_bad_timestamp_regular_payload() {
                 Ok(())
             } else {
                 // NOTE: exact error is not specified for this test
-                Err(Error::InvalidBlock(Box::new(
-                    InvalidBlock::InvalidOperation(InvalidOperation::ExecutionPayload(
-                        InvalidExecutionPayload::InvalidTimestamp {
-                            provided: 0,
-                            expected: 0,
-                        },
-                    )),
-                )))
+                Err(Error::InvalidBlock(Box::new(InvalidBlock::InvalidOperation(
+                    InvalidOperation::ExecutionPayload(InvalidExecutionPayload::InvalidTimestamp {
+                        provided: 0,
+                        expected: 0,
+                    }),
+                ))))
             }
         });
         spec::process_execution_payload(state, operation, execution_engine, context)
@@ -234,14 +218,12 @@ fn test_non_empty_extra_data_first_payload() {
                 Ok(())
             } else {
                 // NOTE: exact error is not specified for this test
-                Err(Error::InvalidBlock(Box::new(
-                    InvalidBlock::InvalidOperation(InvalidOperation::ExecutionPayload(
-                        InvalidExecutionPayload::InvalidTimestamp {
-                            provided: 0,
-                            expected: 0,
-                        },
-                    )),
-                )))
+                Err(Error::InvalidBlock(Box::new(InvalidBlock::InvalidOperation(
+                    InvalidOperation::ExecutionPayload(InvalidExecutionPayload::InvalidTimestamp {
+                        provided: 0,
+                        expected: 0,
+                    }),
+                ))))
             }
         });
         spec::process_execution_payload(state, operation, execution_engine, context)
@@ -261,14 +243,12 @@ fn test_non_empty_extra_data_regular_payload() {
                 Ok(())
             } else {
                 // NOTE: exact error is not specified for this test
-                Err(Error::InvalidBlock(Box::new(
-                    InvalidBlock::InvalidOperation(InvalidOperation::ExecutionPayload(
-                        InvalidExecutionPayload::InvalidTimestamp {
-                            provided: 0,
-                            expected: 0,
-                        },
-                    )),
-                )))
+                Err(Error::InvalidBlock(Box::new(InvalidBlock::InvalidOperation(
+                    InvalidOperation::ExecutionPayload(InvalidExecutionPayload::InvalidTimestamp {
+                        provided: 0,
+                        expected: 0,
+                    }),
+                ))))
             }
         });
         spec::process_execution_payload(state, operation, execution_engine, context)
@@ -288,14 +268,12 @@ fn test_success_first_payload() {
                 Ok(())
             } else {
                 // NOTE: exact error is not specified for this test
-                Err(Error::InvalidBlock(Box::new(
-                    InvalidBlock::InvalidOperation(InvalidOperation::ExecutionPayload(
-                        InvalidExecutionPayload::InvalidTimestamp {
-                            provided: 0,
-                            expected: 0,
-                        },
-                    )),
-                )))
+                Err(Error::InvalidBlock(Box::new(InvalidBlock::InvalidOperation(
+                    InvalidOperation::ExecutionPayload(InvalidExecutionPayload::InvalidTimestamp {
+                        provided: 0,
+                        expected: 0,
+                    }),
+                ))))
             }
         });
         spec::process_execution_payload(state, operation, execution_engine, context)
@@ -315,14 +293,12 @@ fn test_success_first_payload_with_gap_slot() {
                 Ok(())
             } else {
                 // NOTE: exact error is not specified for this test
-                Err(Error::InvalidBlock(Box::new(
-                    InvalidBlock::InvalidOperation(InvalidOperation::ExecutionPayload(
-                        InvalidExecutionPayload::InvalidTimestamp {
-                            provided: 0,
-                            expected: 0,
-                        },
-                    )),
-                )))
+                Err(Error::InvalidBlock(Box::new(InvalidBlock::InvalidOperation(
+                    InvalidOperation::ExecutionPayload(InvalidExecutionPayload::InvalidTimestamp {
+                        provided: 0,
+                        expected: 0,
+                    }),
+                ))))
             }
         });
         spec::process_execution_payload(state, operation, execution_engine, context)
@@ -342,14 +318,12 @@ fn test_success_regular_payload() {
                 Ok(())
             } else {
                 // NOTE: exact error is not specified for this test
-                Err(Error::InvalidBlock(Box::new(
-                    InvalidBlock::InvalidOperation(InvalidOperation::ExecutionPayload(
-                        InvalidExecutionPayload::InvalidTimestamp {
-                            provided: 0,
-                            expected: 0,
-                        },
-                    )),
-                )))
+                Err(Error::InvalidBlock(Box::new(InvalidBlock::InvalidOperation(
+                    InvalidOperation::ExecutionPayload(InvalidExecutionPayload::InvalidTimestamp {
+                        provided: 0,
+                        expected: 0,
+                    }),
+                ))))
             }
         });
         spec::process_execution_payload(state, operation, execution_engine, context)
@@ -369,14 +343,12 @@ fn test_success_regular_payload_with_gap_slot() {
                 Ok(())
             } else {
                 // NOTE: exact error is not specified for this test
-                Err(Error::InvalidBlock(Box::new(
-                    InvalidBlock::InvalidOperation(InvalidOperation::ExecutionPayload(
-                        InvalidExecutionPayload::InvalidTimestamp {
-                            provided: 0,
-                            expected: 0,
-                        },
-                    )),
-                )))
+                Err(Error::InvalidBlock(Box::new(InvalidBlock::InvalidOperation(
+                    InvalidOperation::ExecutionPayload(InvalidExecutionPayload::InvalidTimestamp {
+                        provided: 0,
+                        expected: 0,
+                    }),
+                ))))
             }
         });
         spec::process_execution_payload(state, operation, execution_engine, context)

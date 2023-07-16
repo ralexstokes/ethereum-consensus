@@ -1,8 +1,7 @@
 // WARNING!
 // This file was generated with `gen-tests`. Do NOT edit manually.
 
-use crate::spec_test_runners::bls::SignTestCase;
-use crate::test_utils::TestCase;
+use crate::{spec_test_runners::bls::SignTestCase, test_utils::TestCase};
 
 #[test]
 fn test_sign_case_11_b_8_c_7_cad_5238946() {

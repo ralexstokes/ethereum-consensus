@@ -1,5 +1,7 @@
-use crate::configs::Config;
-use crate::primitives::{Epoch, ExecutionAddress, Gwei, Version, FAR_FUTURE_EPOCH, U256};
+use crate::{
+    configs::Config,
+    primitives::{Epoch, ExecutionAddress, Gwei, Version, FAR_FUTURE_EPOCH, U256},
+};
 
 pub const MIN_GENESIS_ACTIVE_VALIDATOR_COUNT: usize = 16384;
 pub const MIN_GENESIS_TIME: u64 = 1614588812;

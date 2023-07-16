@@ -1,9 +1,9 @@
-use crate::altair::SyncCommittee;
-use crate::bellatrix::ExecutionPayloadHeader;
-use crate::phase0::{
-    BeaconBlockHeader, Checkpoint, Eth1Data, Fork, Validator, JUSTIFICATION_BITS_LENGTH,
+use crate::{
+    altair::SyncCommittee,
+    bellatrix::ExecutionPayloadHeader,
+    phase0::{BeaconBlockHeader, Checkpoint, Eth1Data, Fork, Validator, JUSTIFICATION_BITS_LENGTH},
+    primitives::{Bytes32, Gwei, ParticipationFlags, Root, Slot},
 };
-use crate::primitives::{Bytes32, Gwei, ParticipationFlags, Root, Slot};
 use ssz_rs::prelude::*;
 
 #[derive(Default, Debug, SimpleSerialize, Clone, PartialEq, Eq)]

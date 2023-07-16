@@ -1,9 +1,11 @@
-use crate::altair::SyncAggregate;
-use crate::capella::{ExecutionPayloadHeader, SignedBlsToExecutionChange};
-use crate::phase0::{
-    Attestation, AttesterSlashing, Deposit, Eth1Data, ProposerSlashing, SignedVoluntaryExit,
+use crate::{
+    altair::SyncAggregate,
+    capella::{ExecutionPayloadHeader, SignedBlsToExecutionChange},
+    phase0::{
+        Attestation, AttesterSlashing, Deposit, Eth1Data, ProposerSlashing, SignedVoluntaryExit,
+    },
+    primitives::{BlsSignature, Bytes32, Root, Slot, ValidatorIndex},
 };
-use crate::primitives::{BlsSignature, Bytes32, Root, Slot, ValidatorIndex};
 use ssz_rs::prelude::*;
 
 #[derive(Default, Debug, Clone, SimpleSerialize)]

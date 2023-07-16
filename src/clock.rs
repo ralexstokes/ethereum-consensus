@@ -1,10 +1,13 @@
 //! A consensus clock
-use crate::configs;
-use crate::phase0 as presets;
-use crate::primitives::{Epoch, Slot};
-use std::ops::Deref;
-use std::sync::Arc;
-use std::time::{Duration, SystemTime, UNIX_EPOCH};
+use crate::{
+    configs, phase0 as presets,
+    primitives::{Epoch, Slot},
+};
+use std::{
+    ops::Deref,
+    sync::Arc,
+    time::{Duration, SystemTime, UNIX_EPOCH},
+};
 
 pub const MAINNET_GENESIS_TIME: u64 = 1606824023;
 pub const SEPOLIA_GENESIS_TIME: u64 = 1655733600;
@@ -20,10 +23,7 @@ pub fn convert_timestamp_to_slot(
 }
 
 pub fn get_current_unix_time_in_secs() -> u64 {
-    SystemTime::now()
-        .duration_since(UNIX_EPOCH)
-        .unwrap()
-        .as_secs()
+    SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_secs()
 }
 
 pub trait TimeProvider {
@@ -63,12 +63,7 @@ pub fn from_system_time(
     slots_per_epoch: Slot,
 ) -> Clock<SystemTimeProvider> {
     let time_provider = SystemTimeProvider;
-    Clock::new(
-        genesis_time,
-        seconds_per_slot,
-        slots_per_epoch,
-        time_provider,
-    )
+    Clock::new(genesis_time, seconds_per_slot, slots_per_epoch, time_provider)
 }
 
 pub fn for_mainnet() -> Clock<SystemTimeProvider> {
@@ -99,12 +94,7 @@ impl<T: TimeProvider + Send + Sync> Clock<T> {
         slots_per_epoch: Slot,
         time_provider: T,
     ) -> Self {
-        let inner = Inner {
-            genesis_time,
-            seconds_per_slot,
-            slots_per_epoch,
-            time_provider,
-        };
+        let inner = Inner { genesis_time, seconds_per_slot, slots_per_epoch, time_provider };
         Self(Arc::new(inner))
     }
 
@@ -200,10 +190,7 @@ mod tests {
     }
 
     fn new_ticker(seconds_per_slot: u64) -> Arc<Ticker> {
-        Arc::new(Ticker {
-            tick: Mutex::new(0),
-            seconds_per_slot,
-        })
+        Arc::new(Ticker { tick: Mutex::new(0), seconds_per_slot })
     }
 
     #[test]
@@ -253,7 +240,7 @@ mod tests {
             time_provider.tick_slot();
             iter += 1;
             if iter > 1 {
-                break;
+                break
             }
         }
     }

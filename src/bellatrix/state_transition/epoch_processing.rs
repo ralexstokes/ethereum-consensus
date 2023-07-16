@@ -1,18 +1,19 @@
 //! WARNING: This file was derived by the `gen-spec` utility. DO NOT EDIT MANUALLY.
-use crate::bellatrix as spec;
-pub use crate::bellatrix::epoch_processing::process_epoch;
-pub use crate::bellatrix::epoch_processing::process_slashings;
-use crate::primitives::{Epoch, Gwei, ParticipationFlags, ValidatorIndex, GENESIS_EPOCH};
-use crate::state_transition::{Context, Result};
-use spec::get_inactivity_penalty_deltas;
+pub use crate::bellatrix::epoch_processing::{process_epoch, process_slashings};
+use crate::{
+    bellatrix as spec,
+    primitives::{Epoch, Gwei, ParticipationFlags, ValidatorIndex, GENESIS_EPOCH},
+    state_transition::{Context, Result},
+};
 use spec::{
     compute_activation_exit_epoch, decrease_balance, get_base_reward_per_increment, get_block_root,
     get_current_epoch, get_eligible_validator_indices, get_flag_index_deltas,
-    get_next_sync_committee, get_previous_epoch, get_randao_mix, get_total_active_balance,
-    get_total_balance, get_unslashed_participating_indices, get_validator_churn_limit,
-    increase_balance, initiate_validator_exit, is_active_validator, is_eligible_for_activation,
-    is_eligible_for_activation_queue, BeaconState, Checkpoint, HistoricalSummary,
-    JUSTIFICATION_BITS_LENGTH, PARTICIPATION_FLAG_WEIGHTS, TIMELY_TARGET_FLAG_INDEX,
+    get_inactivity_penalty_deltas, get_next_sync_committee, get_previous_epoch, get_randao_mix,
+    get_total_active_balance, get_total_balance, get_unslashed_participating_indices,
+    get_validator_churn_limit, increase_balance, initiate_validator_exit, is_active_validator,
+    is_eligible_for_activation, is_eligible_for_activation_queue, BeaconState, Checkpoint,
+    HistoricalSummary, JUSTIFICATION_BITS_LENGTH, PARTICIPATION_FLAG_WEIGHTS,
+    TIMELY_TARGET_FLAG_INDEX,
 };
 use ssz_rs::prelude::*;
 use std::mem;
@@ -184,8 +185,8 @@ pub fn process_effective_balance_updates<
     for i in 0..state.validators.len() {
         let validator = &mut state.validators[i];
         let balance = state.balances[i];
-        if balance + downward_threshold < validator.effective_balance
-            || validator.effective_balance + upward_threshold < balance
+        if balance + downward_threshold < validator.effective_balance ||
+            validator.effective_balance + upward_threshold < balance
         {
             validator.effective_balance = Gwei::min(
                 balance - balance % context.effective_balance_increment,
@@ -266,9 +267,7 @@ pub fn process_historical_roots_update<
             block_summary_root: state.block_roots.hash_tree_root()?,
             state_summary_root: state.state_roots.hash_tree_root()?,
         };
-        state
-            .historical_roots
-            .push(historical_batch.hash_tree_root()?)
+        state.historical_roots.push(historical_batch.hash_tree_root()?)
     }
     Ok(())
 }
@@ -304,7 +303,7 @@ pub fn process_inactivity_updates<
 ) -> Result<()> {
     let current_epoch = get_current_epoch(state, context);
     if current_epoch == GENESIS_EPOCH {
-        return Ok(());
+        return Ok(())
     }
     let eligible_validator_indices =
         get_eligible_validator_indices(state, context).collect::<Vec<_>>();
@@ -322,10 +321,8 @@ pub fn process_inactivity_updates<
             state.inactivity_scores[index] += context.inactivity_score_bias;
         }
         if not_is_leaking {
-            state.inactivity_scores[index] -= u64::min(
-                context.inactivity_score_recovery_rate,
-                state.inactivity_scores[index],
-            );
+            state.inactivity_scores[index] -=
+                u64::min(context.inactivity_score_recovery_rate, state.inactivity_scores[index]);
         }
     }
     Ok(())
@@ -362,7 +359,7 @@ pub fn process_justification_and_finalization<
 ) -> Result<()> {
     let current_epoch = get_current_epoch(state, context);
     if current_epoch <= GENESIS_EPOCH + 1 {
-        return Ok(());
+        return Ok(())
     }
     let previous_indices = get_unslashed_participating_indices(
         state,
@@ -419,9 +416,8 @@ pub fn process_participation_flag_updates<
     let current_participation = mem::take(&mut state.current_epoch_participation);
     state.previous_epoch_participation = current_participation;
     let rotate_participation = vec![ParticipationFlags::default(); state.validators.len()];
-    state.current_epoch_participation = rotate_participation
-        .try_into()
-        .expect("should convert from Vec to List");
+    state.current_epoch_participation =
+        rotate_participation.try_into().expect("should convert from Vec to List");
     Ok(())
 }
 pub fn process_randao_mixes_reset<
@@ -495,34 +491,32 @@ pub fn process_registry_updates<
         if is_eligible_for_activation_queue(validator, context) {
             validator.activation_eligibility_epoch = current_epoch + 1;
         }
-        if is_active_validator(validator, current_epoch)
-            && validator.effective_balance <= context.ejection_balance
+        if is_active_validator(validator, current_epoch) &&
+            validator.effective_balance <= context.ejection_balance
         {
             initiate_validator_exit(state, i, context);
         }
     }
-    let mut activation_queue = state
-        .validators
-        .iter()
-        .enumerate()
-        .filter_map(|(index, validator)| {
-            if is_eligible_for_activation(state, validator) {
-                Some(index)
-            } else {
-                None
-            }
-        })
-        .collect::<Vec<ValidatorIndex>>();
+    let mut activation_queue =
+        state
+            .validators
+            .iter()
+            .enumerate()
+            .filter_map(|(index, validator)| {
+                if is_eligible_for_activation(state, validator) {
+                    Some(index)
+                } else {
+                    None
+                }
+            })
+            .collect::<Vec<ValidatorIndex>>();
     activation_queue.sort_by(|&i, &j| {
         let a = &state.validators[i];
         let b = &state.validators[j];
         (a.activation_eligibility_epoch, i).cmp(&(b.activation_eligibility_epoch, j))
     });
     let activation_exit_epoch = compute_activation_exit_epoch(current_epoch, context);
-    for i in activation_queue
-        .into_iter()
-        .take(get_validator_churn_limit(state, context))
-    {
+    for i in activation_queue.into_iter().take(get_validator_churn_limit(state, context)) {
         let validator = &mut state.validators[i];
         validator.activation_epoch = activation_exit_epoch;
     }
@@ -559,7 +553,7 @@ pub fn process_rewards_and_penalties<
 ) -> Result<()> {
     let current_epoch = get_current_epoch(state, context);
     if current_epoch == GENESIS_EPOCH {
-        return Ok(());
+        return Ok(())
     }
     let mut deltas = Vec::new();
     for flag_index in 0..PARTICIPATION_FLAG_WEIGHTS.len() {
@@ -686,9 +680,7 @@ pub fn weigh_justification_and_finalization<
     let old_previous_justified_checkpoint = state.previous_justified_checkpoint.clone();
     let old_current_justified_checkpoint = state.current_justified_checkpoint.clone();
     state.previous_justified_checkpoint = state.current_justified_checkpoint.clone();
-    state
-        .justification_bits
-        .copy_within(..JUSTIFICATION_BITS_LENGTH - 1, 1);
+    state.justification_bits.copy_within(..JUSTIFICATION_BITS_LENGTH - 1, 1);
     state.justification_bits.set(0, false);
     if previous_epoch_target_balance * 3 >= total_active_balance * 2 {
         state.current_justified_checkpoint = Checkpoint {

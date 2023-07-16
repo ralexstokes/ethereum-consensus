@@ -9,11 +9,7 @@ fn load_epoch_test<S: ssz_rs::Deserialize>(test_case_path: &str) -> (S, Option<S
     let path = test_case_path.to_string() + "/post.ssz_snappy";
     let post: Option<S> = load_snappy_ssz(&path);
 
-    let config = if test_case_path.contains("minimal") {
-        Config::Minimal
-    } else {
-        Config::Mainnet
-    };
+    let config = if test_case_path.contains("minimal") { Config::Minimal } else { Config::Mainnet };
 
     (pre, post, config)
 }

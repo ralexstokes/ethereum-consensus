@@ -1,7 +1,9 @@
-use crate::crypto::Error as CryptoError;
-use crate::phase0::{AttestationData, BeaconBlockHeader, Checkpoint};
-use crate::primitives::{BlsSignature, Bytes32, Epoch, Hash32, Root, Slot, ValidatorIndex};
-use crate::state_transition::Forks;
+use crate::{
+    crypto::Error as CryptoError,
+    phase0::{AttestationData, BeaconBlockHeader, Checkpoint},
+    primitives::{BlsSignature, Bytes32, Epoch, Hash32, Root, Slot, ValidatorIndex},
+    state_transition::Forks,
+};
 use ssz_rs::prelude::*;
 use thiserror::Error;
 
@@ -28,11 +30,7 @@ pub enum Error {
     #[error("given index {index} is greater than the total amount of indices {total}")]
     InvalidShufflingIndex { index: usize, total: usize },
     #[error("slot {requested} is outside of allowed range ({lower_bound}, {upper_bound})")]
-    SlotOutOfRange {
-        requested: Slot,
-        lower_bound: Slot,
-        upper_bound: Slot,
-    },
+    SlotOutOfRange { requested: Slot, lower_bound: Slot, upper_bound: Slot },
     #[error("overflow")]
     Overflow,
     #[error("underflow")]
@@ -46,18 +44,11 @@ pub enum Error {
     #[error(
     "the requested epoch {requested} is not in the required current epoch {current} or previous epoch {previous}"
     )]
-    InvalidEpoch {
-        requested: Epoch,
-        previous: Epoch,
-        current: Epoch,
-    },
+    InvalidEpoch { requested: Epoch, previous: Epoch, current: Epoch },
     #[error(
         "transition requested from a later fork {destination_fork:?} to an earlier fork {source_fork:?}"
     )]
-    IncompatibleForks {
-        source_fork: Forks,
-        destination_fork: Forks,
-    },
+    IncompatibleForks { source_fork: Forks, destination_fork: Forks },
     #[error("genesis time unknown for network {0}")]
     UnknownGenesisTime(String),
     #[cfg(feature = "serde")]
@@ -104,47 +95,25 @@ pub enum InvalidBeaconBlockHeader {
     #[error("proposer with index {0} is slashed")]
     ProposerSlashed(ValidatorIndex),
     #[error("block slot {block_slot} is older than the latest block header slot {latest_block_header_slot}")]
-    OlderThanLatestBlockHeader {
-        block_slot: Slot,
-        latest_block_header_slot: Slot,
-    },
+    OlderThanLatestBlockHeader { block_slot: Slot, latest_block_header_slot: Slot },
     #[error("mismatch between the block proposer index {block_proposer_index} and the state proposer index {proposer_index}")]
-    ProposerIndexMismatch {
-        block_proposer_index: ValidatorIndex,
-        proposer_index: ValidatorIndex,
-    },
+    ProposerIndexMismatch { block_proposer_index: ValidatorIndex, proposer_index: ValidatorIndex },
 }
 
 #[derive(Debug, Error)]
 pub enum InvalidAttestation {
     #[error("expected length of {expected_length} in bitfield but had length {length}")]
-    Bitfield {
-        expected_length: usize,
-        length: usize,
-    },
+    Bitfield { expected_length: usize, length: usize },
     #[error("invalid target epoch {target}, not current ({current}) or previous epochs")]
     InvalidTargetEpoch { target: Epoch, current: Epoch },
     #[error("invalid slot {slot} (in epoch {epoch}) based on target epoch {target}")]
-    InvalidSlot {
-        slot: Slot,
-        epoch: Epoch,
-        target: Epoch,
-    },
+    InvalidSlot { slot: Slot, epoch: Epoch, target: Epoch },
     #[error("attestation at slot {attestation_slot} is not timely for state slot {state_slot}, outside of range [{lower_bound}, {upper_bound}]")]
-    NotTimely {
-        state_slot: Slot,
-        attestation_slot: Slot,
-        lower_bound: Slot,
-        upper_bound: Slot,
-    },
+    NotTimely { state_slot: Slot, attestation_slot: Slot, lower_bound: Slot, upper_bound: Slot },
     #[error("attestation's index {index} exceeds the current committee count {upper_bound}")]
     InvalidIndex { index: usize, upper_bound: usize },
     #[error("attestation's source checkpoint {source_checkpoint:?} does not match the expected checkpoint {expected:?} (in epoch {current})")]
-    InvalidSource {
-        expected: Checkpoint,
-        source_checkpoint: Checkpoint,
-        current: Epoch,
-    },
+    InvalidSource { expected: Checkpoint, source_checkpoint: Checkpoint, current: Epoch },
 }
 
 #[derive(Debug, Error)]
@@ -164,13 +133,7 @@ pub enum InvalidDeposit {
     #[error("expected {expected} deposits but only had {count} deposits")]
     IncorrectCount { expected: usize, count: usize },
     #[error("merkle validation failed for tree with depth {depth} and root {root:?} at index {index} for leaf {leaf:?} and branch {branch:?}")]
-    InvalidProof {
-        leaf: Node,
-        branch: Vec<Node>,
-        depth: usize,
-        index: usize,
-        root: Root,
-    },
+    InvalidProof { leaf: Node, branch: Vec<Node>, depth: usize, index: usize, root: Root },
     #[error("invalid signature for deposit: {0:?}")]
     InvalidSignature(BlsSignature),
 }
@@ -208,15 +171,9 @@ pub enum InvalidVoluntaryExit {
     #[error("validator {index} already exited in {epoch}")]
     ValidatorAlreadyExited { index: ValidatorIndex, epoch: Epoch },
     #[error("exit in epoch {exit_epoch} is not eligible for processing in current epoch {current_epoch}")]
-    EarlyExit {
-        current_epoch: Epoch,
-        exit_epoch: Epoch,
-    },
+    EarlyExit { current_epoch: Epoch, exit_epoch: Epoch },
     #[error("validator needs to be active for a minimum period of time (from epoch {minimum_time_active}, currently in {current_epoch})")]
-    ValidatorIsNotActiveForLongEnough {
-        current_epoch: Epoch,
-        minimum_time_active: Epoch,
-    },
+    ValidatorIsNotActiveForLongEnough { current_epoch: Epoch, minimum_time_active: Epoch },
     #[error("voluntary exit has invalid signature: {0:?}")]
     InvalidSignature(BlsSignature),
 }
@@ -232,10 +189,7 @@ pub enum InvalidExecutionPayload {
     #[error("expected parent hash {expected} but block has parent hash {provided}")]
     InvalidParentHash { provided: Hash32, expected: Hash32 },
     #[error("expected randao value {expected} but block has randao value {provided}")]
-    InvalidPrevRandao {
-        provided: Bytes32,
-        expected: Bytes32,
-    },
+    InvalidPrevRandao { provided: Bytes32, expected: Bytes32 },
     #[error("expected timestamp {expected} but block has timestamp {provided}")]
     InvalidTimestamp { provided: u64, expected: u64 },
 }

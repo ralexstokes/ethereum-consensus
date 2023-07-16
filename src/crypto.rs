@@ -1,12 +1,13 @@
-use crate::primitives::Bytes32;
 #[cfg(feature = "serde")]
 use crate::serde::{try_bytes_from_hex_str, HexError};
-use crate::ssz::ByteVector;
+use crate::{primitives::Bytes32, ssz::ByteVector};
 use blst::{min_pk as bls_impl, BLST_ERROR};
 use sha2::{digest::FixedOutput, Digest, Sha256};
 use ssz_rs::prelude::*;
-use std::fmt;
-use std::ops::{Deref, DerefMut};
+use std::{
+    fmt,
+    ops::{Deref, DerefMut},
+};
 use thiserror::Error;
 
 pub fn hash<D: AsRef<[u8]>>(data: D) -> Bytes32 {
@@ -76,7 +77,7 @@ pub fn verify_signature(
 
 pub fn aggregate(signatures: &[Signature]) -> Result<Signature, Error> {
     if signatures.is_empty() {
-        return Err(Error::EmptyAggregate);
+        return Err(Error::EmptyAggregate)
     }
 
     let signatures = signatures
@@ -132,7 +133,7 @@ pub fn fast_aggregate_verify(
 // Return the aggregate public key for the public keys in `pks`
 pub fn eth_aggregate_public_keys(public_keys: &[PublicKey]) -> Result<PublicKey, Error> {
     if public_keys.is_empty() {
-        return Err(Error::EmptyAggregate);
+        return Err(Error::EmptyAggregate)
     }
     let public_keys = public_keys
         .iter()
@@ -468,19 +469,12 @@ mod tests {
     fn test_aggregate_verify() {
         let n = 20;
         let mut rng = thread_rng();
-        let sks: Vec<_> = (0..n)
-            .map(|_| SecretKey::random(&mut rng).unwrap())
-            .collect();
+        let sks: Vec<_> = (0..n).map(|_| SecretKey::random(&mut rng).unwrap()).collect();
         let pks: Vec<_> = sks.iter().map(|sk| sk.public_key()).collect();
-        let msgs: Vec<Vec<u8>> = (0..n)
-            .map(|_| (0..64).map(|_| rand::thread_rng().gen()).collect())
-            .collect();
+        let msgs: Vec<Vec<u8>> =
+            (0..n).map(|_| (0..64).map(|_| rand::thread_rng().gen()).collect()).collect();
 
-        let signatures: Vec<_> = msgs
-            .iter()
-            .zip(&sks)
-            .map(|(msg, sk)| sk.sign(msg))
-            .collect();
+        let signatures: Vec<_> = msgs.iter().zip(&sks).map(|(msg, sk)| sk.sign(msg)).collect();
 
         let msgs = msgs.iter().map(|r| &r[..]).collect::<Vec<_>>();
 
@@ -494,9 +488,7 @@ mod tests {
     fn test_fast_aggregated_verify() {
         let n = 20;
         let mut rng = thread_rng();
-        let sks: Vec<_> = (0..n)
-            .map(|_| SecretKey::random(&mut rng).unwrap())
-            .collect();
+        let sks: Vec<_> = (0..n).map(|_| SecretKey::random(&mut rng).unwrap()).collect();
         let pks: Vec<_> = sks.iter().map(|sk| sk.public_key()).collect();
         let msg = "message".as_bytes();
 

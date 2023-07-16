@@ -1,6 +1,8 @@
-use crate::phase0;
-use crate::phase0::presets::Preset;
-use crate::primitives::{Epoch, Gwei, Slot};
+use crate::{
+    phase0,
+    phase0::presets::Preset,
+    primitives::{Epoch, Gwei, Slot},
+};
 
 pub use phase0::*;
 

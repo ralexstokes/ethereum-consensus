@@ -1,6 +1,8 @@
-use crate::kzg::{KzgCommitment, KzgProof};
-use crate::primitives::{BlobIndex, BlsSignature, Root, Slot, ValidatorIndex};
-use crate::ssz::ByteVector;
+use crate::{
+    kzg::{KzgCommitment, KzgProof},
+    primitives::{BlobIndex, BlsSignature, Root, Slot, ValidatorIndex},
+    ssz::ByteVector,
+};
 use ssz_rs::prelude::*;
 
 pub type Blob<const BYTES_PER_BLOB: usize> = ByteVector<BYTES_PER_BLOB>;

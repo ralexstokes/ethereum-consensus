@@ -1,5 +1,3 @@
-use crate::altair;
-use crate::altair::presets::Preset;
 pub use crate::phase0::mainnet::{
     AggregateAndProof, Attestation, AttesterSlashing, HistoricalBatch, IndexedAttestation,
     PendingAttestation, SignedAggregateAndProof, EPOCHS_PER_HISTORICAL_VECTOR,
@@ -7,7 +5,7 @@ pub use crate::phase0::mainnet::{
     MAX_ATTESTER_SLASHINGS, MAX_DEPOSITS, MAX_PROPOSER_SLASHINGS, MAX_VALIDATORS_PER_COMMITTEE,
     MAX_VOLUNTARY_EXITS, SLOTS_PER_HISTORICAL_ROOT, VALIDATOR_REGISTRY_LIMIT,
 };
-use crate::primitives::Epoch;
+use crate::{altair, altair::presets::Preset, primitives::Epoch};
 
 pub use altair::*;
 

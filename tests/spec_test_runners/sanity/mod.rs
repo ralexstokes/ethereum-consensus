@@ -1,6 +1,8 @@
 use crate::test_utils::{load_snappy_ssz, load_yaml, Config};
-use ethereum_consensus::primitives::Slot;
-use ethereum_consensus::state_transition::{Context, Result, Validation};
+use ethereum_consensus::{
+    primitives::Slot,
+    state_transition::{Context, Result, Validation},
+};
 use serde::Deserialize;
 use std::fmt;
 
@@ -40,18 +42,10 @@ where
             blocks.push(block);
         }
 
-        let config = if test_case_path.contains("minimal") {
-            Config::Minimal
-        } else {
-            Config::Mainnet
-        };
+        let config =
+            if test_case_path.contains("minimal") { Config::Minimal } else { Config::Mainnet };
 
-        Self {
-            pre,
-            post,
-            blocks,
-            config,
-        }
+        Self { pre, post, blocks, config }
     }
 
     pub fn execute<F>(&mut self, f: F)
@@ -62,12 +56,7 @@ where
             Config::Minimal => Context::for_minimal(),
             Config::Mainnet => Context::for_mainnet(),
         };
-        let result = f(
-            &mut self.pre,
-            &mut self.blocks,
-            Validation::Enabled,
-            &context,
-        );
+        let result = f(&mut self.pre, &mut self.blocks, Validation::Enabled, &context);
         if let Some(post) = self.post.as_ref() {
             assert_eq!(&self.pre, post);
         } else {
@@ -97,18 +86,10 @@ where
         let path = test_case_path.to_string() + "/slots.yaml";
         let slots: Slot = load_yaml(&path);
 
-        let config = if test_case_path.contains("minimal") {
-            Config::Minimal
-        } else {
-            Config::Mainnet
-        };
+        let config =
+            if test_case_path.contains("minimal") { Config::Minimal } else { Config::Mainnet };
 
-        Self {
-            pre,
-            post,
-            slots,
-            config,
-        }
+        Self { pre, post, slots, config }
     }
 
     pub fn execute<F>(&mut self, f: F)

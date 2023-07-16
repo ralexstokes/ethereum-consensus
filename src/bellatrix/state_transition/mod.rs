@@ -4,7 +4,8 @@ pub mod epoch_processing;
 pub mod helpers;
 pub mod slot_processing;
 
-pub use crate::bellatrix::state_transition_bellatrix::state_transition;
-pub use crate::bellatrix::state_transition_bellatrix::state_transition_block_in_slot;
+pub use crate::bellatrix::state_transition_bellatrix::{
+    state_transition, state_transition_block_in_slot,
+};
 
 use ssz_rs::prelude::*;

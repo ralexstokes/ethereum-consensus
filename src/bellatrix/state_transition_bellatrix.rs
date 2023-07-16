@@ -1,5 +1,7 @@
-use crate::bellatrix as spec;
-use crate::state_transition::{Context, Error, Result, Validation};
+use crate::{
+    bellatrix as spec,
+    state_transition::{Context, Error, Result, Validation},
+};
 use spec::{
     process_block, process_slots, verify_block_signature, BeaconState, ExecutionEngine,
     SignedBeaconBlock,

@@ -1,6 +1,8 @@
-use crate::altair::{SyncAggregate, SyncCommittee};
-use crate::phase0::BeaconBlockHeader;
-use crate::primitives::{Bytes32, Version};
+use crate::{
+    altair::{SyncAggregate, SyncCommittee},
+    phase0::BeaconBlockHeader,
+    primitives::{Bytes32, Version},
+};
 use ssz_rs::prelude::*;
 
 pub const NEXT_SYNC_COMMITTEE_INDEX_FLOOR_LOG_2: usize = 5;

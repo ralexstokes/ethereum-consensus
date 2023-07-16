@@ -20,11 +20,8 @@ where
         let path = test_case_path.to_string() + "/post.ssz_snappy";
         let post: T = load_snappy_ssz(&path).unwrap();
 
-        let config = if test_case_path.contains("minimal") {
-            Config::Minimal
-        } else {
-            Config::Mainnet
-        };
+        let config =
+            if test_case_path.contains("minimal") { Config::Minimal } else { Config::Mainnet };
 
         Self { pre, post, config }
     }

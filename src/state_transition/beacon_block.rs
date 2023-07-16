@@ -1,8 +1,7 @@
 /// This module contains "wrapper" types for beacon blocks so that
 /// the state transition machinery can be polymorphic with respect to forks.
 use crate::altair;
-use crate::bellatrix;
-use crate::phase0;
+use crate::{bellatrix, phase0};
 
 #[derive(Debug)]
 pub enum SignedBeaconBlock<

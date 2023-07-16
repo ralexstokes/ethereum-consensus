@@ -1,6 +1,8 @@
 use crate::test_utils::{load_snappy_ssz, load_yaml, Config};
-use ethereum_consensus::primitives::Epoch;
-use ethereum_consensus::state_transition::{Context, Result};
+use ethereum_consensus::{
+    primitives::Epoch,
+    state_transition::{Context, Result},
+};
 use serde::Deserialize;
 use std::fmt;
 
@@ -30,18 +32,10 @@ where
         let path = test_case_path.to_string() + "/meta.yaml";
         let meta: Meta = load_yaml(&path);
 
-        let config = if test_case_path.contains("minimal") {
-            Config::Minimal
-        } else {
-            Config::Mainnet
-        };
+        let config =
+            if test_case_path.contains("minimal") { Config::Minimal } else { Config::Mainnet };
 
-        Self {
-            test_case_path: test_case_path.to_string(),
-            post,
-            meta,
-            config,
-        }
+        Self { test_case_path: test_case_path.to_string(), post, meta, config }
     }
 
     pub fn execute<F, B, P, A>(&mut self, f: F)

@@ -1,5 +1,7 @@
-use crate::kzg::{KzgCommitment, KzgProof};
-use crate::primitives::{BlobIndex, BlsSignature, Root, Slot, ValidatorIndex};
+use crate::{
+    kzg::{KzgCommitment, KzgProof},
+    primitives::{BlobIndex, BlsSignature, Root, Slot, ValidatorIndex},
+};
 use ssz_rs::prelude::*;
 
 #[derive(Default, Debug, Clone, SimpleSerialize, PartialEq, Eq)]

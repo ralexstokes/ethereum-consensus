@@ -1,5 +1,4 @@
-use crate::primitives::Bytes32;
-use crate::ssz::ByteVector;
+use crate::{primitives::Bytes32, ssz::ByteVector};
 use ssz_rs::prelude::*;
 
 pub const KZG_COMMITMENT_BYTES_LEN: usize = 48;

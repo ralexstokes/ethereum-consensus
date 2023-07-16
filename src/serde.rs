@@ -12,9 +12,7 @@ pub enum HexError {
 }
 
 pub fn try_bytes_from_hex_str(s: &str) -> Result<Vec<u8>, HexError> {
-    let target = s
-        .strip_prefix(HEX_ENCODING_PREFIX)
-        .ok_or(HexError::MissingPrefix)?;
+    let target = s.strip_prefix(HEX_ENCODING_PREFIX).ok_or(HexError::MissingPrefix)?;
     let data = hex::decode(target)?;
     Ok(data)
 }
@@ -49,8 +47,7 @@ pub mod as_hex {
 
 pub mod as_string {
     use serde::de::Deserialize;
-    use std::fmt;
-    use std::str::FromStr;
+    use std::{fmt, str::FromStr};
 
     pub fn serialize<S, T: fmt::Display>(data: T, serializer: S) -> Result<S::Ok, S::Error>
     where
@@ -75,11 +72,11 @@ pub mod as_string {
 }
 
 pub mod collection_over_string {
-    use serde::de::{Deserializer, Error};
-    use serde::ser::SerializeSeq;
-    use std::fmt;
-    use std::marker::PhantomData;
-    use std::str::FromStr;
+    use serde::{
+        de::{Deserializer, Error},
+        ser::SerializeSeq,
+    };
+    use std::{fmt, marker::PhantomData, str::FromStr};
 
     pub fn serialize<S, T, U>(data: T, serializer: S) -> Result<S::Ok, S::Error>
     where

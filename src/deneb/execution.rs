@@ -1,8 +1,10 @@
-use crate::bellatrix::Transaction;
-use crate::capella::Withdrawal;
-use crate::primitives::{Bytes32, ExecutionAddress, Hash32, Root, U256};
-use crate::ssz::{ByteList, ByteVector};
-use crate::state_transition::{self, Error};
+use crate::{
+    bellatrix::Transaction,
+    capella::Withdrawal,
+    primitives::{Bytes32, ExecutionAddress, Hash32, Root, U256},
+    ssz::{ByteList, ByteVector},
+    state_transition::{self, Error},
+};
 use ssz_rs::prelude::*;
 
 #[derive(Default, Debug, Clone, SimpleSerialize, PartialEq, Eq)]

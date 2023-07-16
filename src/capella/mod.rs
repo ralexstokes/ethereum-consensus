@@ -17,18 +17,20 @@ pub use execution::*;
 pub use presets::Preset;
 pub use withdrawal::*;
 
-pub use crate::altair::{
-    SyncAggregate, SyncAggregatorSelectionData, SyncCommittee, PARTICIPATION_FLAG_WEIGHTS,
-    PROPOSER_WEIGHT, SYNC_REWARD_WEIGHT, TIMELY_HEAD_FLAG_INDEX, TIMELY_SOURCE_FLAG_INDEX,
-    TIMELY_TARGET_FLAG_INDEX, WEIGHT_DENOMINATOR,
-};
-pub use crate::bellatrix::Transaction;
-pub use crate::phase0::{
-    Attestation, AttestationData, AttesterSlashing, BeaconBlockHeader, Checkpoint, Deposit,
-    DepositData, DepositMessage, Eth1Block, Eth1Data, Fork, ForkData, HistoricalSummary,
-    IndexedAttestation, ProposerSlashing, SignedBeaconBlockHeader, SignedVoluntaryExit,
-    SigningData, Validator, VoluntaryExit, BASE_REWARDS_PER_EPOCH, DEPOSIT_CONTRACT_TREE_DEPTH,
-    JUSTIFICATION_BITS_LENGTH,
+pub use crate::{
+    altair::{
+        SyncAggregate, SyncAggregatorSelectionData, SyncCommittee, PARTICIPATION_FLAG_WEIGHTS,
+        PROPOSER_WEIGHT, SYNC_REWARD_WEIGHT, TIMELY_HEAD_FLAG_INDEX, TIMELY_SOURCE_FLAG_INDEX,
+        TIMELY_TARGET_FLAG_INDEX, WEIGHT_DENOMINATOR,
+    },
+    bellatrix::Transaction,
+    phase0::{
+        Attestation, AttestationData, AttesterSlashing, BeaconBlockHeader, Checkpoint, Deposit,
+        DepositData, DepositMessage, Eth1Block, Eth1Data, Fork, ForkData, HistoricalSummary,
+        IndexedAttestation, ProposerSlashing, SignedBeaconBlockHeader, SignedVoluntaryExit,
+        SigningData, Validator, VoluntaryExit, BASE_REWARDS_PER_EPOCH, DEPOSIT_CONTRACT_TREE_DEPTH,
+        JUSTIFICATION_BITS_LENGTH,
+    },
 };
 
 pub mod mainnet {

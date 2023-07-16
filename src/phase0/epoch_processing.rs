@@ -1,7 +1,9 @@
 use crate::phase0 as spec;
 
-use crate::primitives::{Epoch, Gwei, ValidatorIndex, GENESIS_EPOCH};
-use crate::state_transition::{Context, Error, Result};
+use crate::{
+    primitives::{Epoch, Gwei, ValidatorIndex, GENESIS_EPOCH},
+    state_transition::{Context, Error, Result},
+};
 use integer_sqrt::IntegerSquareRoot;
 use spec::{
     compute_activation_exit_epoch, decrease_balance, get_attesting_indices, get_block_root,
@@ -12,8 +14,7 @@ use spec::{
     PendingAttestation, BASE_REWARDS_PER_EPOCH, JUSTIFICATION_BITS_LENGTH,
 };
 use ssz_rs::prelude::*;
-use std::collections::HashSet;
-use std::mem;
+use std::{collections::HashSet, mem};
 
 pub fn get_matching_source_attestations<
     'a,
@@ -48,7 +49,7 @@ pub fn get_matching_source_attestations<
             requested: epoch,
             previous: previous_epoch,
             current: current_epoch,
-        });
+        })
     }
 
     if epoch == current_epoch {
@@ -85,7 +86,7 @@ pub fn get_matching_target_attestations<
     let source_attestations = get_matching_source_attestations(state, epoch, context)?;
     let mut result = vec![];
     if source_attestations.is_empty() {
-        return Ok(result);
+        return Ok(result)
     }
 
     let block_root = get_block_root(state, epoch, context)?;
@@ -189,9 +190,10 @@ pub fn process_justification_and_finalization<
     context: &Context,
 ) -> Result<()> {
     // Initial FFG checkpoint values have a `0x00` stub for `root`.
-    // Skip FFG updates in the first two epochs to avoid corner cases that might result in modifying this stub.
+    // Skip FFG updates in the first two epochs to avoid corner cases that might result in modifying
+    // this stub.
     if get_current_epoch(state, context) <= GENESIS_EPOCH + 1 {
-        return Ok(());
+        return Ok(())
     }
     let previous_attestations =
         get_matching_target_attestations(state, get_previous_epoch(state, context), context)?;
@@ -231,7 +233,8 @@ pub fn process_rewards_and_penalties<
     >,
     context: &Context,
 ) -> Result<()> {
-    // No rewards are applied at the end of `GENESIS_EPOCH` because rewards are for work done in the previous epoch
+    // No rewards are applied at the end of `GENESIS_EPOCH` because rewards are for work done in the
+    // previous epoch
     let current_epoch = get_current_epoch(state, context);
     if current_epoch != GENESIS_EPOCH {
         let (rewards, penalties) = get_attestation_deltas(state, context)?;
@@ -275,26 +278,27 @@ pub fn process_registry_updates<
             validator.activation_eligibility_epoch = current_epoch + 1;
         }
 
-        if is_active_validator(validator, current_epoch)
-            && validator.effective_balance <= context.ejection_balance
+        if is_active_validator(validator, current_epoch) &&
+            validator.effective_balance <= context.ejection_balance
         {
             initiate_validator_exit(state, i, context);
         }
     }
 
     // Queue validators eligible for activation and not yet dequeued for activation
-    let mut activation_queue = state
-        .validators
-        .iter()
-        .enumerate()
-        .filter_map(|(index, validator)| {
-            if is_eligible_for_activation(state, validator) {
-                Some(index)
-            } else {
-                None
-            }
-        })
-        .collect::<Vec<ValidatorIndex>>();
+    let mut activation_queue =
+        state
+            .validators
+            .iter()
+            .enumerate()
+            .filter_map(|(index, validator)| {
+                if is_eligible_for_activation(state, validator) {
+                    Some(index)
+                } else {
+                    None
+                }
+            })
+            .collect::<Vec<ValidatorIndex>>();
     // Order by the sequence of activation_eligibility_epoch setting and then index
     activation_queue.sort_by(|&i, &j| {
         let a = &state.validators[i];
@@ -304,10 +308,7 @@ pub fn process_registry_updates<
 
     // Dequeued validators for activation up to churn limit
     let activation_exit_epoch = compute_activation_exit_epoch(current_epoch, context);
-    for i in activation_queue
-        .into_iter()
-        .take(get_validator_churn_limit(state, context))
-    {
+    for i in activation_queue.into_iter().take(get_validator_churn_limit(state, context)) {
         let validator = &mut state.validators[i];
         validator.activation_epoch = activation_exit_epoch;
     }
@@ -344,8 +345,8 @@ pub fn process_slashings<
 
     for i in 0..state.validators.len() {
         let validator = &state.validators[i];
-        if validator.slashed
-            && (epoch + context.epochs_per_slashings_vector / 2) == validator.withdrawable_epoch
+        if validator.slashed &&
+            (epoch + context.epochs_per_slashings_vector / 2) == validator.withdrawable_epoch
         {
             let increment = context.effective_balance_increment;
             let penalty_numerator =
@@ -416,8 +417,8 @@ pub fn process_effective_balance_updates<
     for i in 0..state.validators.len() {
         let validator = &mut state.validators[i];
         let balance = state.balances[i];
-        if balance + downward_threshold < validator.effective_balance
-            || validator.effective_balance + upward_threshold < balance
+        if balance + downward_threshold < validator.effective_balance ||
+            validator.effective_balance + upward_threshold < balance
         {
             validator.effective_balance = Gwei::min(
                 balance - balance % context.effective_balance_increment,
@@ -512,9 +513,7 @@ pub fn process_historical_roots_update<
             block_summary_root: state.block_roots.hash_tree_root()?,
             state_summary_root: state.state_roots.hash_tree_root()?,
         };
-        state
-            .historical_roots
-            .push(historical_batch.hash_tree_root()?)
+        state.historical_roots.push(historical_batch.hash_tree_root()?)
     }
     Ok(())
 }
@@ -611,9 +610,7 @@ pub fn weigh_justification_and_finalization<
 
     // Process justifications
     state.previous_justified_checkpoint = state.current_justified_checkpoint.clone();
-    state
-        .justification_bits
-        .copy_within(..JUSTIFICATION_BITS_LENGTH - 1, 1);
+    state.justification_bits.copy_within(..JUSTIFICATION_BITS_LENGTH - 1, 1);
     state.justification_bits.set(0, false);
     if previous_epoch_target_balance * 3 >= total_active_balance * 2 {
         state.current_justified_checkpoint = Checkpoint {
@@ -677,9 +674,9 @@ pub fn get_base_reward<
 ) -> Result<Gwei> {
     let total_balance = get_total_active_balance(state, context)?;
     let effective_balance = state.validators[index].effective_balance;
-    Ok(effective_balance * context.base_reward_factor
-        / total_balance.integer_sqrt()
-        / BASE_REWARDS_PER_EPOCH)
+    Ok(effective_balance * context.base_reward_factor /
+        total_balance.integer_sqrt() /
+        BASE_REWARDS_PER_EPOCH)
 }
 
 pub fn get_proposer_reward<
@@ -981,8 +978,8 @@ pub fn get_inactivity_penalty_deltas<
                 BASE_REWARDS_PER_EPOCH * base_reward - get_proposer_reward(state, i, context)?;
             if !matching_target_attesting_indices.contains(&i) {
                 let effective_balance = state.validators[i].effective_balance;
-                penalties[i] += effective_balance * get_finality_delay(state, context)
-                    / context.inactivity_penalty_quotient;
+                penalties[i] += effective_balance * get_finality_delay(state, context) /
+                    context.inactivity_penalty_quotient;
             }
         }
     }
