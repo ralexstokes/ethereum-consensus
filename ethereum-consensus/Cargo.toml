@@ -11,7 +11,6 @@ serde = ["dep:serde", "hex", "serde_json", "serde_yaml"]
 async = ["tokio", "tokio-stream", "async-stream"]
 spec-tests = ["serde", "serde_yaml"]
 gen-spec = ["syn", "prettyplease", "quote"]
-gen-tests = ["walkdir", "convert_case"]
 
 [dependencies]
 ssz_rs = "0.9.0"
@@ -37,8 +36,6 @@ syn = { version = "1.0.98", features = ["full", "visit", "visit-mut", "extra-tra
 prettyplease = { version = "0.1.10", optional = true }
 quote = { version = "1.0.18", optional = true }
 
-walkdir = { version = "2.3.2", optional = true }
-convert_case = { version =  "0.5.0", optional = true }
 bs58 = "0.4.0"
 
 [dev-dependencies]
@@ -49,8 +46,3 @@ snap = "1"
 name = "gen-spec"
 path = "src/bin/gen_spec.rs"
 required-features = ["gen-spec"]
-
-[[bin]]
-name = "gen-tests"
-path = "src/bin/gen_tests.rs"
-required-features = ["gen-tests"]

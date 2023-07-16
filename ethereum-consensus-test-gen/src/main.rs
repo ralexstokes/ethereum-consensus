@@ -1,3 +1,5 @@
+#![doc(hidden)]
+
 use convert_case::{Case, Casing};
 use std::{
     collections::HashMap,
@@ -1387,7 +1389,7 @@ fn main() {
 
     println!("collected {collected_test_case_count} tests");
 
-    let generated_test_root = PathBuf::from("tests/consensus_spec_tests");
+    let generated_test_root = PathBuf::from("ethereum-consensus/tests/consensus_spec_tests");
     fs::remove_dir_all(&generated_test_root).unwrap();
 
     fs::create_dir_all(&generated_test_root).unwrap();
