@@ -3,13 +3,9 @@ use std::{
     collections::{HashMap, HashSet},
     fmt,
     fs::{self},
-};
-
-use std::{
     mem,
     path::{Path, PathBuf},
 };
-
 use syn::{
     parse_quote, punctuated::Punctuated, token::Comma, visit::Visit, visit_mut::VisitMut,
     ConstParam, FnArg, GenericArgument, GenericParam, Ident, Item, ItemConst, ItemFn, ItemMod,
