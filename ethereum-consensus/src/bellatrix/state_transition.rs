@@ -1,10 +1,9 @@
 use crate::{
-    bellatrix as spec,
+    bellatrix::{
+        process_block, process_slots, verify_block_signature, BeaconState, ExecutionEngine,
+        SignedBeaconBlock,
+    },
     state_transition::{Context, Error, Result, Validation},
-};
-use spec::{
-    process_block, process_slots, verify_block_signature, BeaconState, ExecutionEngine,
-    SignedBeaconBlock,
 };
 use ssz_rs::prelude::Merkleized;
 

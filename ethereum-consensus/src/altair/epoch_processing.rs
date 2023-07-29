@@ -1,18 +1,20 @@
-use crate::altair as spec;
-
 use crate::{
+    altair::{
+        constants::{PARTICIPATION_FLAG_WEIGHTS, TIMELY_TARGET_FLAG_INDEX},
+        decrease_balance, get_current_epoch, get_eligible_validator_indices,
+        get_inactivity_penalty_deltas, get_previous_epoch, get_total_active_balance,
+        get_total_balance,
+        helpers::{
+            get_base_reward_per_increment, get_flag_index_deltas, get_next_sync_committee,
+            get_unslashed_participating_indices,
+        },
+        increase_balance, is_in_inactivity_leak, process_effective_balance_updates,
+        process_eth1_data_reset, process_historical_roots_update, process_randao_mixes_reset,
+        process_registry_updates, process_slashings_reset, weigh_justification_and_finalization,
+        BeaconState,
+    },
     primitives::{Gwei, ParticipationFlags, ValidatorIndex, GENESIS_EPOCH},
     state_transition::{Context, Result},
-};
-use spec::{
-    decrease_balance, get_base_reward_per_increment, get_current_epoch,
-    get_eligible_validator_indices, get_flag_index_deltas, get_inactivity_penalty_deltas,
-    get_next_sync_committee, get_previous_epoch, get_total_active_balance, get_total_balance,
-    get_unslashed_participating_indices, increase_balance, is_in_inactivity_leak,
-    process_effective_balance_updates, process_eth1_data_reset, process_historical_roots_update,
-    process_randao_mixes_reset, process_registry_updates, process_slashings_reset,
-    weigh_justification_and_finalization, BeaconState, PARTICIPATION_FLAG_WEIGHTS,
-    TIMELY_TARGET_FLAG_INDEX,
 };
 use std::mem;
 

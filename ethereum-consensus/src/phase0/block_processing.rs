@@ -1,7 +1,22 @@
-use crate::phase0 as spec;
-
 use crate::{
     crypto::{hash, verify_signature},
+    phase0::{
+        beacon_block::{BeaconBlock, BeaconBlockBody, BeaconBlockHeader},
+        beacon_state::BeaconState,
+        constants::DEPOSIT_CONTRACT_TREE_DEPTH,
+        helpers::{
+            compute_domain, compute_epoch_at_slot, get_beacon_committee, get_beacon_proposer_index,
+            get_committee_count_per_slot, get_current_epoch, get_domain, get_indexed_attestation,
+            get_previous_epoch, get_randao_mix, increase_balance, initiate_validator_exit,
+            is_active_validator, is_slashable_attestation_data, is_slashable_validator,
+            is_valid_indexed_attestation, slash_validator,
+        },
+        operations::{
+            Attestation, AttesterSlashing, Deposit, DepositMessage, PendingAttestation,
+            ProposerSlashing, SignedVoluntaryExit,
+        },
+        validator::Validator,
+    },
     primitives::{BlsPublicKey, Bytes32, DomainType, Gwei, ValidatorIndex, FAR_FUTURE_EPOCH},
     signing::compute_signing_root,
     ssz::ByteVector,
@@ -10,15 +25,6 @@ use crate::{
         InvalidAttesterSlashing, InvalidBeaconBlockHeader, InvalidDeposit, InvalidOperation,
         InvalidProposerSlashing, InvalidVoluntaryExit, Result,
     },
-};
-use spec::{
-    compute_domain, compute_epoch_at_slot, get_beacon_committee, get_beacon_proposer_index,
-    get_committee_count_per_slot, get_current_epoch, get_domain, get_indexed_attestation,
-    get_previous_epoch, get_randao_mix, increase_balance, initiate_validator_exit,
-    is_active_validator, is_slashable_attestation_data, is_slashable_validator,
-    is_valid_indexed_attestation, slash_validator, Attestation, AttesterSlashing, BeaconBlock,
-    BeaconBlockBody, BeaconBlockHeader, BeaconState, Deposit, DepositMessage, PendingAttestation,
-    ProposerSlashing, SignedVoluntaryExit, Validator, DEPOSIT_CONTRACT_TREE_DEPTH,
 };
 use ssz_rs::prelude::*;
 use std::collections::HashSet;

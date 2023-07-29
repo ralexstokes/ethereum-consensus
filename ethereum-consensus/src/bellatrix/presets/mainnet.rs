@@ -1,20 +1,18 @@
+use crate::bellatrix::spec;
 pub use crate::{
-    altair::mainnet::{
+    altair::presets::mainnet::{
         AggregateAndProof, Attestation, AttesterSlashing, ContributionAndProof, HistoricalBatch,
         IndexedAttestation, LightClientUpdate, PendingAttestation, SignedAggregateAndProof,
         SignedContributionAndProof, SyncAggregate, SyncCommittee, SyncCommitteeContribution,
-        SyncCommitteeMessage, SYNC_COMMITTEE_SIZE,
-    },
-    phase0::mainnet::{
         EPOCHS_PER_HISTORICAL_VECTOR, EPOCHS_PER_SLASHINGS_VECTOR, ETH1_DATA_VOTES_BOUND,
         HISTORICAL_ROOTS_LIMIT, MAX_ATTESTATIONS, MAX_ATTESTER_SLASHINGS, MAX_DEPOSITS,
         MAX_PROPOSER_SLASHINGS, MAX_VALIDATORS_PER_COMMITTEE, MAX_VOLUNTARY_EXITS,
-        SLOTS_PER_HISTORICAL_ROOT, VALIDATOR_REGISTRY_LIMIT,
+        SLOTS_PER_HISTORICAL_ROOT, SYNC_COMMITTEE_SIZE, VALIDATOR_REGISTRY_LIMIT,
     },
+    bellatrix::presets::Preset,
 };
-use crate::{bellatrix, bellatrix::presets::Preset};
 
-pub use bellatrix::*;
+pub use spec::*;
 
 pub const INACTIVITY_PENALTY_QUOTIENT_BELLATRIX: u64 = 16_777_216;
 pub const MIN_SLASHING_PENALTY_QUOTIENT_BELLATRIX: u64 = 32;
@@ -34,23 +32,23 @@ pub const PRESET: Preset = Preset {
     max_extra_data_bytes: MAX_EXTRA_DATA_BYTES,
 };
 
-pub type Transaction = bellatrix::Transaction<MAX_BYTES_PER_TRANSACTION>;
+pub type Transaction = spec::Transaction<MAX_BYTES_PER_TRANSACTION>;
 
-pub type ExecutionPayload = bellatrix::ExecutionPayload<
+pub type ExecutionPayload = spec::ExecutionPayload<
     BYTES_PER_LOGS_BLOOM,
     MAX_EXTRA_DATA_BYTES,
     MAX_BYTES_PER_TRANSACTION,
     MAX_TRANSACTIONS_PER_PAYLOAD,
 >;
 
-pub type ExecutionPayloadHeader = bellatrix::ExecutionPayloadHeader<
+pub type ExecutionPayloadHeader = spec::ExecutionPayloadHeader<
     BYTES_PER_LOGS_BLOOM,
     MAX_EXTRA_DATA_BYTES,
     MAX_BYTES_PER_TRANSACTION,
     MAX_TRANSACTIONS_PER_PAYLOAD,
 >;
 
-pub type BlindedBeaconBlock = bellatrix::BlindedBeaconBlock<
+pub type BlindedBeaconBlock = spec::BlindedBeaconBlock<
     MAX_PROPOSER_SLASHINGS,
     MAX_VALIDATORS_PER_COMMITTEE,
     MAX_ATTESTER_SLASHINGS,
@@ -64,7 +62,7 @@ pub type BlindedBeaconBlock = bellatrix::BlindedBeaconBlock<
     MAX_TRANSACTIONS_PER_PAYLOAD,
 >;
 
-pub type BlindedBeaconBlockBody = bellatrix::BlindedBeaconBlockBody<
+pub type BlindedBeaconBlockBody = spec::BlindedBeaconBlockBody<
     MAX_PROPOSER_SLASHINGS,
     MAX_VALIDATORS_PER_COMMITTEE,
     MAX_ATTESTER_SLASHINGS,
@@ -78,7 +76,7 @@ pub type BlindedBeaconBlockBody = bellatrix::BlindedBeaconBlockBody<
     MAX_TRANSACTIONS_PER_PAYLOAD,
 >;
 
-pub type SignedBlindedBeaconBlock = bellatrix::SignedBlindedBeaconBlock<
+pub type SignedBlindedBeaconBlock = spec::SignedBlindedBeaconBlock<
     MAX_PROPOSER_SLASHINGS,
     MAX_VALIDATORS_PER_COMMITTEE,
     MAX_ATTESTER_SLASHINGS,
@@ -92,7 +90,7 @@ pub type SignedBlindedBeaconBlock = bellatrix::SignedBlindedBeaconBlock<
     MAX_TRANSACTIONS_PER_PAYLOAD,
 >;
 
-pub type BeaconState = bellatrix::BeaconState<
+pub type BeaconState = spec::BeaconState<
     SLOTS_PER_HISTORICAL_ROOT,
     HISTORICAL_ROOTS_LIMIT,
     ETH1_DATA_VOTES_BOUND,
@@ -107,7 +105,7 @@ pub type BeaconState = bellatrix::BeaconState<
     MAX_TRANSACTIONS_PER_PAYLOAD,
 >;
 
-pub type BeaconBlockBody = bellatrix::BeaconBlockBody<
+pub type BeaconBlockBody = spec::BeaconBlockBody<
     MAX_PROPOSER_SLASHINGS,
     MAX_VALIDATORS_PER_COMMITTEE,
     MAX_ATTESTER_SLASHINGS,
@@ -121,7 +119,7 @@ pub type BeaconBlockBody = bellatrix::BeaconBlockBody<
     MAX_TRANSACTIONS_PER_PAYLOAD,
 >;
 
-pub type BeaconBlock = bellatrix::BeaconBlock<
+pub type BeaconBlock = spec::BeaconBlock<
     MAX_PROPOSER_SLASHINGS,
     MAX_VALIDATORS_PER_COMMITTEE,
     MAX_ATTESTER_SLASHINGS,
@@ -135,7 +133,7 @@ pub type BeaconBlock = bellatrix::BeaconBlock<
     MAX_TRANSACTIONS_PER_PAYLOAD,
 >;
 
-pub type SignedBeaconBlock = bellatrix::SignedBeaconBlock<
+pub type SignedBeaconBlock = spec::SignedBeaconBlock<
     MAX_PROPOSER_SLASHINGS,
     MAX_VALIDATORS_PER_COMMITTEE,
     MAX_ATTESTER_SLASHINGS,
@@ -149,14 +147,14 @@ pub type SignedBeaconBlock = bellatrix::SignedBeaconBlock<
     MAX_TRANSACTIONS_PER_PAYLOAD,
 >;
 
-pub type NoOpExecutionEngine = bellatrix::NoOpExecutionEngine<
+pub type NoOpExecutionEngine = spec::NoOpExecutionEngine<
     BYTES_PER_LOGS_BLOOM,
     MAX_EXTRA_DATA_BYTES,
     MAX_BYTES_PER_TRANSACTION,
     MAX_TRANSACTIONS_PER_PAYLOAD,
 >;
 
-pub type MockExecutionEngine<F> = bellatrix::MockExecutionEngine<
+pub type MockExecutionEngine<F> = spec::MockExecutionEngine<
     BYTES_PER_LOGS_BLOOM,
     MAX_EXTRA_DATA_BYTES,
     MAX_BYTES_PER_TRANSACTION,

@@ -31,7 +31,7 @@ pub use crate::{
         Attestation, AttestationData, AttesterSlashing, BeaconBlockHeader, Checkpoint, Deposit,
         DepositData, DepositMessage, Eth1Block, Eth1Data, Fork, ForkData, HistoricalSummary,
         IndexedAttestation, ProposerSlashing, SignedBeaconBlockHeader, SignedVoluntaryExit,
-        SigningData, Validator, VoluntaryExit, BASE_REWARDS_PER_EPOCH, DEPOSIT_CONTRACT_TREE_DEPTH,
+        Validator, VoluntaryExit, BASE_REWARDS_PER_EPOCH, DEPOSIT_CONTRACT_TREE_DEPTH,
         JUSTIFICATION_BITS_LENGTH,
     },
 };

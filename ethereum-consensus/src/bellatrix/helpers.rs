@@ -1,14 +1,12 @@
-use crate::bellatrix as spec;
-
 use crate::{
+    bellatrix::{
+        decrease_balance, get_beacon_proposer_index, get_current_epoch,
+        get_eligible_validator_indices, get_previous_epoch, get_unslashed_participating_indices,
+        increase_balance, initiate_validator_exit, BeaconBlockBody, BeaconState, ExecutionPayload,
+        ExecutionPayloadHeader, PROPOSER_WEIGHT, TIMELY_TARGET_FLAG_INDEX, WEIGHT_DENOMINATOR,
+    },
     primitives::{Gwei, Slot, ValidatorIndex, GENESIS_SLOT},
     state_transition::{Context, Error, Result},
-};
-use spec::{
-    decrease_balance, get_beacon_proposer_index, get_current_epoch, get_eligible_validator_indices,
-    get_previous_epoch, get_unslashed_participating_indices, increase_balance,
-    initiate_validator_exit, BeaconBlockBody, BeaconState, ExecutionPayload,
-    ExecutionPayloadHeader, PROPOSER_WEIGHT, TIMELY_TARGET_FLAG_INDEX, WEIGHT_DENOMINATOR,
 };
 
 pub fn get_inactivity_penalty_deltas<

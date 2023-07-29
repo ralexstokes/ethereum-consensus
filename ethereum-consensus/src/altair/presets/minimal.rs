@@ -1,13 +1,17 @@
-pub use crate::phase0::minimal::{
-    AggregateAndProof, Attestation, AttesterSlashing, HistoricalBatch, IndexedAttestation,
-    PendingAttestation, SignedAggregateAndProof, EPOCHS_PER_HISTORICAL_VECTOR,
-    EPOCHS_PER_SLASHINGS_VECTOR, ETH1_DATA_VOTES_BOUND, HISTORICAL_ROOTS_LIMIT, MAX_ATTESTATIONS,
-    MAX_ATTESTER_SLASHINGS, MAX_DEPOSITS, MAX_PROPOSER_SLASHINGS, MAX_VALIDATORS_PER_COMMITTEE,
-    MAX_VOLUNTARY_EXITS, SLOTS_PER_HISTORICAL_ROOT, VALIDATOR_REGISTRY_LIMIT,
+use crate::altair::spec;
+pub use crate::{
+    altair::presets::Preset,
+    phase0::presets::minimal::{
+        AggregateAndProof, Attestation, AttesterSlashing, HistoricalBatch, IndexedAttestation,
+        PendingAttestation, SignedAggregateAndProof, EPOCHS_PER_HISTORICAL_VECTOR,
+        EPOCHS_PER_SLASHINGS_VECTOR, ETH1_DATA_VOTES_BOUND, HISTORICAL_ROOTS_LIMIT,
+        MAX_ATTESTATIONS, MAX_ATTESTER_SLASHINGS, MAX_DEPOSITS, MAX_PROPOSER_SLASHINGS,
+        MAX_VALIDATORS_PER_COMMITTEE, MAX_VOLUNTARY_EXITS, SLOTS_PER_HISTORICAL_ROOT,
+        VALIDATOR_REGISTRY_LIMIT,
+    },
 };
-use crate::{altair, altair::presets::Preset, primitives::Epoch};
 
-pub use altair::*;
+pub use spec::*;
 
 pub const INACTIVITY_PENALTY_QUOTIENT_ALTAIR: u64 = 50331648;
 pub const MIN_SLASHING_PENALTY_QUOTIENT_ALTAIR: u64 = 64;
@@ -18,7 +22,7 @@ pub const MIN_SYNC_COMMITTEE_PARTICIPANTS: usize = 1;
 pub const UPDATE_TIMEOUT: usize = 64;
 
 pub const TARGET_AGGREGATORS_PER_SYNC_SUBCOMMITTEE: usize = 16;
-pub const SYNC_SUBCOMMITTEE_SIZE: usize = altair::get_sync_subcommittee_size(SYNC_COMMITTEE_SIZE);
+pub const SYNC_SUBCOMMITTEE_SIZE: usize = SYNC_COMMITTEE_SIZE / SYNC_COMMITTEE_SUBNET_COUNT;
 
 pub const PRESET: Preset = Preset {
     inactivity_penalty_quotient_altair: INACTIVITY_PENALTY_QUOTIENT_ALTAIR,
@@ -30,12 +34,12 @@ pub const PRESET: Preset = Preset {
     update_timeout: UPDATE_TIMEOUT,
 };
 
-pub type SyncAggregate = altair::SyncAggregate<SYNC_COMMITTEE_SIZE>;
-pub type SyncCommittee = altair::SyncCommittee<SYNC_COMMITTEE_SIZE>;
+pub type SyncAggregate = spec::SyncAggregate<SYNC_COMMITTEE_SIZE>;
+pub type SyncCommittee = spec::SyncCommittee<SYNC_COMMITTEE_SIZE>;
 
-pub type LightClientUpdate = altair::LightClientUpdate<SYNC_COMMITTEE_SIZE>;
+pub type LightClientUpdate = crate::altair::light_client::LightClientUpdate<SYNC_COMMITTEE_SIZE>;
 
-pub type BeaconState = altair::BeaconState<
+pub type BeaconState = spec::BeaconState<
     SLOTS_PER_HISTORICAL_ROOT,
     HISTORICAL_ROOTS_LIMIT,
     ETH1_DATA_VOTES_BOUND,
@@ -46,7 +50,7 @@ pub type BeaconState = altair::BeaconState<
     SYNC_COMMITTEE_SIZE,
 >;
 
-pub type BeaconBlockBody = altair::BeaconBlockBody<
+pub type BeaconBlockBody = spec::BeaconBlockBody<
     MAX_PROPOSER_SLASHINGS,
     MAX_VALIDATORS_PER_COMMITTEE,
     MAX_ATTESTER_SLASHINGS,
@@ -56,7 +60,7 @@ pub type BeaconBlockBody = altair::BeaconBlockBody<
     SYNC_COMMITTEE_SIZE,
 >;
 
-pub type BeaconBlock = altair::BeaconBlock<
+pub type BeaconBlock = spec::BeaconBlock<
     MAX_PROPOSER_SLASHINGS,
     MAX_VALIDATORS_PER_COMMITTEE,
     MAX_ATTESTER_SLASHINGS,
@@ -66,7 +70,7 @@ pub type BeaconBlock = altair::BeaconBlock<
     SYNC_COMMITTEE_SIZE,
 >;
 
-pub type SignedBeaconBlock = altair::SignedBeaconBlock<
+pub type SignedBeaconBlock = spec::SignedBeaconBlock<
     MAX_PROPOSER_SLASHINGS,
     MAX_VALIDATORS_PER_COMMITTEE,
     MAX_ATTESTER_SLASHINGS,
@@ -76,6 +80,6 @@ pub type SignedBeaconBlock = altair::SignedBeaconBlock<
     SYNC_COMMITTEE_SIZE,
 >;
 
-pub type SyncCommitteeContribution = altair::SyncCommitteeContribution<SYNC_SUBCOMMITTEE_SIZE>;
-pub type ContributionAndProof = altair::ContributionAndProof<SYNC_SUBCOMMITTEE_SIZE>;
-pub type SignedContributionAndProof = altair::SignedContributionAndProof<SYNC_SUBCOMMITTEE_SIZE>;
+pub type SyncCommitteeContribution = spec::SyncCommitteeContribution<SYNC_SUBCOMMITTEE_SIZE>;
+pub type ContributionAndProof = spec::ContributionAndProof<SYNC_SUBCOMMITTEE_SIZE>;
+pub type SignedContributionAndProof = spec::SignedContributionAndProof<SYNC_SUBCOMMITTEE_SIZE>;

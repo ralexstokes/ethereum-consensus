@@ -1,14 +1,11 @@
-#![allow(unknown_lints)]
-#![allow(hidden_glob_reexports)]
-
 pub mod altair;
 pub mod bellatrix;
 pub mod builder;
-pub mod capella;
+// pub mod capella;
 pub mod clock;
 pub mod configs;
 pub mod crypto;
-pub mod deneb;
+// pub mod deneb;
 pub mod domains;
 pub mod kzg;
 pub mod networking;

@@ -1,8 +1,6 @@
 use crate::primitives::{BlsSignature, Root, Slot, ValidatorIndex};
 use ssz_rs::prelude::*;
 
-pub const SYNC_COMMITTEE_SUBNET_COUNT: usize = 4;
-
 #[derive(Debug, Default, Clone, SimpleSerialize)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct SyncCommitteeMessage {
@@ -12,10 +10,6 @@ pub struct SyncCommitteeMessage {
     #[serde(with = "crate::serde::as_string")]
     pub validator_index: ValidatorIndex,
     pub signature: BlsSignature,
-}
-
-pub(super) const fn get_sync_subcommittee_size(sync_committee_size: usize) -> usize {
-    sync_committee_size / SYNC_COMMITTEE_SUBNET_COUNT
 }
 
 #[derive(Debug, Default, Clone, SimpleSerialize)]

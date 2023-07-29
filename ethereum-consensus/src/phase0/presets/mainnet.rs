@@ -1,10 +1,6 @@
-use crate::{
-    phase0,
-    phase0::presets::Preset,
-    primitives::{Epoch, Gwei, Slot},
-};
+use crate::phase0::{presets::Preset, spec};
 
-pub use phase0::*;
+pub use spec::*;
 
 pub const MAX_COMMITTEES_PER_SLOT: u64 = 64;
 pub const TARGET_COMMITTEE_SIZE: u64 = 128;
@@ -78,19 +74,18 @@ pub const PRESET: Preset = Preset {
     max_voluntary_exits: MAX_VOLUNTARY_EXITS,
 };
 
-pub type IndexedAttestation = phase0::IndexedAttestation<MAX_VALIDATORS_PER_COMMITTEE>;
-pub type PendingAttestation = phase0::PendingAttestation<MAX_VALIDATORS_PER_COMMITTEE>;
-pub type AttesterSlashing = phase0::AttesterSlashing<MAX_VALIDATORS_PER_COMMITTEE>;
-pub type Attestation = phase0::Attestation<MAX_VALIDATORS_PER_COMMITTEE>;
+pub type IndexedAttestation = spec::IndexedAttestation<MAX_VALIDATORS_PER_COMMITTEE>;
+pub type PendingAttestation = spec::PendingAttestation<MAX_VALIDATORS_PER_COMMITTEE>;
+pub type AttesterSlashing = spec::AttesterSlashing<MAX_VALIDATORS_PER_COMMITTEE>;
+pub type Attestation = spec::Attestation<MAX_VALIDATORS_PER_COMMITTEE>;
 
 pub const ETH1_DATA_VOTES_BOUND: usize =
-    phase0::get_eth1_data_votes_bound(EPOCHS_PER_ETH1_VOTING_PERIOD, SLOTS_PER_EPOCH as usize);
-pub const PENDING_ATTESTATIONS_BOUND: usize =
-    phase0::get_pending_attestations_bound(MAX_ATTESTATIONS, SLOTS_PER_EPOCH as usize);
+    EPOCHS_PER_ETH1_VOTING_PERIOD as usize * SLOTS_PER_EPOCH as usize;
+pub const PENDING_ATTESTATIONS_BOUND: usize = MAX_ATTESTATIONS * SLOTS_PER_EPOCH as usize;
 
-pub type HistoricalBatch = phase0::HistoricalBatch<SLOTS_PER_HISTORICAL_ROOT>;
+pub type HistoricalBatch = spec::HistoricalBatch<SLOTS_PER_HISTORICAL_ROOT>;
 
-pub type BeaconState = phase0::BeaconState<
+pub type BeaconState = spec::BeaconState<
     SLOTS_PER_HISTORICAL_ROOT,
     HISTORICAL_ROOTS_LIMIT,
     ETH1_DATA_VOTES_BOUND,
@@ -101,7 +96,7 @@ pub type BeaconState = phase0::BeaconState<
     PENDING_ATTESTATIONS_BOUND,
 >;
 
-pub type BeaconBlockBody = phase0::BeaconBlockBody<
+pub type BeaconBlockBody = spec::BeaconBlockBody<
     MAX_PROPOSER_SLASHINGS,
     MAX_VALIDATORS_PER_COMMITTEE,
     MAX_ATTESTER_SLASHINGS,
@@ -110,7 +105,7 @@ pub type BeaconBlockBody = phase0::BeaconBlockBody<
     MAX_VOLUNTARY_EXITS,
 >;
 
-pub type BeaconBlock = phase0::BeaconBlock<
+pub type BeaconBlock = spec::BeaconBlock<
     MAX_PROPOSER_SLASHINGS,
     MAX_VALIDATORS_PER_COMMITTEE,
     MAX_ATTESTER_SLASHINGS,
@@ -119,7 +114,7 @@ pub type BeaconBlock = phase0::BeaconBlock<
     MAX_VOLUNTARY_EXITS,
 >;
 
-pub type SignedBeaconBlock = phase0::SignedBeaconBlock<
+pub type SignedBeaconBlock = spec::SignedBeaconBlock<
     MAX_PROPOSER_SLASHINGS,
     MAX_VALIDATORS_PER_COMMITTEE,
     MAX_ATTESTER_SLASHINGS,
@@ -128,5 +123,5 @@ pub type SignedBeaconBlock = phase0::SignedBeaconBlock<
     MAX_VOLUNTARY_EXITS,
 >;
 
-pub type AggregateAndProof = phase0::AggregateAndProof<MAX_VALIDATORS_PER_COMMITTEE>;
-pub type SignedAggregateAndProof = phase0::SignedAggregateAndProof<MAX_VALIDATORS_PER_COMMITTEE>;
+pub type AggregateAndProof = spec::AggregateAndProof<MAX_VALIDATORS_PER_COMMITTEE>;
+pub type SignedAggregateAndProof = spec::SignedAggregateAndProof<MAX_VALIDATORS_PER_COMMITTEE>;
