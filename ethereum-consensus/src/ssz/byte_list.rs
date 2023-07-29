@@ -6,7 +6,7 @@ use std::{
     ops::{Deref, DerefMut},
 };
 
-#[derive(Default, Clone, Eq, SimpleSerialize)]
+#[derive(Default, Clone, PartialEq, Eq, SimpleSerialize)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct ByteList<const N: usize>(#[serde(with = "crate::serde::as_hex")] List<u8, N>);
 
@@ -15,13 +15,6 @@ impl<const N: usize> TryFrom<&[u8]> for ByteList<N> {
 
     fn try_from(bytes: &[u8]) -> Result<Self, Self::Error> {
         ByteList::<N>::deserialize(bytes)
-    }
-}
-
-// impl here to satisfy clippy
-impl<const N: usize> PartialEq for ByteList<N> {
-    fn eq(&self, other: &Self) -> bool {
-        self.0 == other.0
     }
 }
 
