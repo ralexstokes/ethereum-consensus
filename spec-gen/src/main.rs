@@ -14,6 +14,7 @@ use syn::{
 
 const ATTESTATION_BOUND_IDENT: &str = "PENDING_ATTESTATIONS_BOUND";
 const SYNC_COMMITTEE_SIZE_IDENT: &str = "SYNC_COMMITTEE_SIZE";
+const SRC_ROOT: &str = "../ethereum-consensus/src";
 
 const BELLATRIX_BEACON_STATE_BOUNDS: [&str; 4] = [
     "BYTES_PER_LOGS_BLOOM",
@@ -401,7 +402,7 @@ struct Spec {
 }
 
 fn load_modules(spec: Specs, modules: &[Modules]) -> HashMap<Modules, Module> {
-    let module_dir = PathBuf::from(format!("src/{spec}"));
+    let module_dir = PathBuf::from(format!("{SRC_ROOT}/{spec}"));
     let mut loaded_modules = HashMap::new();
     for &m in modules {
         let module = Module::new(m, spec);
@@ -666,7 +667,7 @@ impl Spec {
     }
 
     fn render(&self) {
-        let target_dir = PathBuf::from(format!("src/{}/state_transition", self.spec));
+        let target_dir = PathBuf::from(format!("{SRC_ROOT}/{}/state_transition", self.spec));
         for module_name in ALL_MODULES {
             let module = self.modules.get(module_name).unwrap();
             let items = module.to_items();
