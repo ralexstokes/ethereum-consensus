@@ -7,7 +7,7 @@ use ssz_rs::prelude::*;
 
 #[test]
 fn test_initialize_beacon_state_from_eth_1() {
-    let mut test_case = InitializationTestCase::<spec::BeaconState, spec::Deposit, usize>::from("consensus-spec-tests/tests/minimal/phase0/genesis/initialization/pyspec_tests/initialize_beacon_state_from_eth1");
+    let mut test_case = InitializationTestCase::<spec::BeaconState, spec::Deposit, usize>::from("../consensus-spec-tests/tests/minimal/phase0/genesis/initialization/pyspec_tests/initialize_beacon_state_from_eth1");
 
     test_case.execute(
         |eth1_block_hash, eth1_timestamp, deposits, _execution_payload_header, context| {
@@ -32,7 +32,7 @@ fn test_initialize_beacon_state_from_eth_1() {
 
 #[test]
 fn test_initialize_beacon_state_one_topup_activation() {
-    let mut test_case = InitializationTestCase::<spec::BeaconState, spec::Deposit, usize>::from("consensus-spec-tests/tests/minimal/phase0/genesis/initialization/pyspec_tests/initialize_beacon_state_one_topup_activation");
+    let mut test_case = InitializationTestCase::<spec::BeaconState, spec::Deposit, usize>::from("../consensus-spec-tests/tests/minimal/phase0/genesis/initialization/pyspec_tests/initialize_beacon_state_one_topup_activation");
 
     test_case.execute(
         |eth1_block_hash, eth1_timestamp, deposits, _execution_payload_header, context| {
@@ -57,7 +57,7 @@ fn test_initialize_beacon_state_one_topup_activation() {
 
 #[test]
 fn test_initialize_beacon_state_random_invalid_genesis() {
-    let mut test_case = InitializationTestCase::<spec::BeaconState, spec::Deposit, usize>::from("consensus-spec-tests/tests/minimal/phase0/genesis/initialization/pyspec_tests/initialize_beacon_state_random_invalid_genesis");
+    let mut test_case = InitializationTestCase::<spec::BeaconState, spec::Deposit, usize>::from("../consensus-spec-tests/tests/minimal/phase0/genesis/initialization/pyspec_tests/initialize_beacon_state_random_invalid_genesis");
 
     test_case.execute(
         |eth1_block_hash, eth1_timestamp, deposits, _execution_payload_header, context| {
@@ -82,7 +82,7 @@ fn test_initialize_beacon_state_random_invalid_genesis() {
 
 #[test]
 fn test_initialize_beacon_state_random_valid_genesis() {
-    let mut test_case = InitializationTestCase::<spec::BeaconState, spec::Deposit, usize>::from("consensus-spec-tests/tests/minimal/phase0/genesis/initialization/pyspec_tests/initialize_beacon_state_random_valid_genesis");
+    let mut test_case = InitializationTestCase::<spec::BeaconState, spec::Deposit, usize>::from("../consensus-spec-tests/tests/minimal/phase0/genesis/initialization/pyspec_tests/initialize_beacon_state_random_valid_genesis");
 
     test_case.execute(
         |eth1_block_hash, eth1_timestamp, deposits, _execution_payload_header, context| {
@@ -107,7 +107,7 @@ fn test_initialize_beacon_state_random_valid_genesis() {
 
 #[test]
 fn test_initialize_beacon_state_some_small_balances() {
-    let mut test_case = InitializationTestCase::<spec::BeaconState, spec::Deposit, usize>::from("consensus-spec-tests/tests/minimal/phase0/genesis/initialization/pyspec_tests/initialize_beacon_state_some_small_balances");
+    let mut test_case = InitializationTestCase::<spec::BeaconState, spec::Deposit, usize>::from("../consensus-spec-tests/tests/minimal/phase0/genesis/initialization/pyspec_tests/initialize_beacon_state_some_small_balances");
 
     test_case.execute(
         |eth1_block_hash, eth1_timestamp, deposits, _execution_payload_header, context| {

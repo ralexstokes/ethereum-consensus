@@ -7,7 +7,7 @@ use ssz_rs::prelude::*;
 
 #[test]
 fn test_effective_balance_hysteresis() {
-    let mut test_case = EffectiveBalanceUpdatesTestCase::<spec::BeaconState>::from("consensus-spec-tests/tests/minimal/altair/epoch_processing/effective_balance_updates/pyspec_tests/effective_balance_hysteresis");
+    let mut test_case = EffectiveBalanceUpdatesTestCase::<spec::BeaconState>::from("../consensus-spec-tests/tests/minimal/altair/epoch_processing/effective_balance_updates/pyspec_tests/effective_balance_hysteresis");
 
     test_case.execute(|state, context| {
         spec::process_effective_balance_updates(state, context);

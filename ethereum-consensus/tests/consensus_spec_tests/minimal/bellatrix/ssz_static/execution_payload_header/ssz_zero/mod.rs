@@ -7,7 +7,7 @@ use ssz_rs::prelude::*;
 
 #[test]
 fn test_case_0() {
-    let  test_case = ExecutionPayloadHeaderTestCase::<>::from("consensus-spec-tests/tests/minimal/bellatrix/ssz_static/ExecutionPayloadHeader/ssz_zero/case_0");
+    let  test_case = ExecutionPayloadHeaderTestCase::<>::from("../consensus-spec-tests/tests/minimal/bellatrix/ssz_static/ExecutionPayloadHeader/ssz_zero/case_0");
 
     test_case.execute(|encoding| {
         let mut data: spec::ExecutionPayloadHeader = ssz_rs::deserialize(encoding).unwrap();

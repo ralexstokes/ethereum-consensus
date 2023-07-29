@@ -8,7 +8,7 @@ use ssz_rs::prelude::*;
 #[test]
 fn test_case_0() {
     let test_case = IndexedAttestationTestCase::from(
-        "consensus-spec-tests/tests/minimal/phase0/ssz_static/IndexedAttestation/ssz_max/case_0",
+        "../consensus-spec-tests/tests/minimal/phase0/ssz_static/IndexedAttestation/ssz_max/case_0",
     );
 
     test_case.execute(|encoding| {

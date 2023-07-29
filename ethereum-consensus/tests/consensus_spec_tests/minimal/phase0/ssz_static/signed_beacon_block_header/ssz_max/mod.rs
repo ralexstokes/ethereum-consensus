@@ -7,7 +7,7 @@ use ssz_rs::prelude::*;
 
 #[test]
 fn test_case_0() {
-    let  test_case = SignedBeaconBlockHeaderTestCase::<>::from("consensus-spec-tests/tests/minimal/phase0/ssz_static/SignedBeaconBlockHeader/ssz_max/case_0");
+    let  test_case = SignedBeaconBlockHeaderTestCase::<>::from("../consensus-spec-tests/tests/minimal/phase0/ssz_static/SignedBeaconBlockHeader/ssz_max/case_0");
 
     test_case.execute(|encoding| {
         let mut data: spec::SignedBeaconBlockHeader = ssz_rs::deserialize(encoding).unwrap();

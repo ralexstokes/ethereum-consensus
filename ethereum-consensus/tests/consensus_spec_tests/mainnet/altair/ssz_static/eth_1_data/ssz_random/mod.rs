@@ -8,7 +8,7 @@ use ssz_rs::prelude::*;
 #[test]
 fn test_case_0() {
     let test_case = Eth1DataTestCase::from(
-        "consensus-spec-tests/tests/mainnet/altair/ssz_static/Eth1Data/ssz_random/case_0",
+        "../consensus-spec-tests/tests/mainnet/altair/ssz_static/Eth1Data/ssz_random/case_0",
     );
 
     test_case.execute(|encoding| {
@@ -22,7 +22,7 @@ fn test_case_0() {
 #[test]
 fn test_case_1() {
     let test_case = Eth1DataTestCase::from(
-        "consensus-spec-tests/tests/mainnet/altair/ssz_static/Eth1Data/ssz_random/case_1",
+        "../consensus-spec-tests/tests/mainnet/altair/ssz_static/Eth1Data/ssz_random/case_1",
     );
 
     test_case.execute(|encoding| {
@@ -36,7 +36,7 @@ fn test_case_1() {
 #[test]
 fn test_case_2() {
     let test_case = Eth1DataTestCase::from(
-        "consensus-spec-tests/tests/mainnet/altair/ssz_static/Eth1Data/ssz_random/case_2",
+        "../consensus-spec-tests/tests/mainnet/altair/ssz_static/Eth1Data/ssz_random/case_2",
     );
 
     test_case.execute(|encoding| {
@@ -50,7 +50,7 @@ fn test_case_2() {
 #[test]
 fn test_case_3() {
     let test_case = Eth1DataTestCase::from(
-        "consensus-spec-tests/tests/mainnet/altair/ssz_static/Eth1Data/ssz_random/case_3",
+        "../consensus-spec-tests/tests/mainnet/altair/ssz_static/Eth1Data/ssz_random/case_3",
     );
 
     test_case.execute(|encoding| {
@@ -64,7 +64,7 @@ fn test_case_3() {
 #[test]
 fn test_case_4() {
     let test_case = Eth1DataTestCase::from(
-        "consensus-spec-tests/tests/mainnet/altair/ssz_static/Eth1Data/ssz_random/case_4",
+        "../consensus-spec-tests/tests/mainnet/altair/ssz_static/Eth1Data/ssz_random/case_4",
     );
 
     test_case.execute(|encoding| {

@@ -8,7 +8,7 @@ use ssz_rs::prelude::*;
 #[test]
 fn test_full_random_0() {
     let test_case = RandomTestCase::<spec::BeaconState>::from(
-        "consensus-spec-tests/tests/mainnet/phase0/rewards/random/pyspec_tests/full_random_0",
+        "../consensus-spec-tests/tests/mainnet/phase0/rewards/random/pyspec_tests/full_random_0",
     );
 
     test_case.execute(|state, context| {
@@ -31,7 +31,7 @@ fn test_full_random_0() {
 #[test]
 fn test_full_random_1() {
     let test_case = RandomTestCase::<spec::BeaconState>::from(
-        "consensus-spec-tests/tests/mainnet/phase0/rewards/random/pyspec_tests/full_random_1",
+        "../consensus-spec-tests/tests/mainnet/phase0/rewards/random/pyspec_tests/full_random_1",
     );
 
     test_case.execute(|state, context| {
@@ -54,7 +54,7 @@ fn test_full_random_1() {
 #[test]
 fn test_full_random_2() {
     let test_case = RandomTestCase::<spec::BeaconState>::from(
-        "consensus-spec-tests/tests/mainnet/phase0/rewards/random/pyspec_tests/full_random_2",
+        "../consensus-spec-tests/tests/mainnet/phase0/rewards/random/pyspec_tests/full_random_2",
     );
 
     test_case.execute(|state, context| {
@@ -77,7 +77,7 @@ fn test_full_random_2() {
 #[test]
 fn test_full_random_3() {
     let test_case = RandomTestCase::<spec::BeaconState>::from(
-        "consensus-spec-tests/tests/mainnet/phase0/rewards/random/pyspec_tests/full_random_3",
+        "../consensus-spec-tests/tests/mainnet/phase0/rewards/random/pyspec_tests/full_random_3",
     );
 
     test_case.execute(|state, context| {
@@ -100,7 +100,7 @@ fn test_full_random_3() {
 #[test]
 fn test_full_random_4() {
     let test_case = RandomTestCase::<spec::BeaconState>::from(
-        "consensus-spec-tests/tests/mainnet/phase0/rewards/random/pyspec_tests/full_random_4",
+        "../consensus-spec-tests/tests/mainnet/phase0/rewards/random/pyspec_tests/full_random_4",
     );
 
     test_case.execute(|state, context| {
@@ -122,7 +122,7 @@ fn test_full_random_4() {
 
 #[test]
 fn test_full_random_low_balances_0() {
-    let  test_case = RandomTestCase::<spec::BeaconState>::from("consensus-spec-tests/tests/mainnet/phase0/rewards/random/pyspec_tests/full_random_low_balances_0");
+    let  test_case = RandomTestCase::<spec::BeaconState>::from("../consensus-spec-tests/tests/mainnet/phase0/rewards/random/pyspec_tests/full_random_low_balances_0");
 
     test_case.execute(|state, context| {
         let source_deltas = spec::get_source_deltas(state, context).unwrap();
@@ -143,7 +143,7 @@ fn test_full_random_low_balances_0() {
 
 #[test]
 fn test_full_random_low_balances_1() {
-    let  test_case = RandomTestCase::<spec::BeaconState>::from("consensus-spec-tests/tests/mainnet/phase0/rewards/random/pyspec_tests/full_random_low_balances_1");
+    let  test_case = RandomTestCase::<spec::BeaconState>::from("../consensus-spec-tests/tests/mainnet/phase0/rewards/random/pyspec_tests/full_random_low_balances_1");
 
     test_case.execute(|state, context| {
         let source_deltas = spec::get_source_deltas(state, context).unwrap();
@@ -164,7 +164,7 @@ fn test_full_random_low_balances_1() {
 
 #[test]
 fn test_full_random_misc_balances() {
-    let  test_case = RandomTestCase::<spec::BeaconState>::from("consensus-spec-tests/tests/mainnet/phase0/rewards/random/pyspec_tests/full_random_misc_balances");
+    let  test_case = RandomTestCase::<spec::BeaconState>::from("../consensus-spec-tests/tests/mainnet/phase0/rewards/random/pyspec_tests/full_random_misc_balances");
 
     test_case.execute(|state, context| {
         let source_deltas = spec::get_source_deltas(state, context).unwrap();
@@ -185,7 +185,7 @@ fn test_full_random_misc_balances() {
 
 #[test]
 fn test_full_random_without_leak_0() {
-    let  test_case = RandomTestCase::<spec::BeaconState>::from("consensus-spec-tests/tests/mainnet/phase0/rewards/random/pyspec_tests/full_random_without_leak_0");
+    let  test_case = RandomTestCase::<spec::BeaconState>::from("../consensus-spec-tests/tests/mainnet/phase0/rewards/random/pyspec_tests/full_random_without_leak_0");
 
     test_case.execute(|state, context| {
         let source_deltas = spec::get_source_deltas(state, context).unwrap();
@@ -206,7 +206,7 @@ fn test_full_random_without_leak_0() {
 
 #[test]
 fn test_full_random_without_leak_and_current_exit_0() {
-    let  test_case = RandomTestCase::<spec::BeaconState>::from("consensus-spec-tests/tests/mainnet/phase0/rewards/random/pyspec_tests/full_random_without_leak_and_current_exit_0");
+    let  test_case = RandomTestCase::<spec::BeaconState>::from("../consensus-spec-tests/tests/mainnet/phase0/rewards/random/pyspec_tests/full_random_without_leak_and_current_exit_0");
 
     test_case.execute(|state, context| {
         let source_deltas = spec::get_source_deltas(state, context).unwrap();
