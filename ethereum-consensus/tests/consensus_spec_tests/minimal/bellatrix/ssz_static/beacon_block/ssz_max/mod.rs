@@ -8,7 +8,7 @@ use ssz_rs::prelude::*;
 #[test]
 fn test_case_0() {
     let test_case = BeaconBlockTestCase::from(
-        "consensus-spec-tests/tests/minimal/bellatrix/ssz_static/BeaconBlock/ssz_max/case_0",
+        "../consensus-spec-tests/tests/minimal/bellatrix/ssz_static/BeaconBlock/ssz_max/case_0",
     );
 
     test_case.execute(|encoding| {

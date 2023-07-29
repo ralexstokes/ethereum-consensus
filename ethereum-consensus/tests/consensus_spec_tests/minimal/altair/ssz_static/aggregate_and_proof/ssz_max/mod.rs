@@ -8,7 +8,7 @@ use ssz_rs::prelude::*;
 #[test]
 fn test_case_0() {
     let test_case = AggregateAndProofTestCase::from(
-        "consensus-spec-tests/tests/minimal/altair/ssz_static/AggregateAndProof/ssz_max/case_0",
+        "../consensus-spec-tests/tests/minimal/altair/ssz_static/AggregateAndProof/ssz_max/case_0",
     );
 
     test_case.execute(|encoding| {

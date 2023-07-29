@@ -8,7 +8,7 @@ use ssz_rs::prelude::*;
 #[test]
 fn test_double_empty_epoch() {
     let mut test_case = SlotsTestCase::<spec::BeaconState>::from(
-        "consensus-spec-tests/tests/minimal/phase0/sanity/slots/pyspec_tests/double_empty_epoch",
+        "../consensus-spec-tests/tests/minimal/phase0/sanity/slots/pyspec_tests/double_empty_epoch",
     );
 
     test_case.execute(|state, offset, context| {
@@ -20,7 +20,7 @@ fn test_double_empty_epoch() {
 #[test]
 fn test_empty_epoch() {
     let mut test_case = SlotsTestCase::<spec::BeaconState>::from(
-        "consensus-spec-tests/tests/minimal/phase0/sanity/slots/pyspec_tests/empty_epoch",
+        "../consensus-spec-tests/tests/minimal/phase0/sanity/slots/pyspec_tests/empty_epoch",
     );
 
     test_case.execute(|state, offset, context| {
@@ -31,9 +31,7 @@ fn test_empty_epoch() {
 
 #[test]
 fn test_over_epoch_boundary() {
-    let mut test_case = SlotsTestCase::<spec::BeaconState>::from(
-        "consensus-spec-tests/tests/minimal/phase0/sanity/slots/pyspec_tests/over_epoch_boundary",
-    );
+    let mut test_case = SlotsTestCase::<spec::BeaconState>::from("../consensus-spec-tests/tests/minimal/phase0/sanity/slots/pyspec_tests/over_epoch_boundary");
 
     test_case.execute(|state, offset, context| {
         let target_slot = state.slot + offset;
@@ -44,7 +42,7 @@ fn test_over_epoch_boundary() {
 #[test]
 fn test_slots_1() {
     let mut test_case = SlotsTestCase::<spec::BeaconState>::from(
-        "consensus-spec-tests/tests/minimal/phase0/sanity/slots/pyspec_tests/slots_1",
+        "../consensus-spec-tests/tests/minimal/phase0/sanity/slots/pyspec_tests/slots_1",
     );
 
     test_case.execute(|state, offset, context| {
@@ -56,7 +54,7 @@ fn test_slots_1() {
 #[test]
 fn test_slots_2() {
     let mut test_case = SlotsTestCase::<spec::BeaconState>::from(
-        "consensus-spec-tests/tests/minimal/phase0/sanity/slots/pyspec_tests/slots_2",
+        "../consensus-spec-tests/tests/minimal/phase0/sanity/slots/pyspec_tests/slots_2",
     );
 
     test_case.execute(|state, offset, context| {

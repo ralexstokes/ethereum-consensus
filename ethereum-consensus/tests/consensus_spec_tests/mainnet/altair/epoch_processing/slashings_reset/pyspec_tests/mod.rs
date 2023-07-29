@@ -7,7 +7,7 @@ use ssz_rs::prelude::*;
 
 #[test]
 fn test_flush_slashings() {
-    let mut test_case = SlashingsResetTestCase::<spec::BeaconState>::from("consensus-spec-tests/tests/mainnet/altair/epoch_processing/slashings_reset/pyspec_tests/flush_slashings");
+    let mut test_case = SlashingsResetTestCase::<spec::BeaconState>::from("../consensus-spec-tests/tests/mainnet/altair/epoch_processing/slashings_reset/pyspec_tests/flush_slashings");
 
     test_case.execute(|state, context| {
         spec::process_slashings_reset(state, context);

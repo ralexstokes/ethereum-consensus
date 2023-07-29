@@ -7,7 +7,7 @@ use ssz_rs::prelude::*;
 
 #[test]
 fn test_case_0() {
-    let  test_case = SignedContributionAndProofTestCase::<>::from("consensus-spec-tests/tests/minimal/altair/ssz_static/SignedContributionAndProof/ssz_max/case_0");
+    let  test_case = SignedContributionAndProofTestCase::<>::from("../consensus-spec-tests/tests/minimal/altair/ssz_static/SignedContributionAndProof/ssz_max/case_0");
 
     test_case.execute(|encoding| {
         let mut data: spec::SignedContributionAndProof = ssz_rs::deserialize(encoding).unwrap();

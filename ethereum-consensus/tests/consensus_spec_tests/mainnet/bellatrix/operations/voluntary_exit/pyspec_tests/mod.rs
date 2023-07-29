@@ -7,7 +7,7 @@ use ssz_rs::prelude::*;
 
 #[test]
 fn test_default_exit_epoch_subsequent_exit() {
-    let mut test_case = VoluntaryExitTestCase::<spec::BeaconState, spec::SignedVoluntaryExit>::from("consensus-spec-tests/tests/mainnet/bellatrix/operations/voluntary_exit/pyspec_tests/default_exit_epoch_subsequent_exit");
+    let mut test_case = VoluntaryExitTestCase::<spec::BeaconState, spec::SignedVoluntaryExit>::from("../consensus-spec-tests/tests/mainnet/bellatrix/operations/voluntary_exit/pyspec_tests/default_exit_epoch_subsequent_exit");
 
     test_case.execute(|state, operation, context| {
         spec::process_voluntary_exit(state, operation, context)
@@ -16,7 +16,7 @@ fn test_default_exit_epoch_subsequent_exit() {
 
 #[test]
 fn test_invalid_signature() {
-    let mut test_case = VoluntaryExitTestCase::<spec::BeaconState, spec::SignedVoluntaryExit>::from("consensus-spec-tests/tests/mainnet/bellatrix/operations/voluntary_exit/pyspec_tests/invalid_signature");
+    let mut test_case = VoluntaryExitTestCase::<spec::BeaconState, spec::SignedVoluntaryExit>::from("../consensus-spec-tests/tests/mainnet/bellatrix/operations/voluntary_exit/pyspec_tests/invalid_signature");
 
     test_case.execute(|state, operation, context| {
         spec::process_voluntary_exit(state, operation, context)
@@ -25,7 +25,7 @@ fn test_invalid_signature() {
 
 #[test]
 fn test_success() {
-    let mut test_case = VoluntaryExitTestCase::<spec::BeaconState, spec::SignedVoluntaryExit>::from("consensus-spec-tests/tests/mainnet/bellatrix/operations/voluntary_exit/pyspec_tests/success");
+    let mut test_case = VoluntaryExitTestCase::<spec::BeaconState, spec::SignedVoluntaryExit>::from("../consensus-spec-tests/tests/mainnet/bellatrix/operations/voluntary_exit/pyspec_tests/success");
 
     test_case.execute(|state, operation, context| {
         spec::process_voluntary_exit(state, operation, context)
@@ -34,7 +34,7 @@ fn test_success() {
 
 #[test]
 fn test_success_exit_queue_min_churn() {
-    let mut test_case = VoluntaryExitTestCase::<spec::BeaconState, spec::SignedVoluntaryExit>::from("consensus-spec-tests/tests/mainnet/bellatrix/operations/voluntary_exit/pyspec_tests/success_exit_queue__min_churn");
+    let mut test_case = VoluntaryExitTestCase::<spec::BeaconState, spec::SignedVoluntaryExit>::from("../consensus-spec-tests/tests/mainnet/bellatrix/operations/voluntary_exit/pyspec_tests/success_exit_queue__min_churn");
 
     test_case.execute(|state, operation, context| {
         spec::process_voluntary_exit(state, operation, context)
@@ -43,7 +43,7 @@ fn test_success_exit_queue_min_churn() {
 
 #[test]
 fn test_validator_already_exited() {
-    let mut test_case = VoluntaryExitTestCase::<spec::BeaconState, spec::SignedVoluntaryExit>::from("consensus-spec-tests/tests/mainnet/bellatrix/operations/voluntary_exit/pyspec_tests/validator_already_exited");
+    let mut test_case = VoluntaryExitTestCase::<spec::BeaconState, spec::SignedVoluntaryExit>::from("../consensus-spec-tests/tests/mainnet/bellatrix/operations/voluntary_exit/pyspec_tests/validator_already_exited");
 
     test_case.execute(|state, operation, context| {
         spec::process_voluntary_exit(state, operation, context)
@@ -52,7 +52,7 @@ fn test_validator_already_exited() {
 
 #[test]
 fn test_validator_exit_in_future() {
-    let mut test_case = VoluntaryExitTestCase::<spec::BeaconState, spec::SignedVoluntaryExit>::from("consensus-spec-tests/tests/mainnet/bellatrix/operations/voluntary_exit/pyspec_tests/validator_exit_in_future");
+    let mut test_case = VoluntaryExitTestCase::<spec::BeaconState, spec::SignedVoluntaryExit>::from("../consensus-spec-tests/tests/mainnet/bellatrix/operations/voluntary_exit/pyspec_tests/validator_exit_in_future");
 
     test_case.execute(|state, operation, context| {
         spec::process_voluntary_exit(state, operation, context)
@@ -61,7 +61,7 @@ fn test_validator_exit_in_future() {
 
 #[test]
 fn test_validator_invalid_validator_index() {
-    let mut test_case = VoluntaryExitTestCase::<spec::BeaconState, spec::SignedVoluntaryExit>::from("consensus-spec-tests/tests/mainnet/bellatrix/operations/voluntary_exit/pyspec_tests/validator_invalid_validator_index");
+    let mut test_case = VoluntaryExitTestCase::<spec::BeaconState, spec::SignedVoluntaryExit>::from("../consensus-spec-tests/tests/mainnet/bellatrix/operations/voluntary_exit/pyspec_tests/validator_invalid_validator_index");
 
     test_case.execute(|state, operation, context| {
         spec::process_voluntary_exit(state, operation, context)
@@ -70,7 +70,7 @@ fn test_validator_invalid_validator_index() {
 
 #[test]
 fn test_validator_not_active() {
-    let mut test_case = VoluntaryExitTestCase::<spec::BeaconState, spec::SignedVoluntaryExit>::from("consensus-spec-tests/tests/mainnet/bellatrix/operations/voluntary_exit/pyspec_tests/validator_not_active");
+    let mut test_case = VoluntaryExitTestCase::<spec::BeaconState, spec::SignedVoluntaryExit>::from("../consensus-spec-tests/tests/mainnet/bellatrix/operations/voluntary_exit/pyspec_tests/validator_not_active");
 
     test_case.execute(|state, operation, context| {
         spec::process_voluntary_exit(state, operation, context)
@@ -79,7 +79,7 @@ fn test_validator_not_active() {
 
 #[test]
 fn test_validator_not_active_long_enough() {
-    let mut test_case = VoluntaryExitTestCase::<spec::BeaconState, spec::SignedVoluntaryExit>::from("consensus-spec-tests/tests/mainnet/bellatrix/operations/voluntary_exit/pyspec_tests/validator_not_active_long_enough");
+    let mut test_case = VoluntaryExitTestCase::<spec::BeaconState, spec::SignedVoluntaryExit>::from("../consensus-spec-tests/tests/mainnet/bellatrix/operations/voluntary_exit/pyspec_tests/validator_not_active_long_enough");
 
     test_case.execute(|state, operation, context| {
         spec::process_voluntary_exit(state, operation, context)

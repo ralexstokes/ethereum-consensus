@@ -8,7 +8,7 @@ use ssz_rs::prelude::*;
 #[test]
 fn test_case_0() {
     let test_case = SignedBeaconBlockTestCase::from(
-        "consensus-spec-tests/tests/minimal/phase0/ssz_static/SignedBeaconBlock/ssz_nil/case_0",
+        "../consensus-spec-tests/tests/minimal/phase0/ssz_static/SignedBeaconBlock/ssz_nil/case_0",
     );
 
     test_case.execute(|encoding| {

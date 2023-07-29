@@ -7,9 +7,7 @@ use ssz_rs::prelude::*;
 
 #[test]
 fn test_case_0() {
-    let test_case = SignedVoluntaryExitTestCase::from(
-        "consensus-spec-tests/tests/minimal/phase0/ssz_static/SignedVoluntaryExit/ssz_max/case_0",
-    );
+    let  test_case = SignedVoluntaryExitTestCase::<>::from("../consensus-spec-tests/tests/minimal/phase0/ssz_static/SignedVoluntaryExit/ssz_max/case_0");
 
     test_case.execute(|encoding| {
         let mut data: spec::SignedVoluntaryExit = ssz_rs::deserialize(encoding).unwrap();

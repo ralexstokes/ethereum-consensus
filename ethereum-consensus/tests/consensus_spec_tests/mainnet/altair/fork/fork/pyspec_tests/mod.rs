@@ -8,7 +8,7 @@ use ssz_rs::prelude::*;
 #[test]
 fn test_altair_fork_random_0() {
     let test_case = ForkTestCase::from(
-        "consensus-spec-tests/tests/mainnet/altair/fork/fork/pyspec_tests/altair_fork_random_0",
+        "../consensus-spec-tests/tests/mainnet/altair/fork/fork/pyspec_tests/altair_fork_random_0",
     );
 
     test_case.execute(|state: &phase0::BeaconState, context| -> spec::BeaconState {
@@ -19,7 +19,7 @@ fn test_altair_fork_random_0() {
 #[test]
 fn test_altair_fork_random_1() {
     let test_case = ForkTestCase::from(
-        "consensus-spec-tests/tests/mainnet/altair/fork/fork/pyspec_tests/altair_fork_random_1",
+        "../consensus-spec-tests/tests/mainnet/altair/fork/fork/pyspec_tests/altair_fork_random_1",
     );
 
     test_case.execute(|state: &phase0::BeaconState, context| -> spec::BeaconState {
@@ -30,7 +30,7 @@ fn test_altair_fork_random_1() {
 #[test]
 fn test_altair_fork_random_2() {
     let test_case = ForkTestCase::from(
-        "consensus-spec-tests/tests/mainnet/altair/fork/fork/pyspec_tests/altair_fork_random_2",
+        "../consensus-spec-tests/tests/mainnet/altair/fork/fork/pyspec_tests/altair_fork_random_2",
     );
 
     test_case.execute(|state: &phase0::BeaconState, context| -> spec::BeaconState {
@@ -41,7 +41,7 @@ fn test_altair_fork_random_2() {
 #[test]
 fn test_altair_fork_random_3() {
     let test_case = ForkTestCase::from(
-        "consensus-spec-tests/tests/mainnet/altair/fork/fork/pyspec_tests/altair_fork_random_3",
+        "../consensus-spec-tests/tests/mainnet/altair/fork/fork/pyspec_tests/altair_fork_random_3",
     );
 
     test_case.execute(|state: &phase0::BeaconState, context| -> spec::BeaconState {
@@ -51,7 +51,7 @@ fn test_altair_fork_random_3() {
 
 #[test]
 fn test_altair_fork_random_duplicate_attestations() {
-    let  test_case = ForkTestCase::<>::from("consensus-spec-tests/tests/mainnet/altair/fork/fork/pyspec_tests/altair_fork_random_duplicate_attestations");
+    let  test_case = ForkTestCase::<>::from("../consensus-spec-tests/tests/mainnet/altair/fork/fork/pyspec_tests/altair_fork_random_duplicate_attestations");
 
     test_case.execute(|state: &phase0::BeaconState, context| -> spec::BeaconState {
         spec::upgrade_to_altair(state, context).unwrap()
@@ -60,7 +60,7 @@ fn test_altair_fork_random_duplicate_attestations() {
 
 #[test]
 fn test_altair_fork_random_low_balances() {
-    let  test_case = ForkTestCase::<>::from("consensus-spec-tests/tests/mainnet/altair/fork/fork/pyspec_tests/altair_fork_random_low_balances");
+    let  test_case = ForkTestCase::<>::from("../consensus-spec-tests/tests/mainnet/altair/fork/fork/pyspec_tests/altair_fork_random_low_balances");
 
     test_case.execute(|state: &phase0::BeaconState, context| -> spec::BeaconState {
         spec::upgrade_to_altair(state, context).unwrap()
@@ -69,7 +69,7 @@ fn test_altair_fork_random_low_balances() {
 
 #[test]
 fn test_altair_fork_random_misc_balances() {
-    let  test_case = ForkTestCase::<>::from("consensus-spec-tests/tests/mainnet/altair/fork/fork/pyspec_tests/altair_fork_random_misc_balances");
+    let  test_case = ForkTestCase::<>::from("../consensus-spec-tests/tests/mainnet/altair/fork/fork/pyspec_tests/altair_fork_random_misc_balances");
 
     test_case.execute(|state: &phase0::BeaconState, context| -> spec::BeaconState {
         spec::upgrade_to_altair(state, context).unwrap()
@@ -78,7 +78,7 @@ fn test_altair_fork_random_misc_balances() {
 
 #[test]
 fn test_altair_fork_random_mismatched_attestations() {
-    let  test_case = ForkTestCase::<>::from("consensus-spec-tests/tests/mainnet/altair/fork/fork/pyspec_tests/altair_fork_random_mismatched_attestations");
+    let  test_case = ForkTestCase::<>::from("../consensus-spec-tests/tests/mainnet/altair/fork/fork/pyspec_tests/altair_fork_random_mismatched_attestations");
 
     test_case.execute(|state: &phase0::BeaconState, context| -> spec::BeaconState {
         spec::upgrade_to_altair(state, context).unwrap()
@@ -88,7 +88,7 @@ fn test_altair_fork_random_mismatched_attestations() {
 #[test]
 fn test_fork_base_state() {
     let test_case = ForkTestCase::from(
-        "consensus-spec-tests/tests/mainnet/altair/fork/fork/pyspec_tests/fork_base_state",
+        "../consensus-spec-tests/tests/mainnet/altair/fork/fork/pyspec_tests/fork_base_state",
     );
 
     test_case.execute(|state: &phase0::BeaconState, context| -> spec::BeaconState {
@@ -99,7 +99,7 @@ fn test_fork_base_state() {
 #[test]
 fn test_fork_many_next_epoch() {
     let test_case = ForkTestCase::from(
-        "consensus-spec-tests/tests/mainnet/altair/fork/fork/pyspec_tests/fork_many_next_epoch",
+        "../consensus-spec-tests/tests/mainnet/altair/fork/fork/pyspec_tests/fork_many_next_epoch",
     );
 
     test_case.execute(|state: &phase0::BeaconState, context| -> spec::BeaconState {
@@ -110,7 +110,7 @@ fn test_fork_many_next_epoch() {
 #[test]
 fn test_fork_next_epoch() {
     let test_case = ForkTestCase::from(
-        "consensus-spec-tests/tests/mainnet/altair/fork/fork/pyspec_tests/fork_next_epoch",
+        "../consensus-spec-tests/tests/mainnet/altair/fork/fork/pyspec_tests/fork_next_epoch",
     );
 
     test_case.execute(|state: &phase0::BeaconState, context| -> spec::BeaconState {
@@ -120,7 +120,7 @@ fn test_fork_next_epoch() {
 
 #[test]
 fn test_fork_next_epoch_with_block() {
-    let  test_case = ForkTestCase::<>::from("consensus-spec-tests/tests/mainnet/altair/fork/fork/pyspec_tests/fork_next_epoch_with_block");
+    let  test_case = ForkTestCase::<>::from("../consensus-spec-tests/tests/mainnet/altair/fork/fork/pyspec_tests/fork_next_epoch_with_block");
 
     test_case.execute(|state: &phase0::BeaconState, context| -> spec::BeaconState {
         spec::upgrade_to_altair(state, context).unwrap()
@@ -129,9 +129,7 @@ fn test_fork_next_epoch_with_block() {
 
 #[test]
 fn test_fork_random_low_balances() {
-    let test_case = ForkTestCase::from(
-        "consensus-spec-tests/tests/mainnet/altair/fork/fork/pyspec_tests/fork_random_low_balances",
-    );
+    let  test_case = ForkTestCase::<>::from("../consensus-spec-tests/tests/mainnet/altair/fork/fork/pyspec_tests/fork_random_low_balances");
 
     test_case.execute(|state: &phase0::BeaconState, context| -> spec::BeaconState {
         spec::upgrade_to_altair(state, context).unwrap()
@@ -140,7 +138,7 @@ fn test_fork_random_low_balances() {
 
 #[test]
 fn test_fork_random_misc_balances() {
-    let  test_case = ForkTestCase::<>::from("consensus-spec-tests/tests/mainnet/altair/fork/fork/pyspec_tests/fork_random_misc_balances");
+    let  test_case = ForkTestCase::<>::from("../consensus-spec-tests/tests/mainnet/altair/fork/fork/pyspec_tests/fork_random_misc_balances");
 
     test_case.execute(|state: &phase0::BeaconState, context| -> spec::BeaconState {
         spec::upgrade_to_altair(state, context).unwrap()

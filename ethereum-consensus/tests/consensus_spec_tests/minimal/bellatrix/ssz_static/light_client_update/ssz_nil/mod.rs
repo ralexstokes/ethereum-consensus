@@ -7,9 +7,7 @@ use ssz_rs::prelude::*;
 
 #[test]
 fn test_case_0() {
-    let test_case = LightClientUpdateTestCase::from(
-        "consensus-spec-tests/tests/minimal/bellatrix/ssz_static/LightClientUpdate/ssz_nil/case_0",
-    );
+    let  test_case = LightClientUpdateTestCase::<>::from("../consensus-spec-tests/tests/minimal/bellatrix/ssz_static/LightClientUpdate/ssz_nil/case_0");
 
     test_case.execute(|encoding| {
         let mut data: spec::LightClientUpdate = ssz_rs::deserialize(encoding).unwrap();

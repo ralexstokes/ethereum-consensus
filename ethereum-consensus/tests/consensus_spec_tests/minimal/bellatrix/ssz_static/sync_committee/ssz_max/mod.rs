@@ -8,7 +8,7 @@ use ssz_rs::prelude::*;
 #[test]
 fn test_case_0() {
     let test_case = SyncCommitteeTestCase::from(
-        "consensus-spec-tests/tests/minimal/bellatrix/ssz_static/SyncCommittee/ssz_max/case_0",
+        "../consensus-spec-tests/tests/minimal/bellatrix/ssz_static/SyncCommittee/ssz_max/case_0",
     );
 
     test_case.execute(|encoding| {

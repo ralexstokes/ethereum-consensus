@@ -7,7 +7,7 @@ use ssz_rs::prelude::*;
 
 #[test]
 fn test_eth_1_vote_no_reset() {
-    let mut test_case = Eth1DataResetTestCase::<spec::BeaconState>::from("consensus-spec-tests/tests/minimal/phase0/epoch_processing/eth1_data_reset/pyspec_tests/eth1_vote_no_reset");
+    let mut test_case = Eth1DataResetTestCase::<spec::BeaconState>::from("../consensus-spec-tests/tests/minimal/phase0/epoch_processing/eth1_data_reset/pyspec_tests/eth1_vote_no_reset");
 
     test_case.execute(|state, context| {
         spec::process_eth1_data_reset(state, context);
@@ -17,7 +17,7 @@ fn test_eth_1_vote_no_reset() {
 
 #[test]
 fn test_eth_1_vote_reset() {
-    let mut test_case = Eth1DataResetTestCase::<spec::BeaconState>::from("consensus-spec-tests/tests/minimal/phase0/epoch_processing/eth1_data_reset/pyspec_tests/eth1_vote_reset");
+    let mut test_case = Eth1DataResetTestCase::<spec::BeaconState>::from("../consensus-spec-tests/tests/minimal/phase0/epoch_processing/eth1_data_reset/pyspec_tests/eth1_vote_reset");
 
     test_case.execute(|state, context| {
         spec::process_eth1_data_reset(state, context);

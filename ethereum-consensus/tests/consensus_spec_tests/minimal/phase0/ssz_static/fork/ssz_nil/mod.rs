@@ -8,7 +8,7 @@ use ssz_rs::prelude::*;
 #[test]
 fn test_case_0() {
     let test_case = ForkTestCase::from(
-        "consensus-spec-tests/tests/minimal/phase0/ssz_static/Fork/ssz_nil/case_0",
+        "../consensus-spec-tests/tests/minimal/phase0/ssz_static/Fork/ssz_nil/case_0",
     );
 
     test_case.execute(|encoding| {
