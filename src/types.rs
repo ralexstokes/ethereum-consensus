@@ -32,7 +32,7 @@ pub struct DepositContract {
     pub address: ExecutionAddress,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Default)]
 pub struct GenesisDetails {
     #[serde(with = "crate::serde::as_string")]
     pub genesis_time: u64,
