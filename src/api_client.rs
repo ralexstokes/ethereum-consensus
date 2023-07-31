@@ -1,21 +1,24 @@
 use crate::{
     types::{
         ApiResult, AttestationDuty, BalanceSummary, BeaconHeaderSummary,
-        BeaconProposerRegistration, BlockId, CommitteeDescriptor, CommitteeFilter,
-        CommitteeSummary, ConnectionOrientation, CoordinateWithMetadata, DepositContract,
-        EventTopic, FinalityCheckpoints, GenesisDetails, HealthStatus, NetworkIdentity,
-        PeerDescription, PeerState, PeerSummary, ProposerDuty, PublicKeyOrIndex, RootData, StateId,
-        SyncCommitteeDescriptor, SyncCommitteeDuty, SyncCommitteeSummary, SyncStatus,
-        ValidatorStatus, ValidatorSummary, Value, VersionData,
+        BeaconProposerRegistration, BlockId, BroadcastValidation, CommitteeDescriptor,
+        CommitteeFilter, CommitteeSummary, ConnectionOrientation, CoordinateWithMetadata,
+        DepositContract, EventTopic, FinalityCheckpoints, GenesisDetails, HealthStatus,
+        NetworkIdentity, PeerDescription, PeerState, PeerSummary, ProposerDuty, PublicKeyOrIndex,
+        RootData, StateId, SyncCommitteeDescriptor, SyncCommitteeDuty, SyncCommitteeSummary,
+        SyncStatus, ValidatorStatus, ValidatorSummary, Value, VersionData,
     },
     ApiError, Error,
 };
 use ethereum_consensus::{
     altair::SyncCommitteeMessage,
     builder::SignedValidatorRegistration,
+    deneb::BlobSidecar,
     networking::PeerId,
     phase0::{AttestationData, Fork, ProposerSlashing, SignedVoluntaryExit},
-    primitives::{Bytes32, CommitteeIndex, Epoch, RandaoReveal, Root, Slot, ValidatorIndex},
+    primitives::{
+        BlobIndex, Bytes32, CommitteeIndex, Epoch, RandaoReveal, Root, Slot, ValidatorIndex,
+    },
 };
 use http::StatusCode;
 use itertools::Itertools;
@@ -258,6 +261,22 @@ impl<
         }
     }
 
+    pub async fn get_randao(&self, id: StateId, epoch: Option<Epoch>) -> Result<Bytes32, Error> {
+        let path = format!("eth/v1/beacon/states/{id}/randao");
+        let target = self.endpoint.join(&path)?;
+        let mut request = self.http.get(target);
+        if let Some(epoch) = epoch {
+            request = request.query(&[("epoch", epoch)]);
+        }
+        let response = request.send().await?;
+
+        let result: ApiResult<Value<Bytes32>> = response.json().await?;
+        match result {
+            ApiResult::Ok(result) => Ok(result.data),
+            ApiResult::Err(err) => Err(err.into()),
+        }
+    }
+
     pub async fn get_beacon_header_at_head(&self) -> Result<BeaconHeaderSummary, Error> {
         let result: Value<BeaconHeaderSummary> = self.get("eth/v1/beacon/headers").await?;
         Ok(result.data)
@@ -299,15 +318,43 @@ impl<
         Ok(result.data)
     }
 
-    pub async fn post_signed_beacon_block(&self, block: &SignedBeaconBlock) -> Result<(), Error> {
-        self.post("eth/v1/beacon/blocks", block).await
-    }
-
     pub async fn post_signed_blinded_beacon_block(
         &self,
         block: &SignedBlindedBeaconBlock,
     ) -> Result<(), Error> {
         self.post("eth/v1/beacon/blinded_blocks", block).await
+    }
+
+    pub async fn post_signed_blinded_beacon_block_v2(
+        &self,
+        block: &SignedBlindedBeaconBlock,
+        broadcast_validation: Option<BroadcastValidation>,
+    ) -> Result<(), Error> {
+        let target = self.endpoint.join("eth/v2/beacon/blinded_blocks")?;
+        let mut request = self.http.post(target).json(block);
+        if let Some(validation) = broadcast_validation {
+            request = request.query(&[("broadcast_validation", validation)]);
+        }
+        let response = request.send().await?;
+        api_error_or_ok(response).await
+    }
+
+    pub async fn post_signed_beacon_block(&self, block: &SignedBeaconBlock) -> Result<(), Error> {
+        self.post("eth/v1/beacon/blocks", block).await
+    }
+
+    pub async fn post_signed_beacon_block_v2(
+        &self,
+        block: &SignedBeaconBlock,
+        broadcast_validation: Option<BroadcastValidation>,
+    ) -> Result<(), Error> {
+        let target = self.endpoint.join("eth/v2/beacon/blocks")?;
+        let mut request = self.http.post(target).json(block);
+        if let Some(validation) = broadcast_validation {
+            request = request.query(&[("broadcast_validation", validation)]);
+        }
+        let response = request.send().await?;
+        api_error_or_ok(response).await
     }
 
     // v2 endpoint
@@ -329,6 +376,21 @@ impl<
         let result: Value<Vec<Attestation>> =
             self.get(&format!("eth/v1/beacon/blocks/{id}/attestations")).await?;
         Ok(result.data)
+    }
+
+    pub async fn get_blob_sidecars<const BYTES_PER_BLOB: usize>(
+        &self,
+        id: BlockId,
+        indices: &[BlobIndex],
+    ) -> Result<Vec<BlobSidecar<BYTES_PER_BLOB>>, Error> {
+        let path = format!("eth/v1/beacon/blob_sidecars/{id}");
+        let target = self.endpoint.join(&path)?;
+        let mut request = self.http.get(target);
+        if !indices.is_empty() {
+            request = request.query(&[("indices", indices)]);
+        }
+        let response = request.send().await?;
+        api_error_or_value(response).await
     }
 
     pub async fn get_attestations_from_pool(

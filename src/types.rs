@@ -251,6 +251,24 @@ pub struct BeaconHeaderSummary {
     pub signed_header: SignedBeaconBlockHeader,
 }
 
+#[derive(Serialize, Deserialize, Debug)]
+pub enum BroadcastValidation {
+    Gossip,
+    Consensus,
+    ConsensusAndEquivocation,
+}
+
+impl fmt::Display for BroadcastValidation {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        let printable = match self {
+            Self::Gossip => "gossip",
+            Self::Consensus => "consensus",
+            Self::ConsensusAndEquivocation => "consensus_and_equivocation",
+        };
+        write!(f, "{printable}")
+    }
+}
+
 pub enum EventTopic {
     Head,
     Block,
