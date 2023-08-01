@@ -1,16 +1,18 @@
 use crate::{
     altair::{SyncAggregate, SyncCommittee},
     phase0::BeaconBlockHeader,
-    primitives::{Bytes32, Slot, Version},
+    primitives::{Bytes32, Slot},
 };
 use ssz_rs::prelude::*;
 
 pub const FINALIZED_ROOT_INDEX: usize = 105;
-pub const CURRENT_SYNC_COMMITTEE_INDEX: usize = 54;
-pub const NEXT_SYNC_COMMITTEE_INDEX: usize = 55;
-
-pub const NEXT_SYNC_COMMITTEE_INDEX_FLOOR_LOG_2: usize = 5;
 pub const FINALIZED_ROOT_INDEX_FLOOR_LOG_2: usize = 6;
+
+pub const CURRENT_SYNC_COMMITTEE_INDEX: usize = 54;
+pub const CURRENT_SYNC_COMMITTEE_INDEX_FLOOR_LOG_2: usize = 5;
+
+pub const NEXT_SYNC_COMMITTEE_INDEX: usize = 55;
+pub const NEXT_SYNC_COMMITTEE_INDEX_FLOOR_LOG_2: usize = 5;
 
 #[derive(Default, Debug, Clone, SimpleSerialize)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
@@ -23,7 +25,7 @@ pub struct LightClientHeader {
 pub struct LightClientBootstrap<const SYNC_COMMITTEE_SIZE: usize> {
     pub header: LightClientHeader,
     pub current_sync_committee: SyncCommittee<SYNC_COMMITTEE_SIZE>,
-    pub current_sync_committee_branch: Vector<Bytes32, NEXT_SYNC_COMMITTEE_INDEX_FLOOR_LOG_2>,
+    pub current_sync_committee_branch: Vector<Bytes32, CURRENT_SYNC_COMMITTEE_INDEX_FLOOR_LOG_2>,
 }
 
 #[derive(Default, Debug, Clone, SimpleSerialize)]
@@ -35,7 +37,7 @@ pub struct LightClientUpdate<const SYNC_COMMITTEE_SIZE: usize> {
     pub finalized_header: LightClientHeader,
     pub finality_branch: Vector<Bytes32, FINALIZED_ROOT_INDEX_FLOOR_LOG_2>,
     pub sync_aggregate: SyncAggregate<SYNC_COMMITTEE_SIZE>,
-    pub fork_version: Version,
+    pub signature_slot: Slot,
 }
 
 #[derive(Default, Debug, Clone, SimpleSerialize)]
@@ -57,7 +59,6 @@ pub struct LightClientOptimisticUpdate<const SYNC_COMMITTEE_SIZE: usize> {
 }
 
 #[derive(Default, Debug, Clone)]
-#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct LightClientStore<const SYNC_COMMITTEE_SIZE: usize> {
     pub finalized_header: LightClientHeader,
     pub current_sync_committee: SyncCommittee<SYNC_COMMITTEE_SIZE>,
