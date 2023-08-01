@@ -1,11 +1,12 @@
 use crate::ApiError;
 use ethereum_consensus::{
     altair::MetaData,
+    capella::Withdrawal,
     networking::{Enr, Multiaddr, PeerId},
     phase0::{Checkpoint, SignedBeaconBlockHeader, Validator},
     primitives::{
-        BlsPublicKey, ChainId, CommitteeIndex, Coordinate, Epoch, ExecutionAddress, Gwei, Root,
-        Slot, ValidatorIndex, Version,
+        BlsPublicKey, ChainId, CommitteeIndex, Coordinate, Epoch, ExecutionAddress, Gwei, Hash32,
+        Root, Slot, ValidatorIndex, Version,
     },
     serde::try_bytes_from_hex_str,
 };
@@ -30,6 +31,17 @@ pub struct DepositContract {
     #[serde(with = "crate::serde::as_string")]
     pub chain_id: ChainId,
     pub address: ExecutionAddress,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct DepositSnapshot {
+    pub finalized: Vec<Hash32>,
+    pub deposit_root: Hash32,
+    #[serde(with = "crate::serde::as_string")]
+    pub deposit_count: u64,
+    pub execution_block_hash: Hash32,
+    #[serde(with = "crate::serde::as_string")]
+    pub execution_block_height: u64,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -436,6 +448,20 @@ pub struct BeaconProposerRegistration {
     #[serde(with = "crate::serde::as_string")]
     pub validator_index: ValidatorIndex,
     pub fee_recipient: ExecutionAddress,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct ExpectedWithdrawals {
+    pub execution_optimistic: bool,
+    pub finalized: bool,
+    pub data: Vec<Withdrawal>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct ValidatorLiveness {
+    #[serde(with = "crate::serde::as_string")]
+    index: ValidatorIndex,
+    is_live: bool,
 }
 
 #[derive(Serialize, Deserialize, Debug)]

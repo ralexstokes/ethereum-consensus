@@ -3,16 +3,21 @@ use crate::{
         ApiResult, AttestationDuty, BalanceSummary, BeaconHeaderSummary,
         BeaconProposerRegistration, BlockId, BroadcastValidation, CommitteeDescriptor,
         CommitteeFilter, CommitteeSummary, ConnectionOrientation, CoordinateWithMetadata,
-        DepositContract, EventTopic, FinalityCheckpoints, GenesisDetails, HealthStatus,
-        NetworkIdentity, PeerDescription, PeerState, PeerSummary, ProposerDuty, PublicKeyOrIndex,
-        RootData, StateId, SyncCommitteeDescriptor, SyncCommitteeDuty, SyncCommitteeSummary,
-        SyncStatus, ValidatorStatus, ValidatorSummary, Value, VersionData,
+        DepositContract, DepositSnapshot, EventTopic, ExpectedWithdrawals, FinalityCheckpoints,
+        GenesisDetails, HealthStatus, NetworkIdentity, PeerDescription, PeerState, PeerSummary,
+        ProposerDuty, PublicKeyOrIndex, RootData, StateId, SyncCommitteeDescriptor,
+        SyncCommitteeDuty, SyncCommitteeSummary, SyncStatus, ValidatorLiveness, ValidatorStatus,
+        ValidatorSummary, Value, VersionData,
     },
     ApiError, Error,
 };
 use ethereum_consensus::{
-    altair::SyncCommitteeMessage,
+    altair::{
+        LightClientBootstrap, LightClientFinalityUpdate, LightClientOptimisticUpdate,
+        LightClientUpdate, SyncCommitteeMessage,
+    },
     builder::SignedValidatorRegistration,
+    capella::SignedBlsToExecutionChange,
     deneb::BlobSidecar,
     networking::PeerId,
     phase0::{AttestationData, Fork, ProposerSlashing, SignedVoluntaryExit},
@@ -393,6 +398,55 @@ impl<
         api_error_or_value(response).await
     }
 
+    pub async fn get_deposit_snapshot(&self) -> Result<DepositSnapshot, Error> {
+        let result: Value<DepositSnapshot> = self.get("eth/v1/beacon/deposit_snapshot").await?;
+        Ok(result.data)
+    }
+
+    pub async fn get_blinded_block(&self, id: BlockId) -> Result<SignedBlindedBeaconBlock, Error> {
+        let result: Value<SignedBlindedBeaconBlock> =
+            self.get(&format!("eth/v1/beacon/blinded_blocks/{id}")).await?;
+        Ok(result.data)
+    }
+
+    pub async fn get_light_client_bootstrap<const SYNC_COMMITTEE_SIZE: usize>(
+        &self,
+        block: Root,
+    ) -> Result<LightClientBootstrap<SYNC_COMMITTEE_SIZE>, Error> {
+        let result: Value<LightClientBootstrap<SYNC_COMMITTEE_SIZE>> =
+            self.get(&format!("eth/v1/beacon/light_client/bootstrap/{block}")).await?;
+        Ok(result.data)
+    }
+
+    pub async fn get_light_client_updates<const SYNC_COMMITTEE_SIZE: usize>(
+        &self,
+        start: u64,
+        count: u64,
+    ) -> Result<Vec<LightClientUpdate<SYNC_COMMITTEE_SIZE>>, Error> {
+        let target = self.endpoint.join(&format!("eth/v1/beacon/light_client/updates"))?;
+        let mut request = self.http.get(target);
+        request = request.query(&[("start_period", start), ("count", count)]);
+
+        let response = request.send().await?;
+        api_error_or_value(response).await
+    }
+
+    pub async fn get_light_client_finality_update<const SYNC_COMMITTEE_SIZE: usize>(
+        &self,
+    ) -> Result<LightClientFinalityUpdate<SYNC_COMMITTEE_SIZE>, Error> {
+        let result: Value<LightClientFinalityUpdate<SYNC_COMMITTEE_SIZE>> =
+            self.get(&format!("eth/v1/beacon/light_client/finality_update")).await?;
+        Ok(result.data)
+    }
+
+    pub async fn get_light_client_optimistic_update<const SYNC_COMMITTEE_SIZE: usize>(
+        &self,
+    ) -> Result<LightClientOptimisticUpdate<SYNC_COMMITTEE_SIZE>, Error> {
+        let result: Value<LightClientOptimisticUpdate<SYNC_COMMITTEE_SIZE>> =
+            self.get(&format!("eth/v1/beacon/light_client/optimistic_update")).await?;
+        Ok(result.data)
+    }
+
     pub async fn get_attestations_from_pool(
         &self,
         slot: Option<Slot>,
@@ -463,6 +517,38 @@ impl<
         exit: &SignedVoluntaryExit,
     ) -> Result<(), Error> {
         self.post("eth/v1/beacon/pool/voluntary_exits", exit).await
+    }
+
+    pub async fn get_bls_to_execution_changes(
+        &self,
+    ) -> Result<Vec<SignedBlsToExecutionChange>, Error> {
+        let result: Value<Vec<SignedBlsToExecutionChange>> =
+            self.get("eth/v1/beacon/pool/bls_to_execution_changes").await?;
+        Ok(result.data)
+    }
+
+    pub async fn post_bls_to_execution_changes(
+        &self,
+        changes: &[SignedBlsToExecutionChange],
+    ) -> Result<(), Error> {
+        self.post("eth/v1/beacon/pool/bls_to_execution_changes", changes).await
+    }
+
+    /* builder namespace */
+    pub async fn get_expected_withdrawals(
+        &self,
+        id: StateId,
+        slot: Option<Slot>,
+    ) -> Result<ExpectedWithdrawals, Error> {
+        let path = format!("eth/v1/builder/states/{id}/expected_withdrawals");
+        let target = self.endpoint.join(&path)?;
+        let mut request = self.http.get(target);
+        if let Some(slot) = slot {
+            request = request.query(&[("proposal_slot", slot)]);
+        }
+
+        let response = request.send().await?;
+        api_error_or_value(response).await
     }
 
     /* config namespace */
@@ -635,7 +721,7 @@ impl<
         randao_reveal: RandaoReveal,
         graffiti: Option<Bytes32>,
     ) -> Result<BlindedBeaconBlock, Error> {
-        let path = format!("eth/v2/validator/blinded_blocks/{slot}");
+        let path = format!("eth/v1/validator/blinded_blocks/{slot}");
         let target = self.endpoint.join(&path)?;
         let mut request = self.http.get(target);
         request = request.query(&[("randao_reveal", randao_reveal)]);
@@ -744,5 +830,15 @@ impl<
         registrations: &[SignedValidatorRegistration],
     ) -> Result<(), Error> {
         self.post("eth/v1/validator/register_validator", registrations).await
+    }
+
+    pub async fn post_liveness(
+        &self,
+        epoch: Epoch,
+        indices: &[ValidatorIndex],
+    ) -> Result<Vec<ValidatorLiveness>, Error> {
+        let response =
+            self.http_post(&format!("eth/v1/validator/liveness/{epoch}"), indices).await?;
+        api_error_or_value(response).await
     }
 }
