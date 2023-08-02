@@ -1,21 +1,29 @@
 use crate::{
     types::{
         ApiResult, AttestationDuty, BalanceSummary, BeaconHeaderSummary,
-        BeaconProposerRegistration, BlockId, CommitteeDescriptor, CommitteeFilter,
-        CommitteeSummary, ConnectionOrientation, CoordinateWithMetadata, DepositContract,
-        EventTopic, FinalityCheckpoints, GenesisDetails, HealthStatus, NetworkIdentity,
-        PeerDescription, PeerState, PeerSummary, ProposerDuty, PublicKeyOrIndex, RootData, StateId,
-        SyncCommitteeDescriptor, SyncCommitteeDuty, SyncCommitteeSummary, SyncStatus,
-        ValidatorStatus, ValidatorSummary, Value, VersionData,
+        BeaconProposerRegistration, BlockId, BroadcastValidation, CommitteeDescriptor,
+        CommitteeFilter, CommitteeSummary, ConnectionOrientation, CoordinateWithMetadata,
+        DepositContract, DepositSnapshot, EventTopic, FinalityCheckpoints, GenesisDetails,
+        HealthStatus, NetworkIdentity, PeerDescription, PeerState, PeerSummary, ProposerDuty,
+        PublicKeyOrIndex, RootData, StateId, SyncCommitteeDescriptor, SyncCommitteeDuty,
+        SyncCommitteeSummary, SyncStatus, ValidatorLiveness, ValidatorStatus, ValidatorSummary,
+        Value, VersionData,
     },
     ApiError, Error,
 };
 use ethereum_consensus::{
-    altair::SyncCommitteeMessage,
+    altair::{
+        LightClientBootstrap, LightClientFinalityUpdate, LightClientOptimisticUpdate,
+        LightClientUpdate, SyncCommitteeMessage,
+    },
     builder::SignedValidatorRegistration,
+    capella::{SignedBlsToExecutionChange, Withdrawal},
+    deneb::BlobSidecar,
     networking::PeerId,
     phase0::{AttestationData, Fork, ProposerSlashing, SignedVoluntaryExit},
-    primitives::{Bytes32, CommitteeIndex, Epoch, RandaoReveal, Root, Slot, ValidatorIndex},
+    primitives::{
+        BlobIndex, Bytes32, CommitteeIndex, Epoch, RandaoReveal, Root, Slot, ValidatorIndex,
+    },
 };
 use http::StatusCode;
 use itertools::Itertools;
@@ -258,6 +266,22 @@ impl<
         }
     }
 
+    pub async fn get_randao(&self, id: StateId, epoch: Option<Epoch>) -> Result<Bytes32, Error> {
+        let path = format!("eth/v1/beacon/states/{id}/randao");
+        let target = self.endpoint.join(&path)?;
+        let mut request = self.http.get(target);
+        if let Some(epoch) = epoch {
+            request = request.query(&[("epoch", epoch)]);
+        }
+        let response = request.send().await?;
+
+        let result: ApiResult<Value<Bytes32>> = response.json().await?;
+        match result {
+            ApiResult::Ok(result) => Ok(result.data),
+            ApiResult::Err(err) => Err(err.into()),
+        }
+    }
+
     pub async fn get_beacon_header_at_head(&self) -> Result<BeaconHeaderSummary, Error> {
         let result: Value<BeaconHeaderSummary> = self.get("eth/v1/beacon/headers").await?;
         Ok(result.data)
@@ -299,15 +323,43 @@ impl<
         Ok(result.data)
     }
 
-    pub async fn post_signed_beacon_block(&self, block: &SignedBeaconBlock) -> Result<(), Error> {
-        self.post("eth/v1/beacon/blocks", block).await
-    }
-
     pub async fn post_signed_blinded_beacon_block(
         &self,
         block: &SignedBlindedBeaconBlock,
     ) -> Result<(), Error> {
         self.post("eth/v1/beacon/blinded_blocks", block).await
+    }
+
+    pub async fn post_signed_blinded_beacon_block_v2(
+        &self,
+        block: &SignedBlindedBeaconBlock,
+        broadcast_validation: Option<BroadcastValidation>,
+    ) -> Result<(), Error> {
+        let target = self.endpoint.join("eth/v2/beacon/blinded_blocks")?;
+        let mut request = self.http.post(target).json(block);
+        if let Some(validation) = broadcast_validation {
+            request = request.query(&[("broadcast_validation", validation)]);
+        }
+        let response = request.send().await?;
+        api_error_or_ok(response).await
+    }
+
+    pub async fn post_signed_beacon_block(&self, block: &SignedBeaconBlock) -> Result<(), Error> {
+        self.post("eth/v1/beacon/blocks", block).await
+    }
+
+    pub async fn post_signed_beacon_block_v2(
+        &self,
+        block: &SignedBeaconBlock,
+        broadcast_validation: Option<BroadcastValidation>,
+    ) -> Result<(), Error> {
+        let target = self.endpoint.join("eth/v2/beacon/blocks")?;
+        let mut request = self.http.post(target).json(block);
+        if let Some(validation) = broadcast_validation {
+            request = request.query(&[("broadcast_validation", validation)]);
+        }
+        let response = request.send().await?;
+        api_error_or_ok(response).await
     }
 
     // v2 endpoint
@@ -328,6 +380,78 @@ impl<
     ) -> Result<Vec<Attestation>, Error> {
         let result: Value<Vec<Attestation>> =
             self.get(&format!("eth/v1/beacon/blocks/{id}/attestations")).await?;
+        Ok(result.data)
+    }
+
+    pub async fn get_blob_sidecars<const BYTES_PER_BLOB: usize>(
+        &self,
+        id: BlockId,
+        indices: &[BlobIndex],
+    ) -> Result<Vec<BlobSidecar<BYTES_PER_BLOB>>, Error> {
+        let path = format!("eth/v1/beacon/blob_sidecars/{id}");
+        let target = self.endpoint.join(&path)?;
+        let mut request = self.http.get(target);
+        if !indices.is_empty() {
+            request = request.query(&[("indices", indices)]);
+        }
+        let response = request.send().await?;
+        let result: ApiResult<Value<_>> = response.json().await?;
+        match result {
+            ApiResult::Ok(result) => Ok(result.data),
+            ApiResult::Err(err) => Err(err.into()),
+        }
+    }
+
+    pub async fn get_deposit_snapshot(&self) -> Result<DepositSnapshot, Error> {
+        let result: Value<DepositSnapshot> = self.get("eth/v1/beacon/deposit_snapshot").await?;
+        Ok(result.data)
+    }
+
+    pub async fn get_blinded_block(&self, id: BlockId) -> Result<SignedBlindedBeaconBlock, Error> {
+        let result: Value<SignedBlindedBeaconBlock> =
+            self.get(&format!("eth/v1/beacon/blinded_blocks/{id}")).await?;
+        Ok(result.data)
+    }
+
+    pub async fn get_light_client_bootstrap<const SYNC_COMMITTEE_SIZE: usize>(
+        &self,
+        block: Root,
+    ) -> Result<LightClientBootstrap<SYNC_COMMITTEE_SIZE>, Error> {
+        let result: Value<LightClientBootstrap<SYNC_COMMITTEE_SIZE>> =
+            self.get(&format!("eth/v1/beacon/light_client/bootstrap/{block}")).await?;
+        Ok(result.data)
+    }
+
+    pub async fn get_light_client_updates<const SYNC_COMMITTEE_SIZE: usize>(
+        &self,
+        start: u64,
+        count: u64,
+    ) -> Result<Vec<LightClientUpdate<SYNC_COMMITTEE_SIZE>>, Error> {
+        let target = self.endpoint.join("eth/v1/beacon/light_client/updates")?;
+        let mut request = self.http.get(target);
+        request = request.query(&[("start_period", start), ("count", count)]);
+
+        let response = request.send().await?;
+        let result: ApiResult<Value<_>> = response.json().await?;
+        match result {
+            ApiResult::Ok(result) => Ok(result.data),
+            ApiResult::Err(err) => Err(err.into()),
+        }
+    }
+
+    pub async fn get_light_client_finality_update<const SYNC_COMMITTEE_SIZE: usize>(
+        &self,
+    ) -> Result<LightClientFinalityUpdate<SYNC_COMMITTEE_SIZE>, Error> {
+        let result: Value<LightClientFinalityUpdate<SYNC_COMMITTEE_SIZE>> =
+            self.get("eth/v1/beacon/light_client/finality_update").await?;
+        Ok(result.data)
+    }
+
+    pub async fn get_light_client_optimistic_update<const SYNC_COMMITTEE_SIZE: usize>(
+        &self,
+    ) -> Result<LightClientOptimisticUpdate<SYNC_COMMITTEE_SIZE>, Error> {
+        let result: Value<LightClientOptimisticUpdate<SYNC_COMMITTEE_SIZE>> =
+            self.get("eth/v1/beacon/light_client/optimistic_update").await?;
         Ok(result.data)
     }
 
@@ -401,6 +525,42 @@ impl<
         exit: &SignedVoluntaryExit,
     ) -> Result<(), Error> {
         self.post("eth/v1/beacon/pool/voluntary_exits", exit).await
+    }
+
+    pub async fn get_bls_to_execution_changes(
+        &self,
+    ) -> Result<Vec<SignedBlsToExecutionChange>, Error> {
+        let result: Value<Vec<SignedBlsToExecutionChange>> =
+            self.get("eth/v1/beacon/pool/bls_to_execution_changes").await?;
+        Ok(result.data)
+    }
+
+    pub async fn post_bls_to_execution_changes(
+        &self,
+        changes: &[SignedBlsToExecutionChange],
+    ) -> Result<(), Error> {
+        self.post("eth/v1/beacon/pool/bls_to_execution_changes", changes).await
+    }
+
+    /* builder namespace */
+    pub async fn get_expected_withdrawals(
+        &self,
+        id: StateId,
+        slot: Option<Slot>,
+    ) -> Result<Vec<Withdrawal>, Error> {
+        let path = format!("eth/v1/builder/states/{id}/expected_withdrawals");
+        let target = self.endpoint.join(&path)?;
+        let mut request = self.http.get(target);
+        if let Some(slot) = slot {
+            request = request.query(&[("proposal_slot", slot)]);
+        }
+
+        let response = request.send().await?;
+        let result: ApiResult<Value<_>> = response.json().await?;
+        match result {
+            ApiResult::Ok(result) => Ok(result.data),
+            ApiResult::Err(err) => Err(err.into()),
+        }
     }
 
     /* config namespace */
@@ -573,7 +733,7 @@ impl<
         randao_reveal: RandaoReveal,
         graffiti: Option<Bytes32>,
     ) -> Result<BlindedBeaconBlock, Error> {
-        let path = format!("eth/v2/validator/blinded_blocks/{slot}");
+        let path = format!("eth/v1/validator/blinded_blocks/{slot}");
         let target = self.endpoint.join(&path)?;
         let mut request = self.http.get(target);
         request = request.query(&[("randao_reveal", randao_reveal)]);
@@ -682,5 +842,19 @@ impl<
         registrations: &[SignedValidatorRegistration],
     ) -> Result<(), Error> {
         self.post("eth/v1/validator/register_validator", registrations).await
+    }
+
+    pub async fn post_liveness(
+        &self,
+        epoch: Epoch,
+        indices: &[ValidatorIndex],
+    ) -> Result<Vec<ValidatorLiveness>, Error> {
+        let response =
+            self.http_post(&format!("eth/v1/validator/liveness/{epoch}"), indices).await?;
+        let result: ApiResult<Value<_>> = response.json().await?;
+        match result {
+            ApiResult::Ok(result) => Ok(result.data),
+            ApiResult::Err(err) => Err(err.into()),
+        }
     }
 }
