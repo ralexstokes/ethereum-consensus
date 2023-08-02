@@ -1,7 +1,6 @@
 use crate::ApiError;
 use ethereum_consensus::{
     altair::MetaData,
-    capella::Withdrawal,
     networking::{Enr, Multiaddr, PeerId},
     phase0::{Checkpoint, SignedBeaconBlockHeader, Validator},
     primitives::{
@@ -448,13 +447,6 @@ pub struct BeaconProposerRegistration {
     #[serde(with = "crate::serde::as_string")]
     pub validator_index: ValidatorIndex,
     pub fee_recipient: ExecutionAddress,
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-pub struct ExpectedWithdrawals {
-    pub execution_optimistic: bool,
-    pub finalized: bool,
-    pub data: Vec<Withdrawal>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]

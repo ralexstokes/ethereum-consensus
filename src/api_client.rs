@@ -3,11 +3,11 @@ use crate::{
         ApiResult, AttestationDuty, BalanceSummary, BeaconHeaderSummary,
         BeaconProposerRegistration, BlockId, BroadcastValidation, CommitteeDescriptor,
         CommitteeFilter, CommitteeSummary, ConnectionOrientation, CoordinateWithMetadata,
-        DepositContract, DepositSnapshot, EventTopic, ExpectedWithdrawals, FinalityCheckpoints,
-        GenesisDetails, HealthStatus, NetworkIdentity, PeerDescription, PeerState, PeerSummary,
-        ProposerDuty, PublicKeyOrIndex, RootData, StateId, SyncCommitteeDescriptor,
-        SyncCommitteeDuty, SyncCommitteeSummary, SyncStatus, ValidatorLiveness, ValidatorStatus,
-        ValidatorSummary, Value, VersionData,
+        DepositContract, DepositSnapshot, EventTopic, FinalityCheckpoints, GenesisDetails,
+        HealthStatus, NetworkIdentity, PeerDescription, PeerState, PeerSummary, ProposerDuty,
+        PublicKeyOrIndex, RootData, StateId, SyncCommitteeDescriptor, SyncCommitteeDuty,
+        SyncCommitteeSummary, SyncStatus, ValidatorLiveness, ValidatorStatus, ValidatorSummary,
+        Value, VersionData,
     },
     ApiError, Error,
 };
@@ -17,7 +17,7 @@ use ethereum_consensus::{
         LightClientUpdate, SyncCommitteeMessage,
     },
     builder::SignedValidatorRegistration,
-    capella::SignedBlsToExecutionChange,
+    capella::{SignedBlsToExecutionChange, Withdrawal},
     deneb::BlobSidecar,
     networking::PeerId,
     phase0::{AttestationData, Fork, ProposerSlashing, SignedVoluntaryExit},
@@ -395,7 +395,11 @@ impl<
             request = request.query(&[("indices", indices)]);
         }
         let response = request.send().await?;
-        api_error_or_value(response).await
+        let result: ApiResult<Value<_>> = response.json().await?;
+        match result {
+            ApiResult::Ok(result) => Ok(result.data),
+            ApiResult::Err(err) => Err(err.into()),
+        }
     }
 
     pub async fn get_deposit_snapshot(&self) -> Result<DepositSnapshot, Error> {
@@ -423,19 +427,23 @@ impl<
         start: u64,
         count: u64,
     ) -> Result<Vec<LightClientUpdate<SYNC_COMMITTEE_SIZE>>, Error> {
-        let target = self.endpoint.join(&format!("eth/v1/beacon/light_client/updates"))?;
+        let target = self.endpoint.join("eth/v1/beacon/light_client/updates")?;
         let mut request = self.http.get(target);
         request = request.query(&[("start_period", start), ("count", count)]);
 
         let response = request.send().await?;
-        api_error_or_value(response).await
+        let result: ApiResult<Value<_>> = response.json().await?;
+        match result {
+            ApiResult::Ok(result) => Ok(result.data),
+            ApiResult::Err(err) => Err(err.into()),
+        }
     }
 
     pub async fn get_light_client_finality_update<const SYNC_COMMITTEE_SIZE: usize>(
         &self,
     ) -> Result<LightClientFinalityUpdate<SYNC_COMMITTEE_SIZE>, Error> {
         let result: Value<LightClientFinalityUpdate<SYNC_COMMITTEE_SIZE>> =
-            self.get(&format!("eth/v1/beacon/light_client/finality_update")).await?;
+            self.get("eth/v1/beacon/light_client/finality_update").await?;
         Ok(result.data)
     }
 
@@ -443,7 +451,7 @@ impl<
         &self,
     ) -> Result<LightClientOptimisticUpdate<SYNC_COMMITTEE_SIZE>, Error> {
         let result: Value<LightClientOptimisticUpdate<SYNC_COMMITTEE_SIZE>> =
-            self.get(&format!("eth/v1/beacon/light_client/optimistic_update")).await?;
+            self.get("eth/v1/beacon/light_client/optimistic_update").await?;
         Ok(result.data)
     }
 
@@ -539,7 +547,7 @@ impl<
         &self,
         id: StateId,
         slot: Option<Slot>,
-    ) -> Result<ExpectedWithdrawals, Error> {
+    ) -> Result<Vec<Withdrawal>, Error> {
         let path = format!("eth/v1/builder/states/{id}/expected_withdrawals");
         let target = self.endpoint.join(&path)?;
         let mut request = self.http.get(target);
@@ -548,7 +556,11 @@ impl<
         }
 
         let response = request.send().await?;
-        api_error_or_value(response).await
+        let result: ApiResult<Value<_>> = response.json().await?;
+        match result {
+            ApiResult::Ok(result) => Ok(result.data),
+            ApiResult::Err(err) => Err(err.into()),
+        }
     }
 
     /* config namespace */
@@ -839,6 +851,10 @@ impl<
     ) -> Result<Vec<ValidatorLiveness>, Error> {
         let response =
             self.http_post(&format!("eth/v1/validator/liveness/{epoch}"), indices).await?;
-        api_error_or_value(response).await
+        let result: ApiResult<Value<_>> = response.json().await?;
+        match result {
+            ApiResult::Ok(result) => Ok(result.data),
+            ApiResult::Err(err) => Err(err.into()),
+        }
     }
 }
