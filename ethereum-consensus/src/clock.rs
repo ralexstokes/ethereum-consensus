@@ -117,7 +117,7 @@ impl<T: TimeProvider + Send + Sync> Clock<T> {
     }
 
     #[inline]
-    fn slot_at_time(&self, current_time: u64) -> Option<Slot> {
+    pub fn slot_at_time(&self, current_time: u64) -> Option<Slot> {
         convert_timestamp_to_slot(current_time, self.genesis_time, self.seconds_per_slot)
     }
 
