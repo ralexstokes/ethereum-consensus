@@ -15,10 +15,7 @@ pub fn build_index() -> HashMap<&'static str, HashMap<&'static str, Auxillary>> 
                 Auxillary {
                     test_case_type_generics: "spec::BeaconState, spec::Attestation".to_string(),
                     preamble: Default::default(),
-                    execution_handler: HashMap::from_iter([(Spec::All, "execute(|state, operation, context| {
-                    spec::process_attestation(state, operation, context)
-                })"
-                    .to_string())]),
+                    execution_handler: HashMap::from_iter([(Spec::All, "execute(spec::process_attestation)".to_string())]),
                 },
             ),
             (
@@ -26,10 +23,7 @@ pub fn build_index() -> HashMap<&'static str, HashMap<&'static str, Auxillary>> 
                 Auxillary {
                     test_case_type_generics: "spec::BeaconState, spec::AttesterSlashing".to_string(),
                     preamble: Default::default(),
-                    execution_handler: HashMap::from_iter([(Spec::All, "execute(|state, operation, context| {
-                    spec::process_attester_slashing(state, operation, context)
-                })"
-                    .to_string())]),
+                    execution_handler: HashMap::from_iter([(Spec::All, "execute(spec::process_attester_slashing)".to_string())]),
                 },
             ),
             (
@@ -37,10 +31,7 @@ pub fn build_index() -> HashMap<&'static str, HashMap<&'static str, Auxillary>> 
                 Auxillary {
                     test_case_type_generics: "spec::BeaconState, spec::BeaconBlock".to_string(),
                     preamble: Default::default(),
-                    execution_handler: HashMap::from_iter([(Spec::All, "execute(|state, operation, context| {
-                    spec::process_block_header(state, operation, context)
-                })"
-                    .to_string())]),
+                    execution_handler: HashMap::from_iter([(Spec::All, "execute(spec::process_block_header)".to_string())]),
                 },
             ),
             (
@@ -48,10 +39,7 @@ pub fn build_index() -> HashMap<&'static str, HashMap<&'static str, Auxillary>> 
                 Auxillary {
                     test_case_type_generics: "spec::BeaconState, spec::Deposit".to_string(),
                     preamble: Default::default(),
-                    execution_handler: HashMap::from_iter([(Spec::All, "execute(|state, operation, context| {
-                    spec::process_deposit(state, operation, context)
-                })"
-                    .to_string())]),
+                    execution_handler: HashMap::from_iter([(Spec::All, "execute(spec::process_deposit)".to_string())]),
                 },
             ),
             (
@@ -59,10 +47,7 @@ pub fn build_index() -> HashMap<&'static str, HashMap<&'static str, Auxillary>> 
                 Auxillary {
                     test_case_type_generics: "spec::BeaconState, spec::ProposerSlashing".to_string(),
                     preamble: Default::default(),
-                    execution_handler: HashMap::from_iter([(Spec::All, "execute(|state, operation, context| {
-                    spec::process_proposer_slashing(state, operation, context)
-                })"
-                    .to_string())]),
+                    execution_handler: HashMap::from_iter([(Spec::All, "execute(spec::process_proposer_slashing)".to_string())]),
                 },
             ),
             (
@@ -70,10 +55,7 @@ pub fn build_index() -> HashMap<&'static str, HashMap<&'static str, Auxillary>> 
                 Auxillary {
                     test_case_type_generics: "spec::BeaconState, spec::SignedVoluntaryExit".to_string(),
                     preamble: Default::default(),
-                    execution_handler: HashMap::from_iter([(Spec::All, "execute(|state, operation, context| {
-                    spec::process_voluntary_exit(state, operation, context)
-                })"
-                    .to_string())]),
+                    execution_handler: HashMap::from_iter([(Spec::All, "execute(spec::process_voluntary_exit)".to_string())]),
                 },
             ),
             (
@@ -81,10 +63,7 @@ pub fn build_index() -> HashMap<&'static str, HashMap<&'static str, Auxillary>> 
                 Auxillary {
                     test_case_type_generics: "spec::BeaconState, spec::SyncAggregate".to_string(),
                     preamble: Default::default(),
-                    execution_handler: HashMap::from_iter([(Spec::All, "execute(|state, operation, context| {
-                    spec::process_sync_aggregate(state, operation, context)
-                })"
-                    .to_string())]),
+                    execution_handler: HashMap::from_iter([(Spec::All, "execute(spec::process_sync_aggregate)".to_string())]),
                 },
             ),
             (
@@ -113,10 +92,7 @@ pub fn build_index() -> HashMap<&'static str, HashMap<&'static str, Auxillary>> 
                 Auxillary {
                     test_case_type_generics: "spec::BeaconState".to_string(),
                     preamble: Default::default(),
-                    execution_handler: HashMap::from_iter([(Spec::All, "execute(|state, context| {
-                    spec::is_valid_genesis_state(state, context)
-                })"
-                    .to_string())]),
+                    execution_handler: HashMap::from_iter([(Spec::All, "execute(spec::is_valid_genesis_state)".to_string())]),
                 },
             ),
             (
@@ -1032,10 +1008,7 @@ pub fn build_index() -> HashMap<&'static str, HashMap<&'static str, Auxillary>> 
                 Auxillary {
                     test_case_type_generics: "spec::BeaconState".to_string(),
                     preamble: Default::default(),
-                    execution_handler: HashMap::from_iter([(Spec::All, "execute(|state, context| {
-                        spec::process_historical_roots_update(state, context)
-                })"
-                    .to_string())]),
+                    execution_handler: HashMap::from_iter([(Spec::All, "execute(spec::process_historical_roots_update)".to_string())]),
                 },
             ),
             (
@@ -1043,10 +1016,7 @@ pub fn build_index() -> HashMap<&'static str, HashMap<&'static str, Auxillary>> 
                 Auxillary {
                     test_case_type_generics: "spec::BeaconState".to_string(),
                     preamble: Default::default(),
-                    execution_handler: HashMap::from_iter([(Spec::All, "execute(|state, context| {
-                        spec::process_inactivity_updates(state, context)
-                })"
-                    .to_string())]),
+                    execution_handler: HashMap::from_iter([(Spec::All, "execute(spec::process_inactivity_updates)".to_string())]),
                 },
             ),
             (
@@ -1054,10 +1024,7 @@ pub fn build_index() -> HashMap<&'static str, HashMap<&'static str, Auxillary>> 
                 Auxillary {
                     test_case_type_generics: "spec::BeaconState".to_string(),
                     preamble: Default::default(),
-                    execution_handler: HashMap::from_iter([(Spec::All, "execute(|state, context| {
-                        spec::process_justification_and_finalization(state, context)
-                })"
-                    .to_string())]),
+                    execution_handler: HashMap::from_iter([(Spec::All, "execute(spec::process_justification_and_finalization)".to_string())]),
                 },
             ),
             (
@@ -1077,7 +1044,7 @@ pub fn build_index() -> HashMap<&'static str, HashMap<&'static str, Auxillary>> 
                 Auxillary {
                     test_case_type_generics: "spec::BeaconState".to_string(),
                     preamble: Default::default(),
-                    execution_handler: HashMap::from_iter([(Spec::All, "execute(|state, context| {
+                    execution_handler: HashMap::from_iter([(Spec::All, "execute(|state, _| {
                         spec::process_participation_flag_updates(state)
                 })"
                     .to_string())]),
@@ -1112,10 +1079,7 @@ pub fn build_index() -> HashMap<&'static str, HashMap<&'static str, Auxillary>> 
                 Auxillary {
                     test_case_type_generics: "spec::BeaconState".to_string(),
                     preamble: Default::default(),
-                    execution_handler: HashMap::from_iter([(Spec::All, "execute(|state, context| {
-                        spec::process_rewards_and_penalties(state, context)
-                })"
-                    .to_string())]),
+                    execution_handler: HashMap::from_iter([(Spec::All, "execute(spec::process_rewards_and_penalties)".to_string())]),
                 },
             ),
             (
@@ -1123,10 +1087,7 @@ pub fn build_index() -> HashMap<&'static str, HashMap<&'static str, Auxillary>> 
                 Auxillary {
                     test_case_type_generics: "spec::BeaconState".to_string(),
                     preamble: Default::default(),
-                    execution_handler: HashMap::from_iter([(Spec::All, "execute(|state, context| {
-                        spec::process_slashings(state, context)
-                })"
-                    .to_string())]),
+                    execution_handler: HashMap::from_iter([(Spec::All, "execute(spec::process_slashings)".to_string())]),
                 },
             ),
             (
@@ -1146,10 +1107,7 @@ pub fn build_index() -> HashMap<&'static str, HashMap<&'static str, Auxillary>> 
                 Auxillary {
                     test_case_type_generics: "spec::BeaconState".to_string(),
                     preamble: Default::default(),
-                    execution_handler: HashMap::from_iter([(Spec::All, "execute(|state, context| {
-                        spec::process_sync_committee_updates(state, context)
-                })"
-                    .to_string())]),
+                    execution_handler: HashMap::from_iter([(Spec::All, "execute(spec::process_sync_committee_updates)".to_string())]),
                 },
             ),
         ])),
