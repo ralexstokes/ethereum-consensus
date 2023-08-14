@@ -17,7 +17,6 @@ pub use blinded_blob_sidecar::*;
 pub use blob_sidecar::*;
 pub use execution::*;
 pub use networking::*;
-pub use presets::Preset;
 
 pub use crate::{
     altair::{
