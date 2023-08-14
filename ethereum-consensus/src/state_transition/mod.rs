@@ -11,6 +11,8 @@ pub use context::*;
 pub use error::*;
 pub use executor::*;
 
+pub type Result<T> = std::result::Result<T, Error>;
+
 #[derive(Clone, Copy)]
 pub enum Validation {
     Enabled,

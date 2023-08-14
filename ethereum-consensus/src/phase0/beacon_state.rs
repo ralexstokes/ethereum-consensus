@@ -1,25 +1,14 @@
 use crate::{
     phase0::{
-        BeaconBlockHeader, Checkpoint, Eth1Data, Fork, PendingAttestation, Validator,
-        JUSTIFICATION_BITS_LENGTH,
+        beacon_block::BeaconBlockHeader,
+        constants::JUSTIFICATION_BITS_LENGTH,
+        fork::Fork,
+        operations::{Checkpoint, Eth1Data, PendingAttestation},
+        validator::Validator,
     },
-    primitives::{Bytes32, Epoch, Gwei, Root, Slot},
+    primitives::{Bytes32, Gwei, Root, Slot},
 };
 use ssz_rs::prelude::*;
-
-pub(super) const fn get_eth1_data_votes_bound(
-    epochs_per_eth1_voting_period: Epoch,
-    slots_per_epoch: usize,
-) -> usize {
-    epochs_per_eth1_voting_period as usize * slots_per_epoch
-}
-
-pub(super) const fn get_pending_attestations_bound(
-    max_attestations: usize,
-    slots_per_epoch: usize,
-) -> usize {
-    max_attestations * slots_per_epoch
-}
 
 #[derive(Default, Debug, SimpleSerialize)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]

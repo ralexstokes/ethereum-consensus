@@ -1,6 +1,24 @@
-use crate::altair as spec;
-
 use crate::{
+    altair::{
+        beacon_block::BeaconBlock,
+        beacon_state::BeaconState,
+        compute_domain, compute_epoch_at_slot,
+        constants::{
+            PARTICIPATION_FLAG_WEIGHTS, PROPOSER_WEIGHT, SYNC_REWARD_WEIGHT, WEIGHT_DENOMINATOR,
+        },
+        decrease_balance, get_attesting_indices, get_base_reward, get_beacon_committee,
+        get_beacon_proposer_index, get_block_root_at_slot, get_committee_count_per_slot,
+        get_current_epoch, get_domain, get_indexed_attestation, get_previous_epoch,
+        get_total_active_balance, get_validator_from_deposit,
+        helpers::{
+            add_flag, get_attestation_participation_flag_indices, get_base_reward_per_increment,
+            has_flag,
+        },
+        increase_balance, is_valid_indexed_attestation, process_block_header, process_eth1_data,
+        process_operations, process_randao,
+        sync::SyncAggregate,
+        Attestation, Deposit, DepositMessage, DEPOSIT_CONTRACT_TREE_DEPTH,
+    },
     crypto::{eth_fast_aggregate_verify, verify_signature},
     domains::DomainType,
     primitives::{BlsPublicKey, ParticipationFlags, ValidatorIndex},
@@ -9,17 +27,6 @@ use crate::{
         invalid_operation_error, Context, InvalidAttestation, InvalidDeposit, InvalidOperation,
         InvalidSyncAggregate, Result,
     },
-};
-use spec::{
-    add_flag, compute_domain, compute_epoch_at_slot, decrease_balance,
-    get_attestation_participation_flag_indices, get_attesting_indices, get_base_reward,
-    get_base_reward_per_increment, get_beacon_committee, get_beacon_proposer_index,
-    get_block_root_at_slot, get_committee_count_per_slot, get_current_epoch, get_domain,
-    get_indexed_attestation, get_previous_epoch, get_total_active_balance,
-    get_validator_from_deposit, has_flag, increase_balance, is_valid_indexed_attestation,
-    process_block_header, process_eth1_data, process_operations, process_randao, Attestation,
-    BeaconBlock, BeaconState, Deposit, DepositMessage, SyncAggregate, DEPOSIT_CONTRACT_TREE_DEPTH,
-    PARTICIPATION_FLAG_WEIGHTS, PROPOSER_WEIGHT, SYNC_REWARD_WEIGHT, WEIGHT_DENOMINATOR,
 };
 use ssz_rs::prelude::*;
 use std::{

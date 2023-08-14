@@ -1,7 +1,9 @@
 use crate::{
     altair::{
-        add_flag, get_attestation_participation_flag_indices, get_attesting_indices,
-        get_next_sync_committee, BeaconState, Fork,
+        beacon_state::BeaconState,
+        get_attesting_indices,
+        helpers::{add_flag, get_attestation_participation_flag_indices, get_next_sync_committee},
+        Fork,
     },
     phase0,
     state_transition::{Context, Result},

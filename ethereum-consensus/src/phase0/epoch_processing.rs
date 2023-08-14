@@ -1,18 +1,20 @@
-use crate::phase0 as spec;
-
 use crate::{
+    phase0::{
+        beacon_state::{BeaconState, HistoricalSummary},
+        constants::{BASE_REWARDS_PER_EPOCH, JUSTIFICATION_BITS_LENGTH},
+        helpers::{
+            compute_activation_exit_epoch, decrease_balance, get_attesting_indices, get_block_root,
+            get_block_root_at_slot, get_current_epoch, get_eligible_validator_indices,
+            get_previous_epoch, get_randao_mix, get_total_active_balance, get_total_balance,
+            get_validator_churn_limit, increase_balance, initiate_validator_exit,
+            is_active_validator, is_eligible_for_activation, is_eligible_for_activation_queue,
+        },
+        operations::{Checkpoint, PendingAttestation},
+    },
     primitives::{Epoch, Gwei, ValidatorIndex, GENESIS_EPOCH},
     state_transition::{Context, Error, Result},
 };
 use integer_sqrt::IntegerSquareRoot;
-use spec::{
-    compute_activation_exit_epoch, decrease_balance, get_attesting_indices, get_block_root,
-    get_block_root_at_slot, get_current_epoch, get_eligible_validator_indices, get_previous_epoch,
-    get_randao_mix, get_total_active_balance, get_total_balance, get_validator_churn_limit,
-    increase_balance, initiate_validator_exit, is_active_validator, is_eligible_for_activation,
-    is_eligible_for_activation_queue, BeaconState, Checkpoint, HistoricalSummary,
-    PendingAttestation, BASE_REWARDS_PER_EPOCH, JUSTIFICATION_BITS_LENGTH,
-};
 use ssz_rs::prelude::*;
 use std::{collections::HashSet, mem};
 

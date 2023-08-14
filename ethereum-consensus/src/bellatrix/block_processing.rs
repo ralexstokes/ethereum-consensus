@@ -1,11 +1,11 @@
-use crate::bellatrix as spec;
-
-use crate::state_transition::{invalid_operation_error, Context, InvalidExecutionPayload, Result};
-use spec::{
-    compute_timestamp_at_slot, get_current_epoch, get_randao_mix, is_execution_enabled,
-    is_merge_transition_complete, process_block_header, process_eth1_data, process_operations,
-    process_randao, process_sync_aggregate, BeaconBlock, BeaconState, ExecutionEngine,
-    ExecutionPayload, ExecutionPayloadHeader,
+use crate::{
+    bellatrix::{
+        compute_timestamp_at_slot, get_current_epoch, get_randao_mix, is_execution_enabled,
+        is_merge_transition_complete, process_block_header, process_eth1_data, process_operations,
+        process_randao, process_sync_aggregate, BeaconBlock, BeaconState, ExecutionEngine,
+        ExecutionPayload, ExecutionPayloadHeader,
+    },
+    state_transition::{invalid_operation_error, Context, InvalidExecutionPayload, Result},
 };
 use ssz_rs::prelude::*;
 

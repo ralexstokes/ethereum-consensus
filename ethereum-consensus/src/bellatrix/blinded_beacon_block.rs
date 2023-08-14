@@ -1,8 +1,7 @@
 use crate::{
-    altair::SyncAggregate,
-    bellatrix::ExecutionPayloadHeader,
-    phase0::{
-        Attestation, AttesterSlashing, Deposit, Eth1Data, ProposerSlashing, SignedVoluntaryExit,
+    bellatrix::{
+        Attestation, AttesterSlashing, Deposit, Eth1Data, ExecutionPayloadHeader, ProposerSlashing,
+        SignedVoluntaryExit, SyncAggregate,
     },
     primitives::{BlsSignature, Bytes32, Root, Slot, ValidatorIndex},
 };

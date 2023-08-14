@@ -1,7 +1,8 @@
 use crate::{
-    altair::SyncCommittee,
-    bellatrix::ExecutionPayloadHeader,
-    phase0::{BeaconBlockHeader, Checkpoint, Eth1Data, Fork, Validator, JUSTIFICATION_BITS_LENGTH},
+    bellatrix::{
+        BeaconBlockHeader, Checkpoint, Eth1Data, ExecutionPayloadHeader, Fork, SyncCommittee,
+        Validator, JUSTIFICATION_BITS_LENGTH,
+    },
     primitives::{Bytes32, Gwei, ParticipationFlags, Root, Slot},
 };
 use ssz_rs::prelude::*;

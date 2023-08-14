@@ -1,6 +1,18 @@
-use crate::altair as spec;
-
 use crate::{
+    altair::{
+        beacon_state::BeaconState,
+        compute_shuffled_index,
+        constants::{
+            PARTICIPATION_FLAG_WEIGHTS, PROPOSER_WEIGHT, TIMELY_HEAD_FLAG_INDEX,
+            TIMELY_SOURCE_FLAG_INDEX, TIMELY_TARGET_FLAG_INDEX, WEIGHT_DENOMINATOR,
+        },
+        decrease_balance, get_active_validator_indices, get_base_reward, get_beacon_proposer_index,
+        get_block_root, get_block_root_at_slot, get_current_epoch, get_eligible_validator_indices,
+        get_previous_epoch, get_seed, get_total_active_balance, get_total_balance,
+        increase_balance, initiate_validator_exit, is_in_inactivity_leak,
+        sync::SyncCommittee,
+        AttestationData,
+    },
     crypto::{eth_aggregate_public_keys, hash},
     domains::DomainType,
     primitives::{BlsPublicKey, Epoch, Gwei, ParticipationFlags, ValidatorIndex},
@@ -9,14 +21,6 @@ use crate::{
     },
 };
 use integer_sqrt::IntegerSquareRoot;
-use spec::{
-    compute_shuffled_index, decrease_balance, get_active_validator_indices, get_base_reward,
-    get_beacon_proposer_index, get_block_root, get_block_root_at_slot, get_current_epoch,
-    get_eligible_validator_indices, get_previous_epoch, get_seed, get_total_active_balance,
-    get_total_balance, increase_balance, initiate_validator_exit, is_in_inactivity_leak,
-    AttestationData, BeaconState, SyncCommittee, PARTICIPATION_FLAG_WEIGHTS, PROPOSER_WEIGHT,
-    TIMELY_HEAD_FLAG_INDEX, TIMELY_SOURCE_FLAG_INDEX, TIMELY_TARGET_FLAG_INDEX, WEIGHT_DENOMINATOR,
-};
 use ssz_rs::Vector;
 use std::collections::HashSet;
 

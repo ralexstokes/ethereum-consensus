@@ -1,5 +1,5 @@
 use crate::{
-    phase0::{SignedBeaconBlockHeader, DEPOSIT_CONTRACT_TREE_DEPTH},
+    phase0::{beacon_block::SignedBeaconBlockHeader, constants::DEPOSIT_CONTRACT_TREE_DEPTH},
     primitives::{
         BlsPublicKey, BlsSignature, Bytes32, CommitteeIndex, Epoch, Gwei, Hash32, Root, Slot,
         ValidatorIndex,
