@@ -1,10 +1,8 @@
-use crate::phase0 as spec;
-
 use crate::{
+    phase0::{beacon_state::BeaconState, epoch_processing::process_epoch},
     primitives::{Root, Slot},
     state_transition::{Context, Error, Result},
 };
-use spec::{process_epoch, BeaconState};
 use ssz_rs::prelude::*;
 
 pub fn process_slots<

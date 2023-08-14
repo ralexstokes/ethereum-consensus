@@ -1,13 +1,14 @@
-use crate::altair as spec;
-
 use crate::{
-    phase0::DEPOSIT_DATA_LIST_BOUND,
+    altair::{
+        beacon_block::{BeaconBlock, BeaconBlockBody},
+        beacon_state::BeaconState,
+        block_processing::process_deposit,
+        get_active_validator_indices,
+        helpers::get_next_sync_committee,
+        BeaconBlockHeader, Deposit, DepositData, Eth1Data, Fork, DEPOSIT_DATA_LIST_BOUND,
+    },
     primitives::{Gwei, Hash32, GENESIS_EPOCH},
     state_transition::{Context, Result},
-};
-use spec::{
-    get_active_validator_indices, get_next_sync_committee, process_deposit, BeaconBlock,
-    BeaconBlockBody, BeaconBlockHeader, BeaconState, Deposit, DepositData, Eth1Data, Fork,
 };
 use ssz_rs::prelude::*;
 

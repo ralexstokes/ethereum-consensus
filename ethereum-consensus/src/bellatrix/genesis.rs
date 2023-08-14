@@ -1,14 +1,11 @@
-use crate::bellatrix as spec;
-
 use crate::{
-    phase0::DEPOSIT_DATA_LIST_BOUND,
+    bellatrix::{
+        get_active_validator_indices, get_next_sync_committee, process_deposit, BeaconBlock,
+        BeaconBlockBody, BeaconBlockHeader, BeaconState, Deposit, DepositData, Eth1Data,
+        ExecutionPayloadHeader, Fork, DEPOSIT_DATA_LIST_BOUND,
+    },
     primitives::{Gwei, Hash32, GENESIS_EPOCH},
     state_transition::{Context, Result},
-};
-use spec::{
-    get_active_validator_indices, get_next_sync_committee, process_deposit, BeaconBlock,
-    BeaconBlockBody, BeaconBlockHeader, BeaconState, Deposit, DepositData, Eth1Data,
-    ExecutionPayloadHeader, Fork,
 };
 use ssz_rs::prelude::*;
 

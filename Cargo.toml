@@ -1,4 +1,4 @@
 [workspace]
 resolver = "2"
 
-members = ["ethereum-consensus", "test-gen", "ethereum-consensus-spec-gen"]
+members = ["ethereum-consensus", "test-gen", "spec-gen"]

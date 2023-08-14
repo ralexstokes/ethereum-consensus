@@ -1,5 +1,5 @@
 use crate::{
-    phase0::{
+    phase0::operations::{
         Attestation, AttesterSlashing, Deposit, Eth1Data, ProposerSlashing, SignedVoluntaryExit,
     },
     primitives::{BlsSignature, Bytes32, Root, Slot, ValidatorIndex},

@@ -1,16 +1,14 @@
-use crate::bellatrix as spec;
-
 use crate::{
+    bellatrix::{
+        decrease_balance, get_current_epoch, get_total_active_balance,
+        process_effective_balance_updates, process_eth1_data_reset,
+        process_historical_roots_update, process_inactivity_updates,
+        process_justification_and_finalization, process_participation_flag_updates,
+        process_randao_mixes_reset, process_registry_updates, process_rewards_and_penalties,
+        process_slashings_reset, process_sync_committee_updates, BeaconState,
+    },
     primitives::Gwei,
     state_transition::{Context, Result},
-};
-use spec::{
-    decrease_balance, get_current_epoch, get_total_active_balance,
-    process_effective_balance_updates, process_eth1_data_reset, process_historical_roots_update,
-    process_inactivity_updates, process_justification_and_finalization,
-    process_participation_flag_updates, process_randao_mixes_reset, process_registry_updates,
-    process_rewards_and_penalties, process_slashings_reset, process_sync_committee_updates,
-    BeaconState,
 };
 
 pub fn process_slashings<

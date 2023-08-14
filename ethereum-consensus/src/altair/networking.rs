@@ -1,4 +1,6 @@
-use crate::{altair::validator::SYNC_COMMITTEE_SUBNET_COUNT, phase0::ATTESTATION_SUBNET_COUNT};
+use crate::{
+    altair::constants::SYNC_COMMITTEE_SUBNET_COUNT, phase0::networking::ATTESTATION_SUBNET_COUNT,
+};
 use ssz_rs::prelude::Bitvector;
 
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]

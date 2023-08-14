@@ -1,7 +1,11 @@
-use crate::phase0 as spec;
-
-use crate::state_transition::{Context, Error, Result, Validation};
-use spec::{process_block, process_slots, verify_block_signature, BeaconState, SignedBeaconBlock};
+use crate::{
+    phase0::{
+        beacon_block::SignedBeaconBlock, beacon_state::BeaconState,
+        block_processing::process_block, helpers::verify_block_signature,
+        slot_processing::process_slots,
+    },
+    state_transition::{Context, Error, Result, Validation},
+};
 use ssz_rs::prelude::*;
 
 // `state_transition_block_in_slot` is separated out

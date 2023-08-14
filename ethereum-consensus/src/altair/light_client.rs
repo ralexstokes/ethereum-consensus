@@ -1,6 +1,8 @@
 use crate::{
-    altair::{SyncAggregate, SyncCommittee},
-    phase0::BeaconBlockHeader,
+    altair::{
+        sync::{SyncAggregate, SyncCommittee},
+        BeaconBlockHeader,
+    },
     primitives::{Bytes32, Slot},
 };
 use ssz_rs::prelude::*;

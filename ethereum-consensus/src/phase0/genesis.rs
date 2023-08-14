@@ -1,12 +1,15 @@
-use crate::phase0 as spec;
-
 use crate::{
+    phase0::{
+        beacon_block::{BeaconBlock, BeaconBlockBody, BeaconBlockHeader},
+        beacon_state::BeaconState,
+        block_processing::process_deposit,
+        constants::DEPOSIT_DATA_LIST_BOUND,
+        fork::Fork,
+        helpers::get_active_validator_indices,
+        operations::{Deposit, DepositData, Eth1Data},
+    },
     primitives::{Gwei, Hash32, GENESIS_EPOCH},
     state_transition::{Context, Result},
-};
-use spec::{
-    get_active_validator_indices, process_deposit, BeaconBlock, BeaconBlockBody, BeaconBlockHeader,
-    BeaconState, Deposit, DepositData, Eth1Data, Fork, DEPOSIT_DATA_LIST_BOUND,
 };
 use ssz_rs::prelude::*;
 

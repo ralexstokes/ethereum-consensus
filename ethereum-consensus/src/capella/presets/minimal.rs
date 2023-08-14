@@ -1,9 +1,9 @@
 pub use crate::{
     altair::minimal::{
         AggregateAndProof, Attestation, AttesterSlashing, ContributionAndProof, HistoricalBatch,
-        IndexedAttestation, LightClientUpdate, PendingAttestation, SignedAggregateAndProof,
-        SignedContributionAndProof, SyncAggregate, SyncCommittee, SyncCommitteeContribution,
-        SyncCommitteeMessage, SYNC_COMMITTEE_SIZE,
+        IndexedAttestation, LightClientUpdate, SignedAggregateAndProof, SignedContributionAndProof,
+        SyncAggregate, SyncCommittee, SyncCommitteeContribution, SyncCommitteeMessage,
+        SYNC_COMMITTEE_SIZE,
     },
     bellatrix::minimal::{
         Transaction, BYTES_PER_LOGS_BLOOM, MAX_BYTES_PER_TRANSACTION, MAX_EXTRA_DATA_BYTES,

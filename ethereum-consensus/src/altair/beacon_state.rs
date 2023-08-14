@@ -1,6 +1,6 @@
 use crate::{
     altair::{
-        BeaconBlockHeader, Checkpoint, Eth1Data, Fork, SyncCommittee, Validator,
+        sync::SyncCommittee, BeaconBlockHeader, Checkpoint, Eth1Data, Fork, Validator,
         JUSTIFICATION_BITS_LENGTH,
     },
     primitives::{Bytes32, Gwei, ParticipationFlags, Root, Slot},
