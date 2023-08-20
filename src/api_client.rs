@@ -58,8 +58,8 @@ async fn api_error_or_value<T: serde::de::DeserializeOwned>(
 #[allow(clippy::type_complexity)]
 #[derive(Clone)]
 pub struct Client<A, B, C, D, E, F, G, H, I, J> {
-    http: reqwest::Client,
-    endpoint: Url,
+    pub http: reqwest::Client,
+    pub endpoint: Url,
     _phantom: std::marker::PhantomData<(A, B, C, D, E, F, G, H, I, J)>,
 }
 
