@@ -286,18 +286,16 @@ impl Context {
         }
     }
 
-    pub fn clock(&self, genesis_time: Option<u64>) -> Clock<SystemTimeProvider> {
+    pub fn clock(&self) -> Option<Clock<SystemTimeProvider>> {
         match self.name.as_ref() {
-            "mainnet" => clock::for_mainnet(),
-            "sepolia" => clock::for_sepolia(),
-            "goerli" => clock::for_goerli(),
-            _ => {
-                // NOTE: the default genesis time here is usually seen on testnets
-                // where we have control over the genesis details
-                let genesis_time =
-                    genesis_time.unwrap_or(self.min_genesis_time + self.genesis_delay);
-                clock::from_system_time(genesis_time, self.seconds_per_slot, self.slots_per_epoch)
-            }
+            "mainnet" => Some(clock::for_mainnet()),
+            "sepolia" => Some(clock::for_sepolia()),
+            "goerli" => Some(clock::for_goerli()),
+            _ => None,
         }
+    }
+
+    pub fn clock_at(&self, genesis_time: u64) -> Clock<SystemTimeProvider> {
+        clock::from_system_time(genesis_time, self.seconds_per_slot, self.slots_per_epoch)
     }
 }

@@ -9,6 +9,7 @@ pub mod deneb;
 pub mod domains;
 pub mod kzg;
 pub mod networking;
+pub mod networks;
 pub mod phase0;
 pub mod primitives;
 #[cfg(feature = "serde")]
