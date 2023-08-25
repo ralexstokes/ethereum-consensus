@@ -2,6 +2,7 @@ pub mod goerli;
 pub mod mainnet;
 pub mod minimal;
 pub mod sepolia;
+pub mod holesky;
 
 use crate::primitives::{Epoch, ExecutionAddress, Gwei, Hash32, Version, U256};
 
