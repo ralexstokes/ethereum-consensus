@@ -262,6 +262,14 @@ impl Context {
         Self::from(phase0_preset, altair_preset, bellatrix_preset, config)
     }
 
+    pub fn for_holesky() -> Self {
+        let config = &configs::holesky::config();
+        let phase0_preset = &phase0::minimal::PRESET;
+        let altair_preset = &altair::minimal::PRESET;
+        let bellatrix_preset = &bellatrix::minimal::PRESET;
+        Self::from(phase0_preset, altair_preset, bellatrix_preset, config)
+    }
+
     pub fn fork_for(&self, slot: Slot) -> Forks {
         let epoch = slot / self.slots_per_epoch;
         if epoch >= self.deneb_fork_epoch {
