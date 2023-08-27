@@ -290,6 +290,7 @@ impl Context {
             "mainnet" => Ok(crate::clock::MAINNET_GENESIS_TIME),
             "sepolia" => Ok(crate::clock::SEPOLIA_GENESIS_TIME),
             "goerli" => Ok(crate::clock::GOERLI_GENESIS_TIME),
+            "holesky" => Ok(crate::clock::HOLESKY_GENESIS_TIME),
             name => Err(Error::UnknownGenesisTime(name.to_string())),
         }
     }
@@ -299,6 +300,7 @@ impl Context {
             "mainnet" => Some(clock::for_mainnet()),
             "sepolia" => Some(clock::for_sepolia()),
             "goerli" => Some(clock::for_goerli()),
+            "holesky" => Some(clock::for_holesky()),
             _ => None,
         }
     }
