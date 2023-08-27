@@ -3,10 +3,13 @@ use crate::{
     primitives::{Epoch, ExecutionAddress, Gwei, Version, FAR_FUTURE_EPOCH},
 };
 
-pub const MIN_GENESIS_ACTIVE_VALIDATOR_COUNT: usize = 1300;
-pub const MIN_GENESIS_TIME: u64 = 1655647200;
-pub const GENESIS_FORK_VERSION: Version = [144, 0, 0, 105];
-pub const GENESIS_DELAY: u64 = 86400;
+// `2**14` (= 16,384)
+pub const MIN_GENESIS_ACTIVE_VALIDATOR_COUNT: usize = 16384;
+pub const MIN_GENESIS_TIME: u64 = 1694786100;
+// 0x00017000
+pub const GENESIS_FORK_VERSION: Version = [0, 1, 112, 0];
+// Genesis delay 5 seconds
+pub const GENESIS_DELAY: u64 = 300;
 pub const SECONDS_PER_SLOT: u64 = 12;
 pub const SECONDS_PER_ETH1_BLOCK: u64 = 14;
 pub const MIN_VALIDATOR_WITHDRAWABILITY_DELAY: Epoch = 256;
@@ -16,19 +19,33 @@ pub const EJECTION_BALANCE: Gwei = 16 * 10u64.pow(9);
 pub const MIN_PER_EPOCH_CHURN_LIMIT: u64 = 4;
 pub const CHURN_LIMIT_QUOTIENT: u64 = 65536;
 pub const TERMINAL_BLOCK_HASH_ACTIVATION_EPOCH: Epoch = FAR_FUTURE_EPOCH;
-pub const ALTAIR_FORK_VERSION: Version = [144, 0, 0, 112];
-pub const ALTAIR_FORK_EPOCH: Epoch = 50;
-pub const BELLATRIX_FORK_VERSION: Version = [144, 0, 0, 113];
-pub const BELLATRIX_FORK_EPOCH: Epoch = 100;
-pub const CAPELLA_FORK_VERSION: Version = [144, 0, 0, 114];
-pub const CAPELLA_FORK_EPOCH: Epoch = 56832;
+// 0x10017000
+pub const ALTAIR_FORK_VERSION: Version = [16, 1, 112, 0];
+pub const ALTAIR_FORK_EPOCH: Epoch = 0;
+// 0x20017000
+pub const BELLATRIX_FORK_VERSION: Version = [32, 1, 112, 0];
+pub const BELLATRIX_FORK_EPOCH: Epoch = 0;
+// 0x30017000
+pub const CAPELLA_FORK_VERSION: Version = [48, 1, 112, 0];
+pub const CAPELLA_FORK_EPOCH: Epoch = 256;
+// 0x40017000
 pub const DENEB_FORK_VERSION: Version = [4, 0, 16, 32];
 pub const DENEB_FORK_EPOCH: Epoch = FAR_FUTURE_EPOCH;
+
 pub const INACTIVITY_SCORE_BIAS: u64 = 4;
 pub const INACTIVITY_SCORE_RECOVERY_RATE: u64 = 16;
 pub const PROPOSER_SCORE_BOOST: u64 = 40;
 pub const DEPOSIT_CHAIN_ID: usize = 17000;
 pub const DEPOSIT_NETWORK_ID: usize = 17000;
+
+// Deneb
+pub const MAX_REQUEST_BLOCKS_DENEB: u64 = 128;
+pub const MAX_BLOBS_PER_BLOCK: u64 = 6;
+// MAX_REQUEST_BLOCKS_DENEB*MAX_BLOBS_PER_BLOCK
+pub const MAX_REQUEST_BLOB_SIDECARS: u64 = 768;
+// 2**12 (= 4096 epochs, ~18 days)
+pub const MIN_EPOCHS_FOR_BLOB_SIDECARS_REQUEST: u64 = 4096;
+pub const BLOB_SIDECAR_SUBNET_COUNT: u64 = 6;
 
 pub fn config() -> Config {
     // 0
