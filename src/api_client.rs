@@ -12,13 +12,9 @@ use crate::{
     ApiError, Error,
 };
 use ethereum_consensus::{
-    altair::{
-        LightClientBootstrap, LightClientFinalityUpdate, LightClientOptimisticUpdate,
-        LightClientUpdate, SyncCommitteeMessage,
-    },
+    altair::SyncCommitteeMessage,
     builder::SignedValidatorRegistration,
     capella::{SignedBlsToExecutionChange, Withdrawal},
-    deneb::BlobSidecar,
     networking::PeerId,
     phase0::{AttestationData, Fork, ProposerSlashing, SignedVoluntaryExit},
     primitives::{
@@ -57,10 +53,10 @@ async fn api_error_or_value<T: serde::de::DeserializeOwned>(
 
 #[allow(clippy::type_complexity)]
 #[derive(Clone)]
-pub struct Client<A, B, C, D, E, F, G, H, I, J> {
+pub struct Client<A, B, C, D, E, F, G, H, I, J, K, L, M, N, O> {
     pub http: reqwest::Client,
     pub endpoint: Url,
-    _phantom: std::marker::PhantomData<(A, B, C, D, E, F, G, H, I, J)>,
+    _phantom: std::marker::PhantomData<(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O)>,
 }
 
 impl<
@@ -74,6 +70,11 @@ impl<
         BeaconState: serde::Serialize + serde::de::DeserializeOwned,
         SignedAggregateAndProof: serde::Serialize,
         SignedBeaconBlock: serde::Serialize + serde::de::DeserializeOwned,
+        BlobSidecar: serde::Serialize + serde::de::DeserializeOwned,
+        LightClientBootstrap: serde::Serialize + serde::de::DeserializeOwned,
+        LightClientUpdate: serde::Serialize + serde::de::DeserializeOwned,
+        LightClientFinalityUpdate: serde::Serialize + serde::de::DeserializeOwned,
+        LightClientOptimisticUpdate: serde::Serialize + serde::de::DeserializeOwned,
     >
     Client<
         SignedContributionAndProof,
@@ -86,6 +87,11 @@ impl<
         BeaconState,
         SignedAggregateAndProof,
         SignedBeaconBlock,
+        BlobSidecar,
+        LightClientBootstrap,
+        LightClientUpdate,
+        LightClientFinalityUpdate,
+        LightClientOptimisticUpdate,
     >
 {
     pub fn new_with_client<U: Into<Url>>(client: reqwest::Client, endpoint: U) -> Self {
@@ -383,11 +389,11 @@ impl<
         Ok(result.data)
     }
 
-    pub async fn get_blob_sidecars<const BYTES_PER_BLOB: usize>(
+    pub async fn get_blob_sidecars(
         &self,
         id: BlockId,
         indices: &[BlobIndex],
-    ) -> Result<Vec<BlobSidecar<BYTES_PER_BLOB>>, Error> {
+    ) -> Result<Vec<BlobSidecar>, Error> {
         let path = format!("eth/v1/beacon/blob_sidecars/{id}");
         let target = self.endpoint.join(&path)?;
         let mut request = self.http.get(target);
@@ -413,20 +419,20 @@ impl<
         Ok(result.data)
     }
 
-    pub async fn get_light_client_bootstrap<const SYNC_COMMITTEE_SIZE: usize>(
+    pub async fn get_light_client_bootstrap(
         &self,
         block: Root,
-    ) -> Result<LightClientBootstrap<SYNC_COMMITTEE_SIZE>, Error> {
-        let result: Value<LightClientBootstrap<SYNC_COMMITTEE_SIZE>> =
+    ) -> Result<LightClientBootstrap, Error> {
+        let result: Value<_> =
             self.get(&format!("eth/v1/beacon/light_client/bootstrap/{block}")).await?;
         Ok(result.data)
     }
 
-    pub async fn get_light_client_updates<const SYNC_COMMITTEE_SIZE: usize>(
+    pub async fn get_light_client_updates(
         &self,
         start: u64,
         count: u64,
-    ) -> Result<Vec<LightClientUpdate<SYNC_COMMITTEE_SIZE>>, Error> {
+    ) -> Result<Vec<LightClientUpdate>, Error> {
         let target = self.endpoint.join("eth/v1/beacon/light_client/updates")?;
         let mut request = self.http.get(target);
         request = request.query(&[("start_period", start), ("count", count)]);
@@ -439,19 +445,17 @@ impl<
         }
     }
 
-    pub async fn get_light_client_finality_update<const SYNC_COMMITTEE_SIZE: usize>(
+    pub async fn get_light_client_finality_update(
         &self,
-    ) -> Result<LightClientFinalityUpdate<SYNC_COMMITTEE_SIZE>, Error> {
-        let result: Value<LightClientFinalityUpdate<SYNC_COMMITTEE_SIZE>> =
-            self.get("eth/v1/beacon/light_client/finality_update").await?;
+    ) -> Result<LightClientFinalityUpdate, Error> {
+        let result: Value<_> = self.get("eth/v1/beacon/light_client/finality_update").await?;
         Ok(result.data)
     }
 
-    pub async fn get_light_client_optimistic_update<const SYNC_COMMITTEE_SIZE: usize>(
+    pub async fn get_light_client_optimistic_update(
         &self,
-    ) -> Result<LightClientOptimisticUpdate<SYNC_COMMITTEE_SIZE>, Error> {
-        let result: Value<LightClientOptimisticUpdate<SYNC_COMMITTEE_SIZE>> =
-            self.get("eth/v1/beacon/light_client/optimistic_update").await?;
+    ) -> Result<LightClientOptimisticUpdate, Error> {
+        let result: Value<_> = self.get("eth/v1/beacon/light_client/optimistic_update").await?;
         Ok(result.data)
     }
 
