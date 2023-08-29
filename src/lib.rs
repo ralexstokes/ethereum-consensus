@@ -34,7 +34,8 @@ mod error {
 pub mod presets {
     pub mod mainnet {
         use ethereum_consensus::{
-            altair::mainnet as altair, bellatrix::mainnet as bellatrix, phase0::mainnet as phase0,
+            altair::mainnet as altair, bellatrix::mainnet as bellatrix, deneb::mainnet as deneb,
+            phase0::mainnet as phase0,
         };
 
         pub type Client = crate::Client<
@@ -48,11 +49,17 @@ pub mod presets {
             phase0::BeaconState,
             phase0::SignedAggregateAndProof,
             phase0::SignedBeaconBlock,
+            deneb::BlobSidecar,
+            altair::LightClientBootstrap,
+            altair::LightClientUpdate,
+            altair::LightClientFinalityUpdate,
+            altair::LightClientOptimisticUpdate,
         >;
     }
     pub mod minimal {
         use ethereum_consensus::{
-            altair::minimal as altair, bellatrix::minimal as bellatrix, phase0::minimal as phase0,
+            altair::minimal as altair, bellatrix::minimal as bellatrix, deneb::minimal as deneb,
+            phase0::minimal as phase0,
         };
 
         pub type Client = crate::Client<
@@ -66,6 +73,11 @@ pub mod presets {
             phase0::BeaconState,
             phase0::SignedAggregateAndProof,
             phase0::SignedBeaconBlock,
+            deneb::BlobSidecar,
+            altair::LightClientBootstrap,
+            altair::LightClientUpdate,
+            altair::LightClientFinalityUpdate,
+            altair::LightClientOptimisticUpdate,
         >;
     }
 }
