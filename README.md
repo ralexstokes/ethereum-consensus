@@ -34,3 +34,16 @@ most circumstances.
 
 Refer to the code in `examples` for the suggested way to use this crate as a user. The intermediate types are laid out
 so that you can define your own customizations but you can likely use the defaults.
+
+# Support for presets
+
+These crates provide support for the "preset" concept found in the `consensus-specs`. The `minimal` and `mainnet` presets are provided for each fork as hard-coded instances. If you need to support another type of preset, you can make your own using the generic types. Refer to an existing preset, like `ethereum_consensus::bellatrix::presets::minimal`, for an example.
+
+# Support for networks
+
+These crates also support several popular networks. This generally boils down to specific config, for example `ethereum_consensus::configs::goerli::Config`.
+
+To add support for a new network, you can:
+
+1.  add a new module under `ethereum_consensus::configs` using an existing network as a template
+2. add the network's `genesis_time` and support for a `Clock` for that network in `ethereum_consensus::clock`
