@@ -1,3 +1,5 @@
+use ssz_rs::U256;
+
 use crate::{
     configs::Config,
     primitives::{Epoch, ExecutionAddress, Gwei, Version, FAR_FUTURE_EPOCH},
@@ -5,17 +7,17 @@ use crate::{
 
 // `2**14` (= 16,384)
 pub const MIN_GENESIS_ACTIVE_VALIDATOR_COUNT: usize = 16384;
-pub const MIN_GENESIS_TIME: u64 = 1694786100;
+pub const MIN_GENESIS_TIME: u64 = 1694786400;
 // 0x00017000
 pub const GENESIS_FORK_VERSION: Version = [0, 1, 112, 0];
-// Genesis delay 5 seconds
+// Genesis delay 5 minutes
 pub const GENESIS_DELAY: u64 = 300;
 pub const SECONDS_PER_SLOT: u64 = 12;
 pub const SECONDS_PER_ETH1_BLOCK: u64 = 14;
 pub const MIN_VALIDATOR_WITHDRAWABILITY_DELAY: Epoch = 256;
 pub const SHARD_COMMITTEE_PERIOD: Epoch = 256;
 pub const ETH1_FOLLOW_DISTANCE: u64 = 2048;
-pub const EJECTION_BALANCE: Gwei = 16 * 10u64.pow(9);
+pub const EJECTION_BALANCE: Gwei = 28 * 10u64.pow(9);
 pub const MIN_PER_EPOCH_CHURN_LIMIT: u64 = 4;
 pub const CHURN_LIMIT_QUOTIENT: u64 = 65536;
 pub const TERMINAL_BLOCK_HASH_ACTIVATION_EPOCH: Epoch = FAR_FUTURE_EPOCH;
@@ -29,7 +31,7 @@ pub const BELLATRIX_FORK_EPOCH: Epoch = 0;
 pub const CAPELLA_FORK_VERSION: Version = [48, 1, 112, 0];
 pub const CAPELLA_FORK_EPOCH: Epoch = 256;
 // 0x40017000
-pub const DENEB_FORK_VERSION: Version = [4, 0, 16, 32];
+pub const DENEB_FORK_VERSION: Version = [64, 1, 112, 0];
 pub const DENEB_FORK_EPOCH: Epoch = FAR_FUTURE_EPOCH;
 
 pub const INACTIVITY_SCORE_BIAS: u64 = 4;
@@ -38,18 +40,8 @@ pub const PROPOSER_SCORE_BOOST: u64 = 40;
 pub const DEPOSIT_CHAIN_ID: usize = 17000;
 pub const DEPOSIT_NETWORK_ID: usize = 17000;
 
-// Deneb
-pub const MAX_REQUEST_BLOCKS_DENEB: u64 = 128;
-pub const MAX_BLOBS_PER_BLOCK: u64 = 6;
-// MAX_REQUEST_BLOCKS_DENEB*MAX_BLOBS_PER_BLOCK
-pub const MAX_REQUEST_BLOB_SIDECARS: u64 = 768;
-// 2**12 (= 4096 epochs, ~18 days)
-pub const MIN_EPOCHS_FOR_BLOB_SIDECARS_REQUEST: u64 = 4096;
-pub const BLOB_SIDECAR_SUBNET_COUNT: u64 = 6;
-
 pub fn config() -> Config {
-    // 0
-    let terminal_total_difficulty = 0u64.into();
+    let terminal_total_difficulty = U256::zero();
     let terminal_block_hash = Default::default();
     let deposit_contract_address = ExecutionAddress::try_from(
         [
