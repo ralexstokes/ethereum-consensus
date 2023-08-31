@@ -38,6 +38,12 @@ pub type SyncAggregate = spec::SyncAggregate<SYNC_COMMITTEE_SIZE>;
 pub type SyncCommittee = spec::SyncCommittee<SYNC_COMMITTEE_SIZE>;
 
 pub type LightClientUpdate = crate::altair::light_client::LightClientUpdate<SYNC_COMMITTEE_SIZE>;
+pub type LightClientBootstrap =
+    crate::altair::light_client::LightClientBootstrap<SYNC_COMMITTEE_SIZE>;
+pub type LightClientFinalityUpdate =
+    crate::altair::light_client::LightClientFinalityUpdate<SYNC_COMMITTEE_SIZE>;
+pub type LightClientOptimisticUpdate =
+    crate::altair::light_client::LightClientOptimisticUpdate<SYNC_COMMITTEE_SIZE>;
 
 pub type BeaconState = spec::BeaconState<
     SLOTS_PER_HISTORICAL_ROOT,
