@@ -13,6 +13,10 @@ pub const MAINNET_GENESIS_TIME: u64 = 1606824023;
 pub const SEPOLIA_GENESIS_TIME: u64 = 1655733600;
 pub const GOERLI_GENESIS_TIME: u64 = 1616508000;
 
+fn slot_to_seconds(slot: Slot, seconds_per_slot: u64, genesis_time: u64) -> u64 {
+    slot * seconds_per_slot + genesis_time
+}
+
 pub fn convert_timestamp_to_slot(
     timestamp: u64,
     genesis_time: u64,
@@ -132,6 +136,13 @@ impl<T: TimeProvider + Send + Sync> Clock<T> {
         slot / self.slots_per_epoch
     }
 
+    pub fn duration_until_slot(&self, slot: Slot) -> Duration {
+        let current_time = self.get_current_time();
+        let target_slot_in_seconds =
+            slot_to_seconds(slot, self.seconds_per_slot, self.genesis_time);
+        Duration::from_secs(target_slot_in_seconds - current_time)
+    }
+
     pub fn duration_until_next_slot(&self) -> Duration {
         let current_time = self.get_current_time();
         if self.before_genesis_at(current_time) {
@@ -139,8 +150,9 @@ impl<T: TimeProvider + Send + Sync> Clock<T> {
         } else {
             let current_slot = self.slot_at_time(current_time).expect("is after genesis");
             let next_slot = current_slot + 1;
-            let next_slot_in_secs = next_slot * self.seconds_per_slot + self.genesis_time;
-            Duration::from_secs(next_slot_in_secs - current_time)
+            let target_slot_in_seconds =
+                slot_to_seconds(next_slot, self.seconds_per_slot, self.genesis_time);
+            Duration::from_secs(target_slot_in_seconds - current_time)
         }
     }
 }
