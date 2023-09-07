@@ -1,5 +1,5 @@
+use crate::deneb::polynomial_commitments::{KzgCommitment, KzgProof};
 use crate::{
-    kzg::{KzgCommitment, KzgProof},
     primitives::{BlobIndex, BlsSignature, Root, Slot, ValidatorIndex},
     ssz::prelude::*,
 };

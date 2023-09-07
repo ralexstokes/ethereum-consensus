@@ -4,7 +4,7 @@ use crate::{
     bellatrix::blinded_beacon_block as bellatrix,
     capella::{blinded_beacon_block as capella, SignedBlsToExecutionChange},
     deneb::blinded_beacon_block as deneb,
-    kzg::KzgCommitment,
+    deneb::polynomial_commitments::KzgCommitment,
     phase0::{
         Attestation, AttesterSlashing, Deposit, Eth1Data, ProposerSlashing, SignedVoluntaryExit,
     },

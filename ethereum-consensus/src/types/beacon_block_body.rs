@@ -4,7 +4,7 @@ use crate::{
     bellatrix::beacon_block as bellatrix,
     capella::{beacon_block as capella, SignedBlsToExecutionChange},
     deneb::beacon_block as deneb,
-    kzg::KzgCommitment,
+    deneb::polynomial_commitments::KzgCommitment,
     phase0::{
         beacon_block as phase0, Attestation, AttesterSlashing, Deposit, Eth1Data, ProposerSlashing,
         SignedVoluntaryExit,

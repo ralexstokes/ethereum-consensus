@@ -14,6 +14,7 @@ pub mod fork;
 pub mod genesis;
 pub mod helpers;
 pub mod networking;
+pub mod polynomial_commitments;
 pub mod presets;
 pub mod spec;
 
