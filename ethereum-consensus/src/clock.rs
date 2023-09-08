@@ -144,11 +144,16 @@ impl<T: TimeProvider + Send + Sync> Clock<T> {
         slot / self.slots_per_epoch
     }
 
+    // Return a `Duration` until the provided `slot` relative to the current time as determined
+    // by the clock. If `slot` is in the past, return a `Duration` of 0.
     pub fn duration_until_slot(&self, slot: Slot) -> Duration {
         let current_time = self.get_current_time();
         let target_slot_in_seconds =
             slot_to_seconds(slot, self.seconds_per_slot, self.genesis_time);
-        Duration::from_secs(target_slot_in_seconds - current_time)
+        target_slot_in_seconds
+            .checked_sub(current_time)
+            .map(Duration::from_secs)
+            .unwrap_or_default()
     }
 
     pub fn duration_until_next_slot(&self) -> Duration {
@@ -160,10 +165,13 @@ impl<T: TimeProvider + Send + Sync> Clock<T> {
             let next_slot = current_slot + 1;
             let target_slot_in_seconds =
                 slot_to_seconds(next_slot, self.seconds_per_slot, self.genesis_time);
+            // safety: `target_slot_in_seconds` >= `current_time` always
             Duration::from_secs(target_slot_in_seconds - current_time)
         }
     }
 }
+
+pub type SystemClock = Clock<SystemTimeProvider>;
 
 #[cfg(feature = "async")]
 use tokio_stream::Stream;
