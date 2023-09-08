@@ -14,10 +14,17 @@ pub const SEPOLIA_GENESIS_TIME: u64 = 1655733600;
 pub const GOERLI_GENESIS_TIME: u64 = 1616508000;
 pub const HOLESKY_GENESIS_TIME: u64 = 1694786400;
 
-fn slot_to_seconds(slot: Slot, seconds_per_slot: u64, genesis_time: u64) -> u64 {
-    slot * seconds_per_slot + genesis_time
+fn slot_to_nanos(slot: Slot, seconds_per_slot: u128, genesis_time: u128) -> u128 {
+    u128::from(slot) * seconds_per_slot + genesis_time
 }
 
+#[inline]
+fn u128_to_u64(t: u128) -> u64 {
+    u64::try_from(t).expect("close enough to `UNIX_EPOCH` to fit in type")
+}
+
+/// Converts `timestamp` with **second** precision to a `Slot`.
+/// Returns `None` if `timestamp` is before the `genesis_time`.
 pub fn convert_timestamp_to_slot(
     timestamp: u64,
     genesis_time: u64,
@@ -27,20 +34,32 @@ pub fn convert_timestamp_to_slot(
     Some(delta / seconds_per_slot)
 }
 
-pub fn get_current_unix_time_in_secs() -> u64 {
-    SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_secs()
+/// Converts `timestamp` with **nanosecond** precision to a `Slot`.
+/// Returns `None` if `timestamp` is before the `genesis_time`.
+pub fn convert_timestamp_nanos_to_slot(
+    timestamp: u128,
+    genesis_time: u128,
+    seconds_per_slot: u128,
+) -> Option<Slot> {
+    let delta = timestamp.checked_sub(genesis_time)?;
+    Some(u128_to_u64(delta / seconds_per_slot))
+}
+
+pub fn get_current_unix_time_in_nanos() -> u128 {
+    SystemTime::now().duration_since(UNIX_EPOCH).expect("after `UNIX_EPOCH`").as_nanos()
 }
 
 pub trait TimeProvider {
-    fn get_current_time(&self) -> u64;
+    // Provide the current time to **nanosecond** precision.
+    fn get_current_time(&self) -> u128;
 }
 
 #[derive(Clone)]
 pub struct SystemTimeProvider;
 
 impl TimeProvider for SystemTimeProvider {
-    fn get_current_time(&self) -> u64 {
-        get_current_unix_time_in_secs()
+    fn get_current_time(&self) -> u128 {
+        get_current_unix_time_in_nanos()
     }
 }
 
@@ -56,8 +75,8 @@ impl<T: TimeProvider + Send + Sync> Deref for Clock<T> {
 }
 
 pub struct Inner<T: TimeProvider> {
-    genesis_time: u64,
-    seconds_per_slot: u64,
+    genesis_time: u128,
+    seconds_per_slot: u128,
     slots_per_epoch: Slot,
     time_provider: T,
 }
@@ -106,11 +125,13 @@ impl<T: TimeProvider + Send + Sync> Clock<T> {
         slots_per_epoch: Slot,
         time_provider: T,
     ) -> Self {
+        let genesis_time = Duration::from_secs(genesis_time).as_nanos();
+        let seconds_per_slot = Duration::from_secs(seconds_per_slot).as_nanos();
         let inner = Inner { genesis_time, seconds_per_slot, slots_per_epoch, time_provider };
         Self(Arc::new(inner))
     }
 
-    fn get_current_time(&self) -> u64 {
+    fn get_current_time(&self) -> u128 {
         self.time_provider.get_current_time()
     }
 
@@ -119,7 +140,7 @@ impl<T: TimeProvider + Send + Sync> Clock<T> {
     }
 
     #[inline]
-    fn before_genesis_at(&self, current_time: u64) -> bool {
+    fn before_genesis_at(&self, current_time: u128) -> bool {
         current_time < self.genesis_time
     }
 
@@ -129,8 +150,8 @@ impl<T: TimeProvider + Send + Sync> Clock<T> {
     }
 
     #[inline]
-    pub fn slot_at_time(&self, current_time: u64) -> Option<Slot> {
-        convert_timestamp_to_slot(current_time, self.genesis_time, self.seconds_per_slot)
+    pub fn slot_at_time(&self, current_time: u128) -> Option<Slot> {
+        convert_timestamp_nanos_to_slot(current_time, self.genesis_time, self.seconds_per_slot)
     }
 
     // Return the current epoch, or `None` if before genesis.
@@ -144,29 +165,30 @@ impl<T: TimeProvider + Send + Sync> Clock<T> {
         slot / self.slots_per_epoch
     }
 
-    // Return a `Duration` until the provided `slot` relative to the current time as determined
-    // by the clock. If `slot` is in the past, return a `Duration` of 0.
+    /// Return a `Duration` until the provided `slot` relative to the current time as determined
+    /// by the clock. If `slot` is in the past, return a `Duration` of 0.
     pub fn duration_until_slot(&self, slot: Slot) -> Duration {
         let current_time = self.get_current_time();
-        let target_slot_in_seconds =
-            slot_to_seconds(slot, self.seconds_per_slot, self.genesis_time);
-        target_slot_in_seconds
+        let target_slot_in_nanos = slot_to_nanos(slot, self.seconds_per_slot, self.genesis_time);
+        target_slot_in_nanos
             .checked_sub(current_time)
-            .map(Duration::from_secs)
+            .map(|t| Duration::from_nanos(u128_to_u64(t)))
             .unwrap_or_default()
     }
 
+    /// Return a `Duration` until the next `slot` relative to the
+    /// current time as determined by the clock.
     pub fn duration_until_next_slot(&self) -> Duration {
         let current_time = self.get_current_time();
         if self.before_genesis_at(current_time) {
-            Duration::from_secs(self.genesis_time - current_time)
+            Duration::from_nanos(u128_to_u64(self.genesis_time - current_time))
         } else {
             let current_slot = self.slot_at_time(current_time).expect("is after genesis");
             let next_slot = current_slot + 1;
-            let target_slot_in_seconds =
-                slot_to_seconds(next_slot, self.seconds_per_slot, self.genesis_time);
+            let target_slot_in_nanos =
+                slot_to_nanos(next_slot, self.seconds_per_slot, self.genesis_time);
             // safety: `target_slot_in_seconds` >= `current_time` always
-            Duration::from_secs(target_slot_in_seconds - current_time)
+            Duration::from_nanos(u128_to_u64(target_slot_in_nanos - current_time))
         }
     }
 }
@@ -195,14 +217,14 @@ mod tests {
     use std::sync::{Arc, Mutex};
 
     struct Ticker {
-        tick: Mutex<u64>,
-        seconds_per_slot: u64,
+        tick: Mutex<u128>,
+        seconds_per_slot: u128,
     }
 
     impl Ticker {
         fn tick(&self) {
             let mut tick = self.tick.lock().unwrap();
-            *tick += 1;
+            *tick += Duration::from_secs(1).as_nanos();
         }
 
         fn tick_slot(&self) {
@@ -212,18 +234,18 @@ mod tests {
     }
 
     impl TimeProvider for Arc<Ticker> {
-        fn get_current_time(&self) -> u64 {
+        fn get_current_time(&self) -> u128 {
             *self.tick.lock().unwrap()
         }
     }
 
     fn new_ticker(seconds_per_slot: u64) -> Arc<Ticker> {
-        Arc::new(Ticker { tick: Mutex::new(0), seconds_per_slot })
+        Arc::new(Ticker { tick: Mutex::new(0), seconds_per_slot: seconds_per_slot.into() })
     }
 
     #[test]
     fn test_custom_time_provider() {
-        let seconds_per_slot = 12;
+        let seconds_per_slot: u64 = 12;
         let time_provider = new_ticker(seconds_per_slot);
         let clock = Clock::new(0, seconds_per_slot, 32, time_provider.clone());
         assert_eq!(clock.duration_until_next_slot().as_secs(), 12);
@@ -240,7 +262,7 @@ mod tests {
 
     #[test]
     fn test_before_genesis() {
-        let seconds_per_slot = 12;
+        let seconds_per_slot: u64 = 12;
         let time_provider = new_ticker(seconds_per_slot);
         let clock = Clock::new(10, seconds_per_slot, 32, time_provider.clone());
         assert_eq!(clock.duration_until_next_slot().as_secs(), 10);
@@ -255,7 +277,7 @@ mod tests {
     async fn test_slot_stream() {
         use tokio_stream::StreamExt;
 
-        let seconds_per_slot = 1;
+        let seconds_per_slot: u64 = 12;
         let time_provider = new_ticker(seconds_per_slot);
         let clock = Clock::new(0, seconds_per_slot, 12, time_provider.clone());
         let slot_stream = clock.stream_slots();
