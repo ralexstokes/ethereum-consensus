@@ -1,8 +1,6 @@
-use ssz_rs::U256;
-
 use crate::{
     configs::Config,
-    primitives::{Epoch, ExecutionAddress, Gwei, Version, FAR_FUTURE_EPOCH},
+    primitives::{Epoch, ExecutionAddress, Gwei, Version, FAR_FUTURE_EPOCH, U256},
 };
 
 // `2**14` (= 16,384)
