@@ -262,6 +262,14 @@ impl Context {
         Self::from(phase0_preset, altair_preset, bellatrix_preset, config)
     }
 
+    pub fn for_holesky() -> Self {
+        let config = &configs::holesky::config();
+        let phase0_preset = &phase0::mainnet::PRESET;
+        let altair_preset = &altair::mainnet::PRESET;
+        let bellatrix_preset = &bellatrix::mainnet::PRESET;
+        Self::from(phase0_preset, altair_preset, bellatrix_preset, config)
+    }
+
     pub fn fork_for(&self, slot: Slot) -> Forks {
         let epoch = slot / self.slots_per_epoch;
         if epoch >= self.deneb_fork_epoch {
@@ -282,6 +290,7 @@ impl Context {
             "mainnet" => Ok(crate::clock::MAINNET_GENESIS_TIME),
             "sepolia" => Ok(crate::clock::SEPOLIA_GENESIS_TIME),
             "goerli" => Ok(crate::clock::GOERLI_GENESIS_TIME),
+            "holesky" => Ok(crate::clock::HOLESKY_GENESIS_TIME),
             name => Err(Error::UnknownGenesisTime(name.to_string())),
         }
     }
@@ -291,6 +300,7 @@ impl Context {
             "mainnet" => Some(clock::for_mainnet()),
             "sepolia" => Some(clock::for_sepolia()),
             "goerli" => Some(clock::for_goerli()),
+            "holesky" => Some(clock::for_holesky()),
             _ => None,
         }
     }

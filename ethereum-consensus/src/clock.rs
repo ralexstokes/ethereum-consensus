@@ -12,6 +12,7 @@ use std::{
 pub const MAINNET_GENESIS_TIME: u64 = 1606824023;
 pub const SEPOLIA_GENESIS_TIME: u64 = 1655733600;
 pub const GOERLI_GENESIS_TIME: u64 = 1616508000;
+pub const HOLESKY_GENESIS_TIME: u64 = 1694786400;
 
 fn slot_to_seconds(slot: Slot, seconds_per_slot: u64, genesis_time: u64) -> u64 {
     slot * seconds_per_slot + genesis_time
@@ -87,6 +88,13 @@ pub fn for_sepolia() -> Clock<SystemTimeProvider> {
 pub fn for_goerli() -> Clock<SystemTimeProvider> {
     let genesis_time = GOERLI_GENESIS_TIME;
     let seconds_per_slot = configs::goerli::SECONDS_PER_SLOT;
+    let slots_per_epoch = presets::mainnet::SLOTS_PER_EPOCH;
+    from_system_time(genesis_time, seconds_per_slot, slots_per_epoch)
+}
+
+pub fn for_holesky() -> Clock<SystemTimeProvider> {
+    let genesis_time = HOLESKY_GENESIS_TIME;
+    let seconds_per_slot = configs::holesky::SECONDS_PER_SLOT;
     let slots_per_epoch = presets::mainnet::SLOTS_PER_EPOCH;
     from_system_time(genesis_time, seconds_per_slot, slots_per_epoch)
 }

@@ -1,4 +1,5 @@
 pub mod goerli;
+pub mod holesky;
 pub mod mainnet;
 pub mod minimal;
 pub mod sepolia;
