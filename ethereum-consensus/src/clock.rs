@@ -203,9 +203,10 @@ impl<T: TimeProvider + Send + Sync> Clock<T> {
     pub fn stream_slots(&self) -> impl Stream<Item = Slot> + '_ {
         async_stream::stream! {
             loop {
-                let duration_until_next_slot = self.duration_until_next_slot();
+                let slot = self.current_slot().expect("after genesis");
+                yield slot;
+                let duration_until_next_slot = self.duration_until_slot(slot + 1);
                 tokio::time::sleep(duration_until_next_slot).await;
-                yield self.current_slot().expect("after genesis");
             }
         }
     }
@@ -240,7 +241,8 @@ mod tests {
     }
 
     fn new_ticker(seconds_per_slot: u64) -> Arc<Ticker> {
-        Arc::new(Ticker { tick: Mutex::new(0), seconds_per_slot: seconds_per_slot.into() })
+        let seconds_per_slot = Duration::from_secs(seconds_per_slot).as_nanos();
+        Arc::new(Ticker { tick: Mutex::new(0), seconds_per_slot })
     }
 
     #[test]
@@ -257,7 +259,16 @@ mod tests {
             time_provider.tick();
         }
         assert_eq!(clock.duration_until_next_slot().as_secs(), 11);
-        assert_eq!(clock.current_slot().unwrap(), 1);
+        let current_slot = clock.current_slot().unwrap();
+        assert_eq!(current_slot, 1);
+        let duration_until_previous_slot = clock.duration_until_slot(current_slot - 1);
+        assert_eq!(duration_until_previous_slot, Duration::default());
+        let duration_until_now = clock.duration_until_slot(current_slot);
+        assert_eq!(duration_until_now, Duration::default());
+        let next_slot = current_slot + 1;
+        let duration_until_next_slot = clock.duration_until_slot(next_slot);
+        assert_eq!(duration_until_next_slot, Duration::from_secs(11));
+        assert_eq!(duration_until_next_slot, clock.duration_until_next_slot());
     }
 
     #[test]
@@ -277,21 +288,47 @@ mod tests {
     async fn test_slot_stream() {
         use tokio_stream::StreamExt;
 
-        let seconds_per_slot: u64 = 12;
+        // note: make this very large so it is clear if the `TimeProvider` mocking is broken
+        let seconds_per_slot: u64 = 1200000000;
         let time_provider = new_ticker(seconds_per_slot);
         let clock = Clock::new(0, seconds_per_slot, 12, time_provider.clone());
         let slot_stream = clock.stream_slots();
 
         tokio::pin!(slot_stream);
 
-        let mut iter = 0;
+        let current_slot = clock.current_slot().unwrap();
+        let target_slot = current_slot + 3;
+        let mut slots = vec![];
         while let Some(slot) = slot_stream.next().await {
-            dbg!(slot);
-            time_provider.tick_slot();
-            iter += 1;
-            if iter > 1 {
+            if slot >= target_slot {
                 break
             }
+            slots.push(slot);
+            time_provider.tick_slot();
         }
+        assert_eq!(slots, (current_slot..target_slot).collect::<Vec<_>>());
+    }
+
+    #[cfg(feature = "async")]
+    #[tokio::test]
+    #[ignore = "uses wall clock time for mainnet params"]
+    async fn test_slot_stream_mainnet() {
+        use tokio_stream::StreamExt;
+
+        let clock = for_mainnet();
+        let slot_stream = clock.stream_slots();
+
+        tokio::pin!(slot_stream);
+
+        let current_slot = clock.current_slot().unwrap();
+        let target_slot = current_slot + 3;
+        let mut slots = vec![];
+        while let Some(slot) = slot_stream.next().await {
+            if slot >= target_slot {
+                break
+            }
+            slots.push(slot);
+        }
+        assert_eq!(slots, (current_slot..target_slot).collect::<Vec<_>>());
     }
 }
