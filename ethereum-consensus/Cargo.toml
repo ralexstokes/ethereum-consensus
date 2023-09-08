@@ -13,7 +13,7 @@ spec-tests = ["serde", "serde_yaml"]
 
 [dependencies]
 ssz_rs = "0.9.0"
-blst = "0.3.6"
+blst = "0.3.11"
 rand = "0.8.4"
 thiserror = "1.0.30"
 sha2 = "0.9.8"
