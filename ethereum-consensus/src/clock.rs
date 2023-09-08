@@ -12,7 +12,7 @@ use std::{
 pub const MAINNET_GENESIS_TIME: u64 = 1606824023;
 pub const SEPOLIA_GENESIS_TIME: u64 = 1655733600;
 pub const GOERLI_GENESIS_TIME: u64 = 1616508000;
-pub const HOLESKY_GENESIS_TIME: u64 = 1694786100;
+pub const HOLESKY_GENESIS_TIME: u64 = 1694786400;
 
 fn slot_to_seconds(slot: Slot, seconds_per_slot: u64, genesis_time: u64) -> u64 {
     slot * seconds_per_slot + genesis_time
