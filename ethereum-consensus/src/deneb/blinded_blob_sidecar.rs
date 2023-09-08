@@ -10,6 +10,7 @@ pub struct BlindedBlobSidecar<const BYTES_PER_BLOB: usize> {
     pub block_root: Root,
     #[serde(with = "crate::serde::as_string")]
     pub index: BlobIndex,
+    #[serde(with = "crate::serde::as_string")]
     pub slot: Slot,
     pub block_parent_root: Root,
     #[serde(with = "crate::serde::as_string")]
