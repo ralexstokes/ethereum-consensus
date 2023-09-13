@@ -20,7 +20,7 @@ impl std::fmt::Display for Network {
             Self::Sepolia => write!(f, "sepolia"),
             Self::Goerli => write!(f, "goerli"),
             Self::Holesky => write!(f, "holesky"),
-            Self::Custom(config) => write!(f, "custom network with config at `{config}`"),
+            Self::Custom(name) => write!(f, "{name}"),
         }
     }
 }
