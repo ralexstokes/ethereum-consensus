@@ -1,5 +1,6 @@
 use crate::{
     configs::Config,
+    networks::Network,
     primitives::{Epoch, ExecutionAddress, Gwei, Version, FAR_FUTURE_EPOCH, U256},
 };
 
@@ -52,7 +53,7 @@ pub fn config() -> Config {
 
     Config {
         preset_base: "mainnet".to_string(),
-        name: "holesky".to_string(),
+        name: Network::Holesky,
         terminal_total_difficulty,
         terminal_block_hash,
         terminal_block_hash_activation_epoch: TERMINAL_BLOCK_HASH_ACTIVATION_EPOCH,
