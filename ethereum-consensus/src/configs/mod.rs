@@ -4,7 +4,10 @@ pub mod mainnet;
 pub mod minimal;
 pub mod sepolia;
 
-use crate::primitives::{Epoch, ExecutionAddress, Gwei, Hash32, Version, U256};
+use crate::{
+    networks::Network,
+    primitives::{Epoch, ExecutionAddress, Gwei, Hash32, Version, U256},
+};
 
 #[derive(Debug)]
 #[cfg_attr(feature = "serde", derive(serde::Deserialize))]
@@ -12,7 +15,7 @@ use crate::primitives::{Epoch, ExecutionAddress, Gwei, Hash32, Version, U256};
 pub struct Config {
     pub preset_base: String,
     #[cfg_attr(feature = "serde", serde(rename = "CONFIG_NAME"))]
-    pub name: String,
+    pub name: Network,
 
     pub terminal_total_difficulty: U256,
     pub terminal_block_hash: Hash32,

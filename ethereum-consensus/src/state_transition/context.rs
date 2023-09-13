@@ -2,6 +2,7 @@ use crate::{
     altair, bellatrix,
     clock::{self, Clock, SystemTimeProvider},
     configs::{self, Config},
+    networks::Network,
     phase0,
     primitives::{Epoch, ExecutionAddress, Gwei, Hash32, Slot, Version, U256},
     state_transition::Error,
@@ -72,7 +73,7 @@ pub struct Context {
     pub max_extra_data_bytes: usize,
 
     // config
-    pub name: String,
+    pub name: Network,
 
     pub terminal_total_difficulty: U256,
     pub terminal_block_hash: Hash32,
@@ -197,7 +198,7 @@ impl Context {
             max_extra_data_bytes: bellatrix_preset.max_extra_data_bytes,
 
             // config
-            name: config.name.to_string(),
+            name: config.name.clone(),
             terminal_total_difficulty: config.terminal_total_difficulty.clone(),
             terminal_block_hash: config.terminal_block_hash.clone(),
             terminal_block_hash_activation_epoch: config.terminal_block_hash_activation_epoch,
@@ -286,21 +287,21 @@ impl Context {
     }
 
     pub fn genesis_time(&self) -> Result<u64, Error> {
-        match self.name.as_ref() {
-            "mainnet" => Ok(crate::clock::MAINNET_GENESIS_TIME),
-            "sepolia" => Ok(crate::clock::SEPOLIA_GENESIS_TIME),
-            "goerli" => Ok(crate::clock::GOERLI_GENESIS_TIME),
-            "holesky" => Ok(crate::clock::HOLESKY_GENESIS_TIME),
+        match &self.name {
+            Network::Mainnet => Ok(crate::clock::MAINNET_GENESIS_TIME),
+            Network::Sepolia => Ok(crate::clock::SEPOLIA_GENESIS_TIME),
+            Network::Goerli => Ok(crate::clock::GOERLI_GENESIS_TIME),
+            Network::Holesky => Ok(crate::clock::HOLESKY_GENESIS_TIME),
             name => Err(Error::UnknownGenesisTime(name.to_string())),
         }
     }
 
     pub fn clock(&self) -> Option<Clock<SystemTimeProvider>> {
-        match self.name.as_ref() {
-            "mainnet" => Some(clock::for_mainnet()),
-            "sepolia" => Some(clock::for_sepolia()),
-            "goerli" => Some(clock::for_goerli()),
-            "holesky" => Some(clock::for_holesky()),
+        match self.name {
+            Network::Mainnet => Some(clock::for_mainnet()),
+            Network::Sepolia => Some(clock::for_sepolia()),
+            Network::Goerli => Some(clock::for_goerli()),
+            Network::Holesky => Some(clock::for_holesky()),
             _ => None,
         }
     }
