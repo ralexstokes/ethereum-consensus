@@ -28,9 +28,11 @@ ec = [
 ]
 
 [dependencies]
+alloy-primitives = "0.3.3"
 ssz_rs = { git = "https://github.com/ralexstokes/ssz-rs", rev = "51f3932d1578a62f856c19175482056912de5f3e" }
 blst = "0.3.11"
 rand = "0.8.4"
+ruint = "1.10.1"
 thiserror = "1.0.30"
 sha2 = "0.10.8"
 integer-sqrt = "0.1.5"
@@ -42,6 +44,7 @@ multihash = { version = "0.16", default-features = false, features = [
     "sha2",
 ] }
 multiaddr = "0.14.0"
+c-kzg = { git = "https://github.com/ethereum/c-kzg-4844", rev = "f5f6f863d475847876a2bd5ee252058d37c3a15d" }
 
 serde = { version = "1.0", features = ["derive"] }
 serde_json = { version = "1.0.81", optional = true }
