@@ -1,6 +1,9 @@
 /// This module contains support for various Ethereum netowrks.
 use crate::state_transition::{Context, Error};
 
+/// `Network` describes one of the established networks this repository supports
+/// or otherwise a `Custom` variant that wraps a path to a local configuration file
+/// for the custom network (useful for devnets).
 #[derive(Default, Debug, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Deserialize))]
 #[cfg_attr(feature = "serde", serde(rename_all = "lowercase"))]
@@ -20,7 +23,7 @@ impl std::fmt::Display for Network {
             Self::Sepolia => write!(f, "sepolia"),
             Self::Goerli => write!(f, "goerli"),
             Self::Holesky => write!(f, "holesky"),
-            Self::Custom(name) => write!(f, "{name}"),
+            Self::Custom(config_file) => write!(f, "custom network with config at `{config_file}`"),
         }
     }
 }
