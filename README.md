@@ -48,3 +48,11 @@ To add support for a new network, you can:
 1.  add a new module under `ethereum_consensus::configs` using an existing network as a template
 2. add the network's `genesis_time` and support for a `Clock` for that network in `ethereum_consensus::clock`
 3. there are convenience methods on `ethereum_consensus::state_transition::Context` for each networkd and these should also be updated for the new network
+
+# beacon-api-client
+
+A client for the Ethereum beacon node APIs:
+
+https://ethereum.github.io/beacon-APIs
+
+> Note: this crate was merged from https://github.com/ralexstokes/beacon-api-client repository at commit `ea585027b922877b51ec5db42b4e676c98f4d834`.
