@@ -23,4 +23,4 @@ serde_json = "1.0.81"
 itertools = "0.10.3"
 clap = { version = "4.3.11", features = ["derive"], optional = true }
 thiserror = "1.0.30"
-ethereum-consensus = { git = "https://github.com/ralexstokes/ethereum-consensus", rev = "6dee2390c8f4900ce3a521a6e6ac7ed0335cad2a" }
+ethereum-consensus = { git = "https://github.com/ralexstokes/ethereum-consensus", rev = "742607d52ddb2b465f01a0b241cd4c4e2f3b67cc" }
