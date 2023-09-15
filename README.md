@@ -54,3 +54,5 @@ To add support for a new network, you can:
 A client for the Ethereum beacon node APIs:
 
 https://ethereum.github.io/beacon-APIs
+
+> Note: this crate was merged from https://github.com/ralexstokes/beacon-api-client repository at commit `ea585027b922877b51ec5db42b4e676c98f4d834`.
