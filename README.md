@@ -10,7 +10,9 @@ If you need a battle-tested implementation (e.g. for consensus-critical work), r
 
 # Notes
 
-This crate exposes a series of modules implementing the [ethereum consensus specs](https://github.com/ethereum/consensus-specs).
+## `ethereum-consensus`
+
+The `ethereum-consensus` crate exposes a series of modules implementing the [ethereum consensus specs](https://github.com/ethereum/consensus-specs).
 
 There are a number of top-level modules exposing a variety of supporting types, utilities, etc.
 
@@ -30,16 +32,16 @@ Rust module as an input. See the README for that binary to learn further details
 generated files are checked in so you should not need to use this binary under
 most circumstances.
 
-# Examples
+### Examples
 
 Refer to the code in `examples` for the suggested way to use this crate as a user. The intermediate types are laid out
 so that you can define your own customizations but you can likely use the defaults.
 
-# Support for presets
+### Support for presets
 
 These crates provide support for the "preset" concept found in the `consensus-specs`. The `minimal` and `mainnet` presets are provided for each fork as hard-coded instances. If you need to support another type of preset, you can make your own using the generic types. Refer to an existing preset, like `ethereum_consensus::bellatrix::presets::minimal`, for an example.
 
-# Support for networks
+### Support for networks
 
 These crates also support several popular networks. This generally boils down to specific config, for example `ethereum_consensus::configs::goerli::Config`.
 
@@ -49,10 +51,20 @@ To add support for a new network, you can:
 2. add the network's `genesis_time` and support for a `Clock` for that network in `ethereum_consensus::clock`
 3. there are convenience methods on `ethereum_consensus::state_transition::Context` for each networkd and these should also be updated for the new network
 
-# beacon-api-client
+## `beacon-api-client`
 
 A client for the Ethereum beacon node APIs:
 
 https://ethereum.github.io/beacon-APIs
 
-> Note: this crate was merged from https://github.com/ralexstokes/beacon-api-client repository at commit `ea585027b922877b51ec5db42b4e676c98f4d834`.
+### Example
+
+Refer to the code in `examples` for a demonstration on how to use the API client.
+
+## `test-gen`
+
+This crate generates spec test following https://github.com/ethereum/consensus-spec-tests. It is not user-facing.
+
+## `spec-gen`
+
+This crate generates spec code following the "fork diff" defined in each fork of http://github.com/ethereum/consensus-specs. It is not user-facing.
