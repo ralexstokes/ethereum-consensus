@@ -40,6 +40,7 @@ impl<'ast> Visit<'ast> for ToGenericsVisitor {
 pub fn collate_generics_from(
     arguments: &[AngleBracketedGenericArguments],
     lifetimes: &[syn::Lifetime],
+    additional_types: &[syn::TypeParam],
 ) -> Generics {
     let mut visitor = ToGenericsVisitor::default();
 
@@ -51,7 +52,7 @@ pub fn collate_generics_from(
 
     // NOTE: macro failed when trying to combine both arms into one invocation
     // it also seems like this will only suppport one explicit lifetime
-    if lifetimes.is_empty() {
+    let fragment = if lifetimes.is_empty() {
         parse_quote! {
             <
             #(const #bounds: usize),*
@@ -62,6 +63,17 @@ pub fn collate_generics_from(
             <
             #(#lifetimes)*,
             #(const #bounds: usize),*
+            >
+        }
+    };
+    if additional_types.is_empty() {
+        fragment
+    } else {
+        let inner = fragment.params.into_iter();
+        parse_quote! {
+            <
+            #(#inner),*,
+            #(#additional_types),*
             >
         }
     }
@@ -97,6 +109,8 @@ pub fn generics_to_arguments(generics: &Generics) -> AngleBracketedGenericArgume
 pub struct TypeNameVisitor {
     in_context: bool,
     pub names: Vec<String>,
+    // additional types to insert in generics
+    pub additional_types: Vec<syn::TypeParam>,
 }
 
 impl TypeNameVisitor {
@@ -108,6 +122,11 @@ impl TypeNameVisitor {
 }
 
 impl<'ast> Visit<'ast> for TypeNameVisitor {
+    fn visit_type_param(&mut self, i: &'ast syn::TypeParam) {
+        self.additional_types.push(i.clone());
+        visit::visit_type_param(self, i);
+    }
+
     fn visit_path_segment(&mut self, i: &'ast syn::PathSegment) {
         if self.in_context {
             let name = i.ident.to_string();
