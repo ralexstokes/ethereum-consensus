@@ -24,3 +24,6 @@ itertools = "0.10.3"
 clap = { version = "4.3.11", features = ["derive"], optional = true }
 thiserror = "1.0.30"
 ethereum-consensus = { path = "../ethereum-consensus" }
+
+[dev-dependencies]
+dotenv = "0.15.0"
