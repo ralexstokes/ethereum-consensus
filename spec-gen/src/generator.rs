@@ -22,6 +22,7 @@ enum Fork {
     Phase0,
     Altair,
     Bellatrix,
+    Capella,
 }
 
 impl Fork {
@@ -71,6 +72,21 @@ impl Fork {
                 "helpers",
                 "state_transition",
             ],
+            Self::Capella => &[
+                "beacon_block",
+                "beacon_state",
+                "blinded_beacon_block",
+                "bls_to_execution_change",
+                // "block_processing",
+                "epoch_processing",
+                "execution",
+                // "fork_choice",
+                // "fork",
+                // "genesis",
+                "helpers",
+                // "state_transition",
+                "withdrawal",
+            ],
         }
     }
 
@@ -96,6 +112,9 @@ impl Fork {
             }
             Fork::Bellatrix => {
                 matches!(name, "upgrade_to_altair" | "translate_participation")
+            }
+            Fork::Capella => {
+                matches!(name, "upgrade_to_bellatrix")
             }
             _ => false,
         }
@@ -126,6 +145,21 @@ impl Fork {
                     use crate::ssz::*;
                     // NOTE: expose items for use by others...
                     pub use crate::bellatrix::execution::ExecutionEngine;
+                };
+                fragment.items
+            }
+            Fork::Capella => {
+                let fragment: syn::File = parse_quote! {
+                    use std::mem;
+                    use std::cmp;
+                    use std::collections::{HashSet, HashMap};
+                    use std::iter::zip;
+                    use ssz_rs::prelude::*;
+                    use integer_sqrt::IntegerSquareRoot;
+                    use crate::crypto::{hash, verify_signature, fast_aggregate_verify, eth_aggregate_public_keys, eth_fast_aggregate_verify};
+                    use crate::ssz::*;
+                    // NOTE: expose items for use by others...
+                    // pub use crate::bellatrix::execution::ExecutionEngine;
                 };
                 fragment.items
             }
@@ -516,7 +550,8 @@ fn render(fork: &Fork, items: &[Item]) {
 }
 
 pub fn run() {
-    let fork_sequence = [None, Some(Fork::Phase0), Some(Fork::Altair), Some(Fork::Bellatrix)];
+    let fork_sequence =
+        [None, Some(Fork::Phase0), Some(Fork::Altair), Some(Fork::Bellatrix), Some(Fork::Capella)];
 
     let mut specs = HashMap::<_, Rc<_>>::new();
     for pair in fork_sequence.windows(2) {

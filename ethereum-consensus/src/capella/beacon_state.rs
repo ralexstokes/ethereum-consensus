@@ -1,6 +1,7 @@
+pub use crate::phase0::HistoricalSummary;
 use crate::{
     altair::SyncCommittee,
-    capella::{ExecutionPayloadHeader, HistoricalSummary},
+    capella::ExecutionPayloadHeader,
     phase0::{BeaconBlockHeader, Checkpoint, Eth1Data, Fork, Validator, JUSTIFICATION_BITS_LENGTH},
     primitives::{Bytes32, Gwei, ParticipationFlags, Root, Slot, ValidatorIndex, WithdrawalIndex},
 };
