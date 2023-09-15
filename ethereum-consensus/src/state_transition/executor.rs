@@ -1,5 +1,7 @@
 use crate::{
-    altair, bellatrix, phase0,
+    altair, bellatrix,
+    execution::ExecutionEngine,
+    phase0,
     state_transition::{BeaconState, Context, Error, Forks, Result, SignedBeaconBlock, Validation},
 };
 
@@ -16,19 +18,11 @@ pub struct Executor<
     const SYNC_COMMITTEE_SIZE: usize,
     const BYTES_PER_LOGS_BLOOM: usize,
     const MAX_EXTRA_DATA_BYTES: usize,
-    const MAX_BYTES_PER_TRANSACTION: usize,
-    const MAX_TRANSACTIONS_PER_PAYLOAD: usize,
     const MAX_PROPOSER_SLASHINGS: usize,
     const MAX_ATTESTER_SLASHINGS: usize,
     const MAX_ATTESTATIONS: usize,
     const MAX_DEPOSITS: usize,
     const MAX_VOLUNTARY_EXITS: usize,
-    E: bellatrix::ExecutionEngine<
-        BYTES_PER_LOGS_BLOOM,
-        MAX_EXTRA_DATA_BYTES,
-        MAX_BYTES_PER_TRANSACTION,
-        MAX_TRANSACTIONS_PER_PAYLOAD,
-    >,
 > {
     pub state: BeaconState<
         SLOTS_PER_HISTORICAL_ROOT,
@@ -42,10 +36,8 @@ pub struct Executor<
         SYNC_COMMITTEE_SIZE,
         BYTES_PER_LOGS_BLOOM,
         MAX_EXTRA_DATA_BYTES,
-        MAX_BYTES_PER_TRANSACTION,
-        MAX_TRANSACTIONS_PER_PAYLOAD,
     >,
-    pub execution_engine: E,
+    pub execution_engine: ExecutionEngine,
     pub context: Context,
 }
 
@@ -61,19 +53,11 @@ impl<
         const SYNC_COMMITTEE_SIZE: usize,
         const BYTES_PER_LOGS_BLOOM: usize,
         const MAX_EXTRA_DATA_BYTES: usize,
-        const MAX_BYTES_PER_TRANSACTION: usize,
-        const MAX_TRANSACTIONS_PER_PAYLOAD: usize,
         const MAX_PROPOSER_SLASHINGS: usize,
         const MAX_ATTESTER_SLASHINGS: usize,
         const MAX_ATTESTATIONS: usize,
         const MAX_DEPOSITS: usize,
         const MAX_VOLUNTARY_EXITS: usize,
-        E: bellatrix::ExecutionEngine<
-            BYTES_PER_LOGS_BLOOM,
-            MAX_EXTRA_DATA_BYTES,
-            MAX_BYTES_PER_TRANSACTION,
-            MAX_TRANSACTIONS_PER_PAYLOAD,
-        >,
     >
     Executor<
         SLOTS_PER_HISTORICAL_ROOT,
@@ -87,14 +71,11 @@ impl<
         SYNC_COMMITTEE_SIZE,
         BYTES_PER_LOGS_BLOOM,
         MAX_EXTRA_DATA_BYTES,
-        MAX_BYTES_PER_TRANSACTION,
-        MAX_TRANSACTIONS_PER_PAYLOAD,
         MAX_PROPOSER_SLASHINGS,
         MAX_ATTESTER_SLASHINGS,
         MAX_ATTESTATIONS,
         MAX_DEPOSITS,
         MAX_VOLUNTARY_EXITS,
-        E,
     >
 {
     pub fn new(
@@ -110,16 +91,17 @@ impl<
             SYNC_COMMITTEE_SIZE,
             BYTES_PER_LOGS_BLOOM,
             MAX_EXTRA_DATA_BYTES,
-            MAX_BYTES_PER_TRANSACTION,
-            MAX_TRANSACTIONS_PER_PAYLOAD,
         >,
-        execution_engine: E,
+        execution_engine: ExecutionEngine,
         context: Context,
     ) -> Self {
         Self { state, execution_engine, context }
     }
 
-    pub fn apply_block(
+    pub fn apply_block<
+        const MAX_BYTES_PER_TRANSACTION: usize,
+        const MAX_TRANSACTIONS_PER_PAYLOAD: usize,
+    >(
         &mut self,
         signed_block: &mut SignedBeaconBlock<
             MAX_PROPOSER_SLASHINGS,
@@ -138,7 +120,10 @@ impl<
         self.apply_block_with_validation(signed_block, Validation::Enabled)
     }
 
-    pub fn apply_block_with_validation(
+    pub fn apply_block_with_validation<
+        const MAX_BYTES_PER_TRANSACTION: usize,
+        const MAX_TRANSACTIONS_PER_PAYLOAD: usize,
+    >(
         &mut self,
         signed_block: &mut SignedBeaconBlock<
             MAX_PROPOSER_SLASHINGS,
@@ -236,7 +221,10 @@ impl<
         }
     }
 
-    pub fn apply_bellatrix_block_with_validation(
+    pub fn apply_bellatrix_block_with_validation<
+        const MAX_BYTES_PER_TRANSACTION: usize,
+        const MAX_TRANSACTIONS_PER_PAYLOAD: usize,
+    >(
         &mut self,
         signed_block: &mut bellatrix::SignedBeaconBlock<
             MAX_PROPOSER_SLASHINGS,
@@ -266,7 +254,7 @@ impl<
                     bellatrix::state_transition_block_in_slot(
                         &mut state,
                         signed_block,
-                        self.execution_engine.clone(),
+                        &self.execution_engine,
                         validation,
                         &self.context,
                     )?;
@@ -274,7 +262,7 @@ impl<
                     bellatrix::state_transition(
                         &mut state,
                         signed_block,
-                        self.execution_engine.clone(),
+                        &self.execution_engine,
                         validation,
                         &self.context,
                     )?;
@@ -290,7 +278,7 @@ impl<
                     bellatrix::state_transition_block_in_slot(
                         &mut state,
                         signed_block,
-                        self.execution_engine.clone(),
+                        &self.execution_engine,
                         validation,
                         &self.context,
                     )?;
@@ -298,7 +286,7 @@ impl<
                     bellatrix::state_transition(
                         &mut state,
                         signed_block,
-                        self.execution_engine.clone(),
+                        &self.execution_engine,
                         validation,
                         &self.context,
                     )?;
@@ -309,7 +297,7 @@ impl<
             BeaconState::Bellatrix(state) => bellatrix::state_transition(
                 state,
                 signed_block,
-                self.execution_engine.clone(),
+                &self.execution_engine,
                 validation,
                 &self.context,
             ),

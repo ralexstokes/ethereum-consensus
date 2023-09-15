@@ -1,5 +1,6 @@
 use crate::{
     crypto::Error as CryptoError,
+    execution,
     phase0::{AttestationData, BeaconBlockHeader, Checkpoint},
     primitives::{BlsSignature, Bytes32, Epoch, Hash32, Root, Slot, ValidatorIndex},
     state_transition::Forks,
@@ -52,6 +53,8 @@ pub enum Error {
     #[cfg(feature = "serde")]
     #[error("an unknown preset {0} was supplied when constructing context")]
     UnknownPreset(String),
+    #[error(transparent)]
+    Execution(#[from] execution::Error),
 }
 
 #[derive(Debug, Error)]

@@ -1,8 +1,8 @@
 use crate::{
     bellatrix::{
-        process_block, process_slots, verify_block_signature, BeaconState, ExecutionEngine,
-        SignedBeaconBlock,
+        process_block, process_slots, verify_block_signature, BeaconState, SignedBeaconBlock,
     },
+    execution,
     state_transition::{Context, Error, Result, Validation},
 };
 use ssz_rs::prelude::Merkleized;
@@ -28,12 +28,7 @@ pub fn state_transition_block_in_slot<
     const MAX_EXTRA_DATA_BYTES: usize,
     const MAX_BYTES_PER_TRANSACTION: usize,
     const MAX_TRANSACTIONS_PER_PAYLOAD: usize,
-    E: ExecutionEngine<
-        BYTES_PER_LOGS_BLOOM,
-        MAX_EXTRA_DATA_BYTES,
-        MAX_BYTES_PER_TRANSACTION,
-        MAX_TRANSACTIONS_PER_PAYLOAD,
-    >,
+    E: execution::ExecutionEngine,
 >(
     state: &mut BeaconState<
         SLOTS_PER_HISTORICAL_ROOT,
@@ -46,8 +41,6 @@ pub fn state_transition_block_in_slot<
         SYNC_COMMITTEE_SIZE,
         BYTES_PER_LOGS_BLOOM,
         MAX_EXTRA_DATA_BYTES,
-        MAX_BYTES_PER_TRANSACTION,
-        MAX_TRANSACTIONS_PER_PAYLOAD,
     >,
     signed_block: &mut SignedBeaconBlock<
         MAX_PROPOSER_SLASHINGS,
@@ -62,7 +55,7 @@ pub fn state_transition_block_in_slot<
         MAX_BYTES_PER_TRANSACTION,
         MAX_TRANSACTIONS_PER_PAYLOAD,
     >,
-    execution_engine: E,
+    execution_engine: &E,
     validation: Validation,
     context: &Context,
 ) -> Result<()> {
@@ -100,12 +93,7 @@ pub fn state_transition<
     const MAX_EXTRA_DATA_BYTES: usize,
     const MAX_BYTES_PER_TRANSACTION: usize,
     const MAX_TRANSACTIONS_PER_PAYLOAD: usize,
-    E: ExecutionEngine<
-        BYTES_PER_LOGS_BLOOM,
-        MAX_EXTRA_DATA_BYTES,
-        MAX_BYTES_PER_TRANSACTION,
-        MAX_TRANSACTIONS_PER_PAYLOAD,
-    >,
+    E: execution::ExecutionEngine,
 >(
     state: &mut BeaconState<
         SLOTS_PER_HISTORICAL_ROOT,
@@ -118,8 +106,6 @@ pub fn state_transition<
         SYNC_COMMITTEE_SIZE,
         BYTES_PER_LOGS_BLOOM,
         MAX_EXTRA_DATA_BYTES,
-        MAX_BYTES_PER_TRANSACTION,
-        MAX_TRANSACTIONS_PER_PAYLOAD,
     >,
     signed_block: &mut SignedBeaconBlock<
         MAX_PROPOSER_SLASHINGS,
@@ -134,7 +120,7 @@ pub fn state_transition<
         MAX_BYTES_PER_TRANSACTION,
         MAX_TRANSACTIONS_PER_PAYLOAD,
     >,
-    execution_engine: E,
+    execution_engine: &E,
     validation: Validation,
     context: &Context,
 ) -> Result<()> {

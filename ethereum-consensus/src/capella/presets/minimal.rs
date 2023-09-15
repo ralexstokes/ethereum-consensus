@@ -95,8 +95,6 @@ pub type BeaconState = spec::BeaconState<
     SYNC_COMMITTEE_SIZE,
     BYTES_PER_LOGS_BLOOM,
     MAX_EXTRA_DATA_BYTES,
-    MAX_BYTES_PER_TRANSACTION,
-    MAX_TRANSACTIONS_PER_PAYLOAD,
 >;
 
 pub type BeaconBlockBody = spec::BeaconBlockBody<
@@ -145,21 +143,4 @@ pub type SignedBeaconBlock = spec::SignedBeaconBlock<
     MAX_TRANSACTIONS_PER_PAYLOAD,
     MAX_WITHDRAWALS_PER_PAYLOAD,
     MAX_BLS_TO_EXECUTION_CHANGES,
->;
-
-pub type NoOpExecutionEngine = spec::NoOpExecutionEngine<
-    BYTES_PER_LOGS_BLOOM,
-    MAX_EXTRA_DATA_BYTES,
-    MAX_BYTES_PER_TRANSACTION,
-    MAX_TRANSACTIONS_PER_PAYLOAD,
-    MAX_WITHDRAWALS_PER_PAYLOAD,
->;
-
-pub type MockExecutionEngine<F> = spec::MockExecutionEngine<
-    BYTES_PER_LOGS_BLOOM,
-    MAX_EXTRA_DATA_BYTES,
-    MAX_BYTES_PER_TRANSACTION,
-    MAX_TRANSACTIONS_PER_PAYLOAD,
-    MAX_WITHDRAWALS_PER_PAYLOAD,
-    F,
 >;

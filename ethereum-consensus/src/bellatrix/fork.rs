@@ -16,8 +16,6 @@ pub fn upgrade_to_bellatrix<
     const SYNC_COMMITTEE_SIZE: usize,
     const BYTES_PER_LOGS_BLOOM: usize,
     const MAX_EXTRA_DATA_BYTES: usize,
-    const MAX_BYTES_PER_TRANSACTION: usize,
-    const MAX_TRANSACTIONS_PER_PAYLOAD: usize,
 >(
     state: &altair::BeaconState<
         SLOTS_PER_HISTORICAL_ROOT,
@@ -41,8 +39,6 @@ pub fn upgrade_to_bellatrix<
     SYNC_COMMITTEE_SIZE,
     BYTES_PER_LOGS_BLOOM,
     MAX_EXTRA_DATA_BYTES,
-    MAX_BYTES_PER_TRANSACTION,
-    MAX_TRANSACTIONS_PER_PAYLOAD,
 > {
     let epoch = altair::get_current_epoch(state, context);
     BeaconState {

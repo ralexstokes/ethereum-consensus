@@ -20,8 +20,6 @@ pub struct BeaconState<
     const SYNC_COMMITTEE_SIZE: usize,
     const BYTES_PER_LOGS_BLOOM: usize,
     const MAX_EXTRA_DATA_BYTES: usize,
-    const MAX_BYTES_PER_TRANSACTION: usize,
-    const MAX_TRANSACTIONS_PER_PAYLOAD: usize,
 > {
     #[serde(with = "crate::serde::as_string")]
     pub genesis_time: u64,
@@ -55,10 +53,6 @@ pub struct BeaconState<
     pub inactivity_scores: List<u64, VALIDATOR_REGISTRY_LIMIT>,
     pub current_sync_committee: SyncCommittee<SYNC_COMMITTEE_SIZE>,
     pub next_sync_committee: SyncCommittee<SYNC_COMMITTEE_SIZE>,
-    pub latest_execution_payload_header: ExecutionPayloadHeader<
-        BYTES_PER_LOGS_BLOOM,
-        MAX_EXTRA_DATA_BYTES,
-        MAX_BYTES_PER_TRANSACTION,
-        MAX_TRANSACTIONS_PER_PAYLOAD,
-    >,
+    pub latest_execution_payload_header:
+        ExecutionPayloadHeader<BYTES_PER_LOGS_BLOOM, MAX_EXTRA_DATA_BYTES>,
 }

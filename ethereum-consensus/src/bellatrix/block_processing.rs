@@ -2,9 +2,10 @@ use crate::{
     bellatrix::{
         compute_timestamp_at_slot, get_current_epoch, get_randao_mix, is_execution_enabled,
         is_merge_transition_complete, process_block_header, process_eth1_data, process_operations,
-        process_randao, process_sync_aggregate, BeaconBlock, BeaconState, ExecutionEngine,
-        ExecutionPayload, ExecutionPayloadHeader,
+        process_randao, process_sync_aggregate, BeaconBlock, BeaconState, ExecutionPayload,
+        ExecutionPayloadHeader, NewPayloadRequest,
     },
+    execution,
     state_transition::{invalid_operation_error, Context, InvalidExecutionPayload, Result},
 };
 use ssz_rs::prelude::*;
@@ -22,12 +23,7 @@ pub fn process_execution_payload<
     const MAX_EXTRA_DATA_BYTES: usize,
     const MAX_BYTES_PER_TRANSACTION: usize,
     const MAX_TRANSACTIONS_PER_PAYLOAD: usize,
-    E: ExecutionEngine<
-        BYTES_PER_LOGS_BLOOM,
-        MAX_EXTRA_DATA_BYTES,
-        MAX_BYTES_PER_TRANSACTION,
-        MAX_TRANSACTIONS_PER_PAYLOAD,
-    >,
+    E: execution::ExecutionEngine,
 >(
     state: &mut BeaconState<
         SLOTS_PER_HISTORICAL_ROOT,
@@ -40,8 +36,6 @@ pub fn process_execution_payload<
         SYNC_COMMITTEE_SIZE,
         BYTES_PER_LOGS_BLOOM,
         MAX_EXTRA_DATA_BYTES,
-        MAX_BYTES_PER_TRANSACTION,
-        MAX_TRANSACTIONS_PER_PAYLOAD,
     >,
     payload: &mut ExecutionPayload<
         BYTES_PER_LOGS_BLOOM,
@@ -49,7 +43,7 @@ pub fn process_execution_payload<
         MAX_BYTES_PER_TRANSACTION,
         MAX_TRANSACTIONS_PER_PAYLOAD,
     >,
-    execution_engine: E,
+    execution_engine: &E,
     context: &Context,
 ) -> Result<()> {
     let parent_hash_invalid =
@@ -87,7 +81,8 @@ pub fn process_execution_payload<
         ))
     }
 
-    execution_engine.notify_new_payload(payload)?;
+    let request = NewPayloadRequest(&*payload).into();
+    execution_engine.verify_and_notify_new_payload(&request)?;
 
     state.latest_execution_payload_header = ExecutionPayloadHeader {
         parent_hash: payload.parent_hash.clone(),
@@ -127,12 +122,7 @@ pub fn process_block<
     const MAX_EXTRA_DATA_BYTES: usize,
     const MAX_BYTES_PER_TRANSACTION: usize,
     const MAX_TRANSACTIONS_PER_PAYLOAD: usize,
-    E: ExecutionEngine<
-        BYTES_PER_LOGS_BLOOM,
-        MAX_EXTRA_DATA_BYTES,
-        MAX_BYTES_PER_TRANSACTION,
-        MAX_TRANSACTIONS_PER_PAYLOAD,
-    >,
+    E: execution::ExecutionEngine,
 >(
     state: &mut BeaconState<
         SLOTS_PER_HISTORICAL_ROOT,
@@ -145,8 +135,6 @@ pub fn process_block<
         SYNC_COMMITTEE_SIZE,
         BYTES_PER_LOGS_BLOOM,
         MAX_EXTRA_DATA_BYTES,
-        MAX_BYTES_PER_TRANSACTION,
-        MAX_TRANSACTIONS_PER_PAYLOAD,
     >,
     block: &mut BeaconBlock<
         MAX_PROPOSER_SLASHINGS,
@@ -161,7 +149,7 @@ pub fn process_block<
         MAX_BYTES_PER_TRANSACTION,
         MAX_TRANSACTIONS_PER_PAYLOAD,
     >,
-    execution_engine: E,
+    execution_engine: &E,
     context: &Context,
 ) -> Result<()> {
     process_block_header(state, block, context)?;
