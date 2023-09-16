@@ -271,6 +271,8 @@ impl Spec {
         Self { fork, diff, items: Default::default(), index }
     }
 
+    // `on_top_of` handles generating the relevant items we want to use when rendering this `Spec`
+    // based on items we discovered when parsing the fork diff and the `previous` `Spec`.
     fn on_top_of(&mut self, previous: Rc<Spec>) {
         let fork = self.fork.name();
         let index = &mut self.index;
@@ -310,12 +312,12 @@ impl Spec {
 
             for f in &previous_module.fns {
                 let mut f = f.clone();
-                let name = f.name.to_string();
-                if self.fork.should_filter_fn_by_name(&name) {
+                let fn_name = f.name.to_string();
+                if self.fork.should_filter_fn_by_name(&fn_name) {
                     continue
                 }
-                if index.contains_key(&name) {
-                    println!("skipping item: found duplicate definition for `{name}` in next spec `{fork}`");
+                if index.contains_key(&fn_name) {
+                    println!("skipping item: found duplicate definition for `{fn_name}` in next spec `{fork}`");
                     continue
                 }
                 let item = &f.item;
@@ -326,13 +328,13 @@ impl Spec {
                 analyzer.analyze(&fragment);
                 let type_names = analyzer.names;
                 let mut all_arguments = vec![];
-                for name in &type_names {
-                    if let Some(target_module) = index.get(name) {
+                for name in type_names {
+                    if let Some(target_module) = index.get(&name) {
                         let target_module = self.diff.modules.get(target_module).unwrap();
                         let container = target_module
                             .containers
                             .iter()
-                            .find(|&c| &c.name == name)
+                            .find(|&c| c.name == name)
                             .expect("internal state integrity");
 
                         let arguments = generics_to_arguments(&container.item.generics);
@@ -353,7 +355,7 @@ impl Spec {
                 f.expand = true;
 
                 module.fns.push(f);
-                index.insert(name, module_name.to_string());
+                index.insert(fn_name, module_name.to_string());
             }
 
             let target_module = self.diff.modules.entry(module_name.to_string()).or_default();

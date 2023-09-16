@@ -108,6 +108,12 @@ impl TypeNameVisitor {
 }
 
 impl<'ast> Visit<'ast> for TypeNameVisitor {
+    fn visit_return_type(&mut self, i: &'ast syn::ReturnType) {
+        self.in_context = true;
+        visit::visit_return_type(self, i);
+        self.in_context = false;
+    }
+
     fn visit_path_segment(&mut self, i: &'ast syn::PathSegment) {
         if self.in_context {
             let name = i.ident.to_string();
