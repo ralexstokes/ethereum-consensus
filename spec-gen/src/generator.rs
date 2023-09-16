@@ -271,6 +271,8 @@ impl Spec {
         Self { fork, diff, items: Default::default(), index }
     }
 
+    // `on_top_of` handles generating the relevant items we want to use when rendering this `Spec`
+    // based on items we discovered when parsing the fork diff and the `previous` `Spec`.
     fn on_top_of(&mut self, previous: Rc<Spec>) {
         let fork = self.fork.name();
         let index = &mut self.index;
