@@ -312,12 +312,12 @@ impl Spec {
 
             for f in &previous_module.fns {
                 let mut f = f.clone();
-                let name = f.name.to_string();
-                if self.fork.should_filter_fn_by_name(&name) {
+                let fn_name = f.name.to_string();
+                if self.fork.should_filter_fn_by_name(&fn_name) {
                     continue
                 }
-                if index.contains_key(&name) {
-                    println!("skipping item: found duplicate definition for `{name}` in next spec `{fork}`");
+                if index.contains_key(&fn_name) {
+                    println!("skipping item: found duplicate definition for `{fn_name}` in next spec `{fork}`");
                     continue
                 }
                 let item = &f.item;
@@ -355,7 +355,7 @@ impl Spec {
                 f.expand = true;
 
                 module.fns.push(f);
-                index.insert(name, module_name.to_string());
+                index.insert(fn_name, module_name.to_string());
             }
 
             let target_module = self.diff.modules.entry(module_name.to_string()).or_default();
