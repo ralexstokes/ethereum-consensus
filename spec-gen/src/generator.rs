@@ -10,7 +10,7 @@ use std::{
 };
 use syn::{parse_quote, Ident, Item};
 
-const SOURCE_ROOT: &str = "../ethereum-consensus/src";
+const SOURCE_ROOT: &str = "ethereum-consensus/src";
 
 fn as_syn_ident(s: String) -> Ident {
     syn::parse_str(&s).unwrap()

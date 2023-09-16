@@ -32,12 +32,7 @@ pub fn initialize_beacon_state_from_eth1<
     eth1_timestamp: u64,
     deposits: &mut [Deposit],
     execution_payload_header: Option<
-        &ExecutionPayloadHeader<
-            BYTES_PER_LOGS_BLOOM,
-            MAX_EXTRA_DATA_BYTES,
-            MAX_BYTES_PER_TRANSACTION,
-            MAX_TRANSACTIONS_PER_PAYLOAD,
-        >,
+        &ExecutionPayloadHeader<BYTES_PER_LOGS_BLOOM, MAX_EXTRA_DATA_BYTES>,
     >,
     context: &Context,
 ) -> Result<
@@ -52,8 +47,6 @@ pub fn initialize_beacon_state_from_eth1<
         SYNC_COMMITTEE_SIZE,
         BYTES_PER_LOGS_BLOOM,
         MAX_EXTRA_DATA_BYTES,
-        MAX_BYTES_PER_TRANSACTION,
-        MAX_TRANSACTIONS_PER_PAYLOAD,
     >,
 > {
     let fork = Fork {
@@ -139,8 +132,6 @@ pub fn is_valid_genesis_state<
     const SYNC_COMMITTEE_SIZE: usize,
     const BYTES_PER_LOGS_BLOOM: usize,
     const MAX_EXTRA_DATA_BYTES: usize,
-    const MAX_BYTES_PER_TRANSACTION: usize,
-    const MAX_TRANSACTIONS_PER_PAYLOAD: usize,
 >(
     state: &BeaconState<
         SLOTS_PER_HISTORICAL_ROOT,
@@ -153,8 +144,6 @@ pub fn is_valid_genesis_state<
         SYNC_COMMITTEE_SIZE,
         BYTES_PER_LOGS_BLOOM,
         MAX_EXTRA_DATA_BYTES,
-        MAX_BYTES_PER_TRANSACTION,
-        MAX_TRANSACTIONS_PER_PAYLOAD,
     >,
     context: &Context,
 ) -> bool {
@@ -201,8 +190,6 @@ pub fn get_genesis_block<
         SYNC_COMMITTEE_SIZE,
         BYTES_PER_LOGS_BLOOM,
         MAX_EXTRA_DATA_BYTES,
-        MAX_BYTES_PER_TRANSACTION,
-        MAX_TRANSACTIONS_PER_PAYLOAD,
     >,
 ) -> Result<
     BeaconBlock<

@@ -5,6 +5,8 @@ and the patches applied for each target fork.
 
 ## How to use
 
+From the workspace root:
+
 ```bash
 just gen-spec
 ```

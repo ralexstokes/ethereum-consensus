@@ -41,12 +41,8 @@ pub type ExecutionPayload = spec::ExecutionPayload<
     MAX_TRANSACTIONS_PER_PAYLOAD,
 >;
 
-pub type ExecutionPayloadHeader = spec::ExecutionPayloadHeader<
-    BYTES_PER_LOGS_BLOOM,
-    MAX_EXTRA_DATA_BYTES,
-    MAX_BYTES_PER_TRANSACTION,
-    MAX_TRANSACTIONS_PER_PAYLOAD,
->;
+pub type ExecutionPayloadHeader =
+    spec::ExecutionPayloadHeader<BYTES_PER_LOGS_BLOOM, MAX_EXTRA_DATA_BYTES>;
 
 pub type BlindedBeaconBlock = spec::BlindedBeaconBlock<
     MAX_PROPOSER_SLASHINGS,
@@ -58,8 +54,6 @@ pub type BlindedBeaconBlock = spec::BlindedBeaconBlock<
     SYNC_COMMITTEE_SIZE,
     BYTES_PER_LOGS_BLOOM,
     MAX_EXTRA_DATA_BYTES,
-    MAX_BYTES_PER_TRANSACTION,
-    MAX_TRANSACTIONS_PER_PAYLOAD,
 >;
 
 pub type BlindedBeaconBlockBody = spec::BlindedBeaconBlockBody<
@@ -72,8 +66,6 @@ pub type BlindedBeaconBlockBody = spec::BlindedBeaconBlockBody<
     SYNC_COMMITTEE_SIZE,
     BYTES_PER_LOGS_BLOOM,
     MAX_EXTRA_DATA_BYTES,
-    MAX_BYTES_PER_TRANSACTION,
-    MAX_TRANSACTIONS_PER_PAYLOAD,
 >;
 
 pub type SignedBlindedBeaconBlock = spec::SignedBlindedBeaconBlock<
@@ -86,8 +78,6 @@ pub type SignedBlindedBeaconBlock = spec::SignedBlindedBeaconBlock<
     SYNC_COMMITTEE_SIZE,
     BYTES_PER_LOGS_BLOOM,
     MAX_EXTRA_DATA_BYTES,
-    MAX_BYTES_PER_TRANSACTION,
-    MAX_TRANSACTIONS_PER_PAYLOAD,
 >;
 
 pub type BeaconState = spec::BeaconState<
@@ -101,8 +91,6 @@ pub type BeaconState = spec::BeaconState<
     SYNC_COMMITTEE_SIZE,
     BYTES_PER_LOGS_BLOOM,
     MAX_EXTRA_DATA_BYTES,
-    MAX_BYTES_PER_TRANSACTION,
-    MAX_TRANSACTIONS_PER_PAYLOAD,
 >;
 
 pub type BeaconBlockBody = spec::BeaconBlockBody<

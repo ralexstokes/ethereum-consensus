@@ -40,8 +40,6 @@ pub fn process_execution_payload<
         SYNC_COMMITTEE_SIZE,
         BYTES_PER_LOGS_BLOOM,
         MAX_EXTRA_DATA_BYTES,
-        MAX_BYTES_PER_TRANSACTION,
-        MAX_TRANSACTIONS_PER_PAYLOAD,
     >,
     payload: &mut ExecutionPayload<
         BYTES_PER_LOGS_BLOOM,
@@ -145,8 +143,6 @@ pub fn process_block<
         SYNC_COMMITTEE_SIZE,
         BYTES_PER_LOGS_BLOOM,
         MAX_EXTRA_DATA_BYTES,
-        MAX_BYTES_PER_TRANSACTION,
-        MAX_TRANSACTIONS_PER_PAYLOAD,
     >,
     block: &mut BeaconBlock<
         MAX_PROPOSER_SLASHINGS,

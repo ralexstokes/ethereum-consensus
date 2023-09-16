@@ -1,8 +1,6 @@
 gen-spec:
-    @echo "this is broken right now, sorry"
-    # cargo run --features gen-spec --bin gen-spec
-    # cargo fix --allow-dirty
-    # cargo fmt
+    cargo run -p spec-gen --bin spec-gen
+    just fmt
 
 run-integration-tests:
     cargo test --features 'spec-tests' --test '*'

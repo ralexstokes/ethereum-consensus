@@ -1,6 +1,0 @@
-fmt:
-    cargo +nightly fmt --all
-
-gen-spec:
-    cargo run --bin spec-gen
-    just fmt

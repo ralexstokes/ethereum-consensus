@@ -46,8 +46,6 @@ pub fn state_transition_block_in_slot<
         SYNC_COMMITTEE_SIZE,
         BYTES_PER_LOGS_BLOOM,
         MAX_EXTRA_DATA_BYTES,
-        MAX_BYTES_PER_TRANSACTION,
-        MAX_TRANSACTIONS_PER_PAYLOAD,
     >,
     signed_block: &mut SignedBeaconBlock<
         MAX_PROPOSER_SLASHINGS,
@@ -118,8 +116,6 @@ pub fn state_transition<
         SYNC_COMMITTEE_SIZE,
         BYTES_PER_LOGS_BLOOM,
         MAX_EXTRA_DATA_BYTES,
-        MAX_BYTES_PER_TRANSACTION,
-        MAX_TRANSACTIONS_PER_PAYLOAD,
     >,
     signed_block: &mut SignedBeaconBlock<
         MAX_PROPOSER_SLASHINGS,
