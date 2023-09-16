@@ -19,8 +19,6 @@ pub struct BlindedBeaconBlockBody<
     const SYNC_COMMITTEE_SIZE: usize,
     const BYTES_PER_LOGS_BLOOM: usize,
     const MAX_EXTRA_DATA_BYTES: usize,
-    const MAX_BYTES_PER_TRANSACTION: usize,
-    const MAX_TRANSACTIONS_PER_PAYLOAD: usize,
 > {
     pub randao_reveal: BlsSignature,
     pub eth1_data: Eth1Data,
@@ -32,12 +30,8 @@ pub struct BlindedBeaconBlockBody<
     pub deposits: List<Deposit, MAX_DEPOSITS>,
     pub voluntary_exits: List<SignedVoluntaryExit, MAX_VOLUNTARY_EXITS>,
     pub sync_aggregate: SyncAggregate<SYNC_COMMITTEE_SIZE>,
-    pub execution_payload_header: ExecutionPayloadHeader<
-        BYTES_PER_LOGS_BLOOM,
-        MAX_EXTRA_DATA_BYTES,
-        MAX_BYTES_PER_TRANSACTION,
-        MAX_TRANSACTIONS_PER_PAYLOAD,
-    >,
+    pub execution_payload_header:
+        ExecutionPayloadHeader<BYTES_PER_LOGS_BLOOM, MAX_EXTRA_DATA_BYTES>,
 }
 
 #[derive(Default, Debug, Clone, SimpleSerialize)]
@@ -52,8 +46,6 @@ pub struct BlindedBeaconBlock<
     const SYNC_COMMITTEE_SIZE: usize,
     const BYTES_PER_LOGS_BLOOM: usize,
     const MAX_EXTRA_DATA_BYTES: usize,
-    const MAX_BYTES_PER_TRANSACTION: usize,
-    const MAX_TRANSACTIONS_PER_PAYLOAD: usize,
 > {
     #[serde(with = "crate::serde::as_string")]
     pub slot: Slot,
@@ -71,8 +63,6 @@ pub struct BlindedBeaconBlock<
         SYNC_COMMITTEE_SIZE,
         BYTES_PER_LOGS_BLOOM,
         MAX_EXTRA_DATA_BYTES,
-        MAX_BYTES_PER_TRANSACTION,
-        MAX_TRANSACTIONS_PER_PAYLOAD,
     >,
 }
 
@@ -88,8 +78,6 @@ pub struct SignedBlindedBeaconBlock<
     const SYNC_COMMITTEE_SIZE: usize,
     const BYTES_PER_LOGS_BLOOM: usize,
     const MAX_EXTRA_DATA_BYTES: usize,
-    const MAX_BYTES_PER_TRANSACTION: usize,
-    const MAX_TRANSACTIONS_PER_PAYLOAD: usize,
 > {
     pub message: BlindedBeaconBlock<
         MAX_PROPOSER_SLASHINGS,
@@ -101,8 +89,6 @@ pub struct SignedBlindedBeaconBlock<
         SYNC_COMMITTEE_SIZE,
         BYTES_PER_LOGS_BLOOM,
         MAX_EXTRA_DATA_BYTES,
-        MAX_BYTES_PER_TRANSACTION,
-        MAX_TRANSACTIONS_PER_PAYLOAD,
     >,
     pub signature: BlsSignature,
 }

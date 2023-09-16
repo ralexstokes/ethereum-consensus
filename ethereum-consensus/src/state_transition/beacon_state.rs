@@ -16,8 +16,6 @@ pub enum BeaconState<
     const SYNC_COMMITTEE_SIZE: usize,
     const BYTES_PER_LOGS_BLOOM: usize,
     const MAX_EXTRA_DATA_BYTES: usize,
-    const MAX_BYTES_PER_TRANSACTION: usize,
-    const MAX_TRANSACTIONS_PER_PAYLOAD: usize,
 > {
     Phase0(
         Box<
@@ -60,8 +58,6 @@ pub enum BeaconState<
                 SYNC_COMMITTEE_SIZE,
                 BYTES_PER_LOGS_BLOOM,
                 MAX_EXTRA_DATA_BYTES,
-                MAX_BYTES_PER_TRANSACTION,
-                MAX_TRANSACTIONS_PER_PAYLOAD,
             >,
         >,
     ),
@@ -79,8 +75,6 @@ impl<
         const SYNC_COMMITTEE_SIZE: usize,
         const BYTES_PER_LOGS_BLOOM: usize,
         const MAX_EXTRA_DATA_BYTES: usize,
-        const MAX_BYTES_PER_TRANSACTION: usize,
-        const MAX_TRANSACTIONS_PER_PAYLOAD: usize,
     >
     From<
         phase0::BeaconState<
@@ -106,8 +100,6 @@ impl<
         SYNC_COMMITTEE_SIZE,
         BYTES_PER_LOGS_BLOOM,
         MAX_EXTRA_DATA_BYTES,
-        MAX_BYTES_PER_TRANSACTION,
-        MAX_TRANSACTIONS_PER_PAYLOAD,
     >
 {
     fn from(
@@ -138,8 +130,6 @@ impl<
         const SYNC_COMMITTEE_SIZE: usize,
         const BYTES_PER_LOGS_BLOOM: usize,
         const MAX_EXTRA_DATA_BYTES: usize,
-        const MAX_BYTES_PER_TRANSACTION: usize,
-        const MAX_TRANSACTIONS_PER_PAYLOAD: usize,
     >
     From<
         altair::BeaconState<
@@ -165,8 +155,6 @@ impl<
         SYNC_COMMITTEE_SIZE,
         BYTES_PER_LOGS_BLOOM,
         MAX_EXTRA_DATA_BYTES,
-        MAX_BYTES_PER_TRANSACTION,
-        MAX_TRANSACTIONS_PER_PAYLOAD,
     >
 {
     fn from(
@@ -197,8 +185,6 @@ impl<
         const SYNC_COMMITTEE_SIZE: usize,
         const BYTES_PER_LOGS_BLOOM: usize,
         const MAX_EXTRA_DATA_BYTES: usize,
-        const MAX_BYTES_PER_TRANSACTION: usize,
-        const MAX_TRANSACTIONS_PER_PAYLOAD: usize,
     >
     From<
         bellatrix::BeaconState<
@@ -212,8 +198,6 @@ impl<
             SYNC_COMMITTEE_SIZE,
             BYTES_PER_LOGS_BLOOM,
             MAX_EXTRA_DATA_BYTES,
-            MAX_BYTES_PER_TRANSACTION,
-            MAX_TRANSACTIONS_PER_PAYLOAD,
         >,
     >
     for BeaconState<
@@ -228,8 +212,6 @@ impl<
         SYNC_COMMITTEE_SIZE,
         BYTES_PER_LOGS_BLOOM,
         MAX_EXTRA_DATA_BYTES,
-        MAX_BYTES_PER_TRANSACTION,
-        MAX_TRANSACTIONS_PER_PAYLOAD,
     >
 {
     fn from(
@@ -244,8 +226,6 @@ impl<
             SYNC_COMMITTEE_SIZE,
             BYTES_PER_LOGS_BLOOM,
             MAX_EXTRA_DATA_BYTES,
-            MAX_BYTES_PER_TRANSACTION,
-            MAX_TRANSACTIONS_PER_PAYLOAD,
         >,
     ) -> Self {
         Self::Bellatrix(Box::new(state))
@@ -264,8 +244,6 @@ impl<
         const SYNC_COMMITTEE_SIZE: usize,
         const BYTES_PER_LOGS_BLOOM: usize,
         const MAX_EXTRA_DATA_BYTES: usize,
-        const MAX_BYTES_PER_TRANSACTION: usize,
-        const MAX_TRANSACTIONS_PER_PAYLOAD: usize,
     >
     BeaconState<
         SLOTS_PER_HISTORICAL_ROOT,
@@ -279,8 +257,6 @@ impl<
         SYNC_COMMITTEE_SIZE,
         BYTES_PER_LOGS_BLOOM,
         MAX_EXTRA_DATA_BYTES,
-        MAX_BYTES_PER_TRANSACTION,
-        MAX_TRANSACTIONS_PER_PAYLOAD,
     >
 {
     pub fn phase0(
@@ -337,8 +313,6 @@ impl<
             SYNC_COMMITTEE_SIZE,
             BYTES_PER_LOGS_BLOOM,
             MAX_EXTRA_DATA_BYTES,
-            MAX_BYTES_PER_TRANSACTION,
-            MAX_TRANSACTIONS_PER_PAYLOAD,
         >,
     > {
         match self {
