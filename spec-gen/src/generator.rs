@@ -328,13 +328,13 @@ impl Spec {
                 analyzer.analyze(&fragment);
                 let type_names = analyzer.names;
                 let mut all_arguments = vec![];
-                for name in &type_names {
-                    if let Some(target_module) = index.get(name) {
+                for name in type_names {
+                    if let Some(target_module) = index.get(&name) {
                         let target_module = self.diff.modules.get(target_module).unwrap();
                         let container = target_module
                             .containers
                             .iter()
-                            .find(|&c| &c.name == name)
+                            .find(|&c| c.name == name)
                             .expect("internal state integrity");
 
                         let arguments = generics_to_arguments(&container.item.generics);
