@@ -1,3 +1,21 @@
+download-integration-tests: clean-integration-tests
+    #!/usr/bin/env sh
+    TESTS_TAG=$(cat test-gen/spec-test-version)
+    REPO_NAME=consensus-spec-tests
+    CONFIGS="general minimal mainnet"
+    mkdir ${REPO_NAME}
+    for config in ${CONFIGS}
+    do
+        wget https://github.com/ethereum/${REPO_NAME}/releases/download/${TESTS_TAG}/${config}.tar.gz
+        tar -xzf ${config}.tar.gz -C ${REPO_NAME}
+    done
+    rm -f *tar.gz
+clean-integration-tests:
+    rm -rf consensus-spec-tests
+gen-tests:
+    cargo run -p test-gen --bin test-gen
+    just fmt
+
 gen-spec:
     cargo run -p spec-gen --bin spec-gen
     just fmt

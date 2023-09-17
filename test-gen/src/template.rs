@@ -72,14 +72,8 @@ pub fn build_index() -> HashMap<&'static str, HashMap<&'static str, Auxillary>> 
                     test_case_type_generics: "spec::BeaconState, spec::ExecutionPayload".to_string(),
                     preamble: Default::default(),
                     execution_handler: HashMap::from_iter([(Spec::All, "execute(|state, operation, context, execution_valid| {
-                    use ethereum_consensus::state_transition::{Error, InvalidBlock, InvalidOperation, InvalidExecutionPayload};
-                    let execution_engine = spec::MockExecutionEngine::new(|_| if execution_valid {
-                        Ok(())
-                    } else {
-                        // NOTE: exact error is not specified for this test
-                        Err(Error::InvalidBlock(Box::new(InvalidBlock::InvalidOperation(InvalidOperation::ExecutionPayload(InvalidExecutionPayload::InvalidTimestamp { provided: 0, expected: 0 })))))
-                    });
-                    spec::process_execution_payload(state, operation, execution_engine, context)
+                    let execution_engine = spec::DefaultExecutionEngine::new(execution_valid);
+                    spec::process_execution_payload(state, operation, &execution_engine, context)
                 })"
                     .to_string())]),
                 },
@@ -172,7 +166,8 @@ pub fn build_index() -> HashMap<&'static str, HashMap<&'static str, Auxillary>> 
                     preamble: Default::default(),
                     execution_handler: HashMap::from_iter([
                         (Spec::Altair, "execute(|state: pre_spec::BeaconState, pre_blocks: Vec<pre_spec::SignedBeaconBlock>, blocks: Vec<spec::SignedBeaconBlock>, context| {
-                    let mut executor = Executor::new(state.into(), NoOpExecutionEngine, context);
+                    let execution_engine = ethereum_consensus::bellatrix::DefaultExecutionEngine::default();
+                    let mut executor = Executor::new(state.into(), execution_engine.into(), context);
                     for block in pre_blocks.into_iter() {
                         let mut block = block.into();
                         executor.apply_block(&mut block)?;
@@ -188,7 +183,8 @@ pub fn build_index() -> HashMap<&'static str, HashMap<&'static str, Auxillary>> 
                 })"
                     .to_string()),
                         (Spec::Bellatrix, "execute(|state: pre_spec::BeaconState, pre_blocks: Vec<pre_spec::SignedBeaconBlock>, blocks: Vec<spec::SignedBeaconBlock>, context| {
-                    let mut executor = Executor::new(state.into(), NoOpExecutionEngine, context);
+                    let execution_engine = spec::DefaultExecutionEngine::default();
+                    let mut executor = Executor::new(state.into(), execution_engine.into(), context);
                     for block in pre_blocks.into_iter() {
                         let mut block = block.into();
                         executor.apply_block(&mut block)?;
@@ -245,7 +241,7 @@ pub fn build_index() -> HashMap<&'static str, HashMap<&'static str, Auxillary>> 
                 Auxillary {
                     test_case_type_generics: "spec::BeaconState, spec::SignedBeaconBlock"
                         .to_string(),
-                    preamble: HashMap::from_iter([(Spec::Bellatrix, "let execution_engine = spec::NoOpExecutionEngine;".to_string())]),
+                    preamble: HashMap::from_iter([(Spec::Bellatrix, "let execution_engine = spec::DefaultExecutionEngine::default();".to_string())]),
                     execution_handler: HashMap::from_iter([(Spec::Phase0, "execute(|state, blocks, validation, context| {
                         for block in blocks.iter_mut() {
                             spec::state_transition(state, block, validation, context)?;
@@ -258,7 +254,7 @@ pub fn build_index() -> HashMap<&'static str, HashMap<&'static str, Auxillary>> 
                         Ok(())
                     })".to_string()), (Spec::Bellatrix, "execute(|state, blocks, validation, context| {
                         for block in blocks.iter_mut() {
-                            spec::state_transition(state, block, execution_engine.clone(), validation, context)?;
+                            spec::state_transition(state, block, &execution_engine, validation, context)?;
                         }
                         Ok(())
                     })".to_string())]),
@@ -395,7 +391,7 @@ pub fn build_index() -> HashMap<&'static str, HashMap<&'static str, Auxillary>> 
                 Auxillary {
                     test_case_type_generics: "spec::BeaconState, spec::SignedBeaconBlock"
                         .to_string(),
-                    preamble: HashMap::from_iter([(Spec::Bellatrix, "let execution_engine = spec::NoOpExecutionEngine;".to_string())]),
+                    preamble: HashMap::from_iter([(Spec::Bellatrix, "let execution_engine = spec::DefaultExecutionEngine::default();".to_string())]),
                     execution_handler: HashMap::from_iter([(Spec::Phase0, "execute(|state, blocks, validation, context| {
                         for block in blocks.iter_mut() {
                             spec::state_transition(state, block, validation, context)?;
@@ -408,7 +404,7 @@ pub fn build_index() -> HashMap<&'static str, HashMap<&'static str, Auxillary>> 
                         Ok(())
                     })".to_string()), (Spec::Bellatrix, "execute(|state, blocks, validation, context| {
                         for block in blocks.iter_mut() {
-                            spec::state_transition(state, block, execution_engine.clone(), validation, context)?;
+                            spec::state_transition(state, block, &execution_engine, validation, context)?;
                         }
                         Ok(())
                     })".to_string())]),
@@ -957,7 +953,7 @@ pub fn build_index() -> HashMap<&'static str, HashMap<&'static str, Auxillary>> 
                 Auxillary {
                     test_case_type_generics: "spec::BeaconState, spec::SignedBeaconBlock"
                         .to_string(),
-                    preamble: HashMap::from_iter([(Spec::Bellatrix, "let execution_engine = spec::NoOpExecutionEngine;".to_string())]),
+                    preamble: HashMap::from_iter([(Spec::Bellatrix, "let execution_engine = spec::DefaultExecutionEngine::default();".to_string())]),
                     execution_handler: HashMap::from_iter([(Spec::Phase0, "execute(|state, blocks, validation, context| {
                         for block in blocks.iter_mut() {
                             spec::state_transition(state, block, validation, context)?;
@@ -970,7 +966,7 @@ pub fn build_index() -> HashMap<&'static str, HashMap<&'static str, Auxillary>> 
                         Ok(())
                     })".to_string()), (Spec::Bellatrix, "execute(|state, blocks, validation, context| {
                         for block in blocks.iter_mut() {
-                            spec::state_transition(state, block, execution_engine.clone(), validation, context)?;
+                            spec::state_transition(state, block, &execution_engine, validation, context)?;
                         }
                         Ok(())
                     })".to_string())]),

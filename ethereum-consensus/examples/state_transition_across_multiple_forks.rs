@@ -1,8 +1,8 @@
 use ethereum_consensus::{
     altair::mainnet as altair,
-    bellatrix::{mainnet as bellatrix, NoOpExecutionEngine},
+    bellatrix::mainnet as bellatrix,
     phase0::mainnet as phase0,
-    state_transition::mainnet::{Context, Executor},
+    state_transition::mainnet::{Context, ExecutionEngine, Executor},
 };
 use ssz_rs::prelude::*;
 use std::error::Error;
@@ -13,7 +13,8 @@ fn main() -> std::result::Result<(), Box<dyn Error>> {
 
     let genesis_state = phase0::BeaconState::default();
     let context = Context::for_mainnet();
-    let mut executor = Executor::new(genesis_state.into(), NoOpExecutionEngine, context);
+    let execution_engine = ExecutionEngine::Bellatrix(bellatrix::DefaultExecutionEngine::default());
+    let mut executor = Executor::new(genesis_state.into(), execution_engine, context);
 
     let mut block = phase0::SignedBeaconBlock::default();
     block.message.slot = 1;

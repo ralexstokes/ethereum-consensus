@@ -4,7 +4,6 @@
 use crate::spec_test_runners::transition::CoreTestCase;
 use ethereum_consensus::{
     altair::mainnet as spec,
-    bellatrix::mainnet::NoOpExecutionEngine,
     phase0::mainnet as pre_spec,
     state_transition::mainnet::{BeaconState, Executor},
 };
@@ -19,7 +18,8 @@ fn test_normal_transition() {
          pre_blocks: Vec<pre_spec::SignedBeaconBlock>,
          blocks: Vec<spec::SignedBeaconBlock>,
          context| {
-            let mut executor = Executor::new(state.into(), NoOpExecutionEngine, context);
+            let execution_engine = ethereum_consensus::bellatrix::DefaultExecutionEngine::default();
+            let mut executor = Executor::new(state.into(), execution_engine.into(), context);
             for block in pre_blocks.into_iter() {
                 let mut block = block.into();
                 executor.apply_block(&mut block)?;
@@ -45,7 +45,8 @@ fn test_transition_missing_first_post_block() {
          pre_blocks: Vec<pre_spec::SignedBeaconBlock>,
          blocks: Vec<spec::SignedBeaconBlock>,
          context| {
-            let mut executor = Executor::new(state.into(), NoOpExecutionEngine, context);
+            let execution_engine = ethereum_consensus::bellatrix::DefaultExecutionEngine::default();
+            let mut executor = Executor::new(state.into(), execution_engine.into(), context);
             for block in pre_blocks.into_iter() {
                 let mut block = block.into();
                 executor.apply_block(&mut block)?;
@@ -71,7 +72,8 @@ fn test_transition_missing_last_pre_fork_block() {
          pre_blocks: Vec<pre_spec::SignedBeaconBlock>,
          blocks: Vec<spec::SignedBeaconBlock>,
          context| {
-            let mut executor = Executor::new(state.into(), NoOpExecutionEngine, context);
+            let execution_engine = ethereum_consensus::bellatrix::DefaultExecutionEngine::default();
+            let mut executor = Executor::new(state.into(), execution_engine.into(), context);
             for block in pre_blocks.into_iter() {
                 let mut block = block.into();
                 executor.apply_block(&mut block)?;
@@ -97,7 +99,8 @@ fn test_transition_only_blocks_post_fork() {
          pre_blocks: Vec<pre_spec::SignedBeaconBlock>,
          blocks: Vec<spec::SignedBeaconBlock>,
          context| {
-            let mut executor = Executor::new(state.into(), NoOpExecutionEngine, context);
+            let execution_engine = ethereum_consensus::bellatrix::DefaultExecutionEngine::default();
+            let mut executor = Executor::new(state.into(), execution_engine.into(), context);
             for block in pre_blocks.into_iter() {
                 let mut block = block.into();
                 executor.apply_block(&mut block)?;
@@ -123,7 +126,8 @@ fn test_transition_with_activation_at_fork_epoch() {
          pre_blocks: Vec<pre_spec::SignedBeaconBlock>,
          blocks: Vec<spec::SignedBeaconBlock>,
          context| {
-            let mut executor = Executor::new(state.into(), NoOpExecutionEngine, context);
+            let execution_engine = ethereum_consensus::bellatrix::DefaultExecutionEngine::default();
+            let mut executor = Executor::new(state.into(), execution_engine.into(), context);
             for block in pre_blocks.into_iter() {
                 let mut block = block.into();
                 executor.apply_block(&mut block)?;
@@ -149,7 +153,8 @@ fn test_transition_with_attester_slashing_right_after_fork() {
          pre_blocks: Vec<pre_spec::SignedBeaconBlock>,
          blocks: Vec<spec::SignedBeaconBlock>,
          context| {
-            let mut executor = Executor::new(state.into(), NoOpExecutionEngine, context);
+            let execution_engine = ethereum_consensus::bellatrix::DefaultExecutionEngine::default();
+            let mut executor = Executor::new(state.into(), execution_engine.into(), context);
             for block in pre_blocks.into_iter() {
                 let mut block = block.into();
                 executor.apply_block(&mut block)?;
@@ -175,7 +180,8 @@ fn test_transition_with_attester_slashing_right_before_fork() {
          pre_blocks: Vec<pre_spec::SignedBeaconBlock>,
          blocks: Vec<spec::SignedBeaconBlock>,
          context| {
-            let mut executor = Executor::new(state.into(), NoOpExecutionEngine, context);
+            let execution_engine = ethereum_consensus::bellatrix::DefaultExecutionEngine::default();
+            let mut executor = Executor::new(state.into(), execution_engine.into(), context);
             for block in pre_blocks.into_iter() {
                 let mut block = block.into();
                 executor.apply_block(&mut block)?;
@@ -201,7 +207,8 @@ fn test_transition_with_deposit_right_after_fork() {
          pre_blocks: Vec<pre_spec::SignedBeaconBlock>,
          blocks: Vec<spec::SignedBeaconBlock>,
          context| {
-            let mut executor = Executor::new(state.into(), NoOpExecutionEngine, context);
+            let execution_engine = ethereum_consensus::bellatrix::DefaultExecutionEngine::default();
+            let mut executor = Executor::new(state.into(), execution_engine.into(), context);
             for block in pre_blocks.into_iter() {
                 let mut block = block.into();
                 executor.apply_block(&mut block)?;
@@ -227,7 +234,8 @@ fn test_transition_with_deposit_right_before_fork() {
          pre_blocks: Vec<pre_spec::SignedBeaconBlock>,
          blocks: Vec<spec::SignedBeaconBlock>,
          context| {
-            let mut executor = Executor::new(state.into(), NoOpExecutionEngine, context);
+            let execution_engine = ethereum_consensus::bellatrix::DefaultExecutionEngine::default();
+            let mut executor = Executor::new(state.into(), execution_engine.into(), context);
             for block in pre_blocks.into_iter() {
                 let mut block = block.into();
                 executor.apply_block(&mut block)?;
@@ -253,7 +261,8 @@ fn test_transition_with_finality() {
          pre_blocks: Vec<pre_spec::SignedBeaconBlock>,
          blocks: Vec<spec::SignedBeaconBlock>,
          context| {
-            let mut executor = Executor::new(state.into(), NoOpExecutionEngine, context);
+            let execution_engine = ethereum_consensus::bellatrix::DefaultExecutionEngine::default();
+            let mut executor = Executor::new(state.into(), execution_engine.into(), context);
             for block in pre_blocks.into_iter() {
                 let mut block = block.into();
                 executor.apply_block(&mut block)?;
@@ -279,7 +288,8 @@ fn test_transition_with_leaking_at_fork() {
          pre_blocks: Vec<pre_spec::SignedBeaconBlock>,
          blocks: Vec<spec::SignedBeaconBlock>,
          context| {
-            let mut executor = Executor::new(state.into(), NoOpExecutionEngine, context);
+            let execution_engine = ethereum_consensus::bellatrix::DefaultExecutionEngine::default();
+            let mut executor = Executor::new(state.into(), execution_engine.into(), context);
             for block in pre_blocks.into_iter() {
                 let mut block = block.into();
                 executor.apply_block(&mut block)?;
@@ -305,7 +315,8 @@ fn test_transition_with_leaking_pre_fork() {
          pre_blocks: Vec<pre_spec::SignedBeaconBlock>,
          blocks: Vec<spec::SignedBeaconBlock>,
          context| {
-            let mut executor = Executor::new(state.into(), NoOpExecutionEngine, context);
+            let execution_engine = ethereum_consensus::bellatrix::DefaultExecutionEngine::default();
+            let mut executor = Executor::new(state.into(), execution_engine.into(), context);
             for block in pre_blocks.into_iter() {
                 let mut block = block.into();
                 executor.apply_block(&mut block)?;
@@ -331,7 +342,8 @@ fn test_transition_with_no_attestations_until_after_fork() {
          pre_blocks: Vec<pre_spec::SignedBeaconBlock>,
          blocks: Vec<spec::SignedBeaconBlock>,
          context| {
-            let mut executor = Executor::new(state.into(), NoOpExecutionEngine, context);
+            let execution_engine = ethereum_consensus::bellatrix::DefaultExecutionEngine::default();
+            let mut executor = Executor::new(state.into(), execution_engine.into(), context);
             for block in pre_blocks.into_iter() {
                 let mut block = block.into();
                 executor.apply_block(&mut block)?;
@@ -357,7 +369,8 @@ fn test_transition_with_non_empty_activation_queue() {
          pre_blocks: Vec<pre_spec::SignedBeaconBlock>,
          blocks: Vec<spec::SignedBeaconBlock>,
          context| {
-            let mut executor = Executor::new(state.into(), NoOpExecutionEngine, context);
+            let execution_engine = ethereum_consensus::bellatrix::DefaultExecutionEngine::default();
+            let mut executor = Executor::new(state.into(), execution_engine.into(), context);
             for block in pre_blocks.into_iter() {
                 let mut block = block.into();
                 executor.apply_block(&mut block)?;
@@ -383,7 +396,8 @@ fn test_transition_with_one_fourth_exiting_validators_exit_at_fork() {
          pre_blocks: Vec<pre_spec::SignedBeaconBlock>,
          blocks: Vec<spec::SignedBeaconBlock>,
          context| {
-            let mut executor = Executor::new(state.into(), NoOpExecutionEngine, context);
+            let execution_engine = ethereum_consensus::bellatrix::DefaultExecutionEngine::default();
+            let mut executor = Executor::new(state.into(), execution_engine.into(), context);
             for block in pre_blocks.into_iter() {
                 let mut block = block.into();
                 executor.apply_block(&mut block)?;
@@ -409,7 +423,8 @@ fn test_transition_with_proposer_slashing_right_after_fork() {
          pre_blocks: Vec<pre_spec::SignedBeaconBlock>,
          blocks: Vec<spec::SignedBeaconBlock>,
          context| {
-            let mut executor = Executor::new(state.into(), NoOpExecutionEngine, context);
+            let execution_engine = ethereum_consensus::bellatrix::DefaultExecutionEngine::default();
+            let mut executor = Executor::new(state.into(), execution_engine.into(), context);
             for block in pre_blocks.into_iter() {
                 let mut block = block.into();
                 executor.apply_block(&mut block)?;
@@ -435,7 +450,8 @@ fn test_transition_with_proposer_slashing_right_before_fork() {
          pre_blocks: Vec<pre_spec::SignedBeaconBlock>,
          blocks: Vec<spec::SignedBeaconBlock>,
          context| {
-            let mut executor = Executor::new(state.into(), NoOpExecutionEngine, context);
+            let execution_engine = ethereum_consensus::bellatrix::DefaultExecutionEngine::default();
+            let mut executor = Executor::new(state.into(), execution_engine.into(), context);
             for block in pre_blocks.into_iter() {
                 let mut block = block.into();
                 executor.apply_block(&mut block)?;
@@ -461,7 +477,8 @@ fn test_transition_with_random_half_participation() {
          pre_blocks: Vec<pre_spec::SignedBeaconBlock>,
          blocks: Vec<spec::SignedBeaconBlock>,
          context| {
-            let mut executor = Executor::new(state.into(), NoOpExecutionEngine, context);
+            let execution_engine = ethereum_consensus::bellatrix::DefaultExecutionEngine::default();
+            let mut executor = Executor::new(state.into(), execution_engine.into(), context);
             for block in pre_blocks.into_iter() {
                 let mut block = block.into();
                 executor.apply_block(&mut block)?;
@@ -487,7 +504,8 @@ fn test_transition_with_random_three_quarters_participation() {
          pre_blocks: Vec<pre_spec::SignedBeaconBlock>,
          blocks: Vec<spec::SignedBeaconBlock>,
          context| {
-            let mut executor = Executor::new(state.into(), NoOpExecutionEngine, context);
+            let execution_engine = ethereum_consensus::bellatrix::DefaultExecutionEngine::default();
+            let mut executor = Executor::new(state.into(), execution_engine.into(), context);
             for block in pre_blocks.into_iter() {
                 let mut block = block.into();
                 executor.apply_block(&mut block)?;

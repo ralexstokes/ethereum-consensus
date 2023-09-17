@@ -10,7 +10,7 @@ use std::{
 use template::{build_index, TestIndex};
 use walkdir::{DirEntry, Error, WalkDir};
 
-const COMPONENTS_IN_TEST_ROOT: usize = 3;
+const COMPONENTS_IN_TEST_ROOT: usize = 2;
 
 fn component_to_string(c: Component) -> String {
     let c = c.as_os_str().to_str().unwrap().to_string();
@@ -42,7 +42,12 @@ fn insert_test(tests: &mut TestIndex, path: &Path) -> bool {
     let tests = tests.entry(suite).or_default();
 
     let test_case = component_to_string(components.next().unwrap());
-    tests.insert(test_case, path.display().to_string());
+
+    // NOTE: account for the fact that we run the tests from a nested crate relative to the test
+    // data
+    let path = path.display();
+    let from_crate_root = format!("../{path}");
+    tests.insert(test_case, from_crate_root);
 
     true
 }
@@ -186,8 +191,6 @@ fn generate_suite_src(
             _ => unimplemented!("support other forks"),
         };
         writeln!(src, "use ethereum_consensus::{pre_fork}::{config} as pre_spec;",).unwrap();
-        writeln!(src, "use ethereum_consensus::bellatrix::{config}::NoOpExecutionEngine;",)
-            .unwrap();
     }
     if matches!(runner, "fork") {
         match spec {
@@ -248,13 +251,13 @@ fn fix_clippy_lint(s: &mut String) {
 fn main() {
     let auxilliary_data = build_index();
 
-    let test_root = "../consensus-spec-tests/tests";
+    let test_root = "consensus-spec-tests/tests";
     println!("discovering tests in {test_root}...");
     let (all_test_cases, collected_test_case_count) = collect_test_cases(test_root).unwrap();
 
     println!("collected {collected_test_case_count} tests");
 
-    let generated_test_root = PathBuf::from("../ethereum-consensus/tests/consensus_spec_tests");
+    let generated_test_root = PathBuf::from("ethereum-consensus/tests/consensus_spec_tests");
     fs::remove_dir_all(&generated_test_root).unwrap();
 
     fs::create_dir_all(&generated_test_root).unwrap();
