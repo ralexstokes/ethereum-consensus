@@ -10,7 +10,7 @@ use std::{
 use template::{build_index, TestIndex};
 use walkdir::{DirEntry, Error, WalkDir};
 
-const COMPONENTS_IN_TEST_ROOT: usize = 3;
+const COMPONENTS_IN_TEST_ROOT: usize = 2;
 
 fn component_to_string(c: Component) -> String {
     let c = c.as_os_str().to_str().unwrap().to_string();
@@ -251,13 +251,13 @@ fn fix_clippy_lint(s: &mut String) {
 fn main() {
     let auxilliary_data = build_index();
 
-    let test_root = "../consensus-spec-tests/tests";
+    let test_root = "consensus-spec-tests/tests";
     println!("discovering tests in {test_root}...");
     let (all_test_cases, collected_test_case_count) = collect_test_cases(test_root).unwrap();
 
     println!("collected {collected_test_case_count} tests");
 
-    let generated_test_root = PathBuf::from("../ethereum-consensus/tests/consensus_spec_tests");
+    let generated_test_root = PathBuf::from("ethereum-consensus/tests/consensus_spec_tests");
     fs::remove_dir_all(&generated_test_root).unwrap();
 
     fs::create_dir_all(&generated_test_root).unwrap();
