@@ -116,8 +116,8 @@ impl Fork {
             }
             Fork::Bellatrix => {
                 let fragment: syn::File = parse_quote! {
-                    use std::mem;
                     use std::cmp;
+                    use std::mem;
                     use std::collections::{HashSet, HashMap};
                     use std::iter::zip;
                     use ssz_rs::prelude::*;
