@@ -42,7 +42,12 @@ fn insert_test(tests: &mut TestIndex, path: &Path) -> bool {
     let tests = tests.entry(suite).or_default();
 
     let test_case = component_to_string(components.next().unwrap());
-    tests.insert(test_case, path.display().to_string());
+
+    // NOTE: account for the fact that we run the tests from a nested crate relative to the test
+    // data
+    let path = path.display();
+    let from_crate_root = format!("../{path}");
+    tests.insert(test_case, from_crate_root);
 
     true
 }
@@ -186,8 +191,6 @@ fn generate_suite_src(
             _ => unimplemented!("support other forks"),
         };
         writeln!(src, "use ethereum_consensus::{pre_fork}::{config} as pre_spec;",).unwrap();
-        writeln!(src, "use ethereum_consensus::bellatrix::{config}::NoOpExecutionEngine;",)
-            .unwrap();
     }
     if matches!(runner, "fork") {
         match spec {

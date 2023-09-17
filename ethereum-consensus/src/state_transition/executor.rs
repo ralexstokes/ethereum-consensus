@@ -1,6 +1,9 @@
 use crate::{
     altair, bellatrix, phase0,
-    state_transition::{BeaconState, Context, Error, Forks, Result, SignedBeaconBlock, Validation},
+    state_transition::{
+        execution_engine::ExecutionEngine, BeaconState, Context, Error, Forks, Result,
+        SignedBeaconBlock, Validation,
+    },
 };
 
 #[derive(Debug)]
@@ -23,7 +26,7 @@ pub struct Executor<
     const MAX_ATTESTATIONS: usize,
     const MAX_DEPOSITS: usize,
     const MAX_VOLUNTARY_EXITS: usize,
-    E: bellatrix::ExecutionEngine<
+    B: bellatrix::ExecutionEngine<
         BYTES_PER_LOGS_BLOOM,
         MAX_EXTRA_DATA_BYTES,
         MAX_BYTES_PER_TRANSACTION,
@@ -43,7 +46,13 @@ pub struct Executor<
         BYTES_PER_LOGS_BLOOM,
         MAX_EXTRA_DATA_BYTES,
     >,
-    pub execution_engine: E,
+    pub execution_engine: ExecutionEngine<
+        BYTES_PER_LOGS_BLOOM,
+        MAX_EXTRA_DATA_BYTES,
+        MAX_BYTES_PER_TRANSACTION,
+        MAX_TRANSACTIONS_PER_PAYLOAD,
+        B,
+    >,
     pub context: Context,
 }
 
@@ -66,7 +75,7 @@ impl<
         const MAX_ATTESTATIONS: usize,
         const MAX_DEPOSITS: usize,
         const MAX_VOLUNTARY_EXITS: usize,
-        E: bellatrix::ExecutionEngine<
+        B: bellatrix::ExecutionEngine<
             BYTES_PER_LOGS_BLOOM,
             MAX_EXTRA_DATA_BYTES,
             MAX_BYTES_PER_TRANSACTION,
@@ -92,7 +101,7 @@ impl<
         MAX_ATTESTATIONS,
         MAX_DEPOSITS,
         MAX_VOLUNTARY_EXITS,
-        E,
+        B,
     >
 {
     pub fn new(
@@ -109,7 +118,13 @@ impl<
             BYTES_PER_LOGS_BLOOM,
             MAX_EXTRA_DATA_BYTES,
         >,
-        execution_engine: E,
+        execution_engine: ExecutionEngine<
+            BYTES_PER_LOGS_BLOOM,
+            MAX_EXTRA_DATA_BYTES,
+            MAX_BYTES_PER_TRANSACTION,
+            MAX_TRANSACTIONS_PER_PAYLOAD,
+            B,
+        >,
         context: Context,
     ) -> Self {
         Self { state, execution_engine, context }
@@ -262,7 +277,7 @@ impl<
                     bellatrix::state_transition_block_in_slot(
                         &mut state,
                         signed_block,
-                        self.execution_engine.clone(),
+                        self.execution_engine.bellatrix(),
                         validation,
                         &self.context,
                     )?;
@@ -270,7 +285,7 @@ impl<
                     bellatrix::state_transition(
                         &mut state,
                         signed_block,
-                        self.execution_engine.clone(),
+                        self.execution_engine.bellatrix(),
                         validation,
                         &self.context,
                     )?;
@@ -286,7 +301,7 @@ impl<
                     bellatrix::state_transition_block_in_slot(
                         &mut state,
                         signed_block,
-                        self.execution_engine.clone(),
+                        self.execution_engine.bellatrix(),
                         validation,
                         &self.context,
                     )?;
@@ -294,7 +309,7 @@ impl<
                     bellatrix::state_transition(
                         &mut state,
                         signed_block,
-                        self.execution_engine.clone(),
+                        self.execution_engine.bellatrix(),
                         validation,
                         &self.context,
                     )?;
@@ -305,7 +320,7 @@ impl<
             BeaconState::Bellatrix(state) => bellatrix::state_transition(
                 state,
                 signed_block,
-                self.execution_engine.clone(),
+                self.execution_engine.bellatrix(),
                 validation,
                 &self.context,
             ),

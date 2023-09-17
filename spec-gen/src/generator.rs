@@ -64,7 +64,8 @@ impl Fork {
                 "blinded_beacon_block",
                 "block_processing",
                 "epoch_processing",
-                "execution",
+                "execution_engine",
+                "execution_payload",
                 "fork_choice",
                 "fork",
                 "genesis",
@@ -124,8 +125,6 @@ impl Fork {
                     use integer_sqrt::IntegerSquareRoot;
                     use crate::crypto::{hash, verify_signature, fast_aggregate_verify, eth_aggregate_public_keys, eth_fast_aggregate_verify};
                     use crate::ssz::*;
-                    // NOTE: expose items for use by others...
-                    pub use crate::bellatrix::execution::ExecutionEngine;
                 };
                 fragment.items
             }

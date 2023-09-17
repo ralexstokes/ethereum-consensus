@@ -60,7 +60,7 @@ pub fn state_transition_block_in_slot<
         MAX_BYTES_PER_TRANSACTION,
         MAX_TRANSACTIONS_PER_PAYLOAD,
     >,
-    execution_engine: E,
+    execution_engine: &E,
     validation: Validation,
     context: &Context,
 ) -> Result<()> {
@@ -130,7 +130,7 @@ pub fn state_transition<
         MAX_BYTES_PER_TRANSACTION,
         MAX_TRANSACTIONS_PER_PAYLOAD,
     >,
-    execution_engine: E,
+    execution_engine: &E,
     validation: Validation,
     context: &Context,
 ) -> Result<()> {

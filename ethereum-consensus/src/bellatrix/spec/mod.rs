@@ -28,10 +28,8 @@ pub use crate::{
         },
         block_processing::{process_block, process_execution_payload},
         epoch_processing::{process_epoch, process_slashings},
-        execution::{
-            ExecutionEngine, ExecutionPayload, ExecutionPayloadHeader, MockExecutionEngine,
-            NoOpExecutionEngine, Transaction,
-        },
+        execution_engine::{DefaultExecutionEngine, NewPayloadRequest},
+        execution_payload::{ExecutionPayload, ExecutionPayloadHeader, Transaction},
         fork::upgrade_to_bellatrix,
         fork_choice::PowBlock,
         genesis::initialize_beacon_state_from_eth1,
@@ -2915,3 +2913,4 @@ pub fn process_slot<
     state.block_roots[root_index as usize] = previous_block_root;
     Ok(())
 }
+pub use crate::bellatrix::execution_engine::ExecutionEngine;

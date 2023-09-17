@@ -52,6 +52,8 @@ pub enum Error {
     #[cfg(feature = "serde")]
     #[error("an unknown preset {0} was supplied when constructing context")]
     UnknownPreset(String),
+    #[error(transparent)]
+    ExecutionEngine(#[from] ExecutionEngineError),
 }
 
 #[derive(Debug, Error)]
@@ -198,4 +200,12 @@ pub(crate) fn invalid_header_error(error: InvalidBeaconBlockHeader) -> Error {
 
 pub(crate) fn invalid_operation_error(error: InvalidOperation) -> Error {
     Error::InvalidBlock(Box::new(InvalidBlock::InvalidOperation(error)))
+}
+
+#[derive(Debug, Error)]
+pub enum ExecutionEngineError {
+    #[error("invalid block hash")]
+    InvalidBlockHash,
+    #[error("invalid payload")]
+    InvalidPayload,
 }

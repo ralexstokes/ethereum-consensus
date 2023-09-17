@@ -134,18 +134,3 @@ pub type SignedBeaconBlock = spec::SignedBeaconBlock<
     MAX_BYTES_PER_TRANSACTION,
     MAX_TRANSACTIONS_PER_PAYLOAD,
 >;
-
-pub type NoOpExecutionEngine = spec::NoOpExecutionEngine<
-    BYTES_PER_LOGS_BLOOM,
-    MAX_EXTRA_DATA_BYTES,
-    MAX_BYTES_PER_TRANSACTION,
-    MAX_TRANSACTIONS_PER_PAYLOAD,
->;
-
-pub type MockExecutionEngine<F> = spec::MockExecutionEngine<
-    BYTES_PER_LOGS_BLOOM,
-    MAX_EXTRA_DATA_BYTES,
-    MAX_BYTES_PER_TRANSACTION,
-    MAX_TRANSACTIONS_PER_PAYLOAD,
-    F,
->;
