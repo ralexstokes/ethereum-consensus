@@ -217,12 +217,37 @@ impl std::fmt::Debug for Container {
     }
 }
 
+#[derive(Clone)]
+struct TraitDef {
+    name: String,
+    item: syn::ItemTrait,
+    fork: Fork,
+}
+
+impl TraitDef {
+    fn new(value: syn::ItemTrait, fork: Fork) -> Self {
+        let name = &value.ident;
+        Self { name: name.to_string(), item: value, fork }
+    }
+
+    fn is_pub(&self) -> bool {
+        matches!(self.item.vis, syn::Visibility::Public(..))
+    }
+}
+
+impl std::fmt::Debug for TraitDef {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_tuple("TraitDef").field(&self.name).finish()
+    }
+}
+
 #[derive(Default)]
 struct Module {
     containers: Vec<Container>,
     fns: Vec<Fn>,
     constants: Vec<Constant>,
     type_defs: Vec<TypeDef>,
+    trait_defs: Vec<TraitDef>,
 }
 
 impl Module {
@@ -238,6 +263,9 @@ impl Module {
         }
         for t in other.type_defs {
             self.type_defs.push(t);
+        }
+        for t in other.trait_defs {
+            self.trait_defs.push(t);
         }
     }
 }
@@ -358,6 +386,16 @@ impl Spec {
                 index.insert(fn_name, module_name.to_string());
             }
 
+            for trait_def in &previous_module.trait_defs {
+                let name = trait_def.name.to_string();
+                if index.contains_key(&name) {
+                    println!("skipping item: found duplicate definition for `{name}` in next spec `{fork}`");
+                    continue
+                }
+                module.trait_defs.push(trait_def.clone());
+                index.insert(name, module_name.to_string());
+            }
+
             let target_module = self.diff.modules.entry(module_name.to_string()).or_default();
             target_module.merge(module);
         }
@@ -430,6 +468,18 @@ impl Spec {
             };
             self.items.push(item);
         }
+        for (module_name, module) in self.diff.modules.iter() {
+            let module_name: Ident = as_syn_ident(module_name.clone());
+
+            for t in &module.trait_defs {
+                let ident = &t.item.ident;
+                let fork_name = as_syn_ident(t.fork.name());
+                let use_stmt = parse_quote! {
+                    pub use crate::#fork_name::#module_name::#ident;
+                };
+                self.items.push(use_stmt);
+            }
+        }
     }
 }
 
@@ -479,8 +529,11 @@ fn parse_fork_diff_with_symbol_index(fork: &Fork) -> (ForkDiff, HashMap<String, 
                 Item::Impl(_) => {
                     println!("skipping item: `impl` block in {source_path}");
                 }
-                Item::Trait(_) => {
-                    println!("skipping item: `trait` block in {source_path}");
+                Item::Trait(item) => {
+                    let item = TraitDef::new(item, *fork);
+                    if item.is_pub() {
+                        module.trait_defs.push(item);
+                    }
                 }
                 i => unimplemented!("{i:#?} from {source_path}"),
             }
