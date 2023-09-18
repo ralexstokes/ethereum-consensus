@@ -1,24 +1,19 @@
+use crate::capella::spec;
 pub use crate::{
-    altair::mainnet::{
+    bellatrix::presets::mainnet::{
         AggregateAndProof, Attestation, AttesterSlashing, ContributionAndProof, HistoricalBatch,
-        IndexedAttestation, LightClientUpdate, SignedAggregateAndProof, SignedContributionAndProof,
-        SyncAggregate, SyncCommittee, SyncCommitteeContribution, SyncCommitteeMessage,
-        SYNC_COMMITTEE_SIZE,
+        IndexedAttestation, LightClientUpdate, PendingAttestation, SignedAggregateAndProof,
+        SignedContributionAndProof, SyncAggregate, SyncCommittee, SyncCommitteeContribution,
+        BYTES_PER_LOGS_BLOOM, EPOCHS_PER_HISTORICAL_VECTOR, EPOCHS_PER_SLASHINGS_VECTOR,
+        ETH1_DATA_VOTES_BOUND, HISTORICAL_ROOTS_LIMIT, MAX_ATTESTATIONS, MAX_ATTESTER_SLASHINGS,
+        MAX_BYTES_PER_TRANSACTION, MAX_DEPOSITS, MAX_EXTRA_DATA_BYTES, MAX_PROPOSER_SLASHINGS,
+        MAX_TRANSACTIONS_PER_PAYLOAD, MAX_VALIDATORS_PER_COMMITTEE, MAX_VOLUNTARY_EXITS,
+        SLOTS_PER_HISTORICAL_ROOT, SYNC_COMMITTEE_SIZE, VALIDATOR_REGISTRY_LIMIT,
     },
-    bellatrix::mainnet::{
-        Transaction, BYTES_PER_LOGS_BLOOM, MAX_BYTES_PER_TRANSACTION, MAX_EXTRA_DATA_BYTES,
-        MAX_TRANSACTIONS_PER_PAYLOAD, PROPORTIONAL_SLASHING_MULTIPLIER_BELLATRIX,
-    },
-    phase0::mainnet::{
-        EPOCHS_PER_HISTORICAL_VECTOR, EPOCHS_PER_SLASHINGS_VECTOR, ETH1_DATA_VOTES_BOUND,
-        HISTORICAL_ROOTS_LIMIT, MAX_ATTESTATIONS, MAX_ATTESTER_SLASHINGS, MAX_DEPOSITS,
-        MAX_PROPOSER_SLASHINGS, MAX_VALIDATORS_PER_COMMITTEE, MAX_VOLUNTARY_EXITS,
-        SLOTS_PER_HISTORICAL_ROOT, VALIDATOR_REGISTRY_LIMIT,
-    },
+    capella::presets::Preset,
 };
-use crate::{capella, capella::presets::Preset};
 
-pub use capella::*;
+pub use spec::*;
 
 pub const MAX_WITHDRAWALS_PER_PAYLOAD: usize = 16;
 pub const MAX_BLS_TO_EXECUTION_CHANGES: usize = 16;
@@ -30,7 +25,7 @@ pub const PRESET: Preset = Preset {
     max_validators_per_withdrawals_sweep: MAX_VALIDATORS_PER_WITHDRAWALS_SWEEP,
 };
 
-pub type ExecutionPayload = capella::ExecutionPayload<
+pub type ExecutionPayload = spec::ExecutionPayload<
     BYTES_PER_LOGS_BLOOM,
     MAX_EXTRA_DATA_BYTES,
     MAX_BYTES_PER_TRANSACTION,
@@ -39,9 +34,9 @@ pub type ExecutionPayload = capella::ExecutionPayload<
 >;
 
 pub type ExecutionPayloadHeader =
-    capella::ExecutionPayloadHeader<BYTES_PER_LOGS_BLOOM, MAX_EXTRA_DATA_BYTES>;
+    spec::ExecutionPayloadHeader<BYTES_PER_LOGS_BLOOM, MAX_EXTRA_DATA_BYTES>;
 
-pub type BlindedBeaconBlock = capella::BlindedBeaconBlock<
+pub type BlindedBeaconBlock = spec::BlindedBeaconBlock<
     MAX_PROPOSER_SLASHINGS,
     MAX_VALIDATORS_PER_COMMITTEE,
     MAX_ATTESTER_SLASHINGS,
@@ -51,13 +46,11 @@ pub type BlindedBeaconBlock = capella::BlindedBeaconBlock<
     SYNC_COMMITTEE_SIZE,
     BYTES_PER_LOGS_BLOOM,
     MAX_EXTRA_DATA_BYTES,
-    MAX_BYTES_PER_TRANSACTION,
-    MAX_TRANSACTIONS_PER_PAYLOAD,
     MAX_WITHDRAWALS_PER_PAYLOAD,
     MAX_BLS_TO_EXECUTION_CHANGES,
 >;
 
-pub type BlindedBeaconBlockBody = capella::BlindedBeaconBlockBody<
+pub type BlindedBeaconBlockBody = spec::BlindedBeaconBlockBody<
     MAX_PROPOSER_SLASHINGS,
     MAX_VALIDATORS_PER_COMMITTEE,
     MAX_ATTESTER_SLASHINGS,
@@ -67,13 +60,11 @@ pub type BlindedBeaconBlockBody = capella::BlindedBeaconBlockBody<
     SYNC_COMMITTEE_SIZE,
     BYTES_PER_LOGS_BLOOM,
     MAX_EXTRA_DATA_BYTES,
-    MAX_BYTES_PER_TRANSACTION,
-    MAX_TRANSACTIONS_PER_PAYLOAD,
     MAX_WITHDRAWALS_PER_PAYLOAD,
     MAX_BLS_TO_EXECUTION_CHANGES,
 >;
 
-pub type SignedBlindedBeaconBlock = capella::SignedBlindedBeaconBlock<
+pub type SignedBlindedBeaconBlock = spec::SignedBlindedBeaconBlock<
     MAX_PROPOSER_SLASHINGS,
     MAX_VALIDATORS_PER_COMMITTEE,
     MAX_ATTESTER_SLASHINGS,
@@ -83,13 +74,11 @@ pub type SignedBlindedBeaconBlock = capella::SignedBlindedBeaconBlock<
     SYNC_COMMITTEE_SIZE,
     BYTES_PER_LOGS_BLOOM,
     MAX_EXTRA_DATA_BYTES,
-    MAX_BYTES_PER_TRANSACTION,
-    MAX_TRANSACTIONS_PER_PAYLOAD,
     MAX_WITHDRAWALS_PER_PAYLOAD,
     MAX_BLS_TO_EXECUTION_CHANGES,
 >;
 
-pub type BeaconState = capella::BeaconState<
+pub type BeaconState = spec::BeaconState<
     SLOTS_PER_HISTORICAL_ROOT,
     HISTORICAL_ROOTS_LIMIT,
     ETH1_DATA_VOTES_BOUND,
@@ -100,11 +89,9 @@ pub type BeaconState = capella::BeaconState<
     SYNC_COMMITTEE_SIZE,
     BYTES_PER_LOGS_BLOOM,
     MAX_EXTRA_DATA_BYTES,
-    MAX_BYTES_PER_TRANSACTION,
-    MAX_TRANSACTIONS_PER_PAYLOAD,
 >;
 
-pub type BeaconBlockBody = capella::BeaconBlockBody<
+pub type BeaconBlockBody = spec::BeaconBlockBody<
     MAX_PROPOSER_SLASHINGS,
     MAX_VALIDATORS_PER_COMMITTEE,
     MAX_ATTESTER_SLASHINGS,
@@ -120,7 +107,7 @@ pub type BeaconBlockBody = capella::BeaconBlockBody<
     MAX_BLS_TO_EXECUTION_CHANGES,
 >;
 
-pub type BeaconBlock = capella::BeaconBlock<
+pub type BeaconBlock = spec::BeaconBlock<
     MAX_PROPOSER_SLASHINGS,
     MAX_VALIDATORS_PER_COMMITTEE,
     MAX_ATTESTER_SLASHINGS,
@@ -136,7 +123,7 @@ pub type BeaconBlock = capella::BeaconBlock<
     MAX_BLS_TO_EXECUTION_CHANGES,
 >;
 
-pub type SignedBeaconBlock = capella::SignedBeaconBlock<
+pub type SignedBeaconBlock = spec::SignedBeaconBlock<
     MAX_PROPOSER_SLASHINGS,
     MAX_VALIDATORS_PER_COMMITTEE,
     MAX_ATTESTER_SLASHINGS,
@@ -150,21 +137,4 @@ pub type SignedBeaconBlock = capella::SignedBeaconBlock<
     MAX_TRANSACTIONS_PER_PAYLOAD,
     MAX_WITHDRAWALS_PER_PAYLOAD,
     MAX_BLS_TO_EXECUTION_CHANGES,
->;
-
-pub type NoOpExecutionEngine = capella::NoOpExecutionEngine<
-    BYTES_PER_LOGS_BLOOM,
-    MAX_EXTRA_DATA_BYTES,
-    MAX_BYTES_PER_TRANSACTION,
-    MAX_TRANSACTIONS_PER_PAYLOAD,
-    MAX_WITHDRAWALS_PER_PAYLOAD,
->;
-
-pub type MockExecutionEngine<F> = capella::MockExecutionEngine<
-    BYTES_PER_LOGS_BLOOM,
-    MAX_EXTRA_DATA_BYTES,
-    MAX_BYTES_PER_TRANSACTION,
-    MAX_TRANSACTIONS_PER_PAYLOAD,
-    MAX_WITHDRAWALS_PER_PAYLOAD,
-    F,
 >;

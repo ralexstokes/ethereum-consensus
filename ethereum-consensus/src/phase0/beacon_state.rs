@@ -17,20 +17,8 @@ pub struct HistoricalBatch<const SLOTS_PER_HISTORICAL_ROOT: usize> {
     pub state_roots: Vector<Root, SLOTS_PER_HISTORICAL_ROOT>,
 }
 
-/// `HistoricalBatch` is to be used as a "summary" Merkleized container and is simply a wrapper
-/// around `block_roots` & `state_roots` (and their respective Merkle roots). Instead of the
-/// `_roots` being of type `Vector<Root, N>`, a single `Root` is pulled out to allow Merkleization
-/// of each root to be performed manually (using the `ssz_rs` crate).
-///
-/// Instead of requiring a full copy of the roots, the container is summarized as
-/// `HistoricalSummary` with `block_summary_root` & `state_summary_root`.
-///
-/// This design decision was chosen for memory optimization purposes, for example, in the
-/// `state_transition` crate's `process_historical_roots_update` function. Also note that the
-/// `HistoricalBatch` container has no need for serialization, otherwise, this design would pose an
-/// issue.
-///
-/// For more information, see the comment here: <https://github.com/ralexstokes/ethereum-consensus/pull/37#discussion_r775995594>
+// Note: `HistoricalSummary` is defined in the `capella` specs; however, this // repo used the same
+// strategy to compute the `HistoricalBatch` roots so // the type already existed.
 #[derive(Default, Debug, SimpleSerialize, Clone, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct HistoricalSummary {
