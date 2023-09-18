@@ -66,12 +66,13 @@ use crate::{
         eth_aggregate_public_keys, eth_fast_aggregate_verify, fast_aggregate_verify, hash,
         verify_signature,
     },
+    phase0::mainnet::MAX_EFFECTIVE_BALANCE,
     ssz::*,
 };
 use integer_sqrt::IntegerSquareRoot;
 use ssz_rs::prelude::*;
 use std::{
-    cmp,
+    cmp::{self, min},
     collections::{HashMap, HashSet},
     iter::zip,
     mem,
@@ -3312,3 +3313,70 @@ pub fn state_transition<
     state_transition_block_in_slot(state, signed_block, execution_engine, validation, context)
 }
 pub use crate::capella::execution_engine::ExecutionEngine;
+
+use super::mainnet::{MAX_VALIDATORS_PER_WITHDRAWALS_SWEEP, MAX_WITHDRAWALS_PER_PAYLOAD};
+
+pub fn get_expected_withdrawals<
+    const SLOTS_PER_HISTORICAL_ROOT: usize,
+    const HISTORICAL_ROOTS_LIMIT: usize,
+    const ETH1_DATA_VOTES_BOUND: usize,
+    const VALIDATOR_REGISTRY_LIMIT: usize,
+    const EPOCHS_PER_HISTORICAL_VECTOR: usize,
+    const EPOCHS_PER_SLASHINGS_VECTOR: usize,
+    const MAX_VALIDATORS_PER_COMMITTEE: usize,
+    const SYNC_COMMITTEE_SIZE: usize,
+    const BYTES_PER_LOGS_BLOOM: usize,
+    const MAX_EXTRA_DATA_BYTES: usize,
+>(
+    state: &BeaconState<
+        SLOTS_PER_HISTORICAL_ROOT,
+        HISTORICAL_ROOTS_LIMIT,
+        ETH1_DATA_VOTES_BOUND,
+        VALIDATOR_REGISTRY_LIMIT,
+        EPOCHS_PER_HISTORICAL_VECTOR,
+        EPOCHS_PER_SLASHINGS_VECTOR,
+        MAX_VALIDATORS_PER_COMMITTEE,
+        SYNC_COMMITTEE_SIZE,
+        BYTES_PER_LOGS_BLOOM,
+        MAX_EXTRA_DATA_BYTES,
+    >,
+    context: &Context,
+) -> Result<Vec<Withdrawal>> {
+    let epoch = get_current_epoch(state, context);
+    let mut withdrawal_index = state.next_withdrawal_index;
+    let mut validator_index = state.next_withdrawal_validator_index;
+    let mut withdrawals = Vec::new();
+    let bound = min(state.validators.len(), MAX_VALIDATORS_PER_WITHDRAWALS_SWEEP);
+    for _ in 0..bound {
+        let validator = &state.validators[validator_index];
+        let balance = state.balances[validator_index];
+        if is_fully_withdrawable_validator(validator, balance, epoch) {
+            let address =
+                ExecutionAddress::try_from(&validator.withdrawal_credentials.as_slice()[12..])
+                    .unwrap();
+            withdrawals.push(Withdrawal {
+                index: withdrawal_index,
+                validator_index,
+                address,
+                amount: balance,
+            });
+            withdrawal_index += 1;
+        } else if is_partially_withdrawable_validator(validator, balance, context) {
+            let address =
+                ExecutionAddress::try_from(&validator.withdrawal_credentials.as_slice()[12..])
+                    .unwrap();
+            withdrawals.push(Withdrawal {
+                index: withdrawal_index,
+                validator_index,
+                address,
+                amount: balance - MAX_EFFECTIVE_BALANCE,
+            });
+            withdrawal_index += 1;
+        }
+        if withdrawals.len() == MAX_WITHDRAWALS_PER_PAYLOAD {
+            break
+        }
+        validator_index = (validator_index + 1) % state.validators.len();
+    }
+    Ok(withdrawals)
+}
