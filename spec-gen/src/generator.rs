@@ -1,6 +1,6 @@
 use crate::visitors::{
-    collate_generics_from, collect_lifetimes, generics_to_arguments, ArgumentsEditor,
-    TypeNameVisitor,
+    collate_generics_from, collect_lifetimes, collect_type_params, generics_to_arguments,
+    ArgumentsEditor, TypeNameVisitor,
 };
 use std::{
     collections::{BTreeMap, HashMap},
@@ -8,7 +8,7 @@ use std::{
     path::PathBuf,
     rc::Rc,
 };
-use syn::{parse_quote, Ident, Item};
+use syn::{parse_quote, visit_mut::VisitMut, Ident, Item};
 
 const SOURCE_ROOT: &str = "ethereum-consensus/src";
 
@@ -375,7 +375,24 @@ impl Spec {
 
                 let lifetimes = collect_lifetimes(&fragment);
 
-                let generics = collate_generics_from(&all_arguments, &lifetimes);
+                let (mut type_params, bounds) = collect_type_params(&fragment.sig.generics);
+                for (name, type_param) in bounds.iter().zip(type_params.iter_mut()) {
+                    if let Some(target_module) = index.get(name) {
+                        let target_module = self.diff.modules.get(target_module).unwrap();
+                        let trait_def = target_module
+                            .trait_defs
+                            .iter()
+                            .find(|&c| &c.name == name)
+                            .expect("internal state integrity");
+
+                        let arguments = generics_to_arguments(&trait_def.item.generics);
+                        let mut editor = ArgumentsEditor::new(&trait_def.name, &arguments);
+                        editor.visit_type_param_mut(type_param);
+
+                        f.fork = self.fork;
+                    }
+                }
+                let generics = collate_generics_from(&all_arguments, &lifetimes, &type_params);
                 fragment.sig.generics = generics;
 
                 f.item = fragment;

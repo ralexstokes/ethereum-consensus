@@ -24,6 +24,45 @@ pub fn collect_lifetimes(f: &ItemFn) -> Vec<syn::Lifetime> {
 }
 
 #[derive(Default)]
+struct TypeParamVisitor {
+    in_context: bool,
+    items: Vec<syn::TypeParam>,
+    bounds: Vec<String>,
+}
+
+impl<'ast> Visit<'ast> for TypeParamVisitor {
+    fn visit_path_segment(&mut self, i: &'ast syn::PathSegment) {
+        if self.in_context {
+            self.bounds.push(i.ident.to_string());
+        }
+    }
+
+    fn visit_type_param_bound(&mut self, i: &'ast syn::TypeParamBound) {
+        self.in_context = true;
+        visit::visit_type_param_bound(self, i);
+        self.in_context = false;
+    }
+
+    fn visit_type_param(&mut self, i: &'ast syn::TypeParam) {
+        if !self.items.contains(i) {
+            // NOTE: only supports a single bound for now
+            i.bounds.iter().for_each(|i| {
+                visit::visit_type_param_bound(self, i);
+            });
+            self.items.push(i.clone());
+        }
+        visit::visit_type_param(self, i);
+    }
+}
+
+// returns type params and the name of their trait bound
+pub fn collect_type_params(g: &Generics) -> (Vec<syn::TypeParam>, Vec<String>) {
+    let mut visitor = TypeParamVisitor::default();
+    visitor.visit_generics(g);
+    (visitor.items, visitor.bounds)
+}
+
+#[derive(Default)]
 struct ToGenericsVisitor {
     bounds: Vec<Ident>,
 }
@@ -40,6 +79,7 @@ impl<'ast> Visit<'ast> for ToGenericsVisitor {
 pub fn collate_generics_from(
     arguments: &[AngleBracketedGenericArguments],
     lifetimes: &[syn::Lifetime],
+    type_params: &[syn::TypeParam],
 ) -> Generics {
     let mut visitor = ToGenericsVisitor::default();
 
@@ -49,22 +89,27 @@ pub fn collate_generics_from(
 
     let bounds = visitor.bounds;
 
-    // NOTE: macro failed when trying to combine both arms into one invocation
-    // it also seems like this will only suppport one explicit lifetime
-    if lifetimes.is_empty() {
-        parse_quote! {
-            <
-            #(const #bounds: usize),*
-            >
-        }
-    } else {
-        parse_quote! {
-            <
+    let mut generics: syn::Generics = parse_quote! {
+        <
+        #(const #bounds: usize),*
+        >
+    };
+
+    if !lifetimes.is_empty() {
+        let lifetimes: syn::punctuated::Punctuated<syn::GenericParam, syn::Token![,]> = parse_quote! {
             #(#lifetimes)*,
-            #(const #bounds: usize),*
-            >
-        }
+        };
+        generics.params.extend(lifetimes);
     }
+
+    if !type_params.is_empty() {
+        let type_params: syn::punctuated::Punctuated<syn::GenericParam, syn::Token![,]> = parse_quote! {
+            #(#type_params)*,
+        };
+        generics.params.extend(type_params);
+    }
+
+    generics
 }
 
 #[derive(Default)]
