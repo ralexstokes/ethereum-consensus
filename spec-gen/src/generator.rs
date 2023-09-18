@@ -22,6 +22,7 @@ enum Fork {
     Phase0,
     Altair,
     Bellatrix,
+    Capella,
 }
 
 impl Fork {
@@ -72,6 +73,19 @@ impl Fork {
                 "helpers",
                 "state_transition",
             ],
+            Self::Capella => &[
+                "beacon_block",
+                "beacon_state",
+                "blinded_beacon_block",
+                "block_processing",
+                "bls_to_execution_change",
+                "epoch_processing",
+                "execution_engine",
+                "execution_payload",
+                "genesis",
+                "helpers",
+                "withdrawal",
+            ],
         }
     }
 
@@ -98,6 +112,9 @@ impl Fork {
             Fork::Bellatrix => {
                 matches!(name, "upgrade_to_altair" | "translate_participation")
             }
+            Fork::Capella => {
+                matches!(name, "upgrade_to_bellatrix")
+            }
             _ => false,
         }
     }
@@ -116,6 +133,19 @@ impl Fork {
                 fragment.items
             }
             Fork::Bellatrix => {
+                let fragment: syn::File = parse_quote! {
+                    use std::cmp;
+                    use std::mem;
+                    use std::collections::{HashSet, HashMap};
+                    use std::iter::zip;
+                    use ssz_rs::prelude::*;
+                    use integer_sqrt::IntegerSquareRoot;
+                    use crate::crypto::{hash, verify_signature, fast_aggregate_verify, eth_aggregate_public_keys, eth_fast_aggregate_verify};
+                    use crate::ssz::*;
+                };
+                fragment.items
+            }
+            Fork::Capella => {
                 let fragment: syn::File = parse_quote! {
                     use std::cmp;
                     use std::mem;
@@ -549,6 +579,7 @@ fn parse_fork_diff_with_symbol_index(fork: &Fork) -> (ForkDiff, HashMap<String, 
                 Item::Trait(item) => {
                     let item = TraitDef::new(item, *fork);
                     if item.is_pub() {
+                        index.insert(item.name.to_string(), module_name.to_string());
                         module.trait_defs.push(item);
                     }
                 }
@@ -588,7 +619,8 @@ fn render(fork: &Fork, items: &[Item]) {
 }
 
 pub fn run() {
-    let fork_sequence = [None, Some(Fork::Phase0), Some(Fork::Altair), Some(Fork::Bellatrix)];
+    let fork_sequence =
+        [None, Some(Fork::Phase0), Some(Fork::Altair), Some(Fork::Bellatrix), Some(Fork::Capella)];
 
     let mut specs = HashMap::<_, Rc<_>>::new();
     for pair in fork_sequence.windows(2) {

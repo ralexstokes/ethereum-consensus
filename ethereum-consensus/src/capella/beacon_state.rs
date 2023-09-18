@@ -1,7 +1,7 @@
 pub use crate::phase0::HistoricalSummary;
 use crate::{
     altair::SyncCommittee,
-    capella::{ExecutionPayloadHeader, HistoricalSummary},
+    capella::ExecutionPayloadHeader,
     phase0::{BeaconBlockHeader, Checkpoint, Eth1Data, Fork, Validator, JUSTIFICATION_BITS_LENGTH},
     primitives::{Bytes32, Gwei, ParticipationFlags, Root, Slot, ValidatorIndex, WithdrawalIndex},
 };
@@ -20,8 +20,6 @@ pub struct BeaconState<
     const SYNC_COMMITTEE_SIZE: usize,
     const BYTES_PER_LOGS_BLOOM: usize,
     const MAX_EXTRA_DATA_BYTES: usize,
-    const MAX_BYTES_PER_TRANSACTION: usize,
-    const MAX_TRANSACTIONS_PER_PAYLOAD: usize,
 > {
     #[serde(with = "crate::serde::as_string")]
     pub genesis_time: u64,
