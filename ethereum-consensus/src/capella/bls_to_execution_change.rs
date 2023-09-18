@@ -16,6 +16,6 @@ pub struct BlsToExecutionChange {
 #[derive(Default, Debug, Clone, SimpleSerialize, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct SignedBlsToExecutionChange {
-    message: BlsToExecutionChange,
-    signature: BlsSignature,
+    pub message: BlsToExecutionChange,
+    pub signature: BlsSignature,
 }

@@ -1,13 +1,16 @@
 use crate::{
     capella::{
-        compute_timestamp_at_slot, decrease_balance, get_current_epoch, get_randao_mix,
-        is_fully_withdrawable_validator, is_partially_withdrawable_validator, process_attestation,
-        process_attester_slashing, process_block_header, process_deposit, process_eth1_data,
-        process_proposer_slashing, process_randao, process_sync_aggregate, process_voluntary_exit,
-        BeaconBlock, BeaconBlockBody, BeaconState, ExecutionAddress, ExecutionEngine,
+        compute_domain, compute_signing_root, compute_timestamp_at_slot, decrease_balance,
+        get_current_epoch, get_randao_mix, is_fully_withdrawable_validator,
+        is_partially_withdrawable_validator, process_attestation, process_attester_slashing,
+        process_block_header, process_deposit, process_eth1_data, process_proposer_slashing,
+        process_randao, process_sync_aggregate, process_voluntary_exit, BeaconBlock,
+        BeaconBlockBody, BeaconState, BlsPublicKey, DomainType, ExecutionAddress, ExecutionEngine,
         ExecutionPayload, ExecutionPayloadHeader, NewPayloadRequest, SignedBlsToExecutionChange,
         Withdrawal,
     },
+    crypto::{hash, verify_signature},
+    primitives::{BLS_WITHDRAWAL_PREFIX, ETH1_ADDRESS_WITHDRAWAL_PREFIX},
     ssz::prelude::*,
     state_transition::{
         invalid_operation_error, Context, InvalidDeposit, InvalidExecutionPayload,
@@ -27,7 +30,7 @@ pub fn process_bls_to_execution_change<
     const BYTES_PER_LOGS_BLOOM: usize,
     const MAX_EXTRA_DATA_BYTES: usize,
 >(
-    _state: &mut BeaconState<
+    state: &mut BeaconState<
         SLOTS_PER_HISTORICAL_ROOT,
         HISTORICAL_ROOTS_LIMIT,
         ETH1_DATA_VOTES_BOUND,
@@ -39,10 +42,37 @@ pub fn process_bls_to_execution_change<
         BYTES_PER_LOGS_BLOOM,
         MAX_EXTRA_DATA_BYTES,
     >,
-    _signed_address_change: &mut SignedBlsToExecutionChange,
-    _context: &Context,
+    signed_address_change: &mut SignedBlsToExecutionChange,
+    context: &Context,
 ) -> Result<()> {
-    unimplemented!()
+    let address_change = signed_address_change;
+
+    assert!(address_change.message.validator_index < state.validators.len());
+
+    let validator = &mut state.validators[address_change.message.validator_index];
+
+    assert!(validator.withdrawal_credentials.starts_with(&[BLS_WITHDRAWAL_PREFIX]));
+    assert!(
+        validator.withdrawal_credentials[1..]
+            == hash(address_change.message.from_bls_public_key.as_ref())[1..]
+    );
+
+    let domain = compute_domain(
+        DomainType::BlsToExecutionChange,
+        None,
+        Some(state.genesis_validators_root),
+        context,
+    )?;
+    let signing_root = compute_signing_root(address_change, domain)?;
+    let pk: &BlsPublicKey = &address_change.message.from_bls_public_key;
+    assert!(verify_signature(&pk, signing_root.as_ref(), &address_change.signature,).is_ok());
+    let withdrawal_credentials = vec![ETH1_ADDRESS_WITHDRAWAL_PREFIX];
+
+    let withdrawal_credentials_array: [u8; 32] =
+        withdrawal_credentials.try_into().expect("Wrong size");
+    validator.withdrawal_credentials = ByteVector::try_from(withdrawal_credentials_array.as_ref())
+        .expect("Failed to convert array to ByteVector");
+    Ok(())
 }
 
 pub fn process_operations<
@@ -105,7 +135,7 @@ pub fn process_operations<
                 expected: expected_deposit_count,
                 count: body.deposits.len(),
             },
-        )))
+        )));
     }
     body.proposer_slashings
         .iter_mut()
@@ -177,7 +207,7 @@ pub fn process_execution_payload<
                 expected: state.latest_execution_payload_header.block_hash.clone(),
             }
             .into(),
-        ))
+        ));
     }
 
     let current_epoch = get_current_epoch(state, context);
@@ -189,7 +219,7 @@ pub fn process_execution_payload<
                 expected: randao_mix.clone(),
             }
             .into(),
-        ))
+        ));
     }
 
     let timestamp = compute_timestamp_at_slot(state, state.slot, context)?;
@@ -200,7 +230,7 @@ pub fn process_execution_payload<
                 expected: timestamp,
             }
             .into(),
-        ))
+        ));
     }
 
     let new_payload_request = NewPayloadRequest(payload);
@@ -271,7 +301,7 @@ pub fn process_withdrawals<
                 provided: execution_payload.withdrawals.to_vec(),
                 expected: expected_withdrawals,
             },
-        )))
+        )));
     }
 
     for withdrawal in &expected_withdrawals {
@@ -356,7 +386,7 @@ pub fn get_expected_withdrawals<
             withdrawal_index += 1;
         }
         if withdrawals.len() == context.max_withdrawals_per_payload {
-            break
+            break;
         }
         validator_index = (validator_index + 1) % state.validators.len();
     }
