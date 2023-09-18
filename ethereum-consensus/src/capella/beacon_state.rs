@@ -1,3 +1,4 @@
+pub use crate::phase0::HistoricalSummary;
 use crate::{
     altair::SyncCommittee,
     capella::{ExecutionPayloadHeader, HistoricalSummary},
