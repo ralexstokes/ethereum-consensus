@@ -522,6 +522,7 @@ fn parse_fork_diff_with_symbol_index(fork: &Fork) -> (ForkDiff, HashMap<String, 
                 Item::Type(item) => {
                     let item = TypeDef::new(item, *fork);
                     if item.is_pub() {
+                        index.insert(item.name.to_string(), module_name.to_string());
                         module.type_defs.push(item);
                     }
                 }
