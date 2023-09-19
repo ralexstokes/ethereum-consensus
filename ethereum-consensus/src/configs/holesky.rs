@@ -4,12 +4,9 @@ use crate::{
     primitives::{Epoch, ExecutionAddress, Gwei, Version, FAR_FUTURE_EPOCH, U256},
 };
 
-// `2**14` (= 16,384)
 pub const MIN_GENESIS_ACTIVE_VALIDATOR_COUNT: usize = 16384;
 pub const MIN_GENESIS_TIME: u64 = 1694786400;
-// 0x00017000
 pub const GENESIS_FORK_VERSION: Version = [0, 1, 112, 0];
-// Genesis delay 5 minutes
 pub const GENESIS_DELAY: u64 = 300;
 pub const SECONDS_PER_SLOT: u64 = 12;
 pub const SECONDS_PER_ETH1_BLOCK: u64 = 14;
@@ -18,21 +15,17 @@ pub const SHARD_COMMITTEE_PERIOD: Epoch = 256;
 pub const ETH1_FOLLOW_DISTANCE: u64 = 2048;
 pub const EJECTION_BALANCE: Gwei = 28 * 10u64.pow(9);
 pub const MIN_PER_EPOCH_CHURN_LIMIT: u64 = 4;
+pub const MAX_PER_EPOCH_ACTIVATION_CHURN_LIMIT: u64 = 8;
 pub const CHURN_LIMIT_QUOTIENT: u64 = 65536;
 pub const TERMINAL_BLOCK_HASH_ACTIVATION_EPOCH: Epoch = FAR_FUTURE_EPOCH;
-// 0x10017000
 pub const ALTAIR_FORK_VERSION: Version = [16, 1, 112, 0];
 pub const ALTAIR_FORK_EPOCH: Epoch = 0;
-// 0x20017000
 pub const BELLATRIX_FORK_VERSION: Version = [32, 1, 112, 0];
 pub const BELLATRIX_FORK_EPOCH: Epoch = 0;
-// 0x30017000
 pub const CAPELLA_FORK_VERSION: Version = [48, 1, 112, 0];
 pub const CAPELLA_FORK_EPOCH: Epoch = 256;
-// 0x40017000
 pub const DENEB_FORK_VERSION: Version = [64, 1, 112, 0];
 pub const DENEB_FORK_EPOCH: Epoch = FAR_FUTURE_EPOCH;
-
 pub const INACTIVITY_SCORE_BIAS: u64 = 4;
 pub const INACTIVITY_SCORE_RECOVERY_RATE: u64 = 16;
 pub const PROPOSER_SCORE_BOOST: u64 = 40;
@@ -78,6 +71,7 @@ pub fn config() -> Config {
         inactivity_score_recovery_rate: INACTIVITY_SCORE_RECOVERY_RATE,
         ejection_balance: EJECTION_BALANCE,
         min_per_epoch_churn_limit: MIN_PER_EPOCH_CHURN_LIMIT,
+        max_per_epoch_activation_churn_limit: MAX_PER_EPOCH_ACTIVATION_CHURN_LIMIT,
         churn_limit_quotient: CHURN_LIMIT_QUOTIENT,
         proposer_score_boost: PROPOSER_SCORE_BOOST,
         deposit_chain_id: DEPOSIT_CHAIN_ID,
