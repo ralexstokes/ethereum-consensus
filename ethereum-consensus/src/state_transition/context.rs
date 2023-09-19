@@ -207,7 +207,8 @@ impl Context {
             // capella
             max_bls_to_execution_changes: capella_preset.max_bls_to_execution_changes,
             max_withdrawals_per_payload: capella_preset.max_withdrawals_per_payload,
-            max_validators_per_withdrawals_sweep: capella_preset.max_validators_per_withdrawals_sweep,
+            max_validators_per_withdrawals_sweep: capella_preset
+                .max_validators_per_withdrawals_sweep,
 
             // config
             name: config.name.clone(),

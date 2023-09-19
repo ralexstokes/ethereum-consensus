@@ -1,19 +1,20 @@
 use crate::{
     capella::{
-        compute_timestamp_at_slot, decrease_balance, get_current_epoch, is_fully_withdrawable_validator, is_partially_withdrawable_validator,
-        get_randao_mix, process_attestation, process_attester_slashing, process_block_header,
-        process_deposit, process_eth1_data, process_proposer_slashing, process_randao,
-        process_sync_aggregate, process_voluntary_exit, BeaconBlock, BeaconBlockBody, BeaconState,
-        ExecutionEngine, ExecutionPayload, ExecutionPayloadHeader, NewPayloadRequest,
-        SignedBlsToExecutionChange, Withdrawal, ExecutionAddress,
+        compute_timestamp_at_slot, decrease_balance, get_current_epoch, get_randao_mix,
+        is_fully_withdrawable_validator, is_partially_withdrawable_validator, process_attestation,
+        process_attester_slashing, process_block_header, process_deposit, process_eth1_data,
+        process_proposer_slashing, process_randao, process_sync_aggregate, process_voluntary_exit,
+        BeaconBlock, BeaconBlockBody, BeaconState, ExecutionAddress, ExecutionEngine,
+        ExecutionPayload, ExecutionPayloadHeader, NewPayloadRequest, SignedBlsToExecutionChange,
+        Withdrawal,
     },
     state_transition::{
         invalid_operation_error, Context, InvalidDeposit, InvalidExecutionPayload,
         InvalidOperation, InvalidWithdrawal, Result,
     },
 };
-use std::cmp::min;
 use ssz_rs::prelude::*;
+use std::cmp::min;
 
 pub fn process_bls_to_execution_change<
     const SLOTS_PER_HISTORICAL_ROOT: usize,
