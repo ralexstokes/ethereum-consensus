@@ -28,7 +28,7 @@ pub struct BlobSidecar<const BYTES_PER_BLOB: usize> {
 
 #[derive(Default, Debug, Clone, SimpleSerialize, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-pub struct SignedBlobSidecar<const MAX_BLOBS_PER_BLOCK: usize, const BYTES_PER_BLOB: usize> {
+pub struct SignedBlobSidecar<const BYTES_PER_BLOB: usize> {
     pub message: BlobSidecar<BYTES_PER_BLOB>,
     pub signature: BlsSignature,
 }

@@ -55,7 +55,7 @@ pub use crate::{
     },
     primitives::*,
     signing::*,
-    state_transition::*,
+    state_transition::{error::*, Context, Result, Validation},
 };
 use crate::{
     crypto::{fast_aggregate_verify, hash, verify_signature},
@@ -264,15 +264,13 @@ pub fn process_voluntary_exit<
         )))
     }
     let domain = get_domain(state, DomainType::VoluntaryExit, Some(voluntary_exit.epoch), context)?;
-    let signing_root = compute_signing_root(voluntary_exit, domain)?;
     let public_key = &validator.public_key;
-    if verify_signature(public_key, signing_root.as_ref(), &signed_voluntary_exit.signature)
-        .is_err()
-    {
-        return Err(invalid_operation_error(InvalidOperation::VoluntaryExit(
-            InvalidVoluntaryExit::InvalidSignature(signed_voluntary_exit.signature.clone()),
-        )))
-    }
+    verify_signed_data(voluntary_exit, &signed_voluntary_exit.signature, public_key, domain)
+        .map_err(|_| {
+            invalid_operation_error(InvalidOperation::VoluntaryExit(
+                InvalidVoluntaryExit::InvalidSignature(signed_voluntary_exit.signature.clone()),
+            ))
+        })?;
     initiate_validator_exit(state, voluntary_exit.validator_index, context);
     Ok(())
 }

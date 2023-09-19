@@ -20,24 +20,33 @@ pub use crate::{
             SyncCommitteeContribution, SyncCommitteeMessage,
         },
     },
-    bellatrix::{
+    bellatrix::{execution_payload::Transaction, fork_choice::PowBlock},
+    capella::{
+        bls_to_execution_change::{BlsToExecutionChange, SignedBlsToExecutionChange},
+        withdrawal::Withdrawal,
+    },
+    deneb::{
         beacon_block::{BeaconBlock, BeaconBlockBody, SignedBeaconBlock},
         beacon_state::BeaconState,
         blinded_beacon_block::{
             BlindedBeaconBlock, BlindedBeaconBlockBody, SignedBlindedBeaconBlock,
         },
-        block_processing::{process_block, process_execution_payload},
-        epoch_processing::{process_epoch, process_slashings},
+        blinded_blob_sidecar::{BlindedBlobSidecar, SignedBlindedBlobSidecar},
+        blob_sidecar::{
+            Blob, BlobIdentifier, BlobSidecar, SignedBlobSidecar, BLOB_TX_TYPE,
+            VERSIONED_HASH_VERSION_KZG,
+        },
+        block_processing::{
+            process_attestation, process_block, process_execution_payload, process_voluntary_exit,
+        },
+        epoch_processing::process_registry_updates,
         execution_engine::{DefaultExecutionEngine, NewPayloadRequest},
-        execution_payload::{ExecutionPayload, ExecutionPayloadHeader, Transaction},
-        fork::upgrade_to_bellatrix,
-        fork_choice::PowBlock,
+        execution_payload::{ExecutionPayload, ExecutionPayloadHeader},
         genesis::initialize_beacon_state_from_eth1,
         helpers::{
-            compute_timestamp_at_slot, get_inactivity_penalty_deltas, is_execution_enabled,
-            is_merge_transition_block, is_merge_transition_complete, slash_validator,
+            get_attestation_participation_flag_indices, get_validator_activation_churn_limit,
+            kzg_commitment_to_versioned_hash,
         },
-        state_transition::{state_transition, state_transition_block_in_slot},
     },
     phase0::{
         beacon_block::{BeaconBlockHeader, SignedBeaconBlockHeader},
@@ -73,7 +82,7 @@ use std::{
     iter::zip,
     mem,
 };
-pub fn process_attestation<
+pub fn process_bls_to_execution_change<
     const SLOTS_PER_HISTORICAL_ROOT: usize,
     const HISTORICAL_ROOTS_LIMIT: usize,
     const ETH1_DATA_VOTES_BOUND: usize,
@@ -84,6 +93,45 @@ pub fn process_attestation<
     const SYNC_COMMITTEE_SIZE: usize,
     const BYTES_PER_LOGS_BLOOM: usize,
     const MAX_EXTRA_DATA_BYTES: usize,
+>(
+    _state: &mut BeaconState<
+        SLOTS_PER_HISTORICAL_ROOT,
+        HISTORICAL_ROOTS_LIMIT,
+        ETH1_DATA_VOTES_BOUND,
+        VALIDATOR_REGISTRY_LIMIT,
+        EPOCHS_PER_HISTORICAL_VECTOR,
+        EPOCHS_PER_SLASHINGS_VECTOR,
+        MAX_VALIDATORS_PER_COMMITTEE,
+        SYNC_COMMITTEE_SIZE,
+        BYTES_PER_LOGS_BLOOM,
+        MAX_EXTRA_DATA_BYTES,
+    >,
+    _signed_address_change: &mut SignedBlsToExecutionChange,
+    _context: &Context,
+) -> Result<()> {
+    unimplemented!()
+}
+pub fn process_operations<
+    const SLOTS_PER_HISTORICAL_ROOT: usize,
+    const HISTORICAL_ROOTS_LIMIT: usize,
+    const ETH1_DATA_VOTES_BOUND: usize,
+    const VALIDATOR_REGISTRY_LIMIT: usize,
+    const EPOCHS_PER_HISTORICAL_VECTOR: usize,
+    const EPOCHS_PER_SLASHINGS_VECTOR: usize,
+    const MAX_VALIDATORS_PER_COMMITTEE: usize,
+    const SYNC_COMMITTEE_SIZE: usize,
+    const BYTES_PER_LOGS_BLOOM: usize,
+    const MAX_EXTRA_DATA_BYTES: usize,
+    const MAX_PROPOSER_SLASHINGS: usize,
+    const MAX_ATTESTER_SLASHINGS: usize,
+    const MAX_ATTESTATIONS: usize,
+    const MAX_DEPOSITS: usize,
+    const MAX_VOLUNTARY_EXITS: usize,
+    const MAX_BYTES_PER_TRANSACTION: usize,
+    const MAX_TRANSACTIONS_PER_PAYLOAD: usize,
+    const MAX_WITHDRAWALS_PER_PAYLOAD: usize,
+    const MAX_BLS_TO_EXECUTION_CHANGES: usize,
+    const MAX_BLOB_COMMITMENTS_PER_BLOCK: usize,
 >(
     state: &mut BeaconState<
         SLOTS_PER_HISTORICAL_ROOT,
@@ -97,95 +145,89 @@ pub fn process_attestation<
         BYTES_PER_LOGS_BLOOM,
         MAX_EXTRA_DATA_BYTES,
     >,
-    attestation: &Attestation<MAX_VALIDATORS_PER_COMMITTEE>,
+    body: &mut BeaconBlockBody<
+        MAX_PROPOSER_SLASHINGS,
+        MAX_VALIDATORS_PER_COMMITTEE,
+        MAX_ATTESTER_SLASHINGS,
+        MAX_ATTESTATIONS,
+        MAX_DEPOSITS,
+        MAX_VOLUNTARY_EXITS,
+        SYNC_COMMITTEE_SIZE,
+        BYTES_PER_LOGS_BLOOM,
+        MAX_EXTRA_DATA_BYTES,
+        MAX_BYTES_PER_TRANSACTION,
+        MAX_TRANSACTIONS_PER_PAYLOAD,
+        MAX_WITHDRAWALS_PER_PAYLOAD,
+        MAX_BLS_TO_EXECUTION_CHANGES,
+        MAX_BLOB_COMMITMENTS_PER_BLOCK,
+    >,
     context: &Context,
 ) -> Result<()> {
-    let data = &attestation.data;
-    let is_previous = data.target.epoch == get_previous_epoch(state, context);
-    let current_epoch = get_current_epoch(state, context);
-    let is_current = data.target.epoch == current_epoch;
-    let valid_target_epoch = is_previous || is_current;
-    if !valid_target_epoch {
-        return Err(invalid_operation_error(InvalidOperation::Attestation(
-            InvalidAttestation::InvalidTargetEpoch {
-                target: data.target.epoch,
-                current: current_epoch,
+    let expected_deposit_count = usize::min(
+        context.max_deposits,
+        (state.eth1_data.deposit_count - state.eth1_deposit_index) as usize,
+    );
+    if body.deposits.len() != expected_deposit_count {
+        return Err(invalid_operation_error(InvalidOperation::Deposit(
+            InvalidDeposit::IncorrectCount {
+                expected: expected_deposit_count,
+                count: body.deposits.len(),
             },
         )))
     }
-    let attestation_epoch = compute_epoch_at_slot(data.slot, context);
-    if data.target.epoch != attestation_epoch {
-        return Err(invalid_operation_error(InvalidOperation::Attestation(
-            InvalidAttestation::InvalidSlot {
-                slot: data.slot,
-                epoch: attestation_epoch,
-                target: data.target.epoch,
-            },
-        )))
-    }
-    let attestation_has_delay = data.slot + context.min_attestation_inclusion_delay <= state.slot;
-    let attestation_is_recent = state.slot <= data.slot + context.slots_per_epoch;
-    let attestation_is_timely = attestation_has_delay && attestation_is_recent;
-    if !attestation_is_timely {
-        return Err(invalid_operation_error(InvalidOperation::Attestation(
-            InvalidAttestation::NotTimely {
-                state_slot: state.slot,
-                attestation_slot: data.slot,
-                lower_bound: data.slot + context.slots_per_epoch,
-                upper_bound: data.slot + context.min_attestation_inclusion_delay,
-            },
-        )))
-    }
-    let committee_count = get_committee_count_per_slot(state, data.target.epoch, context);
-    if data.index >= committee_count {
-        return Err(invalid_operation_error(InvalidOperation::Attestation(
-            InvalidAttestation::InvalidIndex { index: data.index, upper_bound: committee_count },
-        )))
-    }
-    let committee = get_beacon_committee(state, data.slot, data.index, context)?;
-    if attestation.aggregation_bits.len() != committee.len() {
-        return Err(invalid_operation_error(InvalidOperation::Attestation(
-            InvalidAttestation::Bitfield {
-                expected_length: committee.len(),
-                length: attestation.aggregation_bits.len(),
-            },
-        )))
-    }
-    let inclusion_delay = state.slot - data.slot;
-    let participation_flag_indices =
-        get_attestation_participation_flag_indices(state, data, inclusion_delay, context)?;
-    is_valid_indexed_attestation(
-        state,
-        &mut get_indexed_attestation(state, attestation, context)?,
-        context,
-    )?;
-    let attesting_indices =
-        get_attesting_indices(state, data, &attestation.aggregation_bits, context)?;
-    let mut proposer_reward_numerator = 0;
-    for index in attesting_indices {
-        for (flag_index, weight) in PARTICIPATION_FLAG_WEIGHTS.iter().enumerate() {
-            if is_current {
-                if participation_flag_indices.contains(&flag_index) &&
-                    !has_flag(state.current_epoch_participation[index], flag_index)
-                {
-                    state.current_epoch_participation[index] =
-                        add_flag(state.current_epoch_participation[index], flag_index);
-                    proposer_reward_numerator += get_base_reward(state, index, context)? * weight;
-                }
-            } else if participation_flag_indices.contains(&flag_index) &&
-                !has_flag(state.previous_epoch_participation[index], flag_index)
-            {
-                state.previous_epoch_participation[index] =
-                    add_flag(state.previous_epoch_participation[index], flag_index);
-                proposer_reward_numerator += get_base_reward(state, index, context)? * weight;
-            }
-        }
-    }
-    let proposer_reward_denominator =
-        (WEIGHT_DENOMINATOR - PROPOSER_WEIGHT) * WEIGHT_DENOMINATOR / PROPOSER_WEIGHT;
-    let proposer_reward = proposer_reward_numerator / proposer_reward_denominator;
-    increase_balance(state, get_beacon_proposer_index(state, context)?, proposer_reward);
+    body.proposer_slashings
+        .iter_mut()
+        .try_for_each(|op| process_proposer_slashing(state, op, context))?;
+    body.attester_slashings
+        .iter_mut()
+        .try_for_each(|op| process_attester_slashing(state, op, context))?;
+    body.attestations.iter().try_for_each(|op| process_attestation(state, op, context))?;
+    body.deposits.iter_mut().try_for_each(|op| process_deposit(state, op, context))?;
+    body.voluntary_exits
+        .iter_mut()
+        .try_for_each(|op| process_voluntary_exit(state, op, context))?;
+    body.bls_to_execution_changes
+        .iter_mut()
+        .try_for_each(|op| process_bls_to_execution_change(state, op, context))?;
     Ok(())
+}
+pub fn process_withdrawals<
+    const SLOTS_PER_HISTORICAL_ROOT: usize,
+    const HISTORICAL_ROOTS_LIMIT: usize,
+    const ETH1_DATA_VOTES_BOUND: usize,
+    const VALIDATOR_REGISTRY_LIMIT: usize,
+    const EPOCHS_PER_HISTORICAL_VECTOR: usize,
+    const EPOCHS_PER_SLASHINGS_VECTOR: usize,
+    const MAX_VALIDATORS_PER_COMMITTEE: usize,
+    const SYNC_COMMITTEE_SIZE: usize,
+    const BYTES_PER_LOGS_BLOOM: usize,
+    const MAX_EXTRA_DATA_BYTES: usize,
+    const MAX_BYTES_PER_TRANSACTION: usize,
+    const MAX_TRANSACTIONS_PER_PAYLOAD: usize,
+    const MAX_WITHDRAWALS_PER_PAYLOAD: usize,
+>(
+    _state: &mut BeaconState<
+        SLOTS_PER_HISTORICAL_ROOT,
+        HISTORICAL_ROOTS_LIMIT,
+        ETH1_DATA_VOTES_BOUND,
+        VALIDATOR_REGISTRY_LIMIT,
+        EPOCHS_PER_HISTORICAL_VECTOR,
+        EPOCHS_PER_SLASHINGS_VECTOR,
+        MAX_VALIDATORS_PER_COMMITTEE,
+        SYNC_COMMITTEE_SIZE,
+        BYTES_PER_LOGS_BLOOM,
+        MAX_EXTRA_DATA_BYTES,
+    >,
+    _execution_payload: &ExecutionPayload<
+        BYTES_PER_LOGS_BLOOM,
+        MAX_EXTRA_DATA_BYTES,
+        MAX_BYTES_PER_TRANSACTION,
+        MAX_TRANSACTIONS_PER_PAYLOAD,
+        MAX_WITHDRAWALS_PER_PAYLOAD,
+    >,
+    _context: &Context,
+) -> Result<()> {
+    unimplemented!()
 }
 pub fn process_deposit<
     const SLOTS_PER_HISTORICAL_ROOT: usize,
@@ -492,79 +534,6 @@ pub fn get_validator_from_deposit(deposit: &Deposit, context: &Context) -> Valid
         ..Default::default()
     }
 }
-pub fn process_voluntary_exit<
-    const SLOTS_PER_HISTORICAL_ROOT: usize,
-    const HISTORICAL_ROOTS_LIMIT: usize,
-    const ETH1_DATA_VOTES_BOUND: usize,
-    const VALIDATOR_REGISTRY_LIMIT: usize,
-    const EPOCHS_PER_HISTORICAL_VECTOR: usize,
-    const EPOCHS_PER_SLASHINGS_VECTOR: usize,
-    const MAX_VALIDATORS_PER_COMMITTEE: usize,
-    const SYNC_COMMITTEE_SIZE: usize,
-    const BYTES_PER_LOGS_BLOOM: usize,
-    const MAX_EXTRA_DATA_BYTES: usize,
->(
-    state: &mut BeaconState<
-        SLOTS_PER_HISTORICAL_ROOT,
-        HISTORICAL_ROOTS_LIMIT,
-        ETH1_DATA_VOTES_BOUND,
-        VALIDATOR_REGISTRY_LIMIT,
-        EPOCHS_PER_HISTORICAL_VECTOR,
-        EPOCHS_PER_SLASHINGS_VECTOR,
-        MAX_VALIDATORS_PER_COMMITTEE,
-        SYNC_COMMITTEE_SIZE,
-        BYTES_PER_LOGS_BLOOM,
-        MAX_EXTRA_DATA_BYTES,
-    >,
-    signed_voluntary_exit: &mut SignedVoluntaryExit,
-    context: &Context,
-) -> Result<()> {
-    let voluntary_exit = &mut signed_voluntary_exit.message;
-    let validator = state.validators.get(voluntary_exit.validator_index).ok_or_else(|| {
-        invalid_operation_error(InvalidOperation::VoluntaryExit(
-            InvalidVoluntaryExit::InvalidIndex(voluntary_exit.validator_index),
-        ))
-    })?;
-    let current_epoch = get_current_epoch(state, context);
-    if !is_active_validator(validator, current_epoch) {
-        return Err(invalid_operation_error(InvalidOperation::VoluntaryExit(
-            InvalidVoluntaryExit::InactiveValidator(current_epoch),
-        )))
-    }
-    if validator.exit_epoch != FAR_FUTURE_EPOCH {
-        return Err(invalid_operation_error(InvalidOperation::VoluntaryExit(
-            InvalidVoluntaryExit::ValidatorAlreadyExited {
-                index: voluntary_exit.validator_index,
-                epoch: validator.exit_epoch,
-            },
-        )))
-    }
-    if current_epoch < voluntary_exit.epoch {
-        return Err(invalid_operation_error(InvalidOperation::VoluntaryExit(
-            InvalidVoluntaryExit::EarlyExit { current_epoch, exit_epoch: voluntary_exit.epoch },
-        )))
-    }
-    let minimum_time_active =
-        validator.activation_eligibility_epoch + context.shard_committee_period;
-    if current_epoch < minimum_time_active {
-        return Err(invalid_operation_error(InvalidOperation::VoluntaryExit(
-            InvalidVoluntaryExit::ValidatorIsNotActiveForLongEnough {
-                current_epoch,
-                minimum_time_active,
-            },
-        )))
-    }
-    let domain = get_domain(state, DomainType::VoluntaryExit, Some(voluntary_exit.epoch), context)?;
-    let public_key = &validator.public_key;
-    verify_signed_data(voluntary_exit, &signed_voluntary_exit.signature, public_key, domain)
-        .map_err(|_| {
-            invalid_operation_error(InvalidOperation::VoluntaryExit(
-                InvalidVoluntaryExit::InvalidSignature(signed_voluntary_exit.signature.clone()),
-            ))
-        })?;
-    initiate_validator_exit(state, voluntary_exit.validator_index, context);
-    Ok(())
-}
 pub fn process_block_header<
     const SLOTS_PER_HISTORICAL_ROOT: usize,
     const HISTORICAL_ROOTS_LIMIT: usize,
@@ -583,6 +552,9 @@ pub fn process_block_header<
     const MAX_VOLUNTARY_EXITS: usize,
     const MAX_BYTES_PER_TRANSACTION: usize,
     const MAX_TRANSACTIONS_PER_PAYLOAD: usize,
+    const MAX_WITHDRAWALS_PER_PAYLOAD: usize,
+    const MAX_BLS_TO_EXECUTION_CHANGES: usize,
+    const MAX_BLOB_COMMITMENTS_PER_BLOCK: usize,
 >(
     state: &mut BeaconState<
         SLOTS_PER_HISTORICAL_ROOT,
@@ -608,6 +580,9 @@ pub fn process_block_header<
         MAX_EXTRA_DATA_BYTES,
         MAX_BYTES_PER_TRANSACTION,
         MAX_TRANSACTIONS_PER_PAYLOAD,
+        MAX_WITHDRAWALS_PER_PAYLOAD,
+        MAX_BLS_TO_EXECUTION_CHANGES,
+        MAX_BLOB_COMMITMENTS_PER_BLOCK,
     >,
     context: &Context,
 ) -> Result<()> {
@@ -672,6 +647,9 @@ pub fn process_randao<
     const MAX_VOLUNTARY_EXITS: usize,
     const MAX_BYTES_PER_TRANSACTION: usize,
     const MAX_TRANSACTIONS_PER_PAYLOAD: usize,
+    const MAX_WITHDRAWALS_PER_PAYLOAD: usize,
+    const MAX_BLS_TO_EXECUTION_CHANGES: usize,
+    const MAX_BLOB_COMMITMENTS_PER_BLOCK: usize,
 >(
     state: &mut BeaconState<
         SLOTS_PER_HISTORICAL_ROOT,
@@ -697,6 +675,9 @@ pub fn process_randao<
         MAX_EXTRA_DATA_BYTES,
         MAX_BYTES_PER_TRANSACTION,
         MAX_TRANSACTIONS_PER_PAYLOAD,
+        MAX_WITHDRAWALS_PER_PAYLOAD,
+        MAX_BLS_TO_EXECUTION_CHANGES,
+        MAX_BLOB_COMMITMENTS_PER_BLOCK,
     >,
     context: &Context,
 ) -> Result<()> {
@@ -731,6 +712,9 @@ pub fn process_eth1_data<
     const MAX_VOLUNTARY_EXITS: usize,
     const MAX_BYTES_PER_TRANSACTION: usize,
     const MAX_TRANSACTIONS_PER_PAYLOAD: usize,
+    const MAX_WITHDRAWALS_PER_PAYLOAD: usize,
+    const MAX_BLS_TO_EXECUTION_CHANGES: usize,
+    const MAX_BLOB_COMMITMENTS_PER_BLOCK: usize,
 >(
     state: &mut BeaconState<
         SLOTS_PER_HISTORICAL_ROOT,
@@ -756,6 +740,9 @@ pub fn process_eth1_data<
         MAX_EXTRA_DATA_BYTES,
         MAX_BYTES_PER_TRANSACTION,
         MAX_TRANSACTIONS_PER_PAYLOAD,
+        MAX_WITHDRAWALS_PER_PAYLOAD,
+        MAX_BLS_TO_EXECUTION_CHANGES,
+        MAX_BLOB_COMMITMENTS_PER_BLOCK,
     >,
     context: &Context,
 ) {
@@ -766,7 +753,7 @@ pub fn process_eth1_data<
         state.eth1_data = body.eth1_data.clone();
     }
 }
-pub fn process_operations<
+pub fn process_historical_summaries_update<
     const SLOTS_PER_HISTORICAL_ROOT: usize,
     const HISTORICAL_ROOTS_LIMIT: usize,
     const ETH1_DATA_VOTES_BOUND: usize,
@@ -777,13 +764,6 @@ pub fn process_operations<
     const SYNC_COMMITTEE_SIZE: usize,
     const BYTES_PER_LOGS_BLOOM: usize,
     const MAX_EXTRA_DATA_BYTES: usize,
-    const MAX_PROPOSER_SLASHINGS: usize,
-    const MAX_ATTESTER_SLASHINGS: usize,
-    const MAX_ATTESTATIONS: usize,
-    const MAX_DEPOSITS: usize,
-    const MAX_VOLUNTARY_EXITS: usize,
-    const MAX_BYTES_PER_TRANSACTION: usize,
-    const MAX_TRANSACTIONS_PER_PAYLOAD: usize,
 >(
     state: &mut BeaconState<
         SLOTS_PER_HISTORICAL_ROOT,
@@ -797,44 +777,102 @@ pub fn process_operations<
         BYTES_PER_LOGS_BLOOM,
         MAX_EXTRA_DATA_BYTES,
     >,
-    body: &mut BeaconBlockBody<
-        MAX_PROPOSER_SLASHINGS,
+    context: &Context,
+) -> Result<()> {
+    let next_epoch = get_current_epoch(state, context) + 1;
+    if (next_epoch % (context.slots_per_historical_root / context.slots_per_epoch)) == 0 {
+        let historical_summary = HistoricalSummary {
+            block_summary_root: state.block_roots.hash_tree_root()?,
+            state_summary_root: state.state_roots.hash_tree_root()?,
+        };
+        state.historical_summaries.push(historical_summary);
+    }
+    Ok(())
+}
+pub fn process_epoch<
+    const SLOTS_PER_HISTORICAL_ROOT: usize,
+    const HISTORICAL_ROOTS_LIMIT: usize,
+    const ETH1_DATA_VOTES_BOUND: usize,
+    const VALIDATOR_REGISTRY_LIMIT: usize,
+    const EPOCHS_PER_HISTORICAL_VECTOR: usize,
+    const EPOCHS_PER_SLASHINGS_VECTOR: usize,
+    const MAX_VALIDATORS_PER_COMMITTEE: usize,
+    const SYNC_COMMITTEE_SIZE: usize,
+    const BYTES_PER_LOGS_BLOOM: usize,
+    const MAX_EXTRA_DATA_BYTES: usize,
+>(
+    state: &mut BeaconState<
+        SLOTS_PER_HISTORICAL_ROOT,
+        HISTORICAL_ROOTS_LIMIT,
+        ETH1_DATA_VOTES_BOUND,
+        VALIDATOR_REGISTRY_LIMIT,
+        EPOCHS_PER_HISTORICAL_VECTOR,
+        EPOCHS_PER_SLASHINGS_VECTOR,
         MAX_VALIDATORS_PER_COMMITTEE,
-        MAX_ATTESTER_SLASHINGS,
-        MAX_ATTESTATIONS,
-        MAX_DEPOSITS,
-        MAX_VOLUNTARY_EXITS,
         SYNC_COMMITTEE_SIZE,
         BYTES_PER_LOGS_BLOOM,
         MAX_EXTRA_DATA_BYTES,
-        MAX_BYTES_PER_TRANSACTION,
-        MAX_TRANSACTIONS_PER_PAYLOAD,
     >,
     context: &Context,
 ) -> Result<()> {
-    let expected_deposit_count = usize::min(
-        context.max_deposits,
-        (state.eth1_data.deposit_count - state.eth1_deposit_index) as usize,
+    process_justification_and_finalization(state, context)?;
+    process_inactivity_updates(state, context)?;
+    process_rewards_and_penalties(state, context)?;
+    process_registry_updates(state, context);
+    process_slashings(state, context)?;
+    process_eth1_data_reset(state, context);
+    process_effective_balance_updates(state, context);
+    process_slashings_reset(state, context);
+    process_randao_mixes_reset(state, context);
+    process_historical_summaries_update(state, context)?;
+    process_participation_flag_updates(state)?;
+    process_sync_committee_updates(state, context)?;
+    Ok(())
+}
+pub fn process_slashings<
+    const SLOTS_PER_HISTORICAL_ROOT: usize,
+    const HISTORICAL_ROOTS_LIMIT: usize,
+    const ETH1_DATA_VOTES_BOUND: usize,
+    const VALIDATOR_REGISTRY_LIMIT: usize,
+    const EPOCHS_PER_HISTORICAL_VECTOR: usize,
+    const EPOCHS_PER_SLASHINGS_VECTOR: usize,
+    const MAX_VALIDATORS_PER_COMMITTEE: usize,
+    const SYNC_COMMITTEE_SIZE: usize,
+    const BYTES_PER_LOGS_BLOOM: usize,
+    const MAX_EXTRA_DATA_BYTES: usize,
+>(
+    state: &mut BeaconState<
+        SLOTS_PER_HISTORICAL_ROOT,
+        HISTORICAL_ROOTS_LIMIT,
+        ETH1_DATA_VOTES_BOUND,
+        VALIDATOR_REGISTRY_LIMIT,
+        EPOCHS_PER_HISTORICAL_VECTOR,
+        EPOCHS_PER_SLASHINGS_VECTOR,
+        MAX_VALIDATORS_PER_COMMITTEE,
+        SYNC_COMMITTEE_SIZE,
+        BYTES_PER_LOGS_BLOOM,
+        MAX_EXTRA_DATA_BYTES,
+    >,
+    context: &Context,
+) -> Result<()> {
+    let epoch = get_current_epoch(state, context);
+    let total_balance = get_total_active_balance(state, context)?;
+    let adjusted_total_slashing_balance = Gwei::min(
+        state.slashings.iter().sum::<Gwei>() * context.proportional_slashing_multiplier_bellatrix,
+        total_balance,
     );
-    if body.deposits.len() != expected_deposit_count {
-        return Err(invalid_operation_error(InvalidOperation::Deposit(
-            InvalidDeposit::IncorrectCount {
-                expected: expected_deposit_count,
-                count: body.deposits.len(),
-            },
-        )))
+    for i in 0..state.validators.len() {
+        let validator = &state.validators[i];
+        if validator.slashed &&
+            (epoch + context.epochs_per_slashings_vector / 2) == validator.withdrawable_epoch
+        {
+            let increment = context.effective_balance_increment;
+            let penalty_numerator =
+                validator.effective_balance / increment * adjusted_total_slashing_balance;
+            let penalty = penalty_numerator / total_balance * increment;
+            decrease_balance(state, i, penalty);
+        }
     }
-    body.proposer_slashings
-        .iter_mut()
-        .try_for_each(|op| process_proposer_slashing(state, op, context))?;
-    body.attester_slashings
-        .iter_mut()
-        .try_for_each(|op| process_attester_slashing(state, op, context))?;
-    body.attestations.iter().try_for_each(|op| process_attestation(state, op, context))?;
-    body.deposits.iter_mut().try_for_each(|op| process_deposit(state, op, context))?;
-    body.voluntary_exits
-        .iter_mut()
-        .try_for_each(|op| process_voluntary_exit(state, op, context))?;
     Ok(())
 }
 pub fn get_base_reward<
@@ -1083,68 +1121,6 @@ pub fn process_sync_committee_updates<
         state.current_sync_committee = current_sync_committee;
     }
     Ok(())
-}
-pub fn process_registry_updates<
-    const SLOTS_PER_HISTORICAL_ROOT: usize,
-    const HISTORICAL_ROOTS_LIMIT: usize,
-    const ETH1_DATA_VOTES_BOUND: usize,
-    const VALIDATOR_REGISTRY_LIMIT: usize,
-    const EPOCHS_PER_HISTORICAL_VECTOR: usize,
-    const EPOCHS_PER_SLASHINGS_VECTOR: usize,
-    const MAX_VALIDATORS_PER_COMMITTEE: usize,
-    const SYNC_COMMITTEE_SIZE: usize,
-    const BYTES_PER_LOGS_BLOOM: usize,
-    const MAX_EXTRA_DATA_BYTES: usize,
->(
-    state: &mut BeaconState<
-        SLOTS_PER_HISTORICAL_ROOT,
-        HISTORICAL_ROOTS_LIMIT,
-        ETH1_DATA_VOTES_BOUND,
-        VALIDATOR_REGISTRY_LIMIT,
-        EPOCHS_PER_HISTORICAL_VECTOR,
-        EPOCHS_PER_SLASHINGS_VECTOR,
-        MAX_VALIDATORS_PER_COMMITTEE,
-        SYNC_COMMITTEE_SIZE,
-        BYTES_PER_LOGS_BLOOM,
-        MAX_EXTRA_DATA_BYTES,
-    >,
-    context: &Context,
-) {
-    let current_epoch = get_current_epoch(state, context);
-    for i in 0..state.validators.len() {
-        let validator = &mut state.validators[i];
-        if is_eligible_for_activation_queue(validator, context) {
-            validator.activation_eligibility_epoch = current_epoch + 1;
-        }
-        if is_active_validator(validator, current_epoch) &&
-            validator.effective_balance <= context.ejection_balance
-        {
-            initiate_validator_exit(state, i, context);
-        }
-    }
-    let mut activation_queue =
-        state
-            .validators
-            .iter()
-            .enumerate()
-            .filter_map(|(index, validator)| {
-                if is_eligible_for_activation(state, validator) {
-                    Some(index)
-                } else {
-                    None
-                }
-            })
-            .collect::<Vec<ValidatorIndex>>();
-    activation_queue.sort_by(|&i, &j| {
-        let a = &state.validators[i];
-        let b = &state.validators[j];
-        (a.activation_eligibility_epoch, i).cmp(&(b.activation_eligibility_epoch, j))
-    });
-    let activation_exit_epoch = compute_activation_exit_epoch(current_epoch, context);
-    for i in activation_queue.into_iter().take(get_validator_churn_limit(state, context)) {
-        let validator = &mut state.validators[i];
-        validator.activation_epoch = activation_exit_epoch;
-    }
 }
 pub fn process_eth1_data_reset<
     const SLOTS_PER_HISTORICAL_ROOT: usize,
@@ -1517,6 +1493,9 @@ pub fn get_genesis_block<
     const MAX_VOLUNTARY_EXITS: usize,
     const MAX_BYTES_PER_TRANSACTION: usize,
     const MAX_TRANSACTIONS_PER_PAYLOAD: usize,
+    const MAX_WITHDRAWALS_PER_PAYLOAD: usize,
+    const MAX_BLS_TO_EXECUTION_CHANGES: usize,
+    const MAX_BLOB_COMMITMENTS_PER_BLOCK: usize,
 >(
     genesis_state: &mut BeaconState<
         SLOTS_PER_HISTORICAL_ROOT,
@@ -1543,9 +1522,297 @@ pub fn get_genesis_block<
         MAX_EXTRA_DATA_BYTES,
         MAX_BYTES_PER_TRANSACTION,
         MAX_TRANSACTIONS_PER_PAYLOAD,
+        MAX_WITHDRAWALS_PER_PAYLOAD,
+        MAX_BLS_TO_EXECUTION_CHANGES,
+        MAX_BLOB_COMMITMENTS_PER_BLOCK,
     >,
 > {
     Ok(BeaconBlock { state_root: genesis_state.hash_tree_root()?, ..Default::default() })
+}
+pub fn has_eth1_withdrawal_credential(validator: &Validator) -> bool {
+    validator.withdrawal_credentials[0] == ETH1_ADDRESS_WITHDRAWAL_PREFIX
+}
+pub fn is_fully_withdrawable_validator(validator: &Validator, balance: Gwei, epoch: Epoch) -> bool {
+    has_eth1_withdrawal_credential(validator) &&
+        validator.withdrawable_epoch <= epoch &&
+        balance > 0
+}
+pub fn is_partially_withdrawable_validator(
+    validator: &Validator,
+    balance: Gwei,
+    context: &Context,
+) -> bool {
+    let has_max_effective_balance = validator.effective_balance == context.max_effective_balance;
+    let has_excess_balance = balance > context.max_effective_balance;
+    has_eth1_withdrawal_credential(validator) && has_max_effective_balance && has_excess_balance
+}
+pub fn get_inactivity_penalty_deltas<
+    const SLOTS_PER_HISTORICAL_ROOT: usize,
+    const HISTORICAL_ROOTS_LIMIT: usize,
+    const ETH1_DATA_VOTES_BOUND: usize,
+    const VALIDATOR_REGISTRY_LIMIT: usize,
+    const EPOCHS_PER_HISTORICAL_VECTOR: usize,
+    const EPOCHS_PER_SLASHINGS_VECTOR: usize,
+    const MAX_VALIDATORS_PER_COMMITTEE: usize,
+    const SYNC_COMMITTEE_SIZE: usize,
+    const BYTES_PER_LOGS_BLOOM: usize,
+    const MAX_EXTRA_DATA_BYTES: usize,
+>(
+    state: &BeaconState<
+        SLOTS_PER_HISTORICAL_ROOT,
+        HISTORICAL_ROOTS_LIMIT,
+        ETH1_DATA_VOTES_BOUND,
+        VALIDATOR_REGISTRY_LIMIT,
+        EPOCHS_PER_HISTORICAL_VECTOR,
+        EPOCHS_PER_SLASHINGS_VECTOR,
+        MAX_VALIDATORS_PER_COMMITTEE,
+        SYNC_COMMITTEE_SIZE,
+        BYTES_PER_LOGS_BLOOM,
+        MAX_EXTRA_DATA_BYTES,
+    >,
+    context: &Context,
+) -> Result<(Vec<Gwei>, Vec<Gwei>)> {
+    let validator_count = state.validators.len();
+    let rewards = vec![0; validator_count];
+    let mut penalties = vec![0; validator_count];
+    let previous_epoch = get_previous_epoch(state, context);
+    let matching_target_indices = get_unslashed_participating_indices(
+        state,
+        TIMELY_TARGET_FLAG_INDEX,
+        previous_epoch,
+        context,
+    )?;
+    for i in get_eligible_validator_indices(state, context) {
+        if !matching_target_indices.contains(&i) {
+            let penalty_numerator =
+                state.validators[i].effective_balance * state.inactivity_scores[i];
+            let penalty_denominator =
+                context.inactivity_score_bias * context.inactivity_penalty_quotient_bellatrix;
+            penalties[i] += penalty_numerator / penalty_denominator;
+        }
+    }
+    Ok((rewards, penalties))
+}
+pub fn slash_validator<
+    const SLOTS_PER_HISTORICAL_ROOT: usize,
+    const HISTORICAL_ROOTS_LIMIT: usize,
+    const ETH1_DATA_VOTES_BOUND: usize,
+    const VALIDATOR_REGISTRY_LIMIT: usize,
+    const EPOCHS_PER_HISTORICAL_VECTOR: usize,
+    const EPOCHS_PER_SLASHINGS_VECTOR: usize,
+    const MAX_VALIDATORS_PER_COMMITTEE: usize,
+    const SYNC_COMMITTEE_SIZE: usize,
+    const BYTES_PER_LOGS_BLOOM: usize,
+    const MAX_EXTRA_DATA_BYTES: usize,
+>(
+    state: &mut BeaconState<
+        SLOTS_PER_HISTORICAL_ROOT,
+        HISTORICAL_ROOTS_LIMIT,
+        ETH1_DATA_VOTES_BOUND,
+        VALIDATOR_REGISTRY_LIMIT,
+        EPOCHS_PER_HISTORICAL_VECTOR,
+        EPOCHS_PER_SLASHINGS_VECTOR,
+        MAX_VALIDATORS_PER_COMMITTEE,
+        SYNC_COMMITTEE_SIZE,
+        BYTES_PER_LOGS_BLOOM,
+        MAX_EXTRA_DATA_BYTES,
+    >,
+    slashed_index: ValidatorIndex,
+    whistleblower_index: Option<ValidatorIndex>,
+    context: &Context,
+) -> Result<()> {
+    let epoch = get_current_epoch(state, context);
+    initiate_validator_exit(state, slashed_index, context);
+    state.validators[slashed_index].slashed = true;
+    state.validators[slashed_index].withdrawable_epoch = u64::max(
+        state.validators[slashed_index].withdrawable_epoch,
+        epoch + context.epochs_per_slashings_vector,
+    );
+    let slashings_index = epoch as usize % EPOCHS_PER_SLASHINGS_VECTOR;
+    state.slashings[slashings_index] += state.validators[slashed_index].effective_balance;
+    decrease_balance(
+        state,
+        slashed_index,
+        state.validators[slashed_index].effective_balance /
+            context.min_slashing_penalty_quotient_bellatrix,
+    );
+    let proposer_index = get_beacon_proposer_index(state, context)?;
+    let whistleblower_index = whistleblower_index.unwrap_or(proposer_index);
+    let whistleblower_reward =
+        state.validators[slashed_index].effective_balance / context.whistleblower_reward_quotient;
+    let proposer_reward_scaling_factor = PROPOSER_WEIGHT / WEIGHT_DENOMINATOR;
+    let proposer_reward = whistleblower_reward * proposer_reward_scaling_factor;
+    increase_balance(state, proposer_index, proposer_reward);
+    increase_balance(state, whistleblower_index, whistleblower_reward - proposer_reward);
+    Ok(())
+}
+pub fn is_merge_transition_complete<
+    const SLOTS_PER_HISTORICAL_ROOT: usize,
+    const HISTORICAL_ROOTS_LIMIT: usize,
+    const ETH1_DATA_VOTES_BOUND: usize,
+    const VALIDATOR_REGISTRY_LIMIT: usize,
+    const EPOCHS_PER_HISTORICAL_VECTOR: usize,
+    const EPOCHS_PER_SLASHINGS_VECTOR: usize,
+    const MAX_VALIDATORS_PER_COMMITTEE: usize,
+    const SYNC_COMMITTEE_SIZE: usize,
+    const BYTES_PER_LOGS_BLOOM: usize,
+    const MAX_EXTRA_DATA_BYTES: usize,
+>(
+    state: &BeaconState<
+        SLOTS_PER_HISTORICAL_ROOT,
+        HISTORICAL_ROOTS_LIMIT,
+        ETH1_DATA_VOTES_BOUND,
+        VALIDATOR_REGISTRY_LIMIT,
+        EPOCHS_PER_HISTORICAL_VECTOR,
+        EPOCHS_PER_SLASHINGS_VECTOR,
+        MAX_VALIDATORS_PER_COMMITTEE,
+        SYNC_COMMITTEE_SIZE,
+        BYTES_PER_LOGS_BLOOM,
+        MAX_EXTRA_DATA_BYTES,
+    >,
+) -> bool {
+    state.latest_execution_payload_header != ExecutionPayloadHeader::default()
+}
+pub fn is_merge_transition_block<
+    const SLOTS_PER_HISTORICAL_ROOT: usize,
+    const HISTORICAL_ROOTS_LIMIT: usize,
+    const ETH1_DATA_VOTES_BOUND: usize,
+    const VALIDATOR_REGISTRY_LIMIT: usize,
+    const EPOCHS_PER_HISTORICAL_VECTOR: usize,
+    const EPOCHS_PER_SLASHINGS_VECTOR: usize,
+    const MAX_VALIDATORS_PER_COMMITTEE: usize,
+    const SYNC_COMMITTEE_SIZE: usize,
+    const BYTES_PER_LOGS_BLOOM: usize,
+    const MAX_EXTRA_DATA_BYTES: usize,
+    const MAX_PROPOSER_SLASHINGS: usize,
+    const MAX_ATTESTER_SLASHINGS: usize,
+    const MAX_ATTESTATIONS: usize,
+    const MAX_DEPOSITS: usize,
+    const MAX_VOLUNTARY_EXITS: usize,
+    const MAX_BYTES_PER_TRANSACTION: usize,
+    const MAX_TRANSACTIONS_PER_PAYLOAD: usize,
+    const MAX_WITHDRAWALS_PER_PAYLOAD: usize,
+    const MAX_BLS_TO_EXECUTION_CHANGES: usize,
+    const MAX_BLOB_COMMITMENTS_PER_BLOCK: usize,
+>(
+    state: &BeaconState<
+        SLOTS_PER_HISTORICAL_ROOT,
+        HISTORICAL_ROOTS_LIMIT,
+        ETH1_DATA_VOTES_BOUND,
+        VALIDATOR_REGISTRY_LIMIT,
+        EPOCHS_PER_HISTORICAL_VECTOR,
+        EPOCHS_PER_SLASHINGS_VECTOR,
+        MAX_VALIDATORS_PER_COMMITTEE,
+        SYNC_COMMITTEE_SIZE,
+        BYTES_PER_LOGS_BLOOM,
+        MAX_EXTRA_DATA_BYTES,
+    >,
+    body: &BeaconBlockBody<
+        MAX_PROPOSER_SLASHINGS,
+        MAX_VALIDATORS_PER_COMMITTEE,
+        MAX_ATTESTER_SLASHINGS,
+        MAX_ATTESTATIONS,
+        MAX_DEPOSITS,
+        MAX_VOLUNTARY_EXITS,
+        SYNC_COMMITTEE_SIZE,
+        BYTES_PER_LOGS_BLOOM,
+        MAX_EXTRA_DATA_BYTES,
+        MAX_BYTES_PER_TRANSACTION,
+        MAX_TRANSACTIONS_PER_PAYLOAD,
+        MAX_WITHDRAWALS_PER_PAYLOAD,
+        MAX_BLS_TO_EXECUTION_CHANGES,
+        MAX_BLOB_COMMITMENTS_PER_BLOCK,
+    >,
+) -> bool {
+    let transition_is_not_complete = !is_merge_transition_complete(state);
+    let nonempty_payload = body.execution_payload != ExecutionPayload::default();
+    transition_is_not_complete && nonempty_payload
+}
+pub fn is_execution_enabled<
+    const SLOTS_PER_HISTORICAL_ROOT: usize,
+    const HISTORICAL_ROOTS_LIMIT: usize,
+    const ETH1_DATA_VOTES_BOUND: usize,
+    const VALIDATOR_REGISTRY_LIMIT: usize,
+    const EPOCHS_PER_HISTORICAL_VECTOR: usize,
+    const EPOCHS_PER_SLASHINGS_VECTOR: usize,
+    const MAX_VALIDATORS_PER_COMMITTEE: usize,
+    const SYNC_COMMITTEE_SIZE: usize,
+    const BYTES_PER_LOGS_BLOOM: usize,
+    const MAX_EXTRA_DATA_BYTES: usize,
+    const MAX_PROPOSER_SLASHINGS: usize,
+    const MAX_ATTESTER_SLASHINGS: usize,
+    const MAX_ATTESTATIONS: usize,
+    const MAX_DEPOSITS: usize,
+    const MAX_VOLUNTARY_EXITS: usize,
+    const MAX_BYTES_PER_TRANSACTION: usize,
+    const MAX_TRANSACTIONS_PER_PAYLOAD: usize,
+    const MAX_WITHDRAWALS_PER_PAYLOAD: usize,
+    const MAX_BLS_TO_EXECUTION_CHANGES: usize,
+    const MAX_BLOB_COMMITMENTS_PER_BLOCK: usize,
+>(
+    state: &BeaconState<
+        SLOTS_PER_HISTORICAL_ROOT,
+        HISTORICAL_ROOTS_LIMIT,
+        ETH1_DATA_VOTES_BOUND,
+        VALIDATOR_REGISTRY_LIMIT,
+        EPOCHS_PER_HISTORICAL_VECTOR,
+        EPOCHS_PER_SLASHINGS_VECTOR,
+        MAX_VALIDATORS_PER_COMMITTEE,
+        SYNC_COMMITTEE_SIZE,
+        BYTES_PER_LOGS_BLOOM,
+        MAX_EXTRA_DATA_BYTES,
+    >,
+    body: &BeaconBlockBody<
+        MAX_PROPOSER_SLASHINGS,
+        MAX_VALIDATORS_PER_COMMITTEE,
+        MAX_ATTESTER_SLASHINGS,
+        MAX_ATTESTATIONS,
+        MAX_DEPOSITS,
+        MAX_VOLUNTARY_EXITS,
+        SYNC_COMMITTEE_SIZE,
+        BYTES_PER_LOGS_BLOOM,
+        MAX_EXTRA_DATA_BYTES,
+        MAX_BYTES_PER_TRANSACTION,
+        MAX_TRANSACTIONS_PER_PAYLOAD,
+        MAX_WITHDRAWALS_PER_PAYLOAD,
+        MAX_BLS_TO_EXECUTION_CHANGES,
+        MAX_BLOB_COMMITMENTS_PER_BLOCK,
+    >,
+) -> bool {
+    let is_transition_block = is_merge_transition_block(state, body);
+    let transition_is_complete = is_merge_transition_complete(state);
+    is_transition_block || transition_is_complete
+}
+pub fn compute_timestamp_at_slot<
+    const SLOTS_PER_HISTORICAL_ROOT: usize,
+    const HISTORICAL_ROOTS_LIMIT: usize,
+    const ETH1_DATA_VOTES_BOUND: usize,
+    const VALIDATOR_REGISTRY_LIMIT: usize,
+    const EPOCHS_PER_HISTORICAL_VECTOR: usize,
+    const EPOCHS_PER_SLASHINGS_VECTOR: usize,
+    const MAX_VALIDATORS_PER_COMMITTEE: usize,
+    const SYNC_COMMITTEE_SIZE: usize,
+    const BYTES_PER_LOGS_BLOOM: usize,
+    const MAX_EXTRA_DATA_BYTES: usize,
+>(
+    state: &BeaconState<
+        SLOTS_PER_HISTORICAL_ROOT,
+        HISTORICAL_ROOTS_LIMIT,
+        ETH1_DATA_VOTES_BOUND,
+        VALIDATOR_REGISTRY_LIMIT,
+        EPOCHS_PER_HISTORICAL_VECTOR,
+        EPOCHS_PER_SLASHINGS_VECTOR,
+        MAX_VALIDATORS_PER_COMMITTEE,
+        SYNC_COMMITTEE_SIZE,
+        BYTES_PER_LOGS_BLOOM,
+        MAX_EXTRA_DATA_BYTES,
+    >,
+    slot: Slot,
+    context: &Context,
+) -> Result<u64> {
+    let slots_since_genesis = slot.checked_sub(GENESIS_SLOT).ok_or(Error::Underflow)?;
+    let timestamp = state.genesis_time + slots_since_genesis * context.seconds_per_slot;
+    Ok(timestamp)
 }
 pub fn add_flag(flags: ParticipationFlags, flag_index: usize) -> ParticipationFlags {
     let flag = 2u8.pow(flag_index as u32);
@@ -1723,65 +1990,6 @@ pub fn get_unslashed_participating_indices<
             did_participate && not_slashed
         })
         .collect::<HashSet<_>>())
-}
-pub fn get_attestation_participation_flag_indices<
-    const SLOTS_PER_HISTORICAL_ROOT: usize,
-    const HISTORICAL_ROOTS_LIMIT: usize,
-    const ETH1_DATA_VOTES_BOUND: usize,
-    const VALIDATOR_REGISTRY_LIMIT: usize,
-    const EPOCHS_PER_HISTORICAL_VECTOR: usize,
-    const EPOCHS_PER_SLASHINGS_VECTOR: usize,
-    const MAX_VALIDATORS_PER_COMMITTEE: usize,
-    const SYNC_COMMITTEE_SIZE: usize,
-    const BYTES_PER_LOGS_BLOOM: usize,
-    const MAX_EXTRA_DATA_BYTES: usize,
->(
-    state: &BeaconState<
-        SLOTS_PER_HISTORICAL_ROOT,
-        HISTORICAL_ROOTS_LIMIT,
-        ETH1_DATA_VOTES_BOUND,
-        VALIDATOR_REGISTRY_LIMIT,
-        EPOCHS_PER_HISTORICAL_VECTOR,
-        EPOCHS_PER_SLASHINGS_VECTOR,
-        MAX_VALIDATORS_PER_COMMITTEE,
-        SYNC_COMMITTEE_SIZE,
-        BYTES_PER_LOGS_BLOOM,
-        MAX_EXTRA_DATA_BYTES,
-    >,
-    data: &AttestationData,
-    inclusion_delay: u64,
-    context: &Context,
-) -> Result<Vec<usize>> {
-    let justified_checkpoint = if data.target.epoch == get_current_epoch(state, context) {
-        &state.current_justified_checkpoint
-    } else {
-        &state.previous_justified_checkpoint
-    };
-    let is_matching_source = data.source == *justified_checkpoint;
-    if !is_matching_source {
-        return Err(invalid_operation_error(InvalidOperation::Attestation(
-            InvalidAttestation::InvalidSource {
-                expected: justified_checkpoint.clone(),
-                source_checkpoint: data.source.clone(),
-                current: get_current_epoch(state, context),
-            },
-        )))
-    }
-    let is_matching_target = is_matching_source &&
-        (data.target.root == *get_block_root(state, data.target.epoch, context)?);
-    let is_matching_head = is_matching_target &&
-        (data.beacon_block_root == *get_block_root_at_slot(state, data.slot)?);
-    let mut participation_flag_indices = Vec::new();
-    if is_matching_source && inclusion_delay <= context.slots_per_epoch.integer_sqrt() {
-        participation_flag_indices.push(TIMELY_SOURCE_FLAG_INDEX);
-    }
-    if is_matching_target && inclusion_delay <= context.slots_per_epoch {
-        participation_flag_indices.push(TIMELY_TARGET_FLAG_INDEX);
-    }
-    if is_matching_head && inclusion_delay == context.min_attestation_inclusion_delay {
-        participation_flag_indices.push(TIMELY_HEAD_FLAG_INDEX);
-    }
-    Ok(participation_flag_indices)
 }
 pub fn get_flag_index_deltas<
     const SLOTS_PER_HISTORICAL_ROOT: usize,
@@ -1972,6 +2180,9 @@ pub fn verify_block_signature<
     const MAX_VOLUNTARY_EXITS: usize,
     const MAX_BYTES_PER_TRANSACTION: usize,
     const MAX_TRANSACTIONS_PER_PAYLOAD: usize,
+    const MAX_WITHDRAWALS_PER_PAYLOAD: usize,
+    const MAX_BLS_TO_EXECUTION_CHANGES: usize,
+    const MAX_BLOB_COMMITMENTS_PER_BLOCK: usize,
 >(
     state: &BeaconState<
         SLOTS_PER_HISTORICAL_ROOT,
@@ -1997,6 +2208,9 @@ pub fn verify_block_signature<
         MAX_EXTRA_DATA_BYTES,
         MAX_BYTES_PER_TRANSACTION,
         MAX_TRANSACTIONS_PER_PAYLOAD,
+        MAX_WITHDRAWALS_PER_PAYLOAD,
+        MAX_BLS_TO_EXECUTION_CHANGES,
+        MAX_BLOB_COMMITMENTS_PER_BLOCK,
     >,
     context: &Context,
 ) -> Result<()> {
@@ -2911,4 +3125,144 @@ pub fn process_slot<
     state.block_roots[root_index as usize] = previous_block_root;
     Ok(())
 }
-pub use crate::bellatrix::execution_engine::ExecutionEngine;
+pub fn state_transition_block_in_slot<
+    const SLOTS_PER_HISTORICAL_ROOT: usize,
+    const HISTORICAL_ROOTS_LIMIT: usize,
+    const ETH1_DATA_VOTES_BOUND: usize,
+    const VALIDATOR_REGISTRY_LIMIT: usize,
+    const EPOCHS_PER_HISTORICAL_VECTOR: usize,
+    const EPOCHS_PER_SLASHINGS_VECTOR: usize,
+    const MAX_VALIDATORS_PER_COMMITTEE: usize,
+    const SYNC_COMMITTEE_SIZE: usize,
+    const BYTES_PER_LOGS_BLOOM: usize,
+    const MAX_EXTRA_DATA_BYTES: usize,
+    const MAX_PROPOSER_SLASHINGS: usize,
+    const MAX_ATTESTER_SLASHINGS: usize,
+    const MAX_ATTESTATIONS: usize,
+    const MAX_DEPOSITS: usize,
+    const MAX_VOLUNTARY_EXITS: usize,
+    const MAX_BYTES_PER_TRANSACTION: usize,
+    const MAX_TRANSACTIONS_PER_PAYLOAD: usize,
+    const MAX_WITHDRAWALS_PER_PAYLOAD: usize,
+    const MAX_BLS_TO_EXECUTION_CHANGES: usize,
+    const MAX_BLOB_COMMITMENTS_PER_BLOCK: usize,
+    E: ExecutionEngine<
+        BYTES_PER_LOGS_BLOOM,
+        MAX_EXTRA_DATA_BYTES,
+        MAX_BYTES_PER_TRANSACTION,
+        MAX_TRANSACTIONS_PER_PAYLOAD,
+        MAX_WITHDRAWALS_PER_PAYLOAD,
+    >,
+>(
+    state: &mut BeaconState<
+        SLOTS_PER_HISTORICAL_ROOT,
+        HISTORICAL_ROOTS_LIMIT,
+        ETH1_DATA_VOTES_BOUND,
+        VALIDATOR_REGISTRY_LIMIT,
+        EPOCHS_PER_HISTORICAL_VECTOR,
+        EPOCHS_PER_SLASHINGS_VECTOR,
+        MAX_VALIDATORS_PER_COMMITTEE,
+        SYNC_COMMITTEE_SIZE,
+        BYTES_PER_LOGS_BLOOM,
+        MAX_EXTRA_DATA_BYTES,
+    >,
+    signed_block: &mut SignedBeaconBlock<
+        MAX_PROPOSER_SLASHINGS,
+        MAX_VALIDATORS_PER_COMMITTEE,
+        MAX_ATTESTER_SLASHINGS,
+        MAX_ATTESTATIONS,
+        MAX_DEPOSITS,
+        MAX_VOLUNTARY_EXITS,
+        SYNC_COMMITTEE_SIZE,
+        BYTES_PER_LOGS_BLOOM,
+        MAX_EXTRA_DATA_BYTES,
+        MAX_BYTES_PER_TRANSACTION,
+        MAX_TRANSACTIONS_PER_PAYLOAD,
+        MAX_WITHDRAWALS_PER_PAYLOAD,
+        MAX_BLS_TO_EXECUTION_CHANGES,
+        MAX_BLOB_COMMITMENTS_PER_BLOCK,
+    >,
+    execution_engine: &E,
+    validation: Validation,
+    context: &Context,
+) -> Result<()> {
+    let validate_result = match validation {
+        Validation::Enabled => true,
+        Validation::Disabled => false,
+    };
+    if validate_result {
+        verify_block_signature(state, signed_block, context)?;
+    }
+    let block = &mut signed_block.message;
+    process_block(state, block, execution_engine, context)?;
+    if validate_result && block.state_root != state.hash_tree_root()? {
+        Err(Error::InvalidStateRoot)
+    } else {
+        Ok(())
+    }
+}
+pub fn state_transition<
+    const SLOTS_PER_HISTORICAL_ROOT: usize,
+    const HISTORICAL_ROOTS_LIMIT: usize,
+    const ETH1_DATA_VOTES_BOUND: usize,
+    const VALIDATOR_REGISTRY_LIMIT: usize,
+    const EPOCHS_PER_HISTORICAL_VECTOR: usize,
+    const EPOCHS_PER_SLASHINGS_VECTOR: usize,
+    const MAX_VALIDATORS_PER_COMMITTEE: usize,
+    const SYNC_COMMITTEE_SIZE: usize,
+    const BYTES_PER_LOGS_BLOOM: usize,
+    const MAX_EXTRA_DATA_BYTES: usize,
+    const MAX_PROPOSER_SLASHINGS: usize,
+    const MAX_ATTESTER_SLASHINGS: usize,
+    const MAX_ATTESTATIONS: usize,
+    const MAX_DEPOSITS: usize,
+    const MAX_VOLUNTARY_EXITS: usize,
+    const MAX_BYTES_PER_TRANSACTION: usize,
+    const MAX_TRANSACTIONS_PER_PAYLOAD: usize,
+    const MAX_WITHDRAWALS_PER_PAYLOAD: usize,
+    const MAX_BLS_TO_EXECUTION_CHANGES: usize,
+    const MAX_BLOB_COMMITMENTS_PER_BLOCK: usize,
+    E: ExecutionEngine<
+        BYTES_PER_LOGS_BLOOM,
+        MAX_EXTRA_DATA_BYTES,
+        MAX_BYTES_PER_TRANSACTION,
+        MAX_TRANSACTIONS_PER_PAYLOAD,
+        MAX_WITHDRAWALS_PER_PAYLOAD,
+    >,
+>(
+    state: &mut BeaconState<
+        SLOTS_PER_HISTORICAL_ROOT,
+        HISTORICAL_ROOTS_LIMIT,
+        ETH1_DATA_VOTES_BOUND,
+        VALIDATOR_REGISTRY_LIMIT,
+        EPOCHS_PER_HISTORICAL_VECTOR,
+        EPOCHS_PER_SLASHINGS_VECTOR,
+        MAX_VALIDATORS_PER_COMMITTEE,
+        SYNC_COMMITTEE_SIZE,
+        BYTES_PER_LOGS_BLOOM,
+        MAX_EXTRA_DATA_BYTES,
+    >,
+    signed_block: &mut SignedBeaconBlock<
+        MAX_PROPOSER_SLASHINGS,
+        MAX_VALIDATORS_PER_COMMITTEE,
+        MAX_ATTESTER_SLASHINGS,
+        MAX_ATTESTATIONS,
+        MAX_DEPOSITS,
+        MAX_VOLUNTARY_EXITS,
+        SYNC_COMMITTEE_SIZE,
+        BYTES_PER_LOGS_BLOOM,
+        MAX_EXTRA_DATA_BYTES,
+        MAX_BYTES_PER_TRANSACTION,
+        MAX_TRANSACTIONS_PER_PAYLOAD,
+        MAX_WITHDRAWALS_PER_PAYLOAD,
+        MAX_BLS_TO_EXECUTION_CHANGES,
+        MAX_BLOB_COMMITMENTS_PER_BLOCK,
+    >,
+    execution_engine: &E,
+    validation: Validation,
+    context: &Context,
+) -> Result<()> {
+    process_slots(state, signed_block.message.slot, context)?;
+    state_transition_block_in_slot(state, signed_block, execution_engine, validation, context)
+}
+pub use crate::deneb::execution_engine::ExecutionEngine;

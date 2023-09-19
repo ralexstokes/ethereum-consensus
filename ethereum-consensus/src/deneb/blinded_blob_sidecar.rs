@@ -6,7 +6,7 @@ use ssz_rs::prelude::*;
 
 #[derive(Default, Debug, Clone, SimpleSerialize, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-pub struct BlindedBlobSidecar<const BYTES_PER_BLOB: usize> {
+pub struct BlindedBlobSidecar {
     pub block_root: Root,
     #[serde(with = "crate::serde::as_string")]
     pub index: BlobIndex,
@@ -22,7 +22,7 @@ pub struct BlindedBlobSidecar<const BYTES_PER_BLOB: usize> {
 
 #[derive(Default, Debug, Clone, SimpleSerialize, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-pub struct SignedBlindedBlobSidecar<const MAX_BLOBS_PER_BLOCK: usize, const BYTES_PER_BLOB: usize> {
-    pub message: BlindedBlobSidecar<BYTES_PER_BLOB>,
+pub struct SignedBlindedBlobSidecar {
+    pub message: BlindedBlobSidecar,
     pub signature: BlsSignature,
 }

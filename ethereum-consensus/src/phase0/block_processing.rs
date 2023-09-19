@@ -18,7 +18,7 @@ use crate::{
         validator::Validator,
     },
     primitives::{BlsPublicKey, Bytes32, DomainType, Gwei, ValidatorIndex, FAR_FUTURE_EPOCH},
-    signing::compute_signing_root,
+    signing::{compute_signing_root, verify_signed_data},
     ssz::ByteVector,
     state_transition::{
         invalid_header_error, invalid_operation_error, Context, InvalidAttestation,
@@ -442,19 +442,14 @@ pub fn process_voluntary_exit<
     }
 
     let domain = get_domain(state, DomainType::VoluntaryExit, Some(voluntary_exit.epoch), context)?;
-    let signing_root = compute_signing_root(voluntary_exit, domain)?;
-
     let public_key = &validator.public_key;
-    if verify_signature(public_key, signing_root.as_ref(), &signed_voluntary_exit.signature)
-        .is_err()
-    {
-        return Err(invalid_operation_error(InvalidOperation::VoluntaryExit(
-            InvalidVoluntaryExit::InvalidSignature(signed_voluntary_exit.signature.clone()),
-        )))
-    }
-
+    verify_signed_data(voluntary_exit, &signed_voluntary_exit.signature, public_key, domain)
+        .map_err(|_| {
+            invalid_operation_error(InvalidOperation::VoluntaryExit(
+                InvalidVoluntaryExit::InvalidSignature(signed_voluntary_exit.signature.clone()),
+            ))
+        })?;
     initiate_validator_exit(state, voluntary_exit.validator_index, context);
-
     Ok(())
 }
 

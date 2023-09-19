@@ -1,46 +1,21 @@
 //! This module provides an implementation of the `deneb` fork
 //! of the consensus spec. The primary entrypoints should be one of
 //! the "presets" like `mainnet` or `minimal`.
-mod beacon_block;
-mod beacon_state;
-mod blinded_beacon_block;
-mod blinded_blob_sidecar;
-mod blob_sidecar;
-mod execution;
-mod networking;
-mod presets;
+pub mod beacon_block;
+pub mod beacon_state;
+pub mod blinded_beacon_block;
+pub mod blinded_blob_sidecar;
+pub mod blob_sidecar;
+pub mod block_processing;
+pub mod epoch_processing;
+pub mod execution_engine;
+pub mod execution_payload;
+pub mod genesis;
+pub mod helpers;
+pub mod networking;
+pub mod presets;
+pub mod spec;
 
-pub use beacon_block::*;
-pub use beacon_state::*;
-pub use blinded_beacon_block::*;
-pub use blinded_blob_sidecar::*;
-pub use blob_sidecar::*;
-pub use execution::*;
-pub use networking::*;
+pub use spec::*;
 
-pub use crate::{
-    altair::{
-        SyncAggregate, SyncAggregatorSelectionData, SyncCommittee, PARTICIPATION_FLAG_WEIGHTS,
-        PROPOSER_WEIGHT, SYNC_REWARD_WEIGHT, TIMELY_HEAD_FLAG_INDEX, TIMELY_SOURCE_FLAG_INDEX,
-        TIMELY_TARGET_FLAG_INDEX, WEIGHT_DENOMINATOR,
-    },
-    bellatrix::Transaction,
-    capella::{BlsToExecutionChange, SignedBlsToExecutionChange, Withdrawal},
-    phase0::{
-        Attestation, AttestationData, AttesterSlashing, BeaconBlockHeader, Checkpoint, Deposit,
-        DepositData, DepositMessage, Eth1Block, Eth1Data, Fork, ForkData, HistoricalSummary,
-        IndexedAttestation, ProposerSlashing, SignedBeaconBlockHeader, SignedVoluntaryExit,
-        Validator, VoluntaryExit, BASE_REWARDS_PER_EPOCH, DEPOSIT_CONTRACT_TREE_DEPTH,
-        JUSTIFICATION_BITS_LENGTH,
-    },
-};
-
-pub mod mainnet {
-    pub use super::presets::mainnet::*;
-}
-
-pub mod minimal {
-    pub use super::presets::minimal::*;
-}
-
-pub const BYTES_PER_FIELD_ELEMENT: usize = 32;
+pub use presets::{mainnet, minimal, Preset};

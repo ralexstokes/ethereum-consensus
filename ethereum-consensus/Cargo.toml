@@ -12,7 +12,7 @@ async = ["tokio", "tokio-stream", "async-stream"]
 spec-tests = ["serde", "serde_yaml"]
 
 [dependencies]
-ssz_rs = "0.9.0"
+ssz_rs = { git = "https://github.com/ralexstokes/ssz-rs", rev = "51f3932d1578a62f856c19175482056912de5f3e" }
 blst = "0.3.11"
 rand = "0.8.4"
 thiserror = "1.0.30"

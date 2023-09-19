@@ -56,5 +56,5 @@ pub use crate::{
     },
     primitives::*,
     signing::*,
-    state_transition::*,
+    state_transition::{error::*, Context, Result, Validation},
 };
