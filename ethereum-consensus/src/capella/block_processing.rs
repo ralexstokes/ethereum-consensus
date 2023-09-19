@@ -1,20 +1,19 @@
 use crate::{
     capella::{
-        compute_timestamp_at_slot, decrease_balance, get_current_epoch, get_expected_withdrawals,
+        compute_timestamp_at_slot, decrease_balance, get_current_epoch, is_fully_withdrawable_validator, is_partially_withdrawable_validator,
         get_randao_mix, process_attestation, process_attester_slashing, process_block_header,
         process_deposit, process_eth1_data, process_proposer_slashing, process_randao,
         process_sync_aggregate, process_voluntary_exit, BeaconBlock, BeaconBlockBody, BeaconState,
         ExecutionEngine, ExecutionPayload, ExecutionPayloadHeader, NewPayloadRequest,
-        SignedBlsToExecutionChange,
+        SignedBlsToExecutionChange, Withdrawal, ExecutionAddress,
     },
     state_transition::{
         invalid_operation_error, Context, InvalidDeposit, InvalidExecutionPayload,
-        InvalidOperation, Result,
+        InvalidOperation, InvalidWithdrawal, Result,
     },
 };
+use std::cmp::min;
 use ssz_rs::prelude::*;
-
-use super::mainnet::MAX_VALIDATORS_PER_WITHDRAWALS_SWEEP;
 
 pub fn process_bls_to_execution_change<
     const SLOTS_PER_HISTORICAL_ROOT: usize,
@@ -264,12 +263,18 @@ pub fn process_withdrawals<
     >,
     context: &Context,
 ) -> Result<()> {
-    let expected_withdrawals = get_expected_withdrawals(state, context).unwrap();
-    assert_eq!(execution_payload.withdrawals.len(), expected_withdrawals.len());
-    for (expected_withdrawal, withdrawal) in
-        expected_withdrawals.iter().zip(execution_payload.withdrawals.iter())
-    {
-        assert_eq!(withdrawal, expected_withdrawal);
+    let expected_withdrawals = get_expected_withdrawals(state, context);
+
+    if execution_payload.withdrawals.to_vec() != expected_withdrawals {
+        return Err(invalid_operation_error(InvalidOperation::Withdrawal(
+            InvalidWithdrawal::IncorrectWithdrawals {
+                expected: expected_withdrawals.len(),
+                count: execution_payload.withdrawals.to_vec().len(),
+            },
+        )))
+    }
+
+    for withdrawal in &expected_withdrawals {
         decrease_balance(state, withdrawal.validator_index, withdrawal.amount);
     }
 
@@ -279,18 +284,83 @@ pub fn process_withdrawals<
     }
 
     // Update the next validator index to start the next withdrawal sweep
-    if expected_withdrawals.len() == MAX_WITHDRAWALS_PER_PAYLOAD {
+    if expected_withdrawals.len() == context.max_withdrawals_per_payload {
         // Next sweep starts after the latest withdrawal's validator index
-        let latest_withdrawal = expected_withdrawals.last().unwrap();
+        let latest_withdrawal = expected_withdrawals.last().expect("empty withdrawals");
         let next_validator_index = (latest_withdrawal.validator_index + 1) % state.validators.len();
         state.next_withdrawal_validator_index = next_validator_index;
     } else {
         // Advance sweep by the max length of the sweep if there was not a full set of withdrawals
         let next_index =
-            state.next_withdrawal_validator_index + MAX_VALIDATORS_PER_WITHDRAWALS_SWEEP;
-        state.next_withdrawal_validator_index = next_index & state.validators.len();
+            state.next_withdrawal_validator_index + context.max_validators_per_withdrawals_sweep;
+        state.next_withdrawal_validator_index = next_index % state.validators.len();
     }
     Ok(())
+}
+
+pub fn get_expected_withdrawals<
+    const SLOTS_PER_HISTORICAL_ROOT: usize,
+    const HISTORICAL_ROOTS_LIMIT: usize,
+    const ETH1_DATA_VOTES_BOUND: usize,
+    const VALIDATOR_REGISTRY_LIMIT: usize,
+    const EPOCHS_PER_HISTORICAL_VECTOR: usize,
+    const EPOCHS_PER_SLASHINGS_VECTOR: usize,
+    const MAX_VALIDATORS_PER_COMMITTEE: usize,
+    const SYNC_COMMITTEE_SIZE: usize,
+    const BYTES_PER_LOGS_BLOOM: usize,
+    const MAX_EXTRA_DATA_BYTES: usize,
+>(
+    state: &BeaconState<
+        SLOTS_PER_HISTORICAL_ROOT,
+        HISTORICAL_ROOTS_LIMIT,
+        ETH1_DATA_VOTES_BOUND,
+        VALIDATOR_REGISTRY_LIMIT,
+        EPOCHS_PER_HISTORICAL_VECTOR,
+        EPOCHS_PER_SLASHINGS_VECTOR,
+        MAX_VALIDATORS_PER_COMMITTEE,
+        SYNC_COMMITTEE_SIZE,
+        BYTES_PER_LOGS_BLOOM,
+        MAX_EXTRA_DATA_BYTES,
+    >,
+    context: &Context,
+) -> Vec<Withdrawal> {
+    let epoch = get_current_epoch(state, context);
+    let mut withdrawal_index = state.next_withdrawal_index;
+    let mut validator_index = state.next_withdrawal_validator_index;
+    let mut withdrawals = vec![];
+    let bound = min(state.validators.len(), context.max_validators_per_withdrawals_sweep);
+    for _ in 0..bound {
+        let validator = &state.validators[validator_index];
+        let balance = state.balances[validator_index];
+        if is_fully_withdrawable_validator(validator, balance, epoch) {
+            let address =
+                ExecutionAddress::try_from(&validator.withdrawal_credentials.as_slice()[12..])
+                    .expect("providing the correct amount of input to type");
+            withdrawals.push(Withdrawal {
+                index: withdrawal_index,
+                validator_index,
+                address,
+                amount: balance,
+            });
+            withdrawal_index += 1;
+        } else if is_partially_withdrawable_validator(validator, balance, context) {
+            let address =
+                ExecutionAddress::try_from(&validator.withdrawal_credentials.as_slice()[12..])
+                    .expect("providing the correct amount of input to type");
+            withdrawals.push(Withdrawal {
+                index: withdrawal_index,
+                validator_index,
+                address,
+                amount: balance - context.max_effective_balance,
+            });
+            withdrawal_index += 1;
+        }
+        if withdrawals.len() == context.max_withdrawals_per_payload {
+            break
+        }
+        validator_index = (validator_index + 1) % state.validators.len();
+    }
+    withdrawals
 }
 
 pub fn process_block<

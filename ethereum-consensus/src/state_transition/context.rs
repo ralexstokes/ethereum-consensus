@@ -1,5 +1,5 @@
 use crate::{
-    altair, bellatrix,
+    altair, bellatrix, capella,
     clock::{self, Clock, SystemTimeProvider},
     configs::{self, Config},
     networks::Network,
@@ -72,6 +72,11 @@ pub struct Context {
     pub bytes_per_logs_bloom: usize,
     pub max_extra_data_bytes: usize,
 
+    // capella preset
+    pub max_bls_to_execution_changes: usize,
+    pub max_withdrawals_per_payload: usize,
+    pub max_validators_per_withdrawals_sweep: usize,
+
     // config
     pub name: Network,
 
@@ -122,13 +127,15 @@ impl Context {
                 let phase0_preset = &phase0::mainnet::PRESET;
                 let altair_preset = &altair::mainnet::PRESET;
                 let bellatrix_preset = &bellatrix::mainnet::PRESET;
-                Self::from(phase0_preset, altair_preset, bellatrix_preset, &config)
+                let capella_preset = &capella::mainnet::PRESET;
+                Self::from(phase0_preset, altair_preset, bellatrix_preset, capella_preset, &config)
             }
             "minimal" => {
                 let phase0_preset = &phase0::minimal::PRESET;
                 let altair_preset = &altair::minimal::PRESET;
                 let bellatrix_preset = &bellatrix::minimal::PRESET;
-                Self::from(phase0_preset, altair_preset, bellatrix_preset, &config)
+                let capella_preset = &capella::minimal::PRESET;
+                Self::from(phase0_preset, altair_preset, bellatrix_preset, capella_preset, &config)
             }
             other => return Err(Error::UnknownPreset(other.to_string())),
         };
@@ -139,6 +146,7 @@ impl Context {
         phase0_preset: &phase0::Preset,
         altair_preset: &altair::Preset,
         bellatrix_preset: &bellatrix::Preset,
+        capella_preset: &capella::Preset,
         config: &Config,
     ) -> Self {
         Self {
@@ -196,6 +204,10 @@ impl Context {
             max_transactions_per_payload: bellatrix_preset.max_transactions_per_payload,
             bytes_per_logs_bloom: bellatrix_preset.bytes_per_logs_bloom,
             max_extra_data_bytes: bellatrix_preset.max_extra_data_bytes,
+            // capella
+            max_bls_to_execution_changes: capella_preset.max_bls_to_execution_changes,
+            max_withdrawals_per_payload: capella_preset.max_withdrawals_per_payload,
+            max_validators_per_withdrawals_sweep: capella_preset.max_validators_per_withdrawals_sweep,
 
             // config
             name: config.name.clone(),
@@ -236,7 +248,8 @@ impl Context {
         let phase0_preset = &phase0::mainnet::PRESET;
         let altair_preset = &altair::mainnet::PRESET;
         let bellatrix_preset = &bellatrix::mainnet::PRESET;
-        Self::from(phase0_preset, altair_preset, bellatrix_preset, config)
+        let capella_preset = &capella::mainnet::PRESET;
+        Self::from(phase0_preset, altair_preset, bellatrix_preset, capella_preset, config)
     }
 
     pub fn for_minimal() -> Self {
@@ -244,7 +257,8 @@ impl Context {
         let phase0_preset = &phase0::minimal::PRESET;
         let altair_preset = &altair::minimal::PRESET;
         let bellatrix_preset = &bellatrix::minimal::PRESET;
-        Self::from(phase0_preset, altair_preset, bellatrix_preset, config)
+        let capella_preset = &capella::minimal::PRESET;
+        Self::from(phase0_preset, altair_preset, bellatrix_preset, capella_preset, config)
     }
 
     pub fn for_goerli() -> Self {
@@ -252,7 +266,8 @@ impl Context {
         let phase0_preset = &phase0::mainnet::PRESET;
         let altair_preset = &altair::mainnet::PRESET;
         let bellatrix_preset = &bellatrix::mainnet::PRESET;
-        Self::from(phase0_preset, altair_preset, bellatrix_preset, config)
+        let capella_preset = &capella::mainnet::PRESET;
+        Self::from(phase0_preset, altair_preset, bellatrix_preset, capella_preset, config)
     }
 
     pub fn for_sepolia() -> Self {
@@ -260,7 +275,8 @@ impl Context {
         let phase0_preset = &phase0::mainnet::PRESET;
         let altair_preset = &altair::mainnet::PRESET;
         let bellatrix_preset = &bellatrix::mainnet::PRESET;
-        Self::from(phase0_preset, altair_preset, bellatrix_preset, config)
+        let capella_preset = &capella::mainnet::PRESET;
+        Self::from(phase0_preset, altair_preset, bellatrix_preset, capella_preset, config)
     }
 
     pub fn for_holesky() -> Self {
@@ -268,7 +284,8 @@ impl Context {
         let phase0_preset = &phase0::mainnet::PRESET;
         let altair_preset = &altair::mainnet::PRESET;
         let bellatrix_preset = &bellatrix::mainnet::PRESET;
-        Self::from(phase0_preset, altair_preset, bellatrix_preset, config)
+        let capella_preset = &capella::mainnet::PRESET;
+        Self::from(phase0_preset, altair_preset, bellatrix_preset, capella_preset, config)
     }
 
     pub fn fork_for(&self, slot: Slot) -> Forks {

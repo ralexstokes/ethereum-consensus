@@ -84,6 +84,8 @@ pub enum InvalidOperation {
     SyncAggregate(#[from] InvalidSyncAggregate),
     #[error("invalid execution payload: {0}")]
     ExecutionPayload(#[from] InvalidExecutionPayload),
+    #[error("invalid withdrawals: {0}")]
+    Withdrawal(#[from] InvalidWithdrawal),
 }
 
 #[derive(Debug, Error)]
@@ -176,6 +178,12 @@ pub enum InvalidVoluntaryExit {
     ValidatorIsNotActiveForLongEnough { current_epoch: Epoch, minimum_time_active: Epoch },
     #[error("voluntary exit has invalid signature: {0:?}")]
     InvalidSignature(BlsSignature),
+}
+
+#[derive(Debug, Error)]
+pub enum InvalidWithdrawal {
+    #[error("expected withdrawals {expected} do not match execution payload withdrawals {count}")]
+    IncorrectWithdrawals { expected: usize, count: usize },
 }
 
 #[derive(Debug, Error)]
