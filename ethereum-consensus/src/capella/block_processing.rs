@@ -10,11 +10,10 @@ use crate::{
     },
     state_transition::{
         invalid_operation_error, Context, InvalidDeposit, InvalidExecutionPayload,
-        InvalidOperation, InvalidWithdrawal, Result,
+        InvalidOperation, InvalidWithdrawals, Result,
     },
 };
 use ssz_rs::prelude::*;
-use std::cmp::min;
 
 pub fn process_bls_to_execution_change<
     const SLOTS_PER_HISTORICAL_ROOT: usize,
@@ -266,11 +265,11 @@ pub fn process_withdrawals<
 ) -> Result<()> {
     let expected_withdrawals = get_expected_withdrawals(state, context);
 
-    if execution_payload.withdrawals.as_ref() == expected_withdrawals {
+    if execution_payload.withdrawals.as_ref() != expected_withdrawals {
         return Err(invalid_operation_error(InvalidOperation::Withdrawal(
-            InvalidWithdrawal::IncorrectWithdrawals {
-                expected: expected_withdrawals.len(),
-                count: execution_payload.withdrawals.len(),
+            InvalidWithdrawals::IncorrectWithdrawals {
+                provided: execution_payload.withdrawals.to_vec(),
+                expected: expected_withdrawals,
             },
         )))
     }
@@ -329,7 +328,7 @@ pub fn get_expected_withdrawals<
     let mut withdrawal_index = state.next_withdrawal_index;
     let mut validator_index = state.next_withdrawal_validator_index;
     let mut withdrawals = vec![];
-    let bound = min(state.validators.len(), context.max_validators_per_withdrawals_sweep);
+    let bound = state.validators.len().min(context.max_validators_per_withdrawals_sweep);
     for _ in 0..bound {
         let validator = &state.validators[validator_index];
         let balance = state.balances[validator_index];

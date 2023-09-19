@@ -1,4 +1,5 @@
 use crate::{
+    capella::Withdrawal,
     crypto::Error as CryptoError,
     phase0::{AttestationData, BeaconBlockHeader, Checkpoint},
     primitives::{BlsSignature, Bytes32, Epoch, Hash32, Root, Slot, ValidatorIndex},
@@ -85,7 +86,7 @@ pub enum InvalidOperation {
     #[error("invalid execution payload: {0}")]
     ExecutionPayload(#[from] InvalidExecutionPayload),
     #[error("invalid withdrawals: {0}")]
-    Withdrawal(#[from] InvalidWithdrawal),
+    Withdrawal(#[from] InvalidWithdrawals),
 }
 
 #[derive(Debug, Error)]
@@ -181,9 +182,9 @@ pub enum InvalidVoluntaryExit {
 }
 
 #[derive(Debug, Error)]
-pub enum InvalidWithdrawal {
-    #[error("expected withdrawals {expected} do not match execution payload withdrawals {count}")]
-    IncorrectWithdrawals { expected: usize, count: usize },
+pub enum InvalidWithdrawals {
+    #[error("expected withdrawals {expected:?} do not match provided withdrawals {provided:?}")]
+    IncorrectWithdrawals { provided: Vec<Withdrawal>, expected: Vec<Withdrawal> },
 }
 
 #[derive(Debug, Error)]
