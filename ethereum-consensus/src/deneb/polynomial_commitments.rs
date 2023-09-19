@@ -70,17 +70,34 @@ fn compute_kzg_proof(
     let bytes = blob.0.as_ref();
     let blob = c_kzg::Blob::from_bytes(bytes).unwrap();
 
-    let (proof, evaluation) = c_kzg::KzgProof::compute_kzg_proof(&blob, &z_bytes, kzg_settings)?;
+    let (ckzg_proof, evaluation) =
+        c_kzg::KzgProof::compute_kzg_proof(&blob, &z_bytes, kzg_settings)?;
 
-    // Redundant but, for some reason the ByteVector returned from compute_kzg_proof can't be
-    // added within my tuple struct.
-    let proof_bytes = proof.to_bytes();
-    let proof = ByteVector::try_from(proof_bytes.as_ref()).unwrap();
+    let bytes_proof = ckzg_proof.to_bytes();
+    let proof = ByteVector::try_from(bytes_proof.as_ref()).unwrap();
 
     Ok((KzgProof(proof), evaluation))
 }
 
-fn compute_blob_kzg_proof() {}
+/// Given a blob and a commitment, return the KZG proof that is used to verify it against the
+/// commitment.  This function doesn't verify that the commitment is correct with respect to the blob.
+fn compute_blob_kzg_proof(
+    blob: Blob,
+    commitment_bytes: Bytes48,
+    kzg_settings: &KzgSettings,
+) -> Result<KzgProof, Error> {
+    let bytes = blob.0.as_ref();
+    let blob = c_kzg::Blob::from_bytes(bytes).unwrap();
+
+    let ckzg_proof =
+        c_kzg::KzgProof::compute_blob_kzg_proof(&blob, &commitment_bytes, kzg_settings)?;
+
+    let bytes_proof = ckzg_proof.to_bytes();
+    let proof = ByteVector::try_from(bytes_proof.as_ref()).unwrap();
+
+    Ok(KzgProof(proof))
+}
+
 fn verify_kzg_proof() {}
 fn verify_blob_kzg_proof() {}
 fn verify_blob_kzg_proof_batch() {}
