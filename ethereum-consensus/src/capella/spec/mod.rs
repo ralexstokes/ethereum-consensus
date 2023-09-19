@@ -35,6 +35,7 @@ pub use crate::{
         epoch_processing::{process_epoch, process_historical_summaries_update},
         execution_engine::{DefaultExecutionEngine, NewPayloadRequest},
         execution_payload::{ExecutionPayload, ExecutionPayloadHeader},
+        fork::upgrade_to_capella,
         genesis::initialize_beacon_state_from_eth1,
         helpers::{
             has_eth1_withdrawal_credential, is_fully_withdrawable_validator,
@@ -44,12 +45,11 @@ pub use crate::{
     },
     phase0::{
         beacon_block::{BeaconBlockHeader, SignedBeaconBlockHeader},
-        beacon_state::{HistoricalBatch, HistoricalSummary},
+        beacon_state::{Fork, ForkData, HistoricalBatch, HistoricalSummary},
         constants::{
             BASE_REWARDS_PER_EPOCH, DEPOSIT_CONTRACT_TREE_DEPTH, DEPOSIT_DATA_LIST_BOUND,
             JUSTIFICATION_BITS_LENGTH,
         },
-        fork::{Fork, ForkData},
         operations::{
             Attestation, AttestationData, AttesterSlashing, Checkpoint, Deposit, DepositData,
             DepositMessage, Eth1Data, IndexedAttestation, PendingAttestation, ProposerSlashing,

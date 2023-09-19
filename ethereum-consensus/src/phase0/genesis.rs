@@ -1,10 +1,9 @@
 use crate::{
     phase0::{
         beacon_block::{BeaconBlock, BeaconBlockBody, BeaconBlockHeader},
-        beacon_state::BeaconState,
+        beacon_state::{BeaconState, Fork},
         block_processing::process_deposit,
         constants::DEPOSIT_DATA_LIST_BOUND,
-        fork::Fork,
         helpers::get_active_validator_indices,
         operations::{Deposit, DepositData, Eth1Data},
     },

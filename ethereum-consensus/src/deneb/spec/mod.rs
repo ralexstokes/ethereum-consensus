@@ -42,6 +42,7 @@ pub use crate::{
         epoch_processing::process_registry_updates,
         execution_engine::{DefaultExecutionEngine, NewPayloadRequest},
         execution_payload::{ExecutionPayload, ExecutionPayloadHeader},
+        fork::upgrade_to_deneb,
         genesis::initialize_beacon_state_from_eth1,
         helpers::{
             get_attestation_participation_flag_indices, get_validator_activation_churn_limit,
@@ -50,12 +51,11 @@ pub use crate::{
     },
     phase0::{
         beacon_block::{BeaconBlockHeader, SignedBeaconBlockHeader},
-        beacon_state::{HistoricalBatch, HistoricalSummary},
+        beacon_state::{Fork, ForkData, HistoricalBatch, HistoricalSummary},
         constants::{
             BASE_REWARDS_PER_EPOCH, DEPOSIT_CONTRACT_TREE_DEPTH, DEPOSIT_DATA_LIST_BOUND,
             JUSTIFICATION_BITS_LENGTH,
         },
-        fork::{Fork, ForkData},
         operations::{
             Attestation, AttestationData, AttesterSlashing, Checkpoint, Deposit, DepositData,
             DepositMessage, Eth1Data, IndexedAttestation, PendingAttestation, ProposerSlashing,

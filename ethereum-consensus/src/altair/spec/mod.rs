@@ -40,12 +40,11 @@ pub use crate::{
     },
     phase0::{
         beacon_block::{BeaconBlockHeader, SignedBeaconBlockHeader},
-        beacon_state::{HistoricalBatch, HistoricalSummary},
+        beacon_state::{Fork, ForkData, HistoricalBatch, HistoricalSummary},
         constants::{
             BASE_REWARDS_PER_EPOCH, DEPOSIT_CONTRACT_TREE_DEPTH, DEPOSIT_DATA_LIST_BOUND,
             JUSTIFICATION_BITS_LENGTH,
         },
-        fork::{Fork, ForkData},
         operations::{
             Attestation, AttestationData, AttesterSlashing, Checkpoint, Deposit, DepositData,
             DepositMessage, Eth1Data, IndexedAttestation, PendingAttestation, ProposerSlashing,

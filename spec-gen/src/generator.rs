@@ -39,7 +39,6 @@ impl Fork {
                 "block_processing",
                 "constants",
                 "epoch_processing",
-                "fork",
                 "genesis",
                 "helpers",
                 "operations",
@@ -53,7 +52,6 @@ impl Fork {
                 "block_processing",
                 "constants",
                 "epoch_processing",
-                "fork",
                 "genesis",
                 "helpers",
                 "light_client",
@@ -69,7 +67,6 @@ impl Fork {
                 "execution_engine",
                 "execution_payload",
                 "fork_choice",
-                "fork",
                 "genesis",
                 "helpers",
                 "state_transition",
@@ -123,12 +120,6 @@ impl Fork {
                         "process_participation_record_updates"
                 )
             }
-            Fork::Bellatrix => {
-                matches!(name, "upgrade_to_altair" | "translate_participation")
-            }
-            Fork::Capella => {
-                matches!(name, "upgrade_to_bellatrix")
-            }
             _ => false,
         }
     }
@@ -143,6 +134,8 @@ impl Fork {
                     use ssz_rs::prelude::*;
                     use crate::crypto::{hash, verify_signature, fast_aggregate_verify};
                     use crate::ssz::*;
+
+                    pub use crate::altair::fork::upgrade_to_altair;
                 };
                 fragment.items
             }
@@ -156,6 +149,8 @@ impl Fork {
                     use integer_sqrt::IntegerSquareRoot;
                     use crate::crypto::{hash, verify_signature, fast_aggregate_verify, eth_aggregate_public_keys, eth_fast_aggregate_verify};
                     use crate::ssz::*;
+
+                    pub use crate::bellatrix::fork::upgrade_to_bellatrix;
                 };
                 fragment.items
             }
@@ -169,6 +164,8 @@ impl Fork {
                     use integer_sqrt::IntegerSquareRoot;
                     use crate::crypto::{hash, verify_signature, fast_aggregate_verify, eth_aggregate_public_keys, eth_fast_aggregate_verify};
                     use crate::ssz::*;
+
+                    pub use crate::capella::fork::upgrade_to_capella;
                 };
                 fragment.items
             }
@@ -182,6 +179,8 @@ impl Fork {
                     use integer_sqrt::IntegerSquareRoot;
                     use crate::crypto::{hash, verify_signature, fast_aggregate_verify, eth_aggregate_public_keys, eth_fast_aggregate_verify};
                     use crate::ssz::*;
+
+                    pub use crate::deneb::fork::upgrade_to_deneb;
                 };
                 fragment.items
             }
