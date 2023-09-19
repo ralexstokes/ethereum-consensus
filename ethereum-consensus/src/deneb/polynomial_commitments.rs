@@ -2,7 +2,7 @@
 use crate::{crypto::hash, primitives, ssz::prelude::ByteVector};
 use alloy_primitives::{uint, U256};
 use blst::min_pk::PublicKey;
-use c_kzg::{Bytes32, Error, KzgSettings};
+use c_kzg::{Bytes32, Bytes48, Error, KzgSettings};
 use ssz_rs::prelude::*;
 use std::ops::Deref;
 
@@ -66,19 +66,18 @@ fn compute_kzg_proof(
     blob: Blob,
     z_bytes: Bytes32,
     kzg_settings: &KzgSettings,
-) -> Result<KzgProof, Error> {
+) -> Result<(KzgProof, Bytes32), Error> {
     let bytes = blob.0.as_ref();
     let blob = c_kzg::Blob::from_bytes(bytes).unwrap();
 
-    let (proof, _) = c_kzg::KzgProof::compute_kzg_proof(&blob, &z_bytes, kzg_settings)?;
+    let (proof, evaluation) = c_kzg::KzgProof::compute_kzg_proof(&blob, &z_bytes, kzg_settings)?;
 
     // Redundant but, for some reason the ByteVector returned from compute_kzg_proof can't be
     // added within my tuple struct.
     let proof_bytes = proof.to_bytes();
     let proof = ByteVector::try_from(proof_bytes.as_ref()).unwrap();
-    let kzg_proof = KzgProof(proof);
 
-    Ok(kzg_proof)
+    Ok((KzgProof(proof), evaluation))
 }
 
 fn compute_blob_kzg_proof() {}
