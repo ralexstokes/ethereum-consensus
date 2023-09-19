@@ -65,7 +65,7 @@ pub fn process_bls_to_execution_change<
     )?;
     let signing_root = compute_signing_root(address_change, domain)?;
     let pk: &BlsPublicKey = &address_change.message.from_bls_public_key;
-    assert!(verify_signature(&pk, signing_root.as_ref(), &address_change.signature,).is_ok());
+    assert!(verify_signature(pk, signing_root.as_ref(), &address_change.signature,).is_ok());
     let withdrawal_credentials = vec![ETH1_ADDRESS_WITHDRAWAL_PREFIX];
 
     let withdrawal_credentials_array: [u8; 32] =
