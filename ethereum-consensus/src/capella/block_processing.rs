@@ -266,11 +266,11 @@ pub fn process_withdrawals<
 ) -> Result<()> {
     let expected_withdrawals = get_expected_withdrawals(state, context);
 
-    if execution_payload.withdrawals.to_vec() != expected_withdrawals {
+    if execution_payload.withdrawals.as_ref() == expected_withdrawals {
         return Err(invalid_operation_error(InvalidOperation::Withdrawal(
             InvalidWithdrawal::IncorrectWithdrawals {
                 expected: expected_withdrawals.len(),
-                count: execution_payload.withdrawals.to_vec().len(),
+                count: execution_payload.withdrawals.len(),
             },
         )))
     }
