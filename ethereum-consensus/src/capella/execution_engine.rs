@@ -135,37 +135,3 @@ impl<
         self.notify_new_payload(new_payload_request.0)
     }
 }
-
-// impl<
-//         const BYTES_PER_LOGS_BLOOM: usize,
-//         const MAX_EXTRA_DATA_BYTES: usize,
-//         const MAX_BYTES_PER_TRANSACTION: usize,
-//         const MAX_TRANSACTIONS_PER_PAYLOAD: usize,
-//         const MAX_WITHDRAWALS_PER_PAYLOAD: usize,
-//         B: crate::bellatrix::ExecutionEngine<
-//             BYTES_PER_LOGS_BLOOM,
-//             MAX_EXTRA_DATA_BYTES,
-//             MAX_BYTES_PER_TRANSACTION,
-//             MAX_TRANSACTIONS_PER_PAYLOAD,
-//         >,
-//         C: ExecutionEngine<
-//             BYTES_PER_LOGS_BLOOM,
-//             MAX_EXTRA_DATA_BYTES,
-//             MAX_BYTES_PER_TRANSACTION,
-//             MAX_TRANSACTIONS_PER_PAYLOAD,
-//             MAX_WITHDRAWALS_PER_PAYLOAD,
-//         >,
-//     > From<B>
-//     for state_transition::ExecutionEngine<
-//         BYTES_PER_LOGS_BLOOM,
-//         MAX_EXTRA_DATA_BYTES,
-//         MAX_BYTES_PER_TRANSACTION,
-//         MAX_TRANSACTIONS_PER_PAYLOAD,
-//         B,
-//         C,
-//     >
-// {
-//     fn from(value: C) -> Self {
-//         Self::Capella(value)
-//     }
-// }
