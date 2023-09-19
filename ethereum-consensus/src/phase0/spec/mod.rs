@@ -5,7 +5,7 @@ pub use crate::{
             BeaconBlock, BeaconBlockBody, BeaconBlockHeader, SignedBeaconBlock,
             SignedBeaconBlockHeader,
         },
-        beacon_state::{BeaconState, HistoricalBatch, HistoricalSummary},
+        beacon_state::{BeaconState, Fork, ForkData, HistoricalBatch, HistoricalSummary},
         block_processing::{
             get_validator_from_deposit, process_attestation, process_attester_slashing,
             process_block, process_block_header, process_deposit, process_eth1_data,
@@ -29,7 +29,6 @@ pub use crate::{
             process_registry_updates, process_rewards_and_penalties, process_slashings,
             process_slashings_reset, weigh_justification_and_finalization,
         },
-        fork::{Fork, ForkData},
         genesis::{get_genesis_block, initialize_beacon_state_from_eth1, is_valid_genesis_state},
         helpers::{
             compute_activation_exit_epoch, compute_committee, compute_domain,
@@ -56,5 +55,5 @@ pub use crate::{
     },
     primitives::*,
     signing::*,
-    state_transition::*,
+    state_transition::{error::*, Context, Result, Validation},
 };

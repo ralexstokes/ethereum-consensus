@@ -6,7 +6,6 @@ pub mod beacon_state;
 pub mod block_processing;
 pub mod constants;
 pub mod epoch_processing;
-pub mod fork;
 pub mod genesis;
 pub mod helpers;
 pub mod networking;

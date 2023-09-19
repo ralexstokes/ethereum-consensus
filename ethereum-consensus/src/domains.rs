@@ -1,16 +1,17 @@
 #[derive(Clone, Copy)]
 pub enum DomainType {
-    BeaconProposer,
-    BeaconAttester,
-    Randao,
-    Deposit,
-    VoluntaryExit,
-    SelectionProof,
-    AggregateAndProof,
-    SyncCommittee,
-    SyncCommitteeSelectionProof,
-    ContributionAndProof,
-    BlsToExecutionChange,
+    BeaconProposer,              // 0
+    BeaconAttester,              // 1
+    Randao,                      // 2
+    Deposit,                     // 3
+    VoluntaryExit,               // 4
+    SelectionProof,              // 5
+    AggregateAndProof,           // 6
+    SyncCommittee,               // 7
+    SyncCommitteeSelectionProof, // 8
+    ContributionAndProof,        // 9
+    BlsToExecutionChange,        // A
+    BlobSidecar,                 // B
     ApplicationMask,
     ApplicationBuilder,
 }

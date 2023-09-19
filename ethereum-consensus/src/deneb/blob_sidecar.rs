@@ -5,6 +5,9 @@ use crate::{
 };
 use ssz_rs::prelude::*;
 
+pub const BLOB_TX_TYPE: u8 = 3;
+pub const VERSIONED_HASH_VERSION_KZG: u8 = 1;
+
 pub type Blob<const BYTES_PER_BLOB: usize> = ByteVector<BYTES_PER_BLOB>;
 
 #[derive(Default, Debug, Clone, SimpleSerialize, PartialEq, Eq)]
@@ -25,7 +28,7 @@ pub struct BlobSidecar<const BYTES_PER_BLOB: usize> {
 
 #[derive(Default, Debug, Clone, SimpleSerialize, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-pub struct SignedBlobSidecar<const MAX_BLOBS_PER_BLOCK: usize, const BYTES_PER_BLOB: usize> {
+pub struct SignedBlobSidecar<const BYTES_PER_BLOB: usize> {
     pub message: BlobSidecar<BYTES_PER_BLOB>,
     pub signature: BlsSignature,
 }

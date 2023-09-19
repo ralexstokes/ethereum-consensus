@@ -1,7 +1,7 @@
 mod beacon_block;
 mod beacon_state;
 mod context;
-mod error;
+pub mod error;
 mod execution_engine;
 mod executor;
 mod presets;

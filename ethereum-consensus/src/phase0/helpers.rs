@@ -2,8 +2,7 @@ use crate::{
     crypto::{fast_aggregate_verify, hash, verify_signature},
     phase0::{
         beacon_block::SignedBeaconBlock,
-        beacon_state::BeaconState,
-        fork::ForkData,
+        beacon_state::{BeaconState, ForkData},
         operations::{Attestation, AttestationData, IndexedAttestation},
         validator::Validator,
     },
