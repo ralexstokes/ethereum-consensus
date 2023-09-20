@@ -117,6 +117,8 @@ pub enum InvalidAttestation {
     InvalidIndex { index: usize, upper_bound: usize },
     #[error("attestation's source checkpoint {source_checkpoint:?} does not match the expected checkpoint {expected:?} (in epoch {current})")]
     InvalidSource { expected: Checkpoint, source_checkpoint: Checkpoint, current: Epoch },
+    #[error("attestation in slot {attestation_slot} does not have the minimum delay {required_delay} against state {state_slot}")]
+    NoDelay { attestation_slot: Slot, state_slot: Slot, required_delay: Slot },
 }
 
 #[derive(Debug, Error)]
@@ -201,6 +203,8 @@ pub enum InvalidExecutionPayload {
     InvalidPrevRandao { provided: Bytes32, expected: Bytes32 },
     #[error("expected timestamp {expected} but block has timestamp {provided}")]
     InvalidTimestamp { provided: u64, expected: u64 },
+    #[error("expected up to {limit} blob commmitments but block has {provided}")]
+    InvalidBlobCommitments { provided: usize, limit: usize },
 }
 
 pub(crate) fn invalid_header_error(error: InvalidBeaconBlockHeader) -> Error {
@@ -217,4 +221,6 @@ pub enum ExecutionEngineError {
     InvalidBlockHash,
     #[error("invalid payload")]
     InvalidPayload,
+    #[error("invalid versioned hashes in payload")]
+    InvalidVersionedHashes,
 }

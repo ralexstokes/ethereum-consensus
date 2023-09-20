@@ -65,7 +65,7 @@ pub struct BeaconBlock<
     const MAX_TRANSACTIONS_PER_PAYLOAD: usize,
     const MAX_WITHDRAWALS_PER_PAYLOAD: usize,
     const MAX_BLS_TO_EXECUTION_CHANGES: usize,
-    const MAX_BLOBS_PER_BLOCK: usize,
+    const MAX_BLOB_COMMITMENTS_PER_BLOCK: usize,
 > {
     #[serde(with = "crate::serde::as_string")]
     pub slot: Slot,
@@ -87,7 +87,7 @@ pub struct BeaconBlock<
         MAX_TRANSACTIONS_PER_PAYLOAD,
         MAX_WITHDRAWALS_PER_PAYLOAD,
         MAX_BLS_TO_EXECUTION_CHANGES,
-        MAX_BLOBS_PER_BLOCK,
+        MAX_BLOB_COMMITMENTS_PER_BLOCK,
     >,
 }
 
@@ -107,7 +107,7 @@ pub struct SignedBeaconBlock<
     const MAX_TRANSACTIONS_PER_PAYLOAD: usize,
     const MAX_WITHDRAWALS_PER_PAYLOAD: usize,
     const MAX_BLS_TO_EXECUTION_CHANGES: usize,
-    const MAX_BLOBS_PER_BLOCK: usize,
+    const MAX_BLOB_COMMITMENTS_PER_BLOCK: usize,
 > {
     pub message: BeaconBlock<
         MAX_PROPOSER_SLASHINGS,
@@ -123,7 +123,7 @@ pub struct SignedBeaconBlock<
         MAX_TRANSACTIONS_PER_PAYLOAD,
         MAX_WITHDRAWALS_PER_PAYLOAD,
         MAX_BLS_TO_EXECUTION_CHANGES,
-        MAX_BLOBS_PER_BLOCK,
+        MAX_BLOB_COMMITMENTS_PER_BLOCK,
     >,
     pub signature: BlsSignature,
 }

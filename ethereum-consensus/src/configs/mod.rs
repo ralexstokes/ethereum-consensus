@@ -50,6 +50,7 @@ pub struct Config {
     pub inactivity_score_recovery_rate: u64,
     pub ejection_balance: Gwei,
     pub min_per_epoch_churn_limit: u64,
+    pub max_per_epoch_activation_churn_limit: u64,
     pub churn_limit_quotient: u64,
 
     pub proposer_score_boost: u64,

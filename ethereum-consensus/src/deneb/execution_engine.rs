@@ -1,5 +1,7 @@
 use crate::{
-    capella::execution_payload::ExecutionPayload,
+    deneb::execution_payload::ExecutionPayload,
+    kzg::VersionedHash,
+    primitives::Root,
     state_transition::{ExecutionEngineError, Result},
 };
 use ssz_rs::prelude::*;
@@ -11,15 +13,17 @@ pub struct NewPayloadRequest<
     const MAX_BYTES_PER_TRANSACTION: usize,
     const MAX_TRANSACTIONS_PER_PAYLOAD: usize,
     const MAX_WITHDRAWALS_PER_PAYLOAD: usize,
->(
-    pub  &'a ExecutionPayload<
+> {
+    pub execution_payload: &'a ExecutionPayload<
         BYTES_PER_LOGS_BLOOM,
         MAX_EXTRA_DATA_BYTES,
         MAX_BYTES_PER_TRANSACTION,
         MAX_TRANSACTIONS_PER_PAYLOAD,
         MAX_WITHDRAWALS_PER_PAYLOAD,
     >,
-);
+    pub versioned_hashes: &'a [VersionedHash],
+    pub parent_beacon_block_root: Root,
+}
 
 pub trait ExecutionEngine<
     const BYTES_PER_LOGS_BLOOM: usize,
@@ -74,9 +78,33 @@ impl DefaultExecutionEngine {
             MAX_TRANSACTIONS_PER_PAYLOAD,
             MAX_WITHDRAWALS_PER_PAYLOAD,
         >,
+        _parent_beacon_block_root: &Root,
     ) -> Result<()> {
         if !self.execution_is_valid {
             Err(ExecutionEngineError::InvalidBlockHash.into())
+        } else {
+            Ok(())
+        }
+    }
+
+    fn is_valid_versioned_hashes<
+        const BYTES_PER_LOGS_BLOOM: usize,
+        const MAX_EXTRA_DATA_BYTES: usize,
+        const MAX_BYTES_PER_TRANSACTION: usize,
+        const MAX_TRANSACTIONS_PER_PAYLOAD: usize,
+        const MAX_WITHDRAWALS_PER_PAYLOAD: usize,
+    >(
+        &self,
+        _new_payload_request: &NewPayloadRequest<
+            BYTES_PER_LOGS_BLOOM,
+            MAX_EXTRA_DATA_BYTES,
+            MAX_BYTES_PER_TRANSACTION,
+            MAX_TRANSACTIONS_PER_PAYLOAD,
+            MAX_WITHDRAWALS_PER_PAYLOAD,
+        >,
+    ) -> Result<()> {
+        if !self.execution_is_valid {
+            Err(ExecutionEngineError::InvalidVersionedHashes.into())
         } else {
             Ok(())
         }
@@ -97,6 +125,7 @@ impl DefaultExecutionEngine {
             MAX_TRANSACTIONS_PER_PAYLOAD,
             MAX_WITHDRAWALS_PER_PAYLOAD,
         >,
+        _parent_beacon_block_root: &Root,
     ) -> Result<()> {
         if !self.execution_is_valid {
             Err(ExecutionEngineError::InvalidPayload.into())
@@ -131,7 +160,16 @@ impl<
             MAX_WITHDRAWALS_PER_PAYLOAD,
         >,
     ) -> Result<()> {
-        self.is_valid_block_hash(new_payload_request.0)?;
-        self.notify_new_payload(new_payload_request.0)
+        self.is_valid_block_hash(
+            new_payload_request.execution_payload,
+            &new_payload_request.parent_beacon_block_root,
+        )?;
+
+        self.is_valid_versioned_hashes(new_payload_request)?;
+
+        self.notify_new_payload(
+            new_payload_request.execution_payload,
+            &new_payload_request.parent_beacon_block_root,
+        )
     }
 }

@@ -2,6 +2,7 @@ use crate::{
     altair, bellatrix, capella,
     clock::{self, Clock, SystemTimeProvider},
     configs::{self, Config},
+    deneb,
     networks::Network,
     phase0,
     primitives::{Epoch, ExecutionAddress, Gwei, Hash32, Slot, Version, U256},
@@ -77,6 +78,11 @@ pub struct Context {
     pub max_withdrawals_per_payload: usize,
     pub max_validators_per_withdrawals_sweep: usize,
 
+    // deneb preset
+    pub field_elements_per_blob: usize,
+    pub max_blob_commitments_per_block: usize,
+    pub max_blobs_per_block: usize,
+
     // config
     pub name: Network,
 
@@ -108,6 +114,7 @@ pub struct Context {
     pub inactivity_score_recovery_rate: u64,
     pub ejection_balance: Gwei,
     pub min_per_epoch_churn_limit: u64,
+    pub max_per_epoch_activation_churn_limit: u64,
     pub churn_limit_quotient: u64,
 
     pub proposer_score_boost: u64,
@@ -128,14 +135,16 @@ impl Context {
                 let altair_preset = &altair::mainnet::PRESET;
                 let bellatrix_preset = &bellatrix::mainnet::PRESET;
                 let capella_preset = &capella::mainnet::PRESET;
-                Self::from(phase0_preset, altair_preset, bellatrix_preset, capella_preset, &config)
+                let deneb_preset = &deneb::mainnet::PRESET;
+                Self::from(phase0_preset, altair_preset, bellatrix_preset, capella_preset, deneb_preset, &config)
             }
             "minimal" => {
                 let phase0_preset = &phase0::minimal::PRESET;
                 let altair_preset = &altair::minimal::PRESET;
                 let bellatrix_preset = &bellatrix::minimal::PRESET;
                 let capella_preset = &capella::minimal::PRESET;
-                Self::from(phase0_preset, altair_preset, bellatrix_preset, capella_preset, &config)
+                let deneb_preset = &deneb::minimal::PRESET;
+                Self::from(phase0_preset, altair_preset, bellatrix_preset, capella_preset, deneb_preset, &config)
             }
             other => return Err(Error::UnknownPreset(other.to_string())),
         };
@@ -147,6 +156,7 @@ impl Context {
         altair_preset: &altair::Preset,
         bellatrix_preset: &bellatrix::Preset,
         capella_preset: &capella::Preset,
+        deneb_preset: &deneb::Preset,
         config: &Config,
     ) -> Self {
         Self {
@@ -209,7 +219,10 @@ impl Context {
             max_withdrawals_per_payload: capella_preset.max_withdrawals_per_payload,
             max_validators_per_withdrawals_sweep: capella_preset
                 .max_validators_per_withdrawals_sweep,
-
+            // deneb
+            field_elements_per_blob: deneb_preset.field_elements_per_blob,
+            max_blob_commitments_per_block: deneb_preset.max_blob_commitments_per_block,
+            max_blobs_per_block: deneb_preset.max_blobs_per_block,
             // config
             name: config.name.clone(),
             terminal_total_difficulty: config.terminal_total_difficulty.clone(),
@@ -236,6 +249,7 @@ impl Context {
             inactivity_score_recovery_rate: config.inactivity_score_recovery_rate,
             ejection_balance: config.ejection_balance,
             min_per_epoch_churn_limit: config.min_per_epoch_churn_limit,
+            max_per_epoch_activation_churn_limit: config.max_per_epoch_activation_churn_limit,
             churn_limit_quotient: config.churn_limit_quotient,
             proposer_score_boost: config.proposer_score_boost,
             deposit_chain_id: config.deposit_chain_id,
@@ -250,7 +264,8 @@ impl Context {
         let altair_preset = &altair::mainnet::PRESET;
         let bellatrix_preset = &bellatrix::mainnet::PRESET;
         let capella_preset = &capella::mainnet::PRESET;
-        Self::from(phase0_preset, altair_preset, bellatrix_preset, capella_preset, config)
+        let deneb_preset = &deneb::mainnet::PRESET;
+        Self::from(phase0_preset, altair_preset, bellatrix_preset, capella_preset, deneb_preset, config)
     }
 
     pub fn for_minimal() -> Self {
@@ -259,7 +274,8 @@ impl Context {
         let altair_preset = &altair::minimal::PRESET;
         let bellatrix_preset = &bellatrix::minimal::PRESET;
         let capella_preset = &capella::minimal::PRESET;
-        Self::from(phase0_preset, altair_preset, bellatrix_preset, capella_preset, config)
+        let deneb_preset = &deneb::minimal::PRESET;
+        Self::from(phase0_preset, altair_preset, bellatrix_preset, capella_preset, deneb_preset, config)
     }
 
     pub fn for_goerli() -> Self {
@@ -268,7 +284,8 @@ impl Context {
         let altair_preset = &altair::mainnet::PRESET;
         let bellatrix_preset = &bellatrix::mainnet::PRESET;
         let capella_preset = &capella::mainnet::PRESET;
-        Self::from(phase0_preset, altair_preset, bellatrix_preset, capella_preset, config)
+        let deneb_preset = &deneb::mainnet::PRESET;
+        Self::from(phase0_preset, altair_preset, bellatrix_preset, capella_preset, deneb_preset, config)
     }
 
     pub fn for_sepolia() -> Self {
@@ -277,7 +294,8 @@ impl Context {
         let altair_preset = &altair::mainnet::PRESET;
         let bellatrix_preset = &bellatrix::mainnet::PRESET;
         let capella_preset = &capella::mainnet::PRESET;
-        Self::from(phase0_preset, altair_preset, bellatrix_preset, capella_preset, config)
+        let deneb_preset = &deneb::mainnet::PRESET;
+        Self::from(phase0_preset, altair_preset, bellatrix_preset, capella_preset, deneb_preset, config)
     }
 
     pub fn for_holesky() -> Self {
@@ -286,7 +304,8 @@ impl Context {
         let altair_preset = &altair::mainnet::PRESET;
         let bellatrix_preset = &bellatrix::mainnet::PRESET;
         let capella_preset = &capella::mainnet::PRESET;
-        Self::from(phase0_preset, altair_preset, bellatrix_preset, capella_preset, config)
+        let deneb_preset = &deneb::mainnet::PRESET;
+        Self::from(phase0_preset, altair_preset, bellatrix_preset, capella_preset, deneb_preset, config)
     }
 
     pub fn fork_for(&self, slot: Slot) -> Forks {

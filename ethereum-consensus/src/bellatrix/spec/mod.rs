@@ -41,12 +41,11 @@ pub use crate::{
     },
     phase0::{
         beacon_block::{BeaconBlockHeader, SignedBeaconBlockHeader},
-        beacon_state::{HistoricalBatch, HistoricalSummary},
+        beacon_state::{Fork, ForkData, HistoricalBatch, HistoricalSummary},
         constants::{
             BASE_REWARDS_PER_EPOCH, DEPOSIT_CONTRACT_TREE_DEPTH, DEPOSIT_DATA_LIST_BOUND,
             JUSTIFICATION_BITS_LENGTH,
         },
-        fork::{Fork, ForkData},
         operations::{
             Attestation, AttestationData, AttesterSlashing, Checkpoint, Deposit, DepositData,
             DepositMessage, Eth1Data, IndexedAttestation, PendingAttestation, ProposerSlashing,
@@ -56,7 +55,7 @@ pub use crate::{
     },
     primitives::*,
     signing::*,
-    state_transition::*,
+    state_transition::{error::*, Context, Result, Validation},
 };
 use crate::{
     crypto::{
@@ -555,15 +554,13 @@ pub fn process_voluntary_exit<
         )))
     }
     let domain = get_domain(state, DomainType::VoluntaryExit, Some(voluntary_exit.epoch), context)?;
-    let signing_root = compute_signing_root(voluntary_exit, domain)?;
     let public_key = &validator.public_key;
-    if verify_signature(public_key, signing_root.as_ref(), &signed_voluntary_exit.signature)
-        .is_err()
-    {
-        return Err(invalid_operation_error(InvalidOperation::VoluntaryExit(
-            InvalidVoluntaryExit::InvalidSignature(signed_voluntary_exit.signature.clone()),
-        )))
-    }
+    verify_signed_data(voluntary_exit, &signed_voluntary_exit.signature, public_key, domain)
+        .map_err(|_| {
+            invalid_operation_error(InvalidOperation::VoluntaryExit(
+                InvalidVoluntaryExit::InvalidSignature(signed_voluntary_exit.signature.clone()),
+            ))
+        })?;
     initiate_validator_exit(state, voluntary_exit.validator_index, context);
     Ok(())
 }
