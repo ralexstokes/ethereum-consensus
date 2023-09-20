@@ -3,7 +3,6 @@
 
 use crate::spec_test_runners::epoch_processing::InactivityUpdatesTestCase;
 use ethereum_consensus::altair::mainnet as spec;
-use ssz_rs::prelude::*;
 
 #[test]
 fn test_all_zero_inactivity_scores_empty_participation() {

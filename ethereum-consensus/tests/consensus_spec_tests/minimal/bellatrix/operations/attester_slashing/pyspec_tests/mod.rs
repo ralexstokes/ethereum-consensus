@@ -3,7 +3,6 @@
 
 use crate::spec_test_runners::operations::AttesterSlashingTestCase;
 use ethereum_consensus::bellatrix::minimal as spec;
-use ssz_rs::prelude::*;
 
 #[test]
 fn test_all_empty_indices() {

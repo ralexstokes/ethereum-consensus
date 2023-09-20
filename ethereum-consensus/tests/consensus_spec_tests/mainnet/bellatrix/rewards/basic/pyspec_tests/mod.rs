@@ -3,7 +3,6 @@
 
 use crate::spec_test_runners::rewards::BasicTestCase;
 use ethereum_consensus::bellatrix::mainnet as spec;
-use ssz_rs::prelude::*;
 
 #[test]
 fn test_all_balances_too_low_for_reward() {

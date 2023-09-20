@@ -3,7 +3,6 @@
 
 use crate::spec_test_runners::epoch_processing::JustificationAndFinalizationTestCase;
 use ethereum_consensus::bellatrix::minimal as spec;
-use ssz_rs::prelude::*;
 
 #[test]
 fn test_123_ok_support() {

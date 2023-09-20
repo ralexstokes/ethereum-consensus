@@ -16,12 +16,12 @@ use crate::{
     crypto::{eth_aggregate_public_keys, hash},
     domains::DomainType,
     primitives::{BlsPublicKey, Epoch, Gwei, ParticipationFlags, ValidatorIndex},
+    ssz::prelude::Vector,
     state_transition::{
         invalid_operation_error, Context, Error, InvalidAttestation, InvalidOperation, Result,
     },
 };
 use integer_sqrt::IntegerSquareRoot;
-use ssz_rs::Vector;
 use std::collections::HashSet;
 
 // Return a new ``ParticipationFlags`` adding ``flag_index`` to ``flags``

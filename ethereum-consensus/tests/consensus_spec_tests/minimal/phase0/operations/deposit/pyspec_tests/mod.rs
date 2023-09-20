@@ -3,7 +3,6 @@
 
 use crate::spec_test_runners::operations::DepositTestCase;
 use ethereum_consensus::phase0::minimal as spec;
-use ssz_rs::prelude::*;
 
 #[test]
 fn test_bad_merkle_proof() {

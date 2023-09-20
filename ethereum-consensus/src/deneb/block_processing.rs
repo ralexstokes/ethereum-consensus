@@ -14,12 +14,12 @@ use crate::{
     domains::DomainType,
     primitives::FAR_FUTURE_EPOCH,
     signing::verify_signed_data,
+    ssz::prelude::*,
     state_transition::{
         invalid_operation_error, Context, InvalidAttestation, InvalidExecutionPayload,
         InvalidOperation, InvalidVoluntaryExit, Result,
     },
 };
-use ssz_rs::prelude::*;
 
 pub fn process_attestation<
     const SLOTS_PER_HISTORICAL_ROOT: usize,

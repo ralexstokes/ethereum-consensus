@@ -3,7 +3,6 @@
 
 use crate::spec_test_runners::operations::SyncAggregateTestCase;
 use ethereum_consensus::altair::minimal as spec;
-use ssz_rs::prelude::*;
 
 #[test]
 fn test_invalid_signature_bad_domain() {

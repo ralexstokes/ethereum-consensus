@@ -131,9 +131,8 @@ impl Fork {
                 let fragment: syn::File = parse_quote! {
                     use std::cmp;
                     use std::collections::HashSet;
-                    use ssz_rs::prelude::*;
+                    use crate::ssz::prelude::*;
                     use crate::crypto::{hash, verify_signature, fast_aggregate_verify};
-                    use crate::ssz::*;
 
                     pub use crate::altair::fork::upgrade_to_altair;
                 };
@@ -145,10 +144,9 @@ impl Fork {
                     use std::mem;
                     use std::collections::{HashSet, HashMap};
                     use std::iter::zip;
-                    use ssz_rs::prelude::*;
+                    use crate::ssz::prelude::*;
                     use integer_sqrt::IntegerSquareRoot;
                     use crate::crypto::{hash, verify_signature, fast_aggregate_verify, eth_aggregate_public_keys, eth_fast_aggregate_verify};
-                    use crate::ssz::*;
 
                     pub use crate::bellatrix::fork::upgrade_to_bellatrix;
                 };
@@ -160,10 +158,9 @@ impl Fork {
                     use std::mem;
                     use std::collections::{HashSet, HashMap};
                     use std::iter::zip;
-                    use ssz_rs::prelude::*;
+                    use crate::ssz::prelude::*;
                     use integer_sqrt::IntegerSquareRoot;
                     use crate::crypto::{hash, verify_signature, fast_aggregate_verify, eth_aggregate_public_keys, eth_fast_aggregate_verify};
-                    use crate::ssz::*;
 
                     pub use crate::capella::fork::upgrade_to_capella;
                 };
@@ -175,10 +172,9 @@ impl Fork {
                     use std::mem;
                     use std::collections::{HashSet, HashMap};
                     use std::iter::zip;
-                    use ssz_rs::prelude::*;
+                    use crate::ssz::prelude::*;
                     use integer_sqrt::IntegerSquareRoot;
                     use crate::crypto::{hash, verify_signature, fast_aggregate_verify, eth_aggregate_public_keys, eth_fast_aggregate_verify};
-                    use crate::ssz::*;
 
                     pub use crate::deneb::fork::upgrade_to_deneb;
                 };

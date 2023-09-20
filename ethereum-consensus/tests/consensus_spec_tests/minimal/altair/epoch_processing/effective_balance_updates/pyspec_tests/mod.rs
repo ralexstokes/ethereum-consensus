@@ -3,7 +3,6 @@
 
 use crate::spec_test_runners::epoch_processing::EffectiveBalanceUpdatesTestCase;
 use ethereum_consensus::altair::minimal as spec;
-use ssz_rs::prelude::*;
 
 #[test]
 fn test_effective_balance_hysteresis() {

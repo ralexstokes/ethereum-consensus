@@ -3,9 +3,9 @@ use crate::{
         process_block, process_slots, verify_block_signature, BeaconState, ExecutionEngine,
         SignedBeaconBlock,
     },
+    ssz::prelude::Merkleized,
     state_transition::{Context, Error, Result, Validation},
 };
-use ssz_rs::prelude::Merkleized;
 
 // `state_transition_block_in_slot` is separated out
 // to facilitate upgrades across forks which take place

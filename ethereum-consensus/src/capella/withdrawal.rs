@@ -1,5 +1,7 @@
-use crate::primitives::{ExecutionAddress, Gwei, ValidatorIndex, WithdrawalIndex};
-use ssz_rs::prelude::*;
+use crate::{
+    primitives::{ExecutionAddress, Gwei, ValidatorIndex, WithdrawalIndex},
+    ssz::prelude::*,
+};
 
 #[derive(Default, Debug, Clone, SimpleSerialize, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]

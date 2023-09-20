@@ -1,5 +1,5 @@
 use super::write_bytes_to_lower_hex;
-use ssz_rs::prelude::*;
+use crate::ssz::prelude::*;
 use std::{
     fmt,
     hash::{Hash, Hasher},
@@ -11,7 +11,7 @@ use std::{
 pub struct ByteList<const N: usize>(#[serde(with = "crate::serde::as_hex")] List<u8, N>);
 
 impl<const N: usize> TryFrom<&[u8]> for ByteList<N> {
-    type Error = ssz_rs::DeserializeError;
+    type Error = DeserializeError;
 
     fn try_from(bytes: &[u8]) -> Result<Self, Self::Error> {
         ByteList::<N>::deserialize(bytes)
@@ -69,7 +69,7 @@ mod tests {
     #[test]
     fn test_byte_list_serde() {
         let list = ByteList::<32>::try_from([255u8, 255u8].as_ref()).unwrap();
-        let encoding = ssz_rs::serialize(&list).unwrap();
+        let encoding = serialize(&list).unwrap();
         assert_eq!(encoding, [255, 255]);
 
         let recovered_list = ByteList::<32>::deserialize(&encoding).unwrap();

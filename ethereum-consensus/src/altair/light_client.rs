@@ -4,8 +4,8 @@ use crate::{
         BeaconBlockHeader,
     },
     primitives::{Bytes32, Slot},
+    ssz::prelude::*,
 };
-use ssz_rs::prelude::*;
 
 pub const FINALIZED_ROOT_INDEX: usize = 105;
 pub const FINALIZED_ROOT_INDEX_FLOOR_LOG_2: usize = 6;

@@ -419,8 +419,8 @@ pub fn build_index() -> HashMap<&'static str, HashMap<&'static str, Auxillary>> 
                     test_case_type_generics: Default::default(),
                     preamble: Default::default(),
                     execution_handler: HashMap::from_iter([(Spec::All, "execute(|encoding| {
-                        let mut data: spec::AggregateAndProof = ssz_rs::deserialize(encoding).unwrap();
-                        let serialized = ssz_rs::serialize(&data).unwrap();
+                        let mut data: spec::AggregateAndProof = ethereum_consensus::ssz::prelude::deserialize(encoding).unwrap();
+                        let serialized = ethereum_consensus::ssz::prelude::serialize(&data).unwrap();
                         let root = data.hash_tree_root().unwrap();
                         (serialized, root)
                 })"
@@ -433,8 +433,8 @@ pub fn build_index() -> HashMap<&'static str, HashMap<&'static str, Auxillary>> 
                     test_case_type_generics: Default::default(),
                     preamble: Default::default(),
                     execution_handler: HashMap::from_iter([(Spec::All, "execute(|encoding| {
-                        let mut data: spec::Attestation = ssz_rs::deserialize(encoding).unwrap();
-                        let serialized = ssz_rs::serialize(&data).unwrap();
+                        let mut data: spec::Attestation = ethereum_consensus::ssz::prelude::deserialize(encoding).unwrap();
+                        let serialized = ethereum_consensus::ssz::prelude::serialize(&data).unwrap();
                         let root = data.hash_tree_root().unwrap();
                         (serialized, root)
                 })"
@@ -447,8 +447,8 @@ pub fn build_index() -> HashMap<&'static str, HashMap<&'static str, Auxillary>> 
                     test_case_type_generics: Default::default(),
                     preamble: Default::default(),
                     execution_handler: HashMap::from_iter([(Spec::All, "execute(|encoding| {
-                        let mut data: spec::AttestationData = ssz_rs::deserialize(encoding).unwrap();
-                        let serialized = ssz_rs::serialize(&data).unwrap();
+                        let mut data: spec::AttestationData = ethereum_consensus::ssz::prelude::deserialize(encoding).unwrap();
+                        let serialized = ethereum_consensus::ssz::prelude::serialize(&data).unwrap();
                         let root = data.hash_tree_root().unwrap();
                         (serialized, root)
                 })"
@@ -461,8 +461,8 @@ pub fn build_index() -> HashMap<&'static str, HashMap<&'static str, Auxillary>> 
                     test_case_type_generics: Default::default(),
                     preamble: Default::default(),
                     execution_handler: HashMap::from_iter([(Spec::All, "execute(|encoding| {
-                        let mut data: spec::AttesterSlashing = ssz_rs::deserialize(encoding).unwrap();
-                        let serialized = ssz_rs::serialize(&data).unwrap();
+                        let mut data: spec::AttesterSlashing = ethereum_consensus::ssz::prelude::deserialize(encoding).unwrap();
+                        let serialized = ethereum_consensus::ssz::prelude::serialize(&data).unwrap();
                         let root = data.hash_tree_root().unwrap();
                         (serialized, root)
                 })"
@@ -475,8 +475,8 @@ pub fn build_index() -> HashMap<&'static str, HashMap<&'static str, Auxillary>> 
                     test_case_type_generics: Default::default(),
                     preamble: Default::default(),
                     execution_handler: HashMap::from_iter([(Spec::All, "execute(|encoding| {
-                        let mut data: spec::BeaconBlock = ssz_rs::deserialize(encoding).unwrap();
-                        let serialized = ssz_rs::serialize(&data).unwrap();
+                        let mut data: spec::BeaconBlock = ethereum_consensus::ssz::prelude::deserialize(encoding).unwrap();
+                        let serialized = ethereum_consensus::ssz::prelude::serialize(&data).unwrap();
                         let root = data.hash_tree_root().unwrap();
                         (serialized, root)
                 })"
@@ -489,8 +489,8 @@ pub fn build_index() -> HashMap<&'static str, HashMap<&'static str, Auxillary>> 
                     test_case_type_generics: Default::default(),
                     preamble: Default::default(),
                     execution_handler: HashMap::from_iter([(Spec::All, "execute(|encoding| {
-                        let mut data: spec::BeaconBlockBody = ssz_rs::deserialize(encoding).unwrap();
-                        let serialized = ssz_rs::serialize(&data).unwrap();
+                        let mut data: spec::BeaconBlockBody = ethereum_consensus::ssz::prelude::deserialize(encoding).unwrap();
+                        let serialized = ethereum_consensus::ssz::prelude::serialize(&data).unwrap();
                         let root = data.hash_tree_root().unwrap();
                         (serialized, root)
                 })"
@@ -503,8 +503,8 @@ pub fn build_index() -> HashMap<&'static str, HashMap<&'static str, Auxillary>> 
                     test_case_type_generics: Default::default(),
                     preamble: Default::default(),
                     execution_handler: HashMap::from_iter([(Spec::All, "execute(|encoding| {
-                        let mut data: spec::BeaconBlockHeader = ssz_rs::deserialize(encoding).unwrap();
-                        let serialized = ssz_rs::serialize(&data).unwrap();
+                        let mut data: spec::BeaconBlockHeader = ethereum_consensus::ssz::prelude::deserialize(encoding).unwrap();
+                        let serialized = ethereum_consensus::ssz::prelude::serialize(&data).unwrap();
                         let root = data.hash_tree_root().unwrap();
                         (serialized, root)
                 })"
@@ -517,8 +517,8 @@ pub fn build_index() -> HashMap<&'static str, HashMap<&'static str, Auxillary>> 
                     test_case_type_generics: Default::default(),
                     preamble: Default::default(),
                     execution_handler: HashMap::from_iter([(Spec::All, "execute(|encoding| {
-                        let mut data: spec::BeaconState = ssz_rs::deserialize(encoding).unwrap();
-                        let serialized = ssz_rs::serialize(&data).unwrap();
+                        let mut data: spec::BeaconState = ethereum_consensus::ssz::prelude::deserialize(encoding).unwrap();
+                        let serialized = ethereum_consensus::ssz::prelude::serialize(&data).unwrap();
                         let root = data.hash_tree_root().unwrap();
                         (serialized, root)
                 })"
@@ -531,8 +531,8 @@ pub fn build_index() -> HashMap<&'static str, HashMap<&'static str, Auxillary>> 
                     test_case_type_generics: Default::default(),
                     preamble: Default::default(),
                     execution_handler: HashMap::from_iter([(Spec::All, "execute(|encoding| {
-                        let mut data: spec::Checkpoint = ssz_rs::deserialize(encoding).unwrap();
-                        let serialized = ssz_rs::serialize(&data).unwrap();
+                        let mut data: spec::Checkpoint = ethereum_consensus::ssz::prelude::deserialize(encoding).unwrap();
+                        let serialized = ethereum_consensus::ssz::prelude::serialize(&data).unwrap();
                         let root = data.hash_tree_root().unwrap();
                         (serialized, root)
                 })"
@@ -545,8 +545,8 @@ pub fn build_index() -> HashMap<&'static str, HashMap<&'static str, Auxillary>> 
                     test_case_type_generics: Default::default(),
                     preamble: Default::default(),
                     execution_handler: HashMap::from_iter([(Spec::All, "execute(|encoding| {
-                        let mut data: spec::ContributionAndProof = ssz_rs::deserialize(encoding).unwrap();
-                        let serialized = ssz_rs::serialize(&data).unwrap();
+                        let mut data: spec::ContributionAndProof = ethereum_consensus::ssz::prelude::deserialize(encoding).unwrap();
+                        let serialized = ethereum_consensus::ssz::prelude::serialize(&data).unwrap();
                         let root = data.hash_tree_root().unwrap();
                         (serialized, root)
                 })"
@@ -559,8 +559,8 @@ pub fn build_index() -> HashMap<&'static str, HashMap<&'static str, Auxillary>> 
                     test_case_type_generics: Default::default(),
                     preamble: Default::default(),
                     execution_handler: HashMap::from_iter([(Spec::All, "execute(|encoding| {
-                        let mut data: spec::Deposit = ssz_rs::deserialize(encoding).unwrap();
-                        let serialized = ssz_rs::serialize(&data).unwrap();
+                        let mut data: spec::Deposit = ethereum_consensus::ssz::prelude::deserialize(encoding).unwrap();
+                        let serialized = ethereum_consensus::ssz::prelude::serialize(&data).unwrap();
                         let root = data.hash_tree_root().unwrap();
                         (serialized, root)
                 })"
@@ -573,8 +573,8 @@ pub fn build_index() -> HashMap<&'static str, HashMap<&'static str, Auxillary>> 
                     test_case_type_generics: Default::default(),
                     preamble: Default::default(),
                     execution_handler: HashMap::from_iter([(Spec::All, "execute(|encoding| {
-                        let mut data: spec::DepositData = ssz_rs::deserialize(encoding).unwrap();
-                        let serialized = ssz_rs::serialize(&data).unwrap();
+                        let mut data: spec::DepositData = ethereum_consensus::ssz::prelude::deserialize(encoding).unwrap();
+                        let serialized = ethereum_consensus::ssz::prelude::serialize(&data).unwrap();
                         let root = data.hash_tree_root().unwrap();
                         (serialized, root)
                 })"
@@ -587,8 +587,8 @@ pub fn build_index() -> HashMap<&'static str, HashMap<&'static str, Auxillary>> 
                     test_case_type_generics: Default::default(),
                     preamble: Default::default(),
                     execution_handler: HashMap::from_iter([(Spec::All, "execute(|encoding| {
-                        let mut data: spec::DepositMessage = ssz_rs::deserialize(encoding).unwrap();
-                        let serialized = ssz_rs::serialize(&data).unwrap();
+                        let mut data: spec::DepositMessage = ethereum_consensus::ssz::prelude::deserialize(encoding).unwrap();
+                        let serialized = ethereum_consensus::ssz::prelude::serialize(&data).unwrap();
                         let root = data.hash_tree_root().unwrap();
                         (serialized, root)
                 })"
@@ -601,8 +601,8 @@ pub fn build_index() -> HashMap<&'static str, HashMap<&'static str, Auxillary>> 
                     test_case_type_generics: Default::default(),
                     preamble: Default::default(),
                     execution_handler: HashMap::from_iter([(Spec::All, "execute(|encoding| {
-                        let mut data: spec::Eth1Block = ssz_rs::deserialize(encoding).unwrap();
-                        let serialized = ssz_rs::serialize(&data).unwrap();
+                        let mut data: spec::Eth1Block = ethereum_consensus::ssz::prelude::deserialize(encoding).unwrap();
+                        let serialized = ethereum_consensus::ssz::prelude::serialize(&data).unwrap();
                         let root = data.hash_tree_root().unwrap();
                         (serialized, root)
                 })"
@@ -615,8 +615,8 @@ pub fn build_index() -> HashMap<&'static str, HashMap<&'static str, Auxillary>> 
                     test_case_type_generics: Default::default(),
                     preamble: Default::default(),
                     execution_handler: HashMap::from_iter([(Spec::All, "execute(|encoding| {
-                        let mut data: spec::Eth1Data = ssz_rs::deserialize(encoding).unwrap();
-                        let serialized = ssz_rs::serialize(&data).unwrap();
+                        let mut data: spec::Eth1Data = ethereum_consensus::ssz::prelude::deserialize(encoding).unwrap();
+                        let serialized = ethereum_consensus::ssz::prelude::serialize(&data).unwrap();
                         let root = data.hash_tree_root().unwrap();
                         (serialized, root)
                 })"
@@ -629,8 +629,8 @@ pub fn build_index() -> HashMap<&'static str, HashMap<&'static str, Auxillary>> 
                     test_case_type_generics: Default::default(),
                     preamble: Default::default(),
                     execution_handler: HashMap::from_iter([(Spec::All, "execute(|encoding| {
-                        let mut data: spec::ExecutionPayload = ssz_rs::deserialize(encoding).unwrap();
-                        let serialized = ssz_rs::serialize(&data).unwrap();
+                        let mut data: spec::ExecutionPayload = ethereum_consensus::ssz::prelude::deserialize(encoding).unwrap();
+                        let serialized = ethereum_consensus::ssz::prelude::serialize(&data).unwrap();
                         let root = data.hash_tree_root().unwrap();
                         (serialized, root)
                 })"
@@ -643,8 +643,8 @@ pub fn build_index() -> HashMap<&'static str, HashMap<&'static str, Auxillary>> 
                     test_case_type_generics: Default::default(),
                     preamble: Default::default(),
                     execution_handler: HashMap::from_iter([(Spec::All, "execute(|encoding| {
-                        let mut data: spec::ExecutionPayloadHeader = ssz_rs::deserialize(encoding).unwrap();
-                        let serialized = ssz_rs::serialize(&data).unwrap();
+                        let mut data: spec::ExecutionPayloadHeader = ethereum_consensus::ssz::prelude::deserialize(encoding).unwrap();
+                        let serialized = ethereum_consensus::ssz::prelude::serialize(&data).unwrap();
                         let root = data.hash_tree_root().unwrap();
                         (serialized, root)
                 })"
@@ -657,8 +657,8 @@ pub fn build_index() -> HashMap<&'static str, HashMap<&'static str, Auxillary>> 
                     test_case_type_generics: Default::default(),
                     preamble: Default::default(),
                     execution_handler: HashMap::from_iter([(Spec::All, "execute(|encoding| {
-                        let mut data: spec::Fork = ssz_rs::deserialize(encoding).unwrap();
-                        let serialized = ssz_rs::serialize(&data).unwrap();
+                        let mut data: spec::Fork = ethereum_consensus::ssz::prelude::deserialize(encoding).unwrap();
+                        let serialized = ethereum_consensus::ssz::prelude::serialize(&data).unwrap();
                         let root = data.hash_tree_root().unwrap();
                         (serialized, root)
                 })"
@@ -671,8 +671,8 @@ pub fn build_index() -> HashMap<&'static str, HashMap<&'static str, Auxillary>> 
                     test_case_type_generics: Default::default(),
                     preamble: Default::default(),
                     execution_handler: HashMap::from_iter([(Spec::All, "execute(|encoding| {
-                        let mut data: spec::ForkData = ssz_rs::deserialize(encoding).unwrap();
-                        let serialized = ssz_rs::serialize(&data).unwrap();
+                        let mut data: spec::ForkData = ethereum_consensus::ssz::prelude::deserialize(encoding).unwrap();
+                        let serialized = ethereum_consensus::ssz::prelude::serialize(&data).unwrap();
                         let root = data.hash_tree_root().unwrap();
                         (serialized, root)
                 })"
@@ -685,8 +685,8 @@ pub fn build_index() -> HashMap<&'static str, HashMap<&'static str, Auxillary>> 
                     test_case_type_generics: Default::default(),
                     preamble: Default::default(),
                     execution_handler: HashMap::from_iter([(Spec::All, "execute(|encoding| {
-                        let mut data: spec::HistoricalBatch = ssz_rs::deserialize(encoding).unwrap();
-                        let serialized = ssz_rs::serialize(&data).unwrap();
+                        let mut data: spec::HistoricalBatch = ethereum_consensus::ssz::prelude::deserialize(encoding).unwrap();
+                        let serialized = ethereum_consensus::ssz::prelude::serialize(&data).unwrap();
                         let root = data.hash_tree_root().unwrap();
                         (serialized, root)
                 })"
@@ -699,8 +699,8 @@ pub fn build_index() -> HashMap<&'static str, HashMap<&'static str, Auxillary>> 
                     test_case_type_generics: Default::default(),
                     preamble: Default::default(),
                     execution_handler: HashMap::from_iter([(Spec::All, "execute(|encoding| {
-                        let mut data: spec::IndexedAttestation = ssz_rs::deserialize(encoding).unwrap();
-                        let serialized = ssz_rs::serialize(&data).unwrap();
+                        let mut data: spec::IndexedAttestation = ethereum_consensus::ssz::prelude::deserialize(encoding).unwrap();
+                        let serialized = ethereum_consensus::ssz::prelude::serialize(&data).unwrap();
                         let root = data.hash_tree_root().unwrap();
                         (serialized, root)
                 })"
@@ -713,8 +713,8 @@ pub fn build_index() -> HashMap<&'static str, HashMap<&'static str, Auxillary>> 
                     test_case_type_generics: Default::default(),
                     preamble: Default::default(),
                     execution_handler: HashMap::from_iter([(Spec::All, "execute(|encoding| {
-                        let mut data: spec::LightClientUpdate = ssz_rs::deserialize(encoding).unwrap();
-                        let serialized = ssz_rs::serialize(&data).unwrap();
+                        let mut data: spec::LightClientUpdate = ethereum_consensus::ssz::prelude::deserialize(encoding).unwrap();
+                        let serialized = ethereum_consensus::ssz::prelude::serialize(&data).unwrap();
                         let root = data.hash_tree_root().unwrap();
                         (serialized, root)
                 })"
@@ -727,8 +727,8 @@ pub fn build_index() -> HashMap<&'static str, HashMap<&'static str, Auxillary>> 
                     test_case_type_generics: Default::default(),
                     preamble: Default::default(),
                     execution_handler: HashMap::from_iter([(Spec::All, "execute(|encoding| {
-                        let mut data: spec::PendingAttestation = ssz_rs::deserialize(encoding).unwrap();
-                        let serialized = ssz_rs::serialize(&data).unwrap();
+                        let mut data: spec::PendingAttestation = ethereum_consensus::ssz::prelude::deserialize(encoding).unwrap();
+                        let serialized = ethereum_consensus::ssz::prelude::serialize(&data).unwrap();
                         let root = data.hash_tree_root().unwrap();
                         (serialized, root)
                 })"
@@ -741,8 +741,8 @@ pub fn build_index() -> HashMap<&'static str, HashMap<&'static str, Auxillary>> 
                     test_case_type_generics: Default::default(),
                     preamble: Default::default(),
                     execution_handler: HashMap::from_iter([(Spec::All, "execute(|encoding| {
-                        let mut data: spec::PowBlock = ssz_rs::deserialize(encoding).unwrap();
-                        let serialized = ssz_rs::serialize(&data).unwrap();
+                        let mut data: spec::PowBlock = ethereum_consensus::ssz::prelude::deserialize(encoding).unwrap();
+                        let serialized = ethereum_consensus::ssz::prelude::serialize(&data).unwrap();
                         let root = data.hash_tree_root().unwrap();
                         (serialized, root)
                 })"
@@ -755,8 +755,8 @@ pub fn build_index() -> HashMap<&'static str, HashMap<&'static str, Auxillary>> 
                     test_case_type_generics: Default::default(),
                     preamble: Default::default(),
                     execution_handler: HashMap::from_iter([(Spec::All, "execute(|encoding| {
-                        let mut data: spec::ProposerSlashing = ssz_rs::deserialize(encoding).unwrap();
-                        let serialized = ssz_rs::serialize(&data).unwrap();
+                        let mut data: spec::ProposerSlashing = ethereum_consensus::ssz::prelude::deserialize(encoding).unwrap();
+                        let serialized = ethereum_consensus::ssz::prelude::serialize(&data).unwrap();
                         let root = data.hash_tree_root().unwrap();
                         (serialized, root)
                 })"
@@ -769,8 +769,8 @@ pub fn build_index() -> HashMap<&'static str, HashMap<&'static str, Auxillary>> 
                     test_case_type_generics: Default::default(),
                     preamble: Default::default(),
                     execution_handler: HashMap::from_iter([(Spec::All, "execute(|encoding| {
-                        let mut data: spec::SignedAggregateAndProof = ssz_rs::deserialize(encoding).unwrap();
-                        let serialized = ssz_rs::serialize(&data).unwrap();
+                        let mut data: spec::SignedAggregateAndProof = ethereum_consensus::ssz::prelude::deserialize(encoding).unwrap();
+                        let serialized = ethereum_consensus::ssz::prelude::serialize(&data).unwrap();
                         let root = data.hash_tree_root().unwrap();
                         (serialized, root)
                 })"
@@ -783,8 +783,8 @@ pub fn build_index() -> HashMap<&'static str, HashMap<&'static str, Auxillary>> 
                     test_case_type_generics: Default::default(),
                     preamble: Default::default(),
                     execution_handler: HashMap::from_iter([(Spec::All, "execute(|encoding| {
-                        let mut data: spec::SignedBeaconBlock = ssz_rs::deserialize(encoding).unwrap();
-                        let serialized = ssz_rs::serialize(&data).unwrap();
+                        let mut data: spec::SignedBeaconBlock = ethereum_consensus::ssz::prelude::deserialize(encoding).unwrap();
+                        let serialized = ethereum_consensus::ssz::prelude::serialize(&data).unwrap();
                         let root = data.hash_tree_root().unwrap();
                         (serialized, root)
                 })"
@@ -797,8 +797,8 @@ pub fn build_index() -> HashMap<&'static str, HashMap<&'static str, Auxillary>> 
                     test_case_type_generics: Default::default(),
                     preamble: Default::default(),
                     execution_handler: HashMap::from_iter([(Spec::All, "execute(|encoding| {
-                        let mut data: spec::SignedBeaconBlockHeader = ssz_rs::deserialize(encoding).unwrap();
-                        let serialized = ssz_rs::serialize(&data).unwrap();
+                        let mut data: spec::SignedBeaconBlockHeader = ethereum_consensus::ssz::prelude::deserialize(encoding).unwrap();
+                        let serialized = ethereum_consensus::ssz::prelude::serialize(&data).unwrap();
                         let root = data.hash_tree_root().unwrap();
                         (serialized, root)
                 })"
@@ -811,8 +811,8 @@ pub fn build_index() -> HashMap<&'static str, HashMap<&'static str, Auxillary>> 
                     test_case_type_generics: Default::default(),
                     preamble: Default::default(),
                     execution_handler: HashMap::from_iter([(Spec::All, "execute(|encoding| {
-                        let mut data: spec::SignedContributionAndProof = ssz_rs::deserialize(encoding).unwrap();
-                        let serialized = ssz_rs::serialize(&data).unwrap();
+                        let mut data: spec::SignedContributionAndProof = ethereum_consensus::ssz::prelude::deserialize(encoding).unwrap();
+                        let serialized = ethereum_consensus::ssz::prelude::serialize(&data).unwrap();
                         let root = data.hash_tree_root().unwrap();
                         (serialized, root)
                 })"
@@ -825,8 +825,8 @@ pub fn build_index() -> HashMap<&'static str, HashMap<&'static str, Auxillary>> 
                     test_case_type_generics: Default::default(),
                     preamble: Default::default(),
                     execution_handler: HashMap::from_iter([(Spec::All, "execute(|encoding| {
-                        let mut data: spec::SignedVoluntaryExit = ssz_rs::deserialize(encoding).unwrap();
-                        let serialized = ssz_rs::serialize(&data).unwrap();
+                        let mut data: spec::SignedVoluntaryExit = ethereum_consensus::ssz::prelude::deserialize(encoding).unwrap();
+                        let serialized = ethereum_consensus::ssz::prelude::serialize(&data).unwrap();
                         let root = data.hash_tree_root().unwrap();
                         (serialized, root)
                 })"
@@ -839,8 +839,8 @@ pub fn build_index() -> HashMap<&'static str, HashMap<&'static str, Auxillary>> 
                     test_case_type_generics: Default::default(),
                     preamble: Default::default(),
                     execution_handler: HashMap::from_iter([(Spec::All, "execute(|encoding| {
-                        let mut data: spec::SigningData = ssz_rs::deserialize(encoding).unwrap();
-                        let serialized = ssz_rs::serialize(&data).unwrap();
+                        let mut data: spec::SigningData = ethereum_consensus::ssz::prelude::deserialize(encoding).unwrap();
+                        let serialized = ethereum_consensus::ssz::prelude::serialize(&data).unwrap();
                         let root = data.hash_tree_root().unwrap();
                         (serialized, root)
                 })"
@@ -853,8 +853,8 @@ pub fn build_index() -> HashMap<&'static str, HashMap<&'static str, Auxillary>> 
                     test_case_type_generics: Default::default(),
                     preamble: Default::default(),
                     execution_handler: HashMap::from_iter([(Spec::All, "execute(|encoding| {
-                        let mut data: spec::SyncAggregate = ssz_rs::deserialize(encoding).unwrap();
-                        let serialized = ssz_rs::serialize(&data).unwrap();
+                        let mut data: spec::SyncAggregate = ethereum_consensus::ssz::prelude::deserialize(encoding).unwrap();
+                        let serialized = ethereum_consensus::ssz::prelude::serialize(&data).unwrap();
                         let root = data.hash_tree_root().unwrap();
                         (serialized, root)
                 })"
@@ -867,8 +867,8 @@ pub fn build_index() -> HashMap<&'static str, HashMap<&'static str, Auxillary>> 
                     test_case_type_generics: Default::default(),
                     preamble: Default::default(),
                     execution_handler: HashMap::from_iter([(Spec::All, "execute(|encoding| {
-                        let mut data: spec::SyncAggregatorSelectionData = ssz_rs::deserialize(encoding).unwrap();
-                        let serialized = ssz_rs::serialize(&data).unwrap();
+                        let mut data: spec::SyncAggregatorSelectionData = ethereum_consensus::ssz::prelude::deserialize(encoding).unwrap();
+                        let serialized = ethereum_consensus::ssz::prelude::serialize(&data).unwrap();
                         let root = data.hash_tree_root().unwrap();
                         (serialized, root)
                 })"
@@ -881,8 +881,8 @@ pub fn build_index() -> HashMap<&'static str, HashMap<&'static str, Auxillary>> 
                     test_case_type_generics: Default::default(),
                     preamble: Default::default(),
                     execution_handler: HashMap::from_iter([(Spec::All, "execute(|encoding| {
-                        let mut data: spec::SyncCommittee = ssz_rs::deserialize(encoding).unwrap();
-                        let serialized = ssz_rs::serialize(&data).unwrap();
+                        let mut data: spec::SyncCommittee = ethereum_consensus::ssz::prelude::deserialize(encoding).unwrap();
+                        let serialized = ethereum_consensus::ssz::prelude::serialize(&data).unwrap();
                         let root = data.hash_tree_root().unwrap();
                         (serialized, root)
                 })"
@@ -895,8 +895,8 @@ pub fn build_index() -> HashMap<&'static str, HashMap<&'static str, Auxillary>> 
                     test_case_type_generics: Default::default(),
                     preamble: Default::default(),
                     execution_handler: HashMap::from_iter([(Spec::All, "execute(|encoding| {
-                        let mut data: spec::SyncCommitteeContribution = ssz_rs::deserialize(encoding).unwrap();
-                        let serialized = ssz_rs::serialize(&data).unwrap();
+                        let mut data: spec::SyncCommitteeContribution = ethereum_consensus::ssz::prelude::deserialize(encoding).unwrap();
+                        let serialized = ethereum_consensus::ssz::prelude::serialize(&data).unwrap();
                         let root = data.hash_tree_root().unwrap();
                         (serialized, root)
                 })"
@@ -909,8 +909,8 @@ pub fn build_index() -> HashMap<&'static str, HashMap<&'static str, Auxillary>> 
                     test_case_type_generics: Default::default(),
                     preamble: Default::default(),
                     execution_handler: HashMap::from_iter([(Spec::All, "execute(|encoding| {
-                        let mut data: spec::SyncCommitteeMessage = ssz_rs::deserialize(encoding).unwrap();
-                        let serialized = ssz_rs::serialize(&data).unwrap();
+                        let mut data: spec::SyncCommitteeMessage = ethereum_consensus::ssz::prelude::deserialize(encoding).unwrap();
+                        let serialized = ethereum_consensus::ssz::prelude::serialize(&data).unwrap();
                         let root = data.hash_tree_root().unwrap();
                         (serialized, root)
                 })"
@@ -923,8 +923,8 @@ pub fn build_index() -> HashMap<&'static str, HashMap<&'static str, Auxillary>> 
                     test_case_type_generics: Default::default(),
                     preamble: Default::default(),
                     execution_handler: HashMap::from_iter([(Spec::All, "execute(|encoding| {
-                        let mut data: spec::Validator = ssz_rs::deserialize(encoding).unwrap();
-                        let serialized = ssz_rs::serialize(&data).unwrap();
+                        let mut data: spec::Validator = ethereum_consensus::ssz::prelude::deserialize(encoding).unwrap();
+                        let serialized = ethereum_consensus::ssz::prelude::serialize(&data).unwrap();
                         let root = data.hash_tree_root().unwrap();
                         (serialized, root)
                 })"
@@ -937,8 +937,8 @@ pub fn build_index() -> HashMap<&'static str, HashMap<&'static str, Auxillary>> 
                     test_case_type_generics: Default::default(),
                     preamble: Default::default(),
                     execution_handler: HashMap::from_iter([(Spec::All, "execute(|encoding| {
-                        let mut data: spec::VoluntaryExit = ssz_rs::deserialize(encoding).unwrap();
-                        let serialized = ssz_rs::serialize(&data).unwrap();
+                        let mut data: spec::VoluntaryExit = ethereum_consensus::ssz::prelude::deserialize(encoding).unwrap();
+                        let serialized = ethereum_consensus::ssz::prelude::serialize(&data).unwrap();
                         let root = data.hash_tree_root().unwrap();
                         (serialized, root)
                 })"

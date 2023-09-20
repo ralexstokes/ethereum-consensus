@@ -3,7 +3,6 @@ use crate::{
     capella::{BeaconState, ExecutionPayloadHeader, Fork},
     state_transition::Context,
 };
-use ssz_rs::prelude::*;
 
 pub fn upgrade_to_capella<
     const SLOTS_PER_HISTORICAL_ROOT: usize,

@@ -1,5 +1,7 @@
-use crate::primitives::{BlsSignature, Root, Slot, ValidatorIndex};
-use ssz_rs::prelude::*;
+use crate::{
+    primitives::{BlsSignature, Root, Slot, ValidatorIndex},
+    ssz::prelude::*,
+};
 
 #[derive(Debug, Default, Clone, SimpleSerialize)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]

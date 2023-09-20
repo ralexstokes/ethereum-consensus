@@ -3,7 +3,6 @@
 
 use crate::spec_test_runners::finality::FinalityTestCase;
 use ethereum_consensus::altair::mainnet as spec;
-use ssz_rs::prelude::*;
 
 #[test]
 fn test_finality_no_updates_at_genesis() {

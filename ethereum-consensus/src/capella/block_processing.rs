@@ -6,12 +6,12 @@ use crate::{
         BeaconBlock, BeaconBlockBody, BeaconState, ExecutionEngine, ExecutionPayload,
         ExecutionPayloadHeader, NewPayloadRequest, SignedBlsToExecutionChange,
     },
+    ssz::prelude::*,
     state_transition::{
         invalid_operation_error, Context, InvalidDeposit, InvalidExecutionPayload,
         InvalidOperation, Result,
     },
 };
-use ssz_rs::prelude::*;
 
 pub fn process_bls_to_execution_change<
     const SLOTS_PER_HISTORICAL_ROOT: usize,

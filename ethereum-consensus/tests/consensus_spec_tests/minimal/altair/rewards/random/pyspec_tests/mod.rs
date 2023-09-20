@@ -3,7 +3,6 @@
 
 use crate::spec_test_runners::rewards::RandomTestCase;
 use ethereum_consensus::altair::minimal as spec;
-use ssz_rs::prelude::*;
 
 #[test]
 fn test_full_random_0() {

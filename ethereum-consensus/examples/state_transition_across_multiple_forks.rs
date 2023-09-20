@@ -2,9 +2,9 @@ use ethereum_consensus::{
     altair::mainnet as altair,
     bellatrix::mainnet as bellatrix,
     phase0::mainnet as phase0,
+    ssz::prelude::*,
     state_transition::mainnet::{Context, ExecutionEngine, Executor},
 };
-use ssz_rs::prelude::*;
 use std::error::Error;
 
 fn main() -> std::result::Result<(), Box<dyn Error>> {
