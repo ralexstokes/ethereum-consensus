@@ -1,23 +1,21 @@
 use crate::{
     capella::{
-        compute_domain, compute_timestamp_at_slot, decrease_balance,
-        get_current_epoch, get_randao_mix, is_fully_withdrawable_validator,
-        is_partially_withdrawable_validator, process_attestation, process_attester_slashing,
-        process_block_header, process_deposit, process_eth1_data, process_proposer_slashing,
-        process_randao, process_sync_aggregate, process_voluntary_exit, BeaconBlock,
-        BeaconBlockBody, BeaconState, DomainType, ExecutionAddress, ExecutionEngine,
-        ExecutionPayload, ExecutionPayloadHeader, NewPayloadRequest, SignedBlsToExecutionChange,
-        Withdrawal,
+        compute_domain, compute_timestamp_at_slot, decrease_balance, get_current_epoch,
+        get_randao_mix, is_fully_withdrawable_validator, is_partially_withdrawable_validator,
+        process_attestation, process_attester_slashing, process_block_header, process_deposit,
+        process_eth1_data, process_proposer_slashing, process_randao, process_sync_aggregate,
+        process_voluntary_exit, BeaconBlock, BeaconBlockBody, BeaconState, BlsPublicKey,
+        DomainType, ExecutionAddress, ExecutionEngine, ExecutionPayload, ExecutionPayloadHeader,
+        NewPayloadRequest, SignedBlsToExecutionChange, Withdrawal,
     },
     primitives::{BLS_WITHDRAWAL_PREFIX, ETH1_ADDRESS_WITHDRAWAL_PREFIX},
+    signing::verify_signed_data,
     ssz::prelude::*,
     state_transition::{
         invalid_operation_error, Context, InvalidDeposit, InvalidExecutionPayload,
         InvalidOperation, InvalidWithdrawals, Result,
     },
 };
-
-use super::verify_signed_data;
 
 pub fn process_bls_to_execution_change<
     const SLOTS_PER_HISTORICAL_ROOT: usize,
@@ -52,7 +50,7 @@ pub fn process_bls_to_execution_change<
     if address_change.validator_index >= state.validators.len() {
         return Err(invalid_operation_error(InvalidOperation::ValidatorIndex(
             address_change.validator_index,
-        )))
+        )));
     }
 
     let withdrawal_credentials_prefix =
@@ -61,7 +59,7 @@ pub fn process_bls_to_execution_change<
     if withdrawal_credentials_prefix != BLS_WITHDRAWAL_PREFIX {
         return Err(invalid_operation_error(InvalidOperation::WithdrawalCredentialsPrefix(
             state.validators[address_change.validator_index].withdrawal_credentials[0],
-        )))
+        )));
     }
 
     let domain = compute_domain(
@@ -76,7 +74,7 @@ pub fn process_bls_to_execution_change<
     if signed_data.is_err() {
         return Err(invalid_operation_error(InvalidOperation::ExecutionChange(
             signed_address_change.signature.clone(),
-        )))
+        )));
     }
 
     let validator = &mut state.validators[address_change.validator_index];
@@ -152,7 +150,7 @@ pub fn process_operations<
                 expected: expected_deposit_count,
                 count: body.deposits.len(),
             },
-        )))
+        )));
     }
     body.proposer_slashings
         .iter_mut()
@@ -224,7 +222,7 @@ pub fn process_execution_payload<
                 expected: state.latest_execution_payload_header.block_hash.clone(),
             }
             .into(),
-        ))
+        ));
     }
 
     let current_epoch = get_current_epoch(state, context);
@@ -236,7 +234,7 @@ pub fn process_execution_payload<
                 expected: randao_mix.clone(),
             }
             .into(),
-        ))
+        ));
     }
 
     let timestamp = compute_timestamp_at_slot(state, state.slot, context)?;
@@ -247,7 +245,7 @@ pub fn process_execution_payload<
                 expected: timestamp,
             }
             .into(),
-        ))
+        ));
     }
 
     let new_payload_request = NewPayloadRequest(payload);
