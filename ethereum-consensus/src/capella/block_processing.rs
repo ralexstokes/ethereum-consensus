@@ -1,15 +1,14 @@
 use crate::{
     capella::{
-        compute_domain, compute_signing_root, compute_timestamp_at_slot, decrease_balance,
+        compute_domain, compute_timestamp_at_slot, decrease_balance,
         get_current_epoch, get_randao_mix, is_fully_withdrawable_validator,
         is_partially_withdrawable_validator, process_attestation, process_attester_slashing,
         process_block_header, process_deposit, process_eth1_data, process_proposer_slashing,
         process_randao, process_sync_aggregate, process_voluntary_exit, BeaconBlock,
-        BeaconBlockBody, BeaconState, BlsPublicKey, DomainType, ExecutionAddress, ExecutionEngine,
+        BeaconBlockBody, BeaconState, DomainType, ExecutionAddress, ExecutionEngine,
         ExecutionPayload, ExecutionPayloadHeader, NewPayloadRequest, SignedBlsToExecutionChange,
         Withdrawal,
     },
-    crypto::{hash, verify_signature},
     primitives::{BLS_WITHDRAWAL_PREFIX, ETH1_ADDRESS_WITHDRAWAL_PREFIX},
     ssz::prelude::*,
     state_transition::{
@@ -17,6 +16,8 @@ use crate::{
         InvalidOperation, InvalidWithdrawals, Result,
     },
 };
+
+use super::verify_signed_data;
 
 pub fn process_bls_to_execution_change<
     const SLOTS_PER_HISTORICAL_ROOT: usize,
@@ -42,7 +43,7 @@ pub fn process_bls_to_execution_change<
         BYTES_PER_LOGS_BLOOM,
         MAX_EXTRA_DATA_BYTES,
     >,
-    signed_address_change: &mut SignedBlsToExecutionChange,
+    signed_address_change: &SignedBlsToExecutionChange,
     context: &Context,
 ) -> Result<()> {
     let address_change = &signed_address_change.message;
@@ -69,6 +70,7 @@ pub fn process_bls_to_execution_change<
         Some(state.genesis_validators_root),
         context,
     )?;
+    let public_key = &address_change.from_bls_public_key;
     let signed_data =
         verify_signed_data(&mut address_change.clone(), signature, public_key, domain);
     if signed_data.is_err() {
