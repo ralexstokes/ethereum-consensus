@@ -4,8 +4,8 @@ use crate::{
     capella::ExecutionPayloadHeader,
     phase0::{BeaconBlockHeader, Checkpoint, Eth1Data, Fork, Validator, JUSTIFICATION_BITS_LENGTH},
     primitives::{Bytes32, Gwei, ParticipationFlags, Root, Slot, ValidatorIndex, WithdrawalIndex},
+    ssz::prelude::*,
 };
-use ssz_rs::prelude::*;
 
 #[derive(Default, Debug, SimpleSerialize, Clone, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]

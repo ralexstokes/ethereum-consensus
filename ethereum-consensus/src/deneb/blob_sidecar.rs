@@ -1,9 +1,8 @@
 use crate::{
     kzg::{KzgCommitment, KzgProof},
     primitives::{BlobIndex, BlsSignature, Root, Slot, ValidatorIndex},
-    ssz::ByteVector,
+    ssz::prelude::*,
 };
-use ssz_rs::prelude::*;
 
 pub const BLOB_TX_TYPE: u8 = 3;
 pub const VERSIONED_HASH_VERSION_KZG: u8 = 1;

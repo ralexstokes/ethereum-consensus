@@ -2,10 +2,9 @@ use crate::{
     bellatrix::Transaction,
     capella::Withdrawal,
     primitives::{Bytes32, ExecutionAddress, Hash32, Root, U256},
-    ssz::{ByteList, ByteVector},
+    ssz::prelude::*,
     state_transition::Error,
 };
-use ssz_rs::prelude::*;
 
 #[derive(Default, Debug, Clone, SimpleSerialize, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]

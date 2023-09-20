@@ -11,12 +11,12 @@ use crate::{
         ValidatorIndex, Version, FAR_FUTURE_EPOCH, GENESIS_EPOCH,
     },
     signing::compute_signing_root,
+    ssz::prelude::*,
     state_transition::{
         invalid_operation_error, Context, Error, InvalidAttestation, InvalidIndexedAttestation,
         InvalidOperation, Result,
     },
 };
-use ssz_rs::prelude::*;
 use std::{cmp, collections::HashSet};
 
 pub fn is_active_validator(validator: &Validator, epoch: Epoch) -> bool {

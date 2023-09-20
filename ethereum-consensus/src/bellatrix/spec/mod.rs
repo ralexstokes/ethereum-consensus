@@ -62,10 +62,9 @@ use crate::{
         eth_aggregate_public_keys, eth_fast_aggregate_verify, fast_aggregate_verify, hash,
         verify_signature,
     },
-    ssz::*,
+    ssz::prelude::*,
 };
 use integer_sqrt::IntegerSquareRoot;
-use ssz_rs::prelude::*;
 use std::{
     cmp,
     collections::{HashMap, HashSet},

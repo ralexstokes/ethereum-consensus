@@ -3,7 +3,6 @@
 
 use crate::spec_test_runners::random::RandomTestCase;
 use ethereum_consensus::phase0::mainnet as spec;
-use ssz_rs::prelude::*;
 
 #[test]
 fn test_randomized_0() {

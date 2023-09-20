@@ -2,7 +2,6 @@ use crate::{
     bellatrix::execution_payload::ExecutionPayload,
     state_transition::{self, ExecutionEngineError, Result},
 };
-use ssz_rs::prelude::*;
 
 pub struct NewPayloadRequest<
     'a,

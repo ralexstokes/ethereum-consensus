@@ -5,9 +5,9 @@ use crate::{
         process_randao, process_sync_aggregate, BeaconBlock, BeaconState, ExecutionEngine,
         ExecutionPayload, ExecutionPayloadHeader, NewPayloadRequest,
     },
+    ssz::prelude::*,
     state_transition::{invalid_operation_error, Context, InvalidExecutionPayload, Result},
 };
-use ssz_rs::prelude::*;
 
 pub fn process_execution_payload<
     const SLOTS_PER_HISTORICAL_ROOT: usize,

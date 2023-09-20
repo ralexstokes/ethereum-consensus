@@ -1,9 +1,9 @@
 use crate::{
     phase0::compute_domain,
     primitives::{BlsPublicKey, BlsSignature, Domain, DomainType, ExecutionAddress},
+    ssz::prelude::*,
     state_transition::{Context, Error},
 };
-use ssz_rs::prelude::*;
 
 #[derive(Debug, Clone, Default, SimpleSerialize)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]

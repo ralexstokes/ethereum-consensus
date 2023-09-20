@@ -1,7 +1,7 @@
 use crate::{
     altair::constants::SYNC_COMMITTEE_SUBNET_COUNT, phase0::networking::ATTESTATION_SUBNET_COUNT,
+    ssz::prelude::Bitvector,
 };
-use ssz_rs::prelude::Bitvector;
 
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct MetaData {

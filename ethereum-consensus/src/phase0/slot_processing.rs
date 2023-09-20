@@ -1,9 +1,9 @@
 use crate::{
     phase0::{beacon_state::BeaconState, epoch_processing::process_epoch},
     primitives::{Root, Slot},
+    ssz::prelude::*,
     state_transition::{Context, Error, Result},
 };
-use ssz_rs::prelude::*;
 
 pub fn process_slots<
     const SLOTS_PER_HISTORICAL_ROOT: usize,

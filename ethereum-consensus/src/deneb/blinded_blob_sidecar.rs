@@ -1,8 +1,8 @@
 use crate::{
     kzg::{KzgCommitment, KzgProof},
     primitives::{BlobIndex, BlsSignature, Root, Slot, ValidatorIndex},
+    ssz::prelude::*,
 };
-use ssz_rs::prelude::*;
 
 #[derive(Default, Debug, Clone, SimpleSerialize, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]

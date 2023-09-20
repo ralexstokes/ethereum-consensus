@@ -58,9 +58,8 @@ pub use crate::{
 };
 use crate::{
     crypto::{fast_aggregate_verify, hash, verify_signature},
-    ssz::*,
+    ssz::prelude::*,
 };
-use ssz_rs::prelude::*;
 use std::{cmp, collections::HashSet};
 pub fn process_proposer_slashing<
     const SLOTS_PER_HISTORICAL_ROOT: usize,

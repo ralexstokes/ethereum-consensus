@@ -1,5 +1,5 @@
 use super::write_bytes_to_lower_hex;
-use ssz_rs::prelude::*;
+use crate::ssz::prelude::*;
 use std::{
     fmt,
     hash::{Hash, Hasher},
@@ -11,7 +11,7 @@ use std::{
 pub struct ByteVector<const N: usize>(#[serde(with = "crate::serde::as_hex")] Vector<u8, N>);
 
 impl<const N: usize> TryFrom<&[u8]> for ByteVector<N> {
-    type Error = ssz_rs::DeserializeError;
+    type Error = DeserializeError;
 
     fn try_from(bytes: &[u8]) -> Result<Self, Self::Error> {
         ByteVector::<N>::deserialize(bytes)

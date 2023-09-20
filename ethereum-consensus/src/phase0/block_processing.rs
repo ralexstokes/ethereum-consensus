@@ -19,14 +19,13 @@ use crate::{
     },
     primitives::{BlsPublicKey, Bytes32, DomainType, Gwei, ValidatorIndex, FAR_FUTURE_EPOCH},
     signing::{compute_signing_root, verify_signed_data},
-    ssz::ByteVector,
+    ssz::prelude::*,
     state_transition::{
         invalid_header_error, invalid_operation_error, Context, InvalidAttestation,
         InvalidAttesterSlashing, InvalidBeaconBlockHeader, InvalidDeposit, InvalidOperation,
         InvalidProposerSlashing, InvalidVoluntaryExit, Result,
     },
 };
-use ssz_rs::prelude::*;
 use std::collections::HashSet;
 
 pub fn process_proposer_slashing<

@@ -6,9 +6,9 @@ use crate::{
         process_rewards_and_penalties, process_slashings, process_slashings_reset,
         process_sync_committee_updates, BeaconState, HistoricalSummary,
     },
+    ssz::prelude::*,
     state_transition::{Context, Result},
 };
-use ssz_rs::prelude::*;
 
 pub fn process_historical_summaries_update<
     const SLOTS_PER_HISTORICAL_ROOT: usize,

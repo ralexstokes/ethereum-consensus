@@ -8,7 +8,6 @@ use crate::{
     phase0,
     state_transition::{Context, Result},
 };
-use ssz_rs::prelude::*;
 
 fn translate_participation<
     const SLOTS_PER_HISTORICAL_ROOT: usize,

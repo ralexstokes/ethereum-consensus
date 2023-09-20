@@ -4,7 +4,6 @@ use crate::{
     primitives::Root,
     state_transition::{ExecutionEngineError, Result},
 };
-use ssz_rs::prelude::*;
 
 pub struct NewPayloadRequest<
     'a,

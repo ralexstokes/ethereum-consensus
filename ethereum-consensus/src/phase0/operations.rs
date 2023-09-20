@@ -4,8 +4,8 @@ use crate::{
         BlsPublicKey, BlsSignature, Bytes32, CommitteeIndex, Epoch, Gwei, Hash32, Root, Slot,
         ValidatorIndex,
     },
+    ssz::prelude::*,
 };
-use ssz_rs::prelude::*;
 
 #[derive(Default, Clone, Debug, SimpleSerialize, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]

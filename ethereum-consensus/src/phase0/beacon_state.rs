@@ -6,8 +6,8 @@ use crate::{
         validator::Validator,
     },
     primitives::{Bytes32, Epoch, Gwei, Root, Slot, Version},
+    ssz::prelude::*,
 };
-use ssz_rs::prelude::*;
 
 #[derive(Default, Debug, SimpleSerialize, Clone, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
