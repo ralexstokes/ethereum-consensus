@@ -48,20 +48,18 @@ pub struct KzgProof(ByteVector<BYTES_PER_PROOF>);
 
 /// Uses multicalar multiplication to combine trusted setup with blob
 fn blob_to_kzg_commitment(blob: Blob, kzg_settings: &KzgSettings) -> Result<KzgCommitment, Error> {
-    let bytes = blob.0.as_ref();
-    let blob = c_kzg::Blob::from_bytes(bytes).unwrap();
+    let inner = &blob.0;
+    let blob = c_kzg::Blob::from_bytes(inner.as_ref()).unwrap();
 
-    // Inner: g1_lincomb(bit_reversal_permutation(KZG_SETUP_LAGRANGE), blob_to_polynomial(blob)) -> KzgCommitment
-    let commit = c_kzg::KzgCommitment::blob_to_kzg_commitment(&blob, kzg_settings)?;
+    let commitment = c_kzg::KzgCommitment::blob_to_kzg_commitment(&blob, kzg_settings)?;
+    let inner = ByteVector::try_from(commitment.to_bytes().as_slice()).unwrap();
 
-    let bytes_commit = commit.to_bytes();
-    let bytevector_commit = ByteVector::try_from(bytes_commit.as_ref()).unwrap();
-
-    Ok(KzgCommitment(bytevector_commit))
+    Ok(KzgCommitment(inner))
 }
 
-/// Compute KZG proof at point 'z' for the polynomial represented by 'blob'.
-/// Do this by computing the qoutient polynomial in evaluation form: q(x) = (p(x) - p(z)) / (x - z).
+/// Compute KZG proof at point `z` for the polynomial represented by 'blob'.
+/// Do this by computing the quotient polynomial in evaluation form: q(x) = (p(x) - p(z)) / (x - z).
+/// Returns combined proof and the evaluation of the polynomial.
 fn compute_kzg_proof(
     blob: Blob,
     z_bytes: Bytes32,
