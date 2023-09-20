@@ -136,7 +136,14 @@ impl Context {
                 let bellatrix_preset = &bellatrix::mainnet::PRESET;
                 let capella_preset = &capella::mainnet::PRESET;
                 let deneb_preset = &deneb::mainnet::PRESET;
-                Self::from(phase0_preset, altair_preset, bellatrix_preset, capella_preset, deneb_preset, &config)
+                Self::from(
+                    phase0_preset, 
+                    altair_preset, 
+                    bellatrix_preset, 
+                    capella_preset, 
+                    deneb_preset, 
+                    &config
+                )
             }
             "minimal" => {
                 let phase0_preset = &phase0::minimal::PRESET;
@@ -144,7 +151,14 @@ impl Context {
                 let bellatrix_preset = &bellatrix::minimal::PRESET;
                 let capella_preset = &capella::minimal::PRESET;
                 let deneb_preset = &deneb::minimal::PRESET;
-                Self::from(phase0_preset, altair_preset, bellatrix_preset, capella_preset, deneb_preset, &config)
+                Self::from(
+                    phase0_preset, 
+                    altair_preset, 
+                    bellatrix_preset, 
+                    capella_preset, 
+                    deneb_preset, 
+                    &config
+                )
             }
             other => return Err(Error::UnknownPreset(other.to_string())),
         };
@@ -265,7 +279,14 @@ impl Context {
         let bellatrix_preset = &bellatrix::mainnet::PRESET;
         let capella_preset = &capella::mainnet::PRESET;
         let deneb_preset = &deneb::mainnet::PRESET;
-        Self::from(phase0_preset, altair_preset, bellatrix_preset, capella_preset, deneb_preset, config)
+        Self::from(
+            phase0_preset, 
+            altair_preset, 
+            bellatrix_preset, 
+            capella_preset, 
+            deneb_preset, 
+            config
+        )
     }
 
     pub fn for_minimal() -> Self {
@@ -275,7 +296,14 @@ impl Context {
         let bellatrix_preset = &bellatrix::minimal::PRESET;
         let capella_preset = &capella::minimal::PRESET;
         let deneb_preset = &deneb::minimal::PRESET;
-        Self::from(phase0_preset, altair_preset, bellatrix_preset, capella_preset, deneb_preset, config)
+        Self::from(
+            phase0_preset, 
+            altair_preset, 
+            bellatrix_preset, 
+            capella_preset, 
+            deneb_preset, 
+            config
+        )
     }
 
     pub fn for_goerli() -> Self {
@@ -285,7 +313,14 @@ impl Context {
         let bellatrix_preset = &bellatrix::mainnet::PRESET;
         let capella_preset = &capella::mainnet::PRESET;
         let deneb_preset = &deneb::mainnet::PRESET;
-        Self::from(phase0_preset, altair_preset, bellatrix_preset, capella_preset, deneb_preset, config)
+        Self::from(
+            phase0_preset, 
+            altair_preset, 
+            bellatrix_preset, 
+            capella_preset, 
+            deneb_preset, 
+            config
+        )
     }
 
     pub fn for_sepolia() -> Self {
@@ -295,7 +330,14 @@ impl Context {
         let bellatrix_preset = &bellatrix::mainnet::PRESET;
         let capella_preset = &capella::mainnet::PRESET;
         let deneb_preset = &deneb::mainnet::PRESET;
-        Self::from(phase0_preset, altair_preset, bellatrix_preset, capella_preset, deneb_preset, config)
+        Self::from(
+            phase0_preset, 
+            altair_preset, 
+            bellatrix_preset, 
+            capella_preset, 
+            deneb_preset, 
+            config
+        )
     }
 
     pub fn for_holesky() -> Self {
@@ -305,7 +347,14 @@ impl Context {
         let bellatrix_preset = &bellatrix::mainnet::PRESET;
         let capella_preset = &capella::mainnet::PRESET;
         let deneb_preset = &deneb::mainnet::PRESET;
-        Self::from(phase0_preset, altair_preset, bellatrix_preset, capella_preset, deneb_preset, config)
+        Self::from(
+            phase0_preset, 
+            altair_preset, 
+            bellatrix_preset, 
+            capella_preset, 
+            deneb_preset, 
+            config
+        )
     }
 
     pub fn fork_for(&self, slot: Slot) -> Forks {
