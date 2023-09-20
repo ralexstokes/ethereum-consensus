@@ -85,8 +85,14 @@ pub enum InvalidOperation {
     SyncAggregate(#[from] InvalidSyncAggregate),
     #[error("invalid execution payload: {0}")]
     ExecutionPayload(#[from] InvalidExecutionPayload),
-    #[error("invalid withdrawals: {0}")]
-    Withdrawal(#[from] InvalidWithdrawals),
+    #[error("invalid bls signature for execution chang {0:?}")]
+    ExecutionChange(BlsSignature),
+    #[error("validator index is out of bounds {0}")]
+    ValidatorIndex(usize),
+    #[error("invalid withdrawal credentials prefix{0}")]
+    WithdrawalCredentialsPrefix(u8),
+    #[error("invalid withdrawal credentials public key{0:?}")]
+    WithdrawalCredentialsPublicKey(&'static [u8]),
 }
 
 #[derive(Debug, Error)]

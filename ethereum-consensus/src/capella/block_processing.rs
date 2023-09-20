@@ -45,17 +45,23 @@ pub fn process_bls_to_execution_change<
     signed_address_change: &mut SignedBlsToExecutionChange,
     context: &Context,
 ) -> Result<()> {
-    let address_change = signed_address_change;
+    let address_change = &signed_address_change.message;
+    let signature = &signed_address_change.signature;
 
-    assert!(address_change.message.validator_index < state.validators.len());
+    if address_change.validator_index >= state.validators.len() {
+        return Err(invalid_operation_error(InvalidOperation::ValidatorIndex(
+            address_change.validator_index,
+        )))
+    }
 
-    let validator = &mut state.validators[address_change.message.validator_index];
+    let withdrawal_credentials_prefix =
+        state.validators[address_change.validator_index].withdrawal_credentials[0];
 
-    assert!(validator.withdrawal_credentials.starts_with(&[BLS_WITHDRAWAL_PREFIX]));
-    assert!(
-        validator.withdrawal_credentials[1..]
-            == hash(address_change.message.from_bls_public_key.as_ref())[1..]
-    );
+    if withdrawal_credentials_prefix != BLS_WITHDRAWAL_PREFIX {
+        return Err(invalid_operation_error(InvalidOperation::WithdrawalCredentialsPrefix(
+            state.validators[address_change.validator_index].withdrawal_credentials[0],
+        )))
+    }
 
     let domain = compute_domain(
         DomainType::BlsToExecutionChange,
@@ -63,15 +69,24 @@ pub fn process_bls_to_execution_change<
         Some(state.genesis_validators_root),
         context,
     )?;
-    let signing_root = compute_signing_root(address_change, domain)?;
-    let pk: &BlsPublicKey = &address_change.message.from_bls_public_key;
-    assert!(verify_signature(pk, signing_root.as_ref(), &address_change.signature,).is_ok());
-    let withdrawal_credentials = vec![ETH1_ADDRESS_WITHDRAWAL_PREFIX];
+    let signed_data =
+        verify_signed_data(&mut address_change.clone(), signature, public_key, domain);
+    if signed_data.is_err() {
+        return Err(invalid_operation_error(InvalidOperation::ExecutionChange(
+            signed_address_change.signature.clone(),
+        )))
+    }
 
-    let withdrawal_credentials_array: [u8; 32] =
-        withdrawal_credentials.try_into().expect("Wrong size");
-    validator.withdrawal_credentials = ByteVector::try_from(withdrawal_credentials_array.as_ref())
-        .expect("Failed to convert array to ByteVector");
+    let validator = &mut state.validators[address_change.validator_index];
+
+    validator.withdrawal_credentials[0] = ETH1_ADDRESS_WITHDRAWAL_PREFIX;
+    let mut withdrawal_credentials: Vec<u8> = validator.withdrawal_credentials.as_ref().to_vec();
+    withdrawal_credentials[12..].copy_from_slice(address_change.to_execution_address.as_ref());
+    let withdrawal_credentials: &[u8] = &withdrawal_credentials;
+    let withdrawal_credentials =
+        ByteVector::<32>::try_from(withdrawal_credentials).expect("Wrong size");
+    validator.withdrawal_credentials = withdrawal_credentials;
+
     Ok(())
 }
 
@@ -135,7 +150,7 @@ pub fn process_operations<
                 expected: expected_deposit_count,
                 count: body.deposits.len(),
             },
-        )));
+        )))
     }
     body.proposer_slashings
         .iter_mut()
@@ -207,7 +222,7 @@ pub fn process_execution_payload<
                 expected: state.latest_execution_payload_header.block_hash.clone(),
             }
             .into(),
-        ));
+        ))
     }
 
     let current_epoch = get_current_epoch(state, context);
@@ -219,7 +234,7 @@ pub fn process_execution_payload<
                 expected: randao_mix.clone(),
             }
             .into(),
-        ));
+        ))
     }
 
     let timestamp = compute_timestamp_at_slot(state, state.slot, context)?;
@@ -230,7 +245,7 @@ pub fn process_execution_payload<
                 expected: timestamp,
             }
             .into(),
-        ));
+        ))
     }
 
     let new_payload_request = NewPayloadRequest(payload);
