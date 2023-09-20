@@ -3,7 +3,6 @@
 
 use crate::spec_test_runners::operations::VoluntaryExitTestCase;
 use ethereum_consensus::altair::minimal as spec;
-use ssz_rs::prelude::*;
 
 #[test]
 fn test_default_exit_epoch_subsequent_exit() {

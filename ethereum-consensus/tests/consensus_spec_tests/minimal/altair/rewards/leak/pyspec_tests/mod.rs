@@ -3,7 +3,6 @@
 
 use crate::spec_test_runners::rewards::LeakTestCase;
 use ethereum_consensus::altair::minimal as spec;
-use ssz_rs::prelude::*;
 
 #[test]
 fn test_empty_leak() {

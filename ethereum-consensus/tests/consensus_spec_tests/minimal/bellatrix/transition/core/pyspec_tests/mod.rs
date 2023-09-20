@@ -7,7 +7,6 @@ use ethereum_consensus::{
     bellatrix::minimal as spec,
     state_transition::minimal::{BeaconState, Executor},
 };
-use ssz_rs::prelude::*;
 
 #[test]
 fn test_normal_transition() {

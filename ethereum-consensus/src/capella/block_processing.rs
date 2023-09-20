@@ -8,12 +8,12 @@ use crate::{
         ExecutionPayload, ExecutionPayloadHeader, NewPayloadRequest, SignedBlsToExecutionChange,
         Withdrawal,
     },
+    ssz::prelude::*,
     state_transition::{
         invalid_operation_error, Context, InvalidDeposit, InvalidExecutionPayload,
         InvalidOperation, InvalidWithdrawals, Result,
     },
 };
-use ssz_rs::prelude::*;
 
 pub fn process_bls_to_execution_change<
     const SLOTS_PER_HISTORICAL_ROOT: usize,

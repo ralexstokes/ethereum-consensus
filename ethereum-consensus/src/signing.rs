@@ -1,9 +1,9 @@
 use crate::{
     crypto::{verify_signature, SecretKey},
     primitives::{BlsPublicKey, BlsSignature, Domain, Root},
+    ssz::prelude::*,
     state_transition::Error,
 };
-use ssz_rs::prelude::*;
 
 #[derive(Default, Debug, SimpleSerialize)]
 pub struct SigningData {

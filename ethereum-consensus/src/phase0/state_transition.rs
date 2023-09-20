@@ -4,9 +4,9 @@ use crate::{
         block_processing::process_block, helpers::verify_block_signature,
         slot_processing::process_slots,
     },
+    ssz::prelude::*,
     state_transition::{Context, Error, Result, Validation},
 };
-use ssz_rs::prelude::*;
 
 // `state_transition_block_in_slot` is separated out
 // to facilitate upgrades across forks which take place

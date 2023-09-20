@@ -1,11 +1,9 @@
-use crate::ssz::ByteVector;
+use crate::ssz::prelude::*;
 pub use crate::{
     crypto::{PublicKey as BlsPublicKey, Signature as BlsSignature},
     domains::DomainType,
+    ssz::prelude::U256,
 };
-use ssz_rs::prelude::*;
-
-pub use ssz_rs::prelude::U256;
 
 pub type Root = Node;
 pub type Slot = u64;

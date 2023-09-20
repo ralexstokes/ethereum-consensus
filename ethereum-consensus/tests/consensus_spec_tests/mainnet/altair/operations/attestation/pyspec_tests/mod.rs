@@ -3,7 +3,6 @@
 
 use crate::spec_test_runners::operations::AttestationTestCase;
 use ethereum_consensus::altair::mainnet as spec;
-use ssz_rs::prelude::*;
 
 #[test]
 fn test_after_epoch_slots() {

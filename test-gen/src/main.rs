@@ -175,25 +175,25 @@ fn generate_suite_src(
 
     if needs_spec_import {
         writeln!(src, "use ethereum_consensus::{fork}::{config} as spec;").unwrap();
-        writeln!(src, "use ssz_rs::prelude::*;").unwrap();
     }
 
     // special case imports here...
-    if matches!(runner, "transition") {
-        writeln!(
-            src,
-            "use ethereum_consensus::state_transition::{config}::{{Executor, BeaconState}};",
-        )
-        .unwrap();
-        let pre_fork = match spec {
-            Spec::Altair => "phase0",
-            Spec::Bellatrix => "altair",
-            _ => unimplemented!("support other forks"),
-        };
-        writeln!(src, "use ethereum_consensus::{pre_fork}::{config} as pre_spec;",).unwrap();
-    }
-    if matches!(runner, "fork") {
-        match spec {
+    match runner {
+        "ssz_static" => writeln!(src, "use ethereum_consensus::ssz::prelude::*;").unwrap(),
+        "transition" => {
+            writeln!(
+                src,
+                "use ethereum_consensus::state_transition::{config}::{{Executor, BeaconState}};",
+            )
+            .unwrap();
+            let pre_fork = match spec {
+                Spec::Altair => "phase0",
+                Spec::Bellatrix => "altair",
+                _ => unimplemented!("support other forks"),
+            };
+            writeln!(src, "use ethereum_consensus::{pre_fork}::{config} as pre_spec;",).unwrap();
+        }
+        "fork" => match spec {
             Spec::Altair => {
                 writeln!(src, "use ethereum_consensus::phase0::{config} as phase0;").unwrap();
             }
@@ -201,8 +201,10 @@ fn generate_suite_src(
                 writeln!(src, "use ethereum_consensus::altair::{config} as altair;").unwrap();
             }
             _ => todo!("support other forks"),
-        }
+        },
+        _ => {}
     }
+
     let mut test_cases = tests.keys().cloned().collect::<Vec<_>>();
     test_cases.sort();
     for test_case in &test_cases {

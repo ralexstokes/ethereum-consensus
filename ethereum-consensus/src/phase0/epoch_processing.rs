@@ -12,10 +12,10 @@ use crate::{
         operations::{Checkpoint, PendingAttestation},
     },
     primitives::{Epoch, Gwei, ValidatorIndex, GENESIS_EPOCH},
+    ssz::prelude::*,
     state_transition::{Context, Error, Result},
 };
 use integer_sqrt::IntegerSquareRoot;
-use ssz_rs::prelude::*;
 use std::{collections::HashSet, mem};
 
 pub fn get_matching_source_attestations<

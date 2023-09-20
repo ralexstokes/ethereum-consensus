@@ -3,7 +3,6 @@
 
 use crate::spec_test_runners::genesis::InitializationTestCase;
 use ethereum_consensus::bellatrix::minimal as spec;
-use ssz_rs::prelude::*;
 
 #[test]
 fn test_initialize_beacon_state_from_eth_1() {

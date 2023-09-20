@@ -7,7 +7,6 @@ use ethereum_consensus::{
     bellatrix::mainnet as spec,
     state_transition::mainnet::{BeaconState, Executor},
 };
-use ssz_rs::prelude::*;
 
 #[test]
 fn test_normal_transition() {

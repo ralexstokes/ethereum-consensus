@@ -1,5 +1,4 @@
-use crate::primitives::Epoch;
-use ssz_rs::prelude::Bitvector;
+use crate::{primitives::Epoch, ssz::prelude::Bitvector};
 use std::time::Duration;
 
 pub const ATTESTATION_SUBNET_COUNT: usize = 64;

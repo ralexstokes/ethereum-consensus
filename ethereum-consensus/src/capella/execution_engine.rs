@@ -2,7 +2,6 @@ use crate::{
     capella::execution_payload::ExecutionPayload,
     state_transition::{ExecutionEngineError, Result},
 };
-use ssz_rs::prelude::*;
 
 pub struct NewPayloadRequest<
     'a,

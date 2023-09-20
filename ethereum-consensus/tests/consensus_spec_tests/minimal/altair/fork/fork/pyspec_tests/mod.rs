@@ -3,7 +3,6 @@
 
 use crate::spec_test_runners::fork::ForkTestCase;
 use ethereum_consensus::{altair::minimal as spec, phase0::minimal as phase0};
-use ssz_rs::prelude::*;
 
 #[test]
 fn test_altair_fork_random_0() {

@@ -3,7 +3,6 @@
 
 use crate::spec_test_runners::sanity::SlotsTestCase;
 use ethereum_consensus::altair::minimal as spec;
-use ssz_rs::prelude::*;
 
 #[test]
 fn test_double_empty_epoch() {

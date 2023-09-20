@@ -3,7 +3,6 @@
 
 use crate::spec_test_runners::fork::ForkTestCase;
 use ethereum_consensus::{altair::minimal as altair, bellatrix::minimal as spec};
-use ssz_rs::prelude::*;
 
 #[test]
 fn test_bellatrix_fork_random_0() {

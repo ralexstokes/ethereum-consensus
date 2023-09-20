@@ -1,6 +1,5 @@
 use crate::test_utils::{load_snappy_ssz, Config};
-use ethereum_consensus::{primitives::Gwei, state_transition::Context};
-use ssz_rs::prelude::*;
+use ethereum_consensus::{primitives::Gwei, ssz::prelude::*, state_transition::Context};
 use std::fmt;
 // NOTE: constant across presets
 use ethereum_consensus::phase0::mainnet::VALIDATOR_REGISTRY_LIMIT;

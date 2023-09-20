@@ -3,7 +3,6 @@
 
 use crate::spec_test_runners::operations::BlockHeaderTestCase;
 use ethereum_consensus::bellatrix::mainnet as spec;
-use ssz_rs::prelude::*;
 
 #[test]
 fn test_invalid_multiple_blocks_single_slot() {

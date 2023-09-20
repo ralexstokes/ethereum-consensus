@@ -3,9 +3,9 @@ use crate::{
     crypto::Error as CryptoError,
     phase0::{AttestationData, BeaconBlockHeader, Checkpoint},
     primitives::{BlsSignature, Bytes32, Epoch, Hash32, Root, Slot, ValidatorIndex},
+    ssz::prelude::*,
     state_transition::Forks,
 };
-use ssz_rs::prelude::*;
 use thiserror::Error;
 
 #[derive(Debug, Error)]

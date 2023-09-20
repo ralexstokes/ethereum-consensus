@@ -13,5 +13,7 @@ fn write_bytes_to_lower_hex<T: AsRef<[u8]>>(f: &mut fmt::Formatter<'_>, data: T)
     Ok(())
 }
 
-pub use byte_list::ByteList;
-pub use byte_vector::ByteVector;
+pub mod prelude {
+    pub use super::{byte_list::ByteList, byte_vector::ByteVector};
+    pub use ssz_rs::prelude::*;
+}

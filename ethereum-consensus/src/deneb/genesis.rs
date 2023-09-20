@@ -4,9 +4,9 @@ use crate::{
         Deposit, DepositData, Eth1Data, ExecutionPayloadHeader, Fork, DEPOSIT_DATA_LIST_BOUND,
     },
     primitives::{Gwei, Hash32, GENESIS_EPOCH},
+    ssz::prelude::*,
     state_transition::{Context, Result},
 };
-use ssz_rs::prelude::*;
 
 pub fn initialize_beacon_state_from_eth1<
     const SLOTS_PER_HISTORICAL_ROOT: usize,

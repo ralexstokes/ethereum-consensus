@@ -7,7 +7,6 @@ use ethereum_consensus::{
     phase0::mainnet as pre_spec,
     state_transition::mainnet::{BeaconState, Executor},
 };
-use ssz_rs::prelude::*;
 
 #[test]
 fn test_normal_transition() {

@@ -1,9 +1,8 @@
 #[cfg(feature = "serde")]
 use crate::serde::{try_bytes_from_hex_str, HexError};
-use crate::{primitives::Bytes32, ssz::ByteVector};
+use crate::{primitives::Bytes32, ssz::prelude::*};
 use blst::{min_pk as bls_impl, BLST_ERROR};
 use sha2::{digest::FixedOutput, Digest, Sha256};
-use ssz_rs::prelude::*;
 use std::{
     fmt,
     ops::{Deref, DerefMut},

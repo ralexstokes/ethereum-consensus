@@ -3,7 +3,6 @@
 
 use crate::spec_test_runners::genesis::ValidityTestCase;
 use ethereum_consensus::altair::minimal as spec;
-use ssz_rs::prelude::*;
 
 #[test]
 fn test_is_valid_genesis_state_false_invalid_timestamp() {

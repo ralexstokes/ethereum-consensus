@@ -23,12 +23,12 @@ use crate::{
     domains::DomainType,
     primitives::{BlsPublicKey, ParticipationFlags, ValidatorIndex},
     signing::compute_signing_root,
+    ssz::prelude::*,
     state_transition::{
         invalid_operation_error, Context, InvalidAttestation, InvalidDeposit, InvalidOperation,
         InvalidSyncAggregate, Result,
     },
 };
-use ssz_rs::prelude::*;
 use std::{
     collections::{HashMap, HashSet},
     iter::zip,

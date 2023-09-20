@@ -7,8 +7,8 @@ use crate::{
         Attestation, AttesterSlashing, Deposit, Eth1Data, ProposerSlashing, SignedVoluntaryExit,
     },
     primitives::{BlsSignature, Bytes32, Root, Slot, ValidatorIndex},
+    ssz::prelude::*,
 };
-use ssz_rs::prelude::*;
 
 #[derive(Default, Debug, Clone, SimpleSerialize, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
