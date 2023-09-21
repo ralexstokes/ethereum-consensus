@@ -1,15 +1,17 @@
 use crate::{
     capella::{
-        compute_timestamp_at_slot, get_current_epoch, get_randao_mix, process_attestation,
+        compute_timestamp_at_slot, decrease_balance, get_current_epoch, get_randao_mix,
+        is_fully_withdrawable_validator, is_partially_withdrawable_validator, process_attestation,
         process_attester_slashing, process_block_header, process_deposit, process_eth1_data,
         process_proposer_slashing, process_randao, process_sync_aggregate, process_voluntary_exit,
-        BeaconBlock, BeaconBlockBody, BeaconState, ExecutionEngine, ExecutionPayload,
-        ExecutionPayloadHeader, NewPayloadRequest, SignedBlsToExecutionChange,
+        BeaconBlock, BeaconBlockBody, BeaconState, ExecutionAddress, ExecutionEngine,
+        ExecutionPayload, ExecutionPayloadHeader, NewPayloadRequest, SignedBlsToExecutionChange,
+        Withdrawal,
     },
     ssz::prelude::*,
     state_transition::{
         invalid_operation_error, Context, InvalidDeposit, InvalidExecutionPayload,
-        InvalidOperation, Result,
+        InvalidOperation, InvalidWithdrawals, Result,
     },
 };
 
@@ -240,7 +242,7 @@ pub fn process_withdrawals<
     const MAX_TRANSACTIONS_PER_PAYLOAD: usize,
     const MAX_WITHDRAWALS_PER_PAYLOAD: usize,
 >(
-    _state: &mut BeaconState<
+    state: &mut BeaconState<
         SLOTS_PER_HISTORICAL_ROOT,
         HISTORICAL_ROOTS_LIMIT,
         ETH1_DATA_VOTES_BOUND,
@@ -252,16 +254,113 @@ pub fn process_withdrawals<
         BYTES_PER_LOGS_BLOOM,
         MAX_EXTRA_DATA_BYTES,
     >,
-    _execution_payload: &ExecutionPayload<
+    execution_payload: &ExecutionPayload<
         BYTES_PER_LOGS_BLOOM,
         MAX_EXTRA_DATA_BYTES,
         MAX_BYTES_PER_TRANSACTION,
         MAX_TRANSACTIONS_PER_PAYLOAD,
         MAX_WITHDRAWALS_PER_PAYLOAD,
     >,
-    _context: &Context,
+    context: &Context,
 ) -> Result<()> {
-    unimplemented!()
+    let expected_withdrawals = get_expected_withdrawals(state, context);
+
+    if execution_payload.withdrawals.as_ref() != expected_withdrawals {
+        return Err(invalid_operation_error(InvalidOperation::Withdrawal(
+            InvalidWithdrawals::IncorrectWithdrawals {
+                provided: execution_payload.withdrawals.to_vec(),
+                expected: expected_withdrawals,
+            },
+        )))
+    }
+
+    for withdrawal in &expected_withdrawals {
+        decrease_balance(state, withdrawal.validator_index, withdrawal.amount);
+    }
+
+    // Update the next withdrawal index if this block contained withdrawals
+    if let Some(latest_withdrawal) = expected_withdrawals.last() {
+        state.next_withdrawal_index = latest_withdrawal.index + 1;
+    }
+
+    // Update the next validator index to start the next withdrawal sweep
+    if expected_withdrawals.len() == context.max_withdrawals_per_payload {
+        // Next sweep starts after the latest withdrawal's validator index
+        let latest_withdrawal = expected_withdrawals.last().expect("empty withdrawals");
+        let next_validator_index = (latest_withdrawal.validator_index + 1) % state.validators.len();
+        state.next_withdrawal_validator_index = next_validator_index;
+    } else {
+        // Advance sweep by the max length of the sweep if there was not a full set of withdrawals
+        let next_index =
+            state.next_withdrawal_validator_index + context.max_validators_per_withdrawals_sweep;
+        state.next_withdrawal_validator_index = next_index % state.validators.len();
+    }
+    Ok(())
+}
+
+pub fn get_expected_withdrawals<
+    const SLOTS_PER_HISTORICAL_ROOT: usize,
+    const HISTORICAL_ROOTS_LIMIT: usize,
+    const ETH1_DATA_VOTES_BOUND: usize,
+    const VALIDATOR_REGISTRY_LIMIT: usize,
+    const EPOCHS_PER_HISTORICAL_VECTOR: usize,
+    const EPOCHS_PER_SLASHINGS_VECTOR: usize,
+    const MAX_VALIDATORS_PER_COMMITTEE: usize,
+    const SYNC_COMMITTEE_SIZE: usize,
+    const BYTES_PER_LOGS_BLOOM: usize,
+    const MAX_EXTRA_DATA_BYTES: usize,
+>(
+    state: &BeaconState<
+        SLOTS_PER_HISTORICAL_ROOT,
+        HISTORICAL_ROOTS_LIMIT,
+        ETH1_DATA_VOTES_BOUND,
+        VALIDATOR_REGISTRY_LIMIT,
+        EPOCHS_PER_HISTORICAL_VECTOR,
+        EPOCHS_PER_SLASHINGS_VECTOR,
+        MAX_VALIDATORS_PER_COMMITTEE,
+        SYNC_COMMITTEE_SIZE,
+        BYTES_PER_LOGS_BLOOM,
+        MAX_EXTRA_DATA_BYTES,
+    >,
+    context: &Context,
+) -> Vec<Withdrawal> {
+    let epoch = get_current_epoch(state, context);
+    let mut withdrawal_index = state.next_withdrawal_index;
+    let mut validator_index = state.next_withdrawal_validator_index;
+    let mut withdrawals = vec![];
+    let bound = state.validators.len().min(context.max_validators_per_withdrawals_sweep);
+    for _ in 0..bound {
+        let validator = &state.validators[validator_index];
+        let balance = state.balances[validator_index];
+        if is_fully_withdrawable_validator(validator, balance, epoch) {
+            let address =
+                ExecutionAddress::try_from(&validator.withdrawal_credentials.as_slice()[12..])
+                    .expect("providing the correct amount of input to type");
+            withdrawals.push(Withdrawal {
+                index: withdrawal_index,
+                validator_index,
+                address,
+                amount: balance,
+            });
+            withdrawal_index += 1;
+        } else if is_partially_withdrawable_validator(validator, balance, context) {
+            let address =
+                ExecutionAddress::try_from(&validator.withdrawal_credentials.as_slice()[12..])
+                    .expect("providing the correct amount of input to type");
+            withdrawals.push(Withdrawal {
+                index: withdrawal_index,
+                validator_index,
+                address,
+                amount: balance - context.max_effective_balance,
+            });
+            withdrawal_index += 1;
+        }
+        if withdrawals.len() == context.max_withdrawals_per_payload {
+            break
+        }
+        validator_index = (validator_index + 1) % state.validators.len();
+    }
+    withdrawals
 }
 
 pub fn process_block<

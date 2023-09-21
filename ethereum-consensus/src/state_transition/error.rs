@@ -1,4 +1,5 @@
 use crate::{
+    capella::Withdrawal,
     crypto::Error as CryptoError,
     phase0::{AttestationData, BeaconBlockHeader, Checkpoint},
     primitives::{BlsSignature, Bytes32, Epoch, Hash32, Root, Slot, ValidatorIndex},
@@ -84,6 +85,8 @@ pub enum InvalidOperation {
     SyncAggregate(#[from] InvalidSyncAggregate),
     #[error("invalid execution payload: {0}")]
     ExecutionPayload(#[from] InvalidExecutionPayload),
+    #[error("invalid withdrawals: {0}")]
+    Withdrawal(#[from] InvalidWithdrawals),
 }
 
 #[derive(Debug, Error)]
@@ -178,6 +181,12 @@ pub enum InvalidVoluntaryExit {
     ValidatorIsNotActiveForLongEnough { current_epoch: Epoch, minimum_time_active: Epoch },
     #[error("voluntary exit has invalid signature: {0:?}")]
     InvalidSignature(BlsSignature),
+}
+
+#[derive(Debug, Error)]
+pub enum InvalidWithdrawals {
+    #[error("expected withdrawals {expected:#?} do not match provided withdrawals {provided:#?}")]
+    IncorrectWithdrawals { provided: Vec<Withdrawal>, expected: Vec<Withdrawal> },
 }
 
 #[derive(Debug, Error)]
