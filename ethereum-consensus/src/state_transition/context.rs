@@ -137,12 +137,12 @@ impl Context {
                 let capella_preset = &capella::mainnet::PRESET;
                 let deneb_preset = &deneb::mainnet::PRESET;
                 Self::from(
-                    phase0_preset, 
-                    altair_preset, 
-                    bellatrix_preset, 
-                    capella_preset, 
-                    deneb_preset, 
-                    &config
+                    phase0_preset,
+                    altair_preset,
+                    bellatrix_preset,
+                    capella_preset,
+                    deneb_preset,
+                    &config,
                 )
             }
             "minimal" => {
@@ -152,12 +152,12 @@ impl Context {
                 let capella_preset = &capella::minimal::PRESET;
                 let deneb_preset = &deneb::minimal::PRESET;
                 Self::from(
-                    phase0_preset, 
-                    altair_preset, 
-                    bellatrix_preset, 
-                    capella_preset, 
-                    deneb_preset, 
-                    &config
+                    phase0_preset,
+                    altair_preset,
+                    bellatrix_preset,
+                    capella_preset,
+                    deneb_preset,
+                    &config,
                 )
             }
             other => return Err(Error::UnknownPreset(other.to_string())),
@@ -280,12 +280,12 @@ impl Context {
         let capella_preset = &capella::mainnet::PRESET;
         let deneb_preset = &deneb::mainnet::PRESET;
         Self::from(
-            phase0_preset, 
-            altair_preset, 
-            bellatrix_preset, 
-            capella_preset, 
-            deneb_preset, 
-            config
+            phase0_preset,
+            altair_preset,
+            bellatrix_preset,
+            capella_preset,
+            deneb_preset,
+            config,
         )
     }
 
@@ -297,12 +297,12 @@ impl Context {
         let capella_preset = &capella::minimal::PRESET;
         let deneb_preset = &deneb::minimal::PRESET;
         Self::from(
-            phase0_preset, 
-            altair_preset, 
-            bellatrix_preset, 
-            capella_preset, 
-            deneb_preset, 
-            config
+            phase0_preset,
+            altair_preset,
+            bellatrix_preset,
+            capella_preset,
+            deneb_preset,
+            config,
         )
     }
 
@@ -314,12 +314,12 @@ impl Context {
         let capella_preset = &capella::mainnet::PRESET;
         let deneb_preset = &deneb::mainnet::PRESET;
         Self::from(
-            phase0_preset, 
-            altair_preset, 
-            bellatrix_preset, 
-            capella_preset, 
-            deneb_preset, 
-            config
+            phase0_preset,
+            altair_preset,
+            bellatrix_preset,
+            capella_preset,
+            deneb_preset,
+            config,
         )
     }
 
@@ -331,12 +331,12 @@ impl Context {
         let capella_preset = &capella::mainnet::PRESET;
         let deneb_preset = &deneb::mainnet::PRESET;
         Self::from(
-            phase0_preset, 
-            altair_preset, 
-            bellatrix_preset, 
-            capella_preset, 
-            deneb_preset, 
-            config
+            phase0_preset,
+            altair_preset,
+            bellatrix_preset,
+            capella_preset,
+            deneb_preset,
+            config,
         )
     }
 
@@ -348,12 +348,12 @@ impl Context {
         let capella_preset = &capella::mainnet::PRESET;
         let deneb_preset = &deneb::mainnet::PRESET;
         Self::from(
-            phase0_preset, 
-            altair_preset, 
-            bellatrix_preset, 
-            capella_preset, 
-            deneb_preset, 
-            config
+            phase0_preset,
+            altair_preset,
+            bellatrix_preset,
+            capella_preset,
+            deneb_preset,
+            config,
         )
     }
 
