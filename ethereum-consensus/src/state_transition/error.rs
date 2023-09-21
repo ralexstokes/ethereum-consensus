@@ -185,7 +185,7 @@ pub enum InvalidVoluntaryExit {
 
 #[derive(Debug, Error)]
 pub enum InvalidWithdrawals {
-    #[error("expected withdrawals {expected:?} do not match provided withdrawals {provided:?}")]
+    #[error("expected withdrawals {expected:#?} do not match provided withdrawals {provided:#?}")]
     IncorrectWithdrawals { provided: Vec<Withdrawal>, expected: Vec<Withdrawal> },
 }
 
