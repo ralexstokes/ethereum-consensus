@@ -202,6 +202,23 @@ impl<
         Ok(result.data)
     }
 
+    pub async fn get_validators_in_epoch(
+        &self,
+        epoch: Epoch,
+    ) -> Result<Vec<ValidatorSummary>, Error> {
+        let path = format!("eth/v1/validator/duties/proposer/{epoch}");
+        let target = self.endpoint.join(&path)?;
+        let mut request = self.http.get(target);
+        request = request.query(&[("epoch", epoch)]);
+        let response = request.send().await?;
+
+        let result: ApiResult<Value<Vec<ValidatorSummary>>> = response.json().await?;
+        match result {
+            ApiResult::Ok(result) => Ok(result.data),
+            ApiResult::Err(err) => Err(err.into()),
+        }
+    }
+
     pub async fn get_balances(
         &self,
         id: StateId,
