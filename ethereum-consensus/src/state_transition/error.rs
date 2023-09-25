@@ -1,5 +1,5 @@
 use crate::{
-    capella::Withdrawal,
+    capella::{BlsPublicKey, Withdrawal},
     crypto::Error as CryptoError,
     phase0::{AttestationData, BeaconBlockHeader, Checkpoint},
     primitives::{BlsSignature, Bytes32, Epoch, Hash32, Root, Slot, ValidatorIndex},
@@ -85,14 +85,10 @@ pub enum InvalidOperation {
     SyncAggregate(#[from] InvalidSyncAggregate),
     #[error("invalid execution payload: {0}")]
     ExecutionPayload(#[from] InvalidExecutionPayload),
-    #[error("invalid bls signature for execution chang {0:?}")]
-    ExecutionChange(BlsSignature),
-    #[error("validator index is out of bounds {0}")]
-    ValidatorIndex(usize),
-    #[error("invalid withdrawal credentials prefix{0}")]
-    WithdrawalCredentialsPrefix(u8),
-    #[error("invalid withdrawal credentials public key{0:?}")]
-    WithdrawalCredentialsPublicKey(&'static [u8]),
+    #[error("invalid withdrawals: {0}")]
+    Withdrawal(#[from] InvalidWithdrawals),
+    #[error("invalid bls signature to execution change: {0}")]
+    BlsToExecutionChange(#[from] InvalidBlsToExecutionChange),
 }
 
 #[derive(Debug, Error)]
@@ -193,6 +189,18 @@ pub enum InvalidVoluntaryExit {
 pub enum InvalidWithdrawals {
     #[error("expected withdrawals {expected:#?} do not match provided withdrawals {provided:#?}")]
     IncorrectWithdrawals { provided: Vec<Withdrawal>, expected: Vec<Withdrawal> },
+}
+
+#[derive(Debug, Error)]
+pub enum InvalidBlsToExecutionChange {
+    #[error("invalid bls signature for execution change {0:?}")]
+    ExecutionChange(BlsSignature),
+    #[error("validator index is out of bounds {0}")]
+    BadValidatorIndex(usize),
+    #[error("invalid withdrawal credentials prefix{0}")]
+    WithdrawalCredentialsPrefix(u8),
+    #[error("invalid withdrawal credentials public key{0:?}")]
+    WithdrawalCredentialsPublicKey(BlsPublicKey),
 }
 
 #[derive(Debug, Error)]
