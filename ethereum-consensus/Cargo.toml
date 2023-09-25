@@ -10,6 +10,7 @@ default = ["serde", "async"]
 serde = ["dep:serde", "hex", "serde_json", "serde_yaml"]
 async = ["tokio", "tokio-stream", "async-stream"]
 spec-tests = ["serde", "serde_yaml"]
+ec = ["clap", "eyre", "bip32", "rand_core"]
 
 [dependencies]
 ssz_rs = { git = "https://github.com/ralexstokes/ssz-rs", rev = "51f3932d1578a62f856c19175482056912de5f3e" }
@@ -38,6 +39,18 @@ async-stream = { version = "0.3.3", optional = true }
 
 bs58 = "0.4.0"
 
+clap = { version = "4.4.4", optional = true, features = ["derive"] }
+eyre = { version = "0.6.8", optional = true }
+bip32 = { version = "0.5.1", optional = true, default-features = false, features = [
+    "bip39",
+] }
+rand_core = { version = "0.6", optional = true, features = ["std"] }
+
+
 [dev-dependencies]
 serde_with = "1.13.0"
 snap = "1"
+
+[[bin]]
+name = "ec"
+required-features = ["ec"]
