@@ -68,7 +68,6 @@ fn compute_kzg_proof(
     Ok((KzgProof(proof), evaluation))
 }
 
-/// This function doesn't verify that the commitment is correct with respect to the blob.
 fn compute_blob_kzg_proof(
     blob: Blob,
     commitment_bytes: Bytes48,
