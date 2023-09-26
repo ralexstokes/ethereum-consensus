@@ -1,8 +1,8 @@
 use crate::{
-    capella::{BlsPublicKey, Withdrawal},
+    capella::Withdrawal,
     crypto::Error as CryptoError,
     phase0::{AttestationData, BeaconBlockHeader, Checkpoint},
-    primitives::{BlsSignature, Bytes32, Epoch, Hash32, Root, Slot, ValidatorIndex},
+    primitives::{BlsPublicKey, BlsSignature, Bytes32, Epoch, Hash32, Root, Slot, ValidatorIndex},
     ssz::prelude::*,
     state_transition::Forks,
 };
@@ -193,8 +193,6 @@ pub enum InvalidWithdrawals {
 
 #[derive(Debug, Error)]
 pub enum InvalidBlsToExecutionChange {
-    #[error("invalid bls signature for execution change {0:?}")]
-    InvalidSignature(BlsSignature),
     #[error("validator index {0} is out of bounds")]
     ValidatorIndexOutOfBounds(usize),
     #[error("invalid withdrawal credentials prefix: {0}")]
