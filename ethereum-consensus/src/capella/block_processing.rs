@@ -61,7 +61,7 @@ pub fn process_bls_to_execution_change<
             InvalidBlsToExecutionChange::WithdrawalCredentialsPrefix(withdrawal_credentials[0]),
         )))
     }
-    
+
     // NOTE: compute `signing_root` ahead of the public key check to satisfy borrow check
     let domain = compute_domain(
         DomainType::BlsToExecutionChange,
@@ -69,7 +69,7 @@ pub fn process_bls_to_execution_change<
         Some(state.genesis_validators_root),
         context,
     )?;
-    
+
     let signing_root = compute_signing_root(address_change, domain)?;
     let public_key = &address_change.from_bls_public_key;
     if withdrawal_credentials[1..] != hash(public_key.as_ref())[1..] {
@@ -77,13 +77,12 @@ pub fn process_bls_to_execution_change<
             InvalidBlsToExecutionChange::PublicKeyMismatch(public_key.clone()),
         )))
     }
-    
+
     verify_signature(public_key, signing_root.as_ref(), signature)?;
 
     withdrawal_credentials[0] = ETH1_ADDRESS_WITHDRAWAL_PREFIX;
     withdrawal_credentials[1..12].fill(0);
-    withdrawal_credentials[12..]
-        .copy_from_slice(address_change.to_execution_address.as_ref());
+    withdrawal_credentials[12..].copy_from_slice(address_change.to_execution_address.as_ref());
 
     Ok(())
 }
