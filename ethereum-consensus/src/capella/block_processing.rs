@@ -58,27 +58,26 @@ pub fn process_bls_to_execution_change<
     let withdrawal_credentials = &mut validator.withdrawal_credentials;
     if withdrawal_credentials[0] != BLS_WITHDRAWAL_PREFIX {
         return Err(invalid_operation_error(InvalidOperation::BlsToExecutionChange(
-            InvalidBlsToExecutionChange::WithdrawalCredentialsPrefix(
-                withdrawal_credentials[0],
-            ),
+            InvalidBlsToExecutionChange::WithdrawalCredentialsPrefix(withdrawal_credentials[0]),
         )))
     }
-
-    let public_key = &address_change.from_bls_public_key;
-    if withdrawal_credentials[1..] != hash(public_key.as_ref())[1..] {
-        return Err(invalid_operation_error(InvalidOperation::BlsToExecutionChange(
-            InvalidBlsToExecutionChange::PublicKeyMismatch(public_key.clone()),
-        )))
-    }
-
+    
+    // NOTE: compute `signing_root` ahead of the public key check to satisfy borrow check
     let domain = compute_domain(
         DomainType::BlsToExecutionChange,
         None,
         Some(state.genesis_validators_root),
         context,
     )?;
-
+    
     let signing_root = compute_signing_root(address_change, domain)?;
+    let public_key = &address_change.from_bls_public_key;
+    if withdrawal_credentials[1..] != hash(public_key.as_ref())[1..] {
+        return Err(invalid_operation_error(InvalidOperation::BlsToExecutionChange(
+            InvalidBlsToExecutionChange::PublicKeyMismatch(public_key.clone()),
+        )))
+    }
+    
     verify_signature(public_key, signing_root.as_ref(), signature)?;
 
     withdrawal_credentials[0] = ETH1_ADDRESS_WITHDRAWAL_PREFIX;
