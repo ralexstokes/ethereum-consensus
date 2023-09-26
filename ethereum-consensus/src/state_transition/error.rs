@@ -194,13 +194,13 @@ pub enum InvalidWithdrawals {
 #[derive(Debug, Error)]
 pub enum InvalidBlsToExecutionChange {
     #[error("invalid bls signature for execution change {0:?}")]
-    ExecutionChange(BlsSignature),
+    InvalidSignature(BlsSignature),
     #[error("validator index is out of bounds {0}")]
-    BadValidatorIndex(usize),
-    #[error("invalid withdrawal credentials prefix{0}")]
+    ValidatorIndexOutOfBounds(usize),
+    #[error("invalid withdrawal credentials prefix: {0}")]
     WithdrawalCredentialsPrefix(u8),
-    #[error("invalid withdrawal credentials public key{0:?}")]
-    WithdrawalCredentialsPublicKey(BlsPublicKey),
+    #[error("operation's public key did not match the registered key: {0:?}")]
+    PublicKeyMismatch(BlsPublicKey),
 }
 
 #[derive(Debug, Error)]
