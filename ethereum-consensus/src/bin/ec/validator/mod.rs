@@ -7,12 +7,13 @@ use thiserror::Error;
 pub enum Error {}
 
 pub fn generate_random_mnemonic() -> Result<Mnemonic, Error> {
-    Ok(Mnemonic::random(&mut OsRng, Default::default()))
+    Ok(Mnemonic::random(OsRng, Default::default()))
 }
 
 #[derive(Debug, Subcommand)]
 pub enum Commands {
     Mnemonic,
+    GenerateKeystores { phrase: String, start: usize, end: usize },
 }
 
 #[derive(Debug, Args)]
@@ -27,7 +28,15 @@ impl Command {
         match self.command {
             Commands::Mnemonic => {
                 let mnemonic = generate_random_mnemonic()?;
+                println!("generated new mnemonic from system entropy and **empty** password");
                 println!("{}", mnemonic.phrase());
+                Ok(())
+            }
+            Commands::GenerateKeystores { phrase, start, end } => {
+                println!("recovering mnemonic from phrase (with empty password)");
+                let mnemonic = Mnemonic::new(phrase, Default::default())?;
+                let seed = mnemonic.to_seed("");
+                println!("generating key stores for key indices from {start:?} to {end}");
                 Ok(())
             }
         }
