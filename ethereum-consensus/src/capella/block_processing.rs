@@ -47,14 +47,15 @@ pub fn process_bls_to_execution_change<
 ) -> Result<()> {
     let address_change = &mut signed_address_change.message;
     let signature = &signed_address_change.signature;
-    let validator = &mut state.validators[address_change.validator_index].clone();
-    let withdrawal_credentials = &mut validator.withdrawal_credentials;
 
     if address_change.validator_index >= state.validators.len() {
         return Err(invalid_operation_error(InvalidOperation::BlsToExecutionChange(
             InvalidBlsToExecutionChange::ValidatorIndexOutOfBounds(address_change.validator_index),
         )))
     }
+
+    let validator = &mut state.validators[address_change.validator_index];
+    let withdrawal_credentials = &mut validator.withdrawal_credentials;
     if withdrawal_credentials[0] != BLS_WITHDRAWAL_PREFIX {
         return Err(invalid_operation_error(InvalidOperation::BlsToExecutionChange(
             InvalidBlsToExecutionChange::WithdrawalCredentialsPrefix(
