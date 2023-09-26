@@ -1,16 +1,16 @@
 use crate::{
     capella::{
-        compute_domain, compute_timestamp_at_slot, decrease_balance, get_current_epoch,
-        get_randao_mix, is_fully_withdrawable_validator, is_partially_withdrawable_validator,
-        process_attestation, process_attester_slashing, process_block_header, process_deposit,
-        process_eth1_data, process_proposer_slashing, process_randao, process_sync_aggregate,
-        process_voluntary_exit, BeaconBlock, BeaconBlockBody, BeaconState, DomainType,
-        ExecutionAddress, ExecutionEngine, ExecutionPayload, ExecutionPayloadHeader,
-        NewPayloadRequest, SignedBlsToExecutionChange, Withdrawal,
+        compute_domain, compute_signing_root, compute_timestamp_at_slot, decrease_balance,
+        get_current_epoch, get_randao_mix, is_fully_withdrawable_validator,
+        is_partially_withdrawable_validator, process_attestation, process_attester_slashing,
+        process_block_header, process_deposit, process_eth1_data, process_proposer_slashing,
+        process_randao, process_sync_aggregate, process_voluntary_exit, BeaconBlock,
+        BeaconBlockBody, BeaconState, DomainType, ExecutionAddress, ExecutionEngine,
+        ExecutionPayload, ExecutionPayloadHeader, NewPayloadRequest, SignedBlsToExecutionChange,
+        Withdrawal,
     },
-    crypto::hash,
+    crypto::{hash, verify_signature},
     primitives::{BLS_WITHDRAWAL_PREFIX, ETH1_ADDRESS_WITHDRAWAL_PREFIX},
-    signing::verify_signed_data,
     ssz::prelude::*,
     state_transition::{
         invalid_operation_error, Context, InvalidBlsToExecutionChange, InvalidDeposit,
@@ -42,22 +42,20 @@ pub fn process_bls_to_execution_change<
         BYTES_PER_LOGS_BLOOM,
         MAX_EXTRA_DATA_BYTES,
     >,
-    signed_address_change: &SignedBlsToExecutionChange,
+    signed_address_change: &mut SignedBlsToExecutionChange,
     context: &Context,
 ) -> Result<()> {
-    let mut address_change = signed_address_change.message.clone();
+    let address_change = &mut signed_address_change.message;
     let signature = &signed_address_change.signature;
+    let validator = &mut state.validators[address_change.validator_index].clone();
+    let withdrawal_credentials = &mut validator.withdrawal_credentials;
 
     if address_change.validator_index >= state.validators.len() {
         return Err(invalid_operation_error(InvalidOperation::BlsToExecutionChange(
-            InvalidBlsToExecutionChange::BadValidatorIndex(address_change.validator_index),
+            InvalidBlsToExecutionChange::ValidatorIndexOutOfBounds(address_change.validator_index),
         )))
     }
-
-    let withdrawal_credentials_prefix =
-        state.validators[address_change.validator_index].withdrawal_credentials[0];
-
-    if withdrawal_credentials_prefix != BLS_WITHDRAWAL_PREFIX {
+    if withdrawal_credentials[0] != BLS_WITHDRAWAL_PREFIX {
         return Err(invalid_operation_error(InvalidOperation::BlsToExecutionChange(
             InvalidBlsToExecutionChange::WithdrawalCredentialsPrefix(
                 state.validators[address_change.validator_index].withdrawal_credentials[0],
@@ -65,13 +63,11 @@ pub fn process_bls_to_execution_change<
         )))
     }
 
-    let public_key = address_change.from_bls_public_key.clone();
+    let public_key = &address_change.from_bls_public_key;
 
-    if state.validators[address_change.validator_index].withdrawal_credentials[1..] !=
-        hash(public_key.as_slice())[1..]
-    {
+    if withdrawal_credentials[1..] != hash(public_key.as_slice())[1..] {
         return Err(invalid_operation_error(InvalidOperation::BlsToExecutionChange(
-            InvalidBlsToExecutionChange::WithdrawalCredentialsPublicKey(public_key),
+            InvalidBlsToExecutionChange::PublicKeyMismatch(public_key.clone()),
         )))
     }
 
@@ -82,9 +78,13 @@ pub fn process_bls_to_execution_change<
         context,
     )?;
 
-    verify_signed_data(&mut address_change, signature, &public_key, domain)?;
-
-    let validator = &mut state.validators[address_change.validator_index];
+    let signing_root = compute_signing_root(address_change, domain)?;
+    verify_signature(&address_change.from_bls_public_key, signing_root.as_ref(), signature)
+        .map_err(|_| {
+            invalid_operation_error(InvalidOperation::BlsToExecutionChange(
+                InvalidBlsToExecutionChange::InvalidSignature(signature.clone()),
+            ))
+        })?;
 
     validator.withdrawal_credentials[0] = ETH1_ADDRESS_WITHDRAWAL_PREFIX;
     validator.withdrawal_credentials[1..12].fill(0);
