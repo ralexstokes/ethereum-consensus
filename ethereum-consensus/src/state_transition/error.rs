@@ -195,7 +195,7 @@ pub enum InvalidWithdrawals {
 pub enum InvalidBlsToExecutionChange {
     #[error("invalid bls signature for execution change {0:?}")]
     InvalidSignature(BlsSignature),
-    #[error("validator index is out of bounds {0}")]
+    #[error("validator index {0} is out of bounds")]
     ValidatorIndexOutOfBounds(usize),
     #[error("invalid withdrawal credentials prefix: {0}")]
     WithdrawalCredentialsPrefix(u8),

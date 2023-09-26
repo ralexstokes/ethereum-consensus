@@ -59,14 +59,13 @@ pub fn process_bls_to_execution_change<
     if withdrawal_credentials[0] != BLS_WITHDRAWAL_PREFIX {
         return Err(invalid_operation_error(InvalidOperation::BlsToExecutionChange(
             InvalidBlsToExecutionChange::WithdrawalCredentialsPrefix(
-                state.validators[address_change.validator_index].withdrawal_credentials[0],
+                withdrawal_credentials[0],
             ),
         )))
     }
 
     let public_key = &address_change.from_bls_public_key;
-
-    if withdrawal_credentials[1..] != hash(public_key.as_slice())[1..] {
+    if withdrawal_credentials[1..] != hash(public_key.as_ref())[1..] {
         return Err(invalid_operation_error(InvalidOperation::BlsToExecutionChange(
             InvalidBlsToExecutionChange::PublicKeyMismatch(public_key.clone()),
         )))
@@ -80,16 +79,11 @@ pub fn process_bls_to_execution_change<
     )?;
 
     let signing_root = compute_signing_root(address_change, domain)?;
-    verify_signature(&address_change.from_bls_public_key, signing_root.as_ref(), signature)
-        .map_err(|_| {
-            invalid_operation_error(InvalidOperation::BlsToExecutionChange(
-                InvalidBlsToExecutionChange::InvalidSignature(signature.clone()),
-            ))
-        })?;
+    verify_signature(public_key, signing_root.as_ref(), signature)?;
 
-    validator.withdrawal_credentials[0] = ETH1_ADDRESS_WITHDRAWAL_PREFIX;
-    validator.withdrawal_credentials[1..12].fill(0);
-    validator.withdrawal_credentials[12..]
+    withdrawal_credentials[0] = ETH1_ADDRESS_WITHDRAWAL_PREFIX;
+    withdrawal_credentials[1..12].fill(0);
+    withdrawal_credentials[12..]
         .copy_from_slice(address_change.to_execution_address.as_ref());
 
     Ok(())
