@@ -1,9 +1,6 @@
-#![allow(unused)]
-use crate::{crypto::hash, primitives, ssz::prelude::ByteVector};
+use crate::{primitives, ssz::prelude::*};
 use alloy_primitives::{uint, U256};
-use blst::min_pk::PublicKey;
 use c_kzg::{Bytes32, Bytes48, Error, KzgSettings};
-use ssz_rs::prelude::*;
 use std::ops::Deref;
 
 pub const BLS_MODULUS: U256 =
@@ -20,13 +17,12 @@ pub type VersionedHash = primitives::Bytes32;
 pub type BLSFieldElement = U256;
 pub type Polynomial = Vec<BLSFieldElement>; // Should this polynomial type be an array?
 
-const fn create_g1_point_at_infinity() -> [u8; 48] {
-    let mut arr: [u8; 48] = [0; 48];
-    arr[0] = 0xc0;
-    arr
-}
-
 pub struct Blob(ByteVector<BYTES_PER_BLOB>);
+
+pub struct ProofAndEvaluation {
+    proof: KzgProof,
+    evaluation: Bytes32,
+}
 
 #[derive(SimpleSerialize, Default, Debug, Clone, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
@@ -58,14 +54,16 @@ fn compute_kzg_proof(
     blob: Blob,
     z_bytes: Bytes32,
     kzg_settings: &KzgSettings,
-) -> Result<(KzgProof, Bytes32), Error> {
+) -> Result<ProofAndEvaluation, Error> {
     let inner = blob.0.as_ref();
     let blob = c_kzg::Blob::from_bytes(inner).unwrap();
 
     let (proof, evaluation) = c_kzg::KzgProof::compute_kzg_proof(&blob, &z_bytes, kzg_settings)?;
     let proof = ByteVector::try_from(proof.to_bytes().as_ref()).unwrap();
 
-    Ok((KzgProof(proof), evaluation))
+    let result = ProofAndEvaluation { proof: KzgProof(proof), evaluation };
+
+    Ok(result)
 }
 
 fn compute_blob_kzg_proof(
@@ -130,17 +128,17 @@ fn verify_blob_kzg_proof_batch(
 ) -> Result<bool, Error> {
     let mut c_kzg_blobs = Vec::with_capacity(blobs.len());
 
-    for bytes in blobs.iter().map(|blob| blob.0.as_ref()) {
-        let blob = c_kzg::Blob::from_bytes(bytes)?;
+    for blob in blobs {
+        let inner = blob.0.as_ref();
+        let blob = c_kzg::Blob::from_bytes(inner)?;
         c_kzg_blobs.push(blob);
     }
 
-    let out = c_kzg::KzgProof::verify_blob_kzg_proof_batch(
+    c_kzg::KzgProof::verify_blob_kzg_proof_batch(
         &c_kzg_blobs,
         commitments_bytes,
         proofs_bytes,
         kzg_settings,
-    )?;
-
-    Ok(out)
+    )
+    .map_err(Into::into)
 }
