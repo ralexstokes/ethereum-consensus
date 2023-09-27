@@ -2,7 +2,7 @@
 use crate::serde::{try_bytes_from_hex_str, HexError};
 use crate::{primitives::Bytes32, ssz::prelude::*};
 use blst::{min_pk as bls_impl, BLST_ERROR};
-use sha2::{digest::FixedOutput, Digest, Sha256};
+use sha2::{Digest, Sha256};
 use std::{
     fmt,
     ops::{Deref, DerefMut},
@@ -10,11 +10,13 @@ use std::{
 use thiserror::Error;
 
 pub fn hash<D: AsRef<[u8]>>(data: D) -> Bytes32 {
-    let mut result = vec![0u8; 32];
     let mut hasher = Sha256::new();
     hasher.update(data);
-    hasher.finalize_into(result.as_mut_slice().into());
-    Bytes32::try_from(result.as_ref()).expect("correct input")
+
+    let mut result = Bytes32::default();
+    let inner = &mut result[..];
+    hasher.finalize_into(inner.into());
+    result
 }
 
 const BLS_DST: &[u8] = b"BLS_SIG_BLS12381G2_XMD:SHA-256_SSWU_RO_POP_";
