@@ -1,19 +1,12 @@
-use bip32::Mnemonic;
+mod bip39;
+mod keystores;
+
 use clap::{Args, Subcommand};
-use rand_core::OsRng;
-use thiserror::Error;
-
-#[derive(Debug, Error)]
-pub enum Error {}
-
-pub fn generate_random_mnemonic() -> Result<Mnemonic, Error> {
-    Ok(Mnemonic::random(OsRng, Default::default()))
-}
 
 #[derive(Debug, Subcommand)]
 pub enum Commands {
     Mnemonic,
-    GenerateKeystores { phrase: String, start: usize, end: usize },
+    GenerateKeystores { phrase: String, start: u32, end: u32 },
 }
 
 #[derive(Debug, Args)]
@@ -27,16 +20,14 @@ impl Command {
     pub fn execute(self) -> eyre::Result<()> {
         match self.command {
             Commands::Mnemonic => {
-                let mnemonic = generate_random_mnemonic()?;
-                println!("generated new mnemonic from system entropy and **empty** password");
-                println!("{}", mnemonic.phrase());
+                let mnemonic = bip39::generate_random_mnemonic()?;
+                println!("{}", mnemonic.to_string());
                 Ok(())
             }
             Commands::GenerateKeystores { phrase, start, end } => {
-                println!("recovering mnemonic from phrase (with empty password)");
-                let mnemonic = Mnemonic::new(phrase, Default::default())?;
-                let seed = mnemonic.to_seed("");
-                println!("generating key stores for key indices from {start:?} to {end}");
+                let mnemonic = bip39::recover_mnemonic_from_phrase(&phrase)?;
+                let keystores = keystores::generate(mnemonic, start, end)?;
+                dbg!(keystores);
                 Ok(())
             }
         }
