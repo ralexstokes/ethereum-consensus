@@ -110,10 +110,10 @@ fn generate_suite_src(
     auxilliary_data: &HashMap<&str, HashMap<&str, Auxillary>>,
 ) -> String {
     let mut test_case_type = handler.to_case(Case::UpperCamel) + "TestCase";
-    let mut src = r#"// WARNING!
+    let mut src = r"// WARNING!
 // This file was generated with `gen-tests`. Do NOT edit manually.
 
-"#
+"
     .to_string();
 
     writeln!(src, "use crate::spec_test_runners::{runner}::{test_case_type};",).unwrap();
@@ -242,11 +242,11 @@ pub enum Spec {
 // we follow the pattern of the `consensus-spec-tests` that repeats names along the test hierarchy.
 // clippy does not like this so we silence this lint across the entire generated set of modules.
 fn fix_clippy_lint(s: &mut String) {
-    let fix = r#"
+    let fix = r"
 // Submodules here follow the layout of the spec tests for consistency
 // but we must disable a clippy lint to satisfy the linter on the naming
 #![allow(clippy::module_inception)]
-    "#;
+    ";
     s.insert_str(0, fix)
 }
 
