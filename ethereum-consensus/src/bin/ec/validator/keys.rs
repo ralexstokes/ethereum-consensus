@@ -1,4 +1,4 @@
-use bip39::Mnemonic;
+use crate::validator::mnemonic::Seed;
 use ethereum_consensus::crypto::{hash, PublicKey as BlsPublicKey, SecretKey as BlsSecretKey};
 use hkdf::Hkdf;
 use rayon::prelude::*;
@@ -99,10 +99,8 @@ fn derive_child_key(parent_key: &Key, index: u32) -> Key {
     hkdf_mod_r(&compressed_lamport_public_key)
 }
 
-fn derive_master_sk(mnemonic: Mnemonic, passphrase: Option<&str>) -> Key {
-    let passphrase = passphrase.unwrap_or("");
-    let seed = mnemonic.to_seed(passphrase);
-    hkdf_mod_r(&seed)
+fn derive_master_sk(seed: &Seed) -> Key {
+    hkdf_mod_r(seed)
 }
 
 fn to_bls_secret_key(key: Key) -> BlsSecretKey {
@@ -128,19 +126,19 @@ fn derive_validator_keys(root_key: &Key, index: u32) -> ValidatorKeys {
     ValidatorKeys { signing, withdrawal }
 }
 
-pub fn generate(mnemonic: Mnemonic, start: u32, end: u32) -> Vec<ValidatorKeys> {
-    let root_key = derive_master_sk(mnemonic, None);
+pub fn generate(seed: &Seed, start: u32, end: u32) -> Vec<ValidatorKeys> {
+    let root_key = derive_master_sk(seed);
     (start..end).into_par_iter().map(|i| derive_validator_keys(&root_key, i)).collect()
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::str::FromStr;
+    use crate::validator::mnemonic;
 
     #[test]
     fn test_simple_key_derive() {
-        let mnemonic = Mnemonic::from_str("abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about").unwrap();
+        let mnemonic = mnemonic::recover_from_phrase("abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about").unwrap();
         let passphrase = "TREZOR";
         let seed = mnemonic.to_seed(passphrase);
         let expected_seed = [
@@ -151,7 +149,7 @@ mod tests {
         ];
         assert_eq!(seed, expected_seed);
 
-        let root_key = derive_master_sk(mnemonic, Some(passphrase));
+        let root_key = derive_master_sk(&seed);
         let expected_root_key = uint!(
             6083874454709270928345386274498605044986640685124978867557563392430687146096_U256
         );

@@ -26,7 +26,8 @@ impl Command {
             }
             Commands::GenerateKeystores { phrase, start, end } => {
                 let mnemonic = mnemonic::recover_from_phrase(&phrase)?;
-                let keys = keys::generate(mnemonic, start, end);
+                let seed = mnemonic::to_seed(mnemonic, None);
+                let keys = keys::generate(&seed, start, end);
                 dbg!(keys);
                 Ok(())
             }
