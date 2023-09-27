@@ -1,5 +1,5 @@
-mod bip39;
-mod keystores;
+mod keys;
+mod mnemonic;
 
 use clap::{Args, Subcommand};
 
@@ -20,14 +20,14 @@ impl Command {
     pub fn execute(self) -> eyre::Result<()> {
         match self.command {
             Commands::Mnemonic => {
-                let mnemonic = bip39::generate_random_mnemonic()?;
-                println!("{}", mnemonic.to_string());
+                let mnemonic = mnemonic::generate_random_from_system_entropy()?;
+                println!("{}", mnemonic);
                 Ok(())
             }
             Commands::GenerateKeystores { phrase, start, end } => {
-                let mnemonic = bip39::recover_mnemonic_from_phrase(&phrase)?;
-                let keystores = keystores::generate(mnemonic, start, end)?;
-                dbg!(keystores);
+                let mnemonic = mnemonic::recover_from_phrase(&phrase)?;
+                let keys = keys::generate(mnemonic, start, end);
+                dbg!(keys);
                 Ok(())
             }
         }

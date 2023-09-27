@@ -4,7 +4,6 @@ use hkdf::Hkdf;
 use rayon::prelude::*;
 use ruint::{aliases::U256, uint, Uint};
 use sha2::Sha256;
-use thiserror::Error;
 
 type U384 = Uint<384, 6>;
 
@@ -16,20 +15,10 @@ const K: usize = 32;
 const LAMPORT_COUNT: usize = 255;
 const LAMPORT_L: usize = K * LAMPORT_COUNT;
 
-#[derive(Debug, Error)]
-pub enum Error {}
-
 #[derive(Debug, Default)]
-struct Key(U256);
+pub struct Key(U256);
 
-#[derive(Debug)]
-pub struct Keystore {
-    key: Key,
-}
-
-// NOTE: we don't need `mut` on `input` but it keeps the lifetimes simple and allows us to skip
-// unnecessary allocations
-fn bytes_split<const M: usize, const N: usize>(input: &mut [u8]) -> Vec<&[u8]> {
+fn bytes_split<const M: usize, const N: usize>(input: &[u8]) -> Vec<&[u8]> {
     debug_assert!(M % N == 0);
     debug_assert!(input.len() == M);
 
@@ -37,7 +26,7 @@ fn bytes_split<const M: usize, const N: usize>(input: &mut [u8]) -> Vec<&[u8]> {
 }
 
 fn ikm_to_lamport_secret_key<'a>(ikm: &[u8], salt: &[u8], output: &'a mut [u8]) -> Vec<&'a [u8]> {
-    let hk = Hkdf::<Sha256>::new(Some(salt.as_ref()), &ikm);
+    let hk = Hkdf::<Sha256>::new(Some(salt), ikm);
     hk.expand(&[], output).expect("length L is valid");
     bytes_split::<LAMPORT_L, K>(output)
 }
@@ -103,15 +92,11 @@ fn derive_master_sk(mnemonic: Mnemonic) -> Key {
     hkdf_mod_r(&seed)
 }
 
-fn derive_keystore(root_key: &Key, index: u32) -> Result<Keystore, Error> {
-    let child_key = derive_child_key(root_key, index);
-    Ok(Keystore { key: child_key })
+fn derive_keystore(root_key: &Key, index: u32) -> Key {
+    derive_child_key(root_key, index)
 }
 
-pub fn generate(mnemonic: Mnemonic, start: u32, end: u32) -> Result<Vec<Keystore>, Error> {
+pub fn generate(mnemonic: Mnemonic, start: u32, end: u32) -> Vec<Key> {
     let root_key = derive_master_sk(mnemonic);
-    (start..end)
-        .into_par_iter()
-        .map(|i| derive_keystore(&root_key, i))
-        .collect::<Result<Vec<_>, _>>()
+    (start..end).into_par_iter().map(|i| derive_keystore(&root_key, i)).collect()
 }
