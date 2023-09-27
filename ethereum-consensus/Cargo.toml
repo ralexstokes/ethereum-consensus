@@ -17,7 +17,7 @@ ssz_rs = { git = "https://github.com/ralexstokes/ssz-rs", rev = "51f3932d1578a62
 blst = "0.3.11"
 rand = "0.8.4"
 thiserror = "1.0.30"
-sha2 = "0.9.8"
+sha2 = "0.10.8"
 integer-sqrt = "0.1.5"
 enr = "0.6.2"
 multihash = { version = "0.16", default-features = false, features = [
