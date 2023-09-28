@@ -2,7 +2,7 @@ use crate::{
     capella::Withdrawal,
     crypto::Error as CryptoError,
     phase0::{AttestationData, BeaconBlockHeader, Checkpoint},
-    primitives::{BlsSignature, Bytes32, Epoch, Hash32, Root, Slot, ValidatorIndex},
+    primitives::{BlsPublicKey, BlsSignature, Bytes32, Epoch, Hash32, Root, Slot, ValidatorIndex},
     ssz::prelude::*,
     state_transition::Forks,
 };
@@ -87,6 +87,8 @@ pub enum InvalidOperation {
     ExecutionPayload(#[from] InvalidExecutionPayload),
     #[error("invalid withdrawals: {0}")]
     Withdrawal(#[from] InvalidWithdrawals),
+    #[error("invalid BLS signature to execution change: {0}")]
+    BlsToExecutionChange(#[from] InvalidBlsToExecutionChange),
 }
 
 #[derive(Debug, Error)]
@@ -187,6 +189,16 @@ pub enum InvalidVoluntaryExit {
 pub enum InvalidWithdrawals {
     #[error("expected withdrawals {expected:#?} do not match provided withdrawals {provided:#?}")]
     IncorrectWithdrawals { provided: Vec<Withdrawal>, expected: Vec<Withdrawal> },
+}
+
+#[derive(Debug, Error)]
+pub enum InvalidBlsToExecutionChange {
+    #[error("validator index {0} is out of bounds")]
+    ValidatorIndexOutOfBounds(usize),
+    #[error("invalid withdrawal credentials prefix: {0}")]
+    WithdrawalCredentialsPrefix(u8),
+    #[error("operation's public key did not match the registered key: {0:?}")]
+    PublicKeyMismatch(BlsPublicKey),
 }
 
 #[derive(Debug, Error)]
