@@ -212,6 +212,10 @@ impl SecretKey {
         let inner = self.0.sign(msg, BLS_DST, &[]);
         Signature::try_from(inner.to_bytes().as_ref()).unwrap()
     }
+
+    pub fn to_bytes(self) -> [u8; 32] {
+        self.0.to_bytes()
+    }
 }
 
 #[derive(Clone, Default, Hash, PartialEq, Eq, SimpleSerialize)]
