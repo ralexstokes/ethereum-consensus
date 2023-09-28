@@ -15,17 +15,17 @@ const K: usize = 32;
 const LAMPORT_COUNT: usize = 255;
 const LAMPORT_L: usize = K * LAMPORT_COUNT;
 
+pub type Path = String;
+
 #[derive(Debug)]
 pub struct KeyPair {
     pub private_key: BlsSecretKey,
     pub public_key: BlsPublicKey,
+    pub path: Path,
 }
 
-#[derive(Debug)]
-pub struct ValidatorKeys {
-    pub signing: KeyPair,
-    pub withdrawal: KeyPair,
-}
+// (signing, withdrawal)
+pub type ValidatorKeys = (KeyPair, KeyPair);
 
 #[derive(Debug, Default, Clone)]
 struct Key(U256);
@@ -108,10 +108,10 @@ fn to_bls_secret_key(key: Key) -> BlsSecretKey {
     BlsSecretKey::try_from(key.as_ref()).unwrap()
 }
 
-fn to_key_pair(key: Key) -> KeyPair {
+fn to_key_pair(key: Key, path: Path) -> KeyPair {
     let private_key = to_bls_secret_key(key);
     let public_key = private_key.public_key();
-    KeyPair { private_key, public_key }
+    KeyPair { private_key, public_key, path }
 }
 
 fn derive_validator_keys(root_key: &Key, index: u32) -> ValidatorKeys {
@@ -121,14 +121,14 @@ fn derive_validator_keys(root_key: &Key, index: u32) -> ValidatorKeys {
         .fold(root_key.clone(), |key, index| derive_child_key(&key, index));
     let signing_key = derive_child_key(&withdrawal_key, 0);
 
-    let signing = to_key_pair(signing_key);
-    let withdrawal = to_key_pair(withdrawal_key);
-    ValidatorKeys { signing, withdrawal }
+    let signing = to_key_pair(signing_key, format!("m/12381/3600/{index}/0/0"));
+    let withdrawal = to_key_pair(withdrawal_key, format!("m/12381/3600/{index}/0"));
+    (signing, withdrawal)
 }
 
-pub fn generate(seed: &Seed, start: u32, end: u32) -> Vec<ValidatorKeys> {
+pub fn generate(seed: &Seed, start: u32, end: u32) -> (Vec<KeyPair>, Vec<KeyPair>) {
     let root_key = derive_master_sk(seed);
-    (start..end).into_par_iter().map(|i| derive_validator_keys(&root_key, i)).collect()
+    (start..end).into_par_iter().map(|i| derive_validator_keys(&root_key, i)).unzip()
 }
 
 #[cfg(test)]
