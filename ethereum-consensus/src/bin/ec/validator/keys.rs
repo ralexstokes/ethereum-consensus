@@ -1,4 +1,4 @@
-use bip39::Mnemonic;
+use crate::validator::mnemonic::Seed;
 use ethereum_consensus::crypto::{hash, PublicKey as BlsPublicKey, SecretKey as BlsSecretKey};
 use hkdf::Hkdf;
 use rayon::prelude::*;
@@ -15,17 +15,17 @@ const K: usize = 32;
 const LAMPORT_COUNT: usize = 255;
 const LAMPORT_L: usize = K * LAMPORT_COUNT;
 
+pub type Path = String;
+
 #[derive(Debug)]
 pub struct KeyPair {
     pub private_key: BlsSecretKey,
     pub public_key: BlsPublicKey,
+    pub path: Path,
 }
 
-#[derive(Debug)]
-pub struct ValidatorKeys {
-    pub signing: KeyPair,
-    pub withdrawal: KeyPair,
-}
+// (signing, withdrawal)
+pub type ValidatorKeys = (KeyPair, KeyPair);
 
 #[derive(Debug, Default, Clone)]
 struct Key(U256);
@@ -99,10 +99,8 @@ fn derive_child_key(parent_key: &Key, index: u32) -> Key {
     hkdf_mod_r(&compressed_lamport_public_key)
 }
 
-fn derive_master_sk(mnemonic: Mnemonic, passphrase: Option<&str>) -> Key {
-    let passphrase = passphrase.unwrap_or("");
-    let seed = mnemonic.to_seed(passphrase);
-    hkdf_mod_r(&seed)
+fn derive_master_sk(seed: &Seed) -> Key {
+    hkdf_mod_r(seed)
 }
 
 fn to_bls_secret_key(key: Key) -> BlsSecretKey {
@@ -110,10 +108,10 @@ fn to_bls_secret_key(key: Key) -> BlsSecretKey {
     BlsSecretKey::try_from(key.as_ref()).unwrap()
 }
 
-fn to_key_pair(key: Key) -> KeyPair {
+fn to_key_pair(key: Key, path: Path) -> KeyPair {
     let private_key = to_bls_secret_key(key);
     let public_key = private_key.public_key();
-    KeyPair { private_key, public_key }
+    KeyPair { private_key, public_key, path }
 }
 
 fn derive_validator_keys(root_key: &Key, index: u32) -> ValidatorKeys {
@@ -123,24 +121,24 @@ fn derive_validator_keys(root_key: &Key, index: u32) -> ValidatorKeys {
         .fold(root_key.clone(), |key, index| derive_child_key(&key, index));
     let signing_key = derive_child_key(&withdrawal_key, 0);
 
-    let signing = to_key_pair(signing_key);
-    let withdrawal = to_key_pair(withdrawal_key);
-    ValidatorKeys { signing, withdrawal }
+    let signing = to_key_pair(signing_key, format!("m/12381/3600/{index}/0/0"));
+    let withdrawal = to_key_pair(withdrawal_key, format!("m/12381/3600/{index}/0"));
+    (signing, withdrawal)
 }
 
-pub fn generate(mnemonic: Mnemonic, start: u32, end: u32) -> Vec<ValidatorKeys> {
-    let root_key = derive_master_sk(mnemonic, None);
-    (start..end).into_par_iter().map(|i| derive_validator_keys(&root_key, i)).collect()
+pub fn generate(seed: &Seed, start: u32, end: u32) -> (Vec<KeyPair>, Vec<KeyPair>) {
+    let root_key = derive_master_sk(seed);
+    (start..end).into_par_iter().map(|i| derive_validator_keys(&root_key, i)).unzip()
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::str::FromStr;
+    use crate::validator::mnemonic;
 
     #[test]
     fn test_simple_key_derive() {
-        let mnemonic = Mnemonic::from_str("abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about").unwrap();
+        let mnemonic = mnemonic::recover_from_phrase("abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about").unwrap();
         let passphrase = "TREZOR";
         let seed = mnemonic.to_seed(passphrase);
         let expected_seed = [
@@ -151,7 +149,7 @@ mod tests {
         ];
         assert_eq!(seed, expected_seed);
 
-        let root_key = derive_master_sk(mnemonic, Some(passphrase));
+        let root_key = derive_master_sk(&seed);
         let expected_root_key = uint!(
             6083874454709270928345386274498605044986640685124978867557563392430687146096_U256
         );
