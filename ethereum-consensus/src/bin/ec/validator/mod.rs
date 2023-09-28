@@ -29,15 +29,8 @@ impl Command {
                 let mnemonic = mnemonic::recover_from_phrase(&phrase)?;
                 let seed = mnemonic::to_seed(mnemonic, None);
                 let (signing_keys, _withdrawal_keys) = keys::generate(&seed, start, end);
-                let (keystores, passwords) = keystores::generate(signing_keys);
-                let keystores_json = keystores
-                    .iter()
-                    .map(|keystore| serde_json::to_string_pretty(keystore).unwrap())
-                    .collect::<Vec<_>>();
-                dbg!(keystores, passwords);
-                for keystore in keystores_json {
-                    println!("{keystore}");
-                }
+                let keystores_with_passphrases = keystores::generate(signing_keys);
+                println!("{}", serde_json::to_string_pretty(&keystores_with_passphrases).unwrap());
                 Ok(())
             }
         }
