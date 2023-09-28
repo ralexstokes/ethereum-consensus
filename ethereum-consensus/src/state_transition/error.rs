@@ -87,7 +87,7 @@ pub enum InvalidOperation {
     ExecutionPayload(#[from] InvalidExecutionPayload),
     #[error("invalid withdrawals: {0}")]
     Withdrawal(#[from] InvalidWithdrawals),
-    #[error("invalid bls signature to execution change: {0}")]
+    #[error("invalid BLS signature to execution change: {0}")]
     BlsToExecutionChange(#[from] InvalidBlsToExecutionChange),
 }
 
