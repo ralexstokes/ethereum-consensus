@@ -54,7 +54,8 @@ pub fn process_bls_to_execution_change<
         )))
     }
 
-    let withdrawal_credentials = &mut state.validators[address_change.validator_index].withdrawal_credentials;
+    let withdrawal_credentials =
+         &mut state.validators[address_change.validator_index].withdrawal_credentials;
     if withdrawal_credentials[0] != BLS_WITHDRAWAL_PREFIX {
         return Err(invalid_operation_error(InvalidOperation::BlsToExecutionChange(
             InvalidBlsToExecutionChange::WithdrawalCredentialsPrefix(withdrawal_credentials[0]),
