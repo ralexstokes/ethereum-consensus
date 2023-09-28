@@ -25,7 +25,7 @@ run-integration-tests:
 test:
     # NOTE: do not test `--all-features` here to only run unit tests
     # partition much heavier "integration tests" to a separate command
-    cargo test
+    cargo test --features ec
 fmt:
     cargo +nightly fmt --all
 lint: fmt
