@@ -7,9 +7,10 @@ license = "MIT OR Apache-2.0"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [features]
-default = ["cli", "reqwest/native-tls"]
+default = ["cli", "native-tls"]
 cli = ["clap"]
 rustls = ["reqwest/rustls-tls"]
+native-tls = ["reqwest/default-tls"] 
 
 [dependencies]
 tokio = { version = "1.0", features = ["full"] }
