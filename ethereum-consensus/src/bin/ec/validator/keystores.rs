@@ -28,6 +28,14 @@ where
     s.collect_str(&"")
 }
 
+fn as_json_str<S, D: Serialize>(data: D, s: S) -> Result<S::Ok, S::Error>
+where
+    S: Serializer,
+{
+    let encoding = serde_json::to_string(&data).unwrap();
+    s.collect_str(&encoding)
+}
+
 pub type Passphrase = String;
 const PASSPHRASE_LEN: usize = 32;
 
@@ -201,7 +209,12 @@ impl Keystore {
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct KeystoreWithPassphrase {
+    // NOTE: this JSON name is lighthouse specific
+    #[serde(rename = "voting_keystore")]
+    #[serde(serialize_with = "as_json_str")]
     keystore: Keystore,
+    // NOTE: this JSON name is lighthouse specific
+    #[serde(rename = "voting_keystore_password")]
     passphrase: Passphrase,
 }
 

@@ -7,7 +7,17 @@ use clap::{Args, Subcommand};
 #[derive(Debug, Subcommand)]
 pub enum Commands {
     Mnemonic,
-    GenerateKeystores { phrase: String, start: u32, end: u32 },
+    #[clap(
+        about = "Generates keystores (with passphrases) that target a format compatible with `lighthouse validator-manager` utility."
+    )]
+    GenerateLighthouseKeystores {
+        #[clap(help = "BIP-39 mnemonic to use following EIP-2334")]
+        phrase: String,
+        #[clap(help = "EIP-2334 index to start key generation (inclusive)")]
+        start: u32,
+        #[clap(help = "EIP-2334 index to stop key generation (exclusive)")]
+        end: u32,
+    },
 }
 
 #[derive(Debug, Args)]
@@ -25,7 +35,7 @@ impl Command {
                 println!("{}", mnemonic);
                 Ok(())
             }
-            Commands::GenerateKeystores { phrase, start, end } => {
+            Commands::GenerateLighthouseKeystores { phrase, start, end } => {
                 let mnemonic = mnemonic::recover_from_phrase(&phrase)?;
                 let seed = mnemonic::to_seed(mnemonic, None);
                 let (signing_keys, _withdrawal_keys) = keys::generate(&seed, start, end);
