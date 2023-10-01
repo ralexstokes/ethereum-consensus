@@ -7,7 +7,7 @@ use crate::{
 };
 
 #[derive(Default, Debug, SimpleSerialize, Clone, PartialEq, Eq)]
-#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[derive(serde::Serialize, serde::Deserialize)]
 pub struct BeaconBlockBody<
     const MAX_PROPOSER_SLASHINGS: usize,
     const MAX_VALIDATORS_PER_COMMITTEE: usize,
@@ -28,7 +28,7 @@ pub struct BeaconBlockBody<
 }
 
 #[derive(Default, Debug, SimpleSerialize, Clone, PartialEq, Eq)]
-#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[derive(serde::Serialize, serde::Deserialize)]
 pub struct BeaconBlock<
     const MAX_PROPOSER_SLASHINGS: usize,
     const MAX_VALIDATORS_PER_COMMITTEE: usize,
@@ -54,7 +54,7 @@ pub struct BeaconBlock<
 }
 
 #[derive(Default, Debug, SimpleSerialize, Clone, PartialEq, Eq)]
-#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[derive(serde::Serialize, serde::Deserialize)]
 pub struct SignedBeaconBlock<
     const MAX_PROPOSER_SLASHINGS: usize,
     const MAX_VALIDATORS_PER_COMMITTEE: usize,
@@ -75,7 +75,7 @@ pub struct SignedBeaconBlock<
 }
 
 #[derive(Default, Debug, SimpleSerialize, Clone, PartialEq, Eq)]
-#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[derive(serde::Serialize, serde::Deserialize)]
 pub struct BeaconBlockHeader {
     #[serde(with = "crate::serde::as_string")]
     pub slot: Slot,
@@ -87,7 +87,7 @@ pub struct BeaconBlockHeader {
 }
 
 #[derive(Default, Debug, SimpleSerialize, Clone, PartialEq, Eq)]
-#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[derive(serde::Serialize, serde::Deserialize)]
 pub struct SignedBeaconBlockHeader {
     pub message: BeaconBlockHeader,
     pub signature: BlsSignature,

@@ -4,7 +4,7 @@ use crate::{
 };
 
 #[derive(Default, Debug, Clone, SimpleSerialize, PartialEq, Eq)]
-#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[derive(serde::Serialize, serde::Deserialize)]
 pub struct Withdrawal {
     #[serde(with = "crate::serde::as_string")]
     pub index: WithdrawalIndex,

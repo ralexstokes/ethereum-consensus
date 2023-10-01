@@ -10,7 +10,7 @@ use crate::{
 };
 
 #[derive(Default, Debug, SimpleSerialize, Clone, PartialEq, Eq)]
-#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[derive(serde::Serialize, serde::Deserialize)]
 pub struct Fork {
     #[serde(with = "crate::serde::as_hex")]
     pub previous_version: Version,
@@ -21,7 +21,7 @@ pub struct Fork {
 }
 
 #[derive(Default, Debug, SimpleSerialize, Clone)]
-#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[derive(serde::Serialize, serde::Deserialize)]
 pub struct ForkData {
     #[serde(with = "crate::serde::as_hex")]
     pub current_version: Version,
@@ -29,7 +29,7 @@ pub struct ForkData {
 }
 
 #[derive(Default, Debug, SimpleSerialize)]
-#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[derive(serde::Serialize, serde::Deserialize)]
 pub struct HistoricalBatch<const SLOTS_PER_HISTORICAL_ROOT: usize> {
     pub block_roots: Vector<Root, SLOTS_PER_HISTORICAL_ROOT>,
     pub state_roots: Vector<Root, SLOTS_PER_HISTORICAL_ROOT>,
@@ -38,14 +38,14 @@ pub struct HistoricalBatch<const SLOTS_PER_HISTORICAL_ROOT: usize> {
 // Note: `HistoricalSummary` is defined in the `capella` specs; however, this // repo used the same
 // strategy to compute the `HistoricalBatch` roots so // the type already existed.
 #[derive(Default, Debug, SimpleSerialize, Clone, PartialEq, Eq)]
-#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[derive(serde::Serialize, serde::Deserialize)]
 pub struct HistoricalSummary {
     pub block_summary_root: Root,
     pub state_summary_root: Root,
 }
 
 #[derive(Default, Debug, SimpleSerialize, Clone, PartialEq, Eq)]
-#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[derive(serde::Serialize, serde::Deserialize)]
 pub struct BeaconState<
     const SLOTS_PER_HISTORICAL_ROOT: usize,
     const HISTORICAL_ROOTS_LIMIT: usize,

@@ -7,7 +7,7 @@ use crate::{
 };
 
 #[derive(Default, Debug, Clone, SimpleSerialize, PartialEq, Eq)]
-#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[derive(serde::Serialize, serde::Deserialize)]
 pub struct ExecutionPayload<
     const BYTES_PER_LOGS_BLOOM: usize,
     const MAX_EXTRA_DATA_BYTES: usize,
@@ -41,7 +41,7 @@ pub struct ExecutionPayload<
 }
 
 #[derive(Default, Debug, Clone, SimpleSerialize, PartialEq, Eq)]
-#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[derive(serde::Serialize, serde::Deserialize)]
 pub struct ExecutionPayloadHeader<
     const BYTES_PER_LOGS_BLOOM: usize,
     const MAX_EXTRA_DATA_BYTES: usize,

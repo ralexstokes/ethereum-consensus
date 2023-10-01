@@ -31,7 +31,7 @@ pub type Bytes32 = ByteVector<32>;
 pub type ParticipationFlags = u8;
 
 // Coordinate refers to a unique location in the block tree
-#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[derive(serde::Serialize, serde::Deserialize)]
 pub struct Coordinate {
     #[serde(with = "crate::serde::as_string")]
     slot: Slot,

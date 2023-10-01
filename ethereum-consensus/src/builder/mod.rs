@@ -6,7 +6,7 @@ use crate::{
 };
 
 #[derive(Debug, Clone, Default, SimpleSerialize)]
-#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[derive(serde::Serialize, serde::Deserialize)]
 pub struct ValidatorRegistration {
     pub fee_recipient: ExecutionAddress,
     #[serde(with = "crate::serde::as_string")]
@@ -18,7 +18,7 @@ pub struct ValidatorRegistration {
 }
 
 #[derive(Debug, Clone, Default, SimpleSerialize)]
-#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[derive(serde::Serialize, serde::Deserialize)]
 pub struct SignedValidatorRegistration {
     pub message: ValidatorRegistration,
     pub signature: BlsSignature,

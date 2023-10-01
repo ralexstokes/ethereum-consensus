@@ -5,7 +5,7 @@ use crate::{
 };
 
 #[derive(Default, Debug, SimpleSerialize, Clone, PartialEq, Eq)]
-#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[derive(serde::Serialize, serde::Deserialize)]
 pub struct Validator {
     #[serde(rename = "pubkey")]
     pub public_key: BlsPublicKey,
@@ -25,7 +25,7 @@ pub struct Validator {
 }
 
 #[derive(Default, Debug, SimpleSerialize, Clone)]
-#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[derive(serde::Serialize, serde::Deserialize)]
 pub struct Eth1Block {
     pub timestamp: u64,
     pub deposit_root: Root,
@@ -33,7 +33,7 @@ pub struct Eth1Block {
 }
 
 #[derive(Default, Debug, SimpleSerialize, Clone)]
-#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[derive(serde::Serialize, serde::Deserialize)]
 pub struct AggregateAndProof<const MAX_VALIDATORS_PER_COMMITTEE: usize> {
     #[serde(with = "crate::serde::as_string")]
     pub aggregator_index: ValidatorIndex,
@@ -42,7 +42,7 @@ pub struct AggregateAndProof<const MAX_VALIDATORS_PER_COMMITTEE: usize> {
 }
 
 #[derive(Default, Debug, SimpleSerialize, Clone)]
-#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[derive(serde::Serialize, serde::Deserialize)]
 pub struct SignedAggregateAndProof<const MAX_VALIDATORS_PER_COMMITTEE: usize> {
     pub message: AggregateAndProof<MAX_VALIDATORS_PER_COMMITTEE>,
     pub signature: BlsSignature,

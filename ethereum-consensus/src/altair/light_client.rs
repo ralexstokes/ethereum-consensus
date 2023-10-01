@@ -17,13 +17,13 @@ pub const NEXT_SYNC_COMMITTEE_INDEX: usize = 55;
 pub const NEXT_SYNC_COMMITTEE_INDEX_FLOOR_LOG_2: usize = 5;
 
 #[derive(Default, Debug, Clone, SimpleSerialize)]
-#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[derive(serde::Serialize, serde::Deserialize)]
 pub struct LightClientHeader {
     pub beacon: BeaconBlockHeader,
 }
 
 #[derive(Default, Debug, Clone, SimpleSerialize)]
-#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[derive(serde::Serialize, serde::Deserialize)]
 pub struct LightClientBootstrap<const SYNC_COMMITTEE_SIZE: usize> {
     pub header: LightClientHeader,
     pub current_sync_committee: SyncCommittee<SYNC_COMMITTEE_SIZE>,
@@ -31,7 +31,7 @@ pub struct LightClientBootstrap<const SYNC_COMMITTEE_SIZE: usize> {
 }
 
 #[derive(Default, Debug, Clone, SimpleSerialize)]
-#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[derive(serde::Serialize, serde::Deserialize)]
 pub struct LightClientUpdate<const SYNC_COMMITTEE_SIZE: usize> {
     pub attested_header: LightClientHeader,
     pub next_sync_committee: SyncCommittee<SYNC_COMMITTEE_SIZE>,
@@ -43,7 +43,7 @@ pub struct LightClientUpdate<const SYNC_COMMITTEE_SIZE: usize> {
 }
 
 #[derive(Default, Debug, Clone, SimpleSerialize)]
-#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[derive(serde::Serialize, serde::Deserialize)]
 pub struct LightClientFinalityUpdate<const SYNC_COMMITTEE_SIZE: usize> {
     pub attested_header: LightClientHeader,
     pub finalized_header: LightClientHeader,
@@ -53,7 +53,7 @@ pub struct LightClientFinalityUpdate<const SYNC_COMMITTEE_SIZE: usize> {
 }
 
 #[derive(Default, Debug, Clone, SimpleSerialize)]
-#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[derive(serde::Serialize, serde::Deserialize)]
 pub struct LightClientOptimisticUpdate<const SYNC_COMMITTEE_SIZE: usize> {
     pub attested_header: LightClientHeader,
     pub sync_aggregate: SyncAggregate<SYNC_COMMITTEE_SIZE>,

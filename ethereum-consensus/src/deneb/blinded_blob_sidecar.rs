@@ -5,7 +5,7 @@ use crate::{
 };
 
 #[derive(Default, Debug, Clone, SimpleSerialize, PartialEq, Eq)]
-#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[derive(serde::Serialize, serde::Deserialize)]
 pub struct BlindedBlobSidecar {
     pub block_root: Root,
     #[serde(with = "crate::serde::as_string")]
@@ -21,7 +21,7 @@ pub struct BlindedBlobSidecar {
 }
 
 #[derive(Default, Debug, Clone, SimpleSerialize, PartialEq, Eq)]
-#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[derive(serde::Serialize, serde::Deserialize)]
 pub struct SignedBlindedBlobSidecar {
     pub message: BlindedBlobSidecar,
     pub signature: BlsSignature,

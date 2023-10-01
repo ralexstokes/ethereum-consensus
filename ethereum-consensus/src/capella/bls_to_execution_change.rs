@@ -4,7 +4,7 @@ use crate::{
 };
 
 #[derive(Default, Debug, Clone, SimpleSerialize, PartialEq, Eq)]
-#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[derive(serde::Serialize, serde::Deserialize)]
 pub struct BlsToExecutionChange {
     #[serde(with = "crate::serde::as_string")]
     pub validator_index: ValidatorIndex,
@@ -14,7 +14,7 @@ pub struct BlsToExecutionChange {
 }
 
 #[derive(Default, Debug, Clone, SimpleSerialize, PartialEq, Eq)]
-#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[derive(serde::Serialize, serde::Deserialize)]
 pub struct SignedBlsToExecutionChange {
     pub message: BlsToExecutionChange,
     pub signature: BlsSignature,

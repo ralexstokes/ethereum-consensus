@@ -7,7 +7,7 @@ license = "MIT OR Apache-2.0"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 [features]
 default = ["serde", "async"]
-serde = ["dep:serde", "hex", "serde_json", "serde_yaml"]
+serde = ["hex", "serde_json", "serde_yaml"]
 async = ["tokio", "tokio-stream", "async-stream"]
 spec-tests = ["serde", "serde_yaml"]
 ec = [
@@ -43,7 +43,7 @@ multihash = { version = "0.16", default-features = false, features = [
 ] }
 multiaddr = "0.14.0"
 
-serde = { version = "1.0", features = ["derive"], optional = true }
+serde = { version = "1.0", features = ["derive"] }
 serde_json = { version = "1.0.81", optional = true }
 serde_yaml = { version = "0.8", optional = true }
 hex = { version = "0.4.3", optional = true }

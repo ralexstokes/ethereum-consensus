@@ -10,7 +10,7 @@ pub const VERSIONED_HASH_VERSION_KZG: u8 = 1;
 pub type Blob<const BYTES_PER_BLOB: usize> = ByteVector<BYTES_PER_BLOB>;
 
 #[derive(Default, Debug, Clone, SimpleSerialize, PartialEq, Eq)]
-#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[derive(serde::Serialize, serde::Deserialize)]
 pub struct BlobSidecar<const BYTES_PER_BLOB: usize> {
     pub block_root: Root,
     #[serde(with = "crate::serde::as_string")]
@@ -26,14 +26,14 @@ pub struct BlobSidecar<const BYTES_PER_BLOB: usize> {
 }
 
 #[derive(Default, Debug, Clone, SimpleSerialize, PartialEq, Eq)]
-#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[derive(serde::Serialize, serde::Deserialize)]
 pub struct SignedBlobSidecar<const BYTES_PER_BLOB: usize> {
     pub message: BlobSidecar<BYTES_PER_BLOB>,
     pub signature: BlsSignature,
 }
 
 #[derive(Default, Debug, Clone, SimpleSerialize, PartialEq, Eq)]
-#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[derive(serde::Serialize, serde::Deserialize)]
 pub struct BlobIdentifier {
     pub block_root: Root,
     #[serde(with = "crate::serde::as_string")]
