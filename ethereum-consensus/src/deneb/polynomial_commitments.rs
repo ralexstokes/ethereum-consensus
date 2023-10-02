@@ -99,7 +99,7 @@ pub fn verify_kzg_proof(
         &z_bytes,
         &y_bytes,
         &proof_bytes,
-        &kzg_settings,
+        kzg_settings,
     )?;
 
     Ok(out)
@@ -118,7 +118,7 @@ pub fn verify_blob_kzg_proof(
         &blob,
         &commitment_bytes,
         &proof_bytes,
-        &kzg_settings,
+        kzg_settings,
     )?;
 
     Ok(out)

@@ -1,3 +1,4 @@
+use crate::deneb;
 pub use crate::{
     altair::minimal::{
         AggregateAndProof, Attestation, AttesterSlashing, ContributionAndProof, HistoricalBatch,
@@ -20,7 +21,6 @@ pub use crate::{
         SLOTS_PER_HISTORICAL_ROOT, VALIDATOR_REGISTRY_LIMIT,
     },
 };
-use crate::{deneb, deneb::presets::Preset};
 
 pub use deneb::*;
 
