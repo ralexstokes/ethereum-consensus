@@ -1,33 +1,28 @@
-use crate::deneb;
+use crate::deneb::spec;
 pub use crate::{
-    altair::minimal::{
+    capella::presets::minimal::{
         AggregateAndProof, Attestation, AttesterSlashing, ContributionAndProof, HistoricalBatch,
-        IndexedAttestation, LightClientUpdate, SignedAggregateAndProof, SignedContributionAndProof,
-        SyncAggregate, SyncCommittee, SyncCommitteeContribution, SyncCommitteeMessage,
-        SYNC_COMMITTEE_SIZE,
+        IndexedAttestation, LightClientUpdate, PendingAttestation, SignedAggregateAndProof,
+        SignedContributionAndProof, SyncAggregate, SyncCommittee, SyncCommitteeContribution,
+        BYTES_PER_LOGS_BLOOM, EPOCHS_PER_HISTORICAL_VECTOR, EPOCHS_PER_SLASHINGS_VECTOR,
+        ETH1_DATA_VOTES_BOUND, HISTORICAL_ROOTS_LIMIT, MAX_ATTESTATIONS, MAX_ATTESTER_SLASHINGS,
+        MAX_BLS_TO_EXECUTION_CHANGES, MAX_BYTES_PER_TRANSACTION, MAX_DEPOSITS,
+        MAX_EXTRA_DATA_BYTES, MAX_PROPOSER_SLASHINGS, MAX_TRANSACTIONS_PER_PAYLOAD,
+        MAX_VALIDATORS_PER_COMMITTEE, MAX_VOLUNTARY_EXITS, MAX_WITHDRAWALS_PER_PAYLOAD,
+        SLOTS_PER_HISTORICAL_ROOT, SYNC_COMMITTEE_SIZE, VALIDATOR_REGISTRY_LIMIT,
     },
-    bellatrix::minimal::{
-        Transaction, BYTES_PER_LOGS_BLOOM, MAX_BYTES_PER_TRANSACTION, MAX_EXTRA_DATA_BYTES,
-        MAX_TRANSACTIONS_PER_PAYLOAD, PROPORTIONAL_SLASHING_MULTIPLIER_BELLATRIX,
-    },
-    capella::minimal::{MAX_BLS_TO_EXECUTION_CHANGES, MAX_WITHDRAWALS_PER_PAYLOAD},
-    deneb::{
-        networking::MAX_REQUEST_BLOCKS_DENEB, polynomial_commitments::BYTES_PER_FIELD_ELEMENT,
-    },
-    phase0::minimal::{
-        EPOCHS_PER_HISTORICAL_VECTOR, EPOCHS_PER_SLASHINGS_VECTOR, ETH1_DATA_VOTES_BOUND,
-        HISTORICAL_ROOTS_LIMIT, MAX_ATTESTATIONS, MAX_ATTESTER_SLASHINGS, MAX_DEPOSITS,
-        MAX_PROPOSER_SLASHINGS, MAX_VALIDATORS_PER_COMMITTEE, MAX_VOLUNTARY_EXITS,
-        SLOTS_PER_HISTORICAL_ROOT, VALIDATOR_REGISTRY_LIMIT,
-    },
+    deneb::{networking::MAX_REQUEST_BLOCKS_DENEB, presets::Preset},
 };
 
-pub use deneb::*;
+pub use spec::*;
 
 pub const FIELD_ELEMENTS_PER_BLOB: usize = 4;
 pub const MAX_BLOB_COMMITMENTS_PER_BLOCK: usize = 16;
 pub const MAX_BLOBS_PER_BLOCK: usize = 6;
-pub const BYTES_PER_BLOB: usize = BYTES_PER_FIELD_ELEMENT * FIELD_ELEMENTS_PER_BLOB;
+
+pub const BYTES_PER_BLOB: usize =
+    crate::deneb::polynomial_commitments::BYTES_PER_FIELD_ELEMENT * FIELD_ELEMENTS_PER_BLOB;
+
 pub const MAX_REQUEST_BLOB_SIDECARS: usize = MAX_REQUEST_BLOCKS_DENEB * MAX_BLOBS_PER_BLOCK;
 
 pub const PRESET: Preset = Preset {
@@ -36,7 +31,7 @@ pub const PRESET: Preset = Preset {
     max_blobs_per_block: MAX_BLOBS_PER_BLOCK,
 };
 
-pub type ExecutionPayload = deneb::ExecutionPayload<
+pub type ExecutionPayload = spec::ExecutionPayload<
     BYTES_PER_LOGS_BLOOM,
     MAX_EXTRA_DATA_BYTES,
     MAX_BYTES_PER_TRANSACTION,
@@ -45,7 +40,7 @@ pub type ExecutionPayload = deneb::ExecutionPayload<
 >;
 
 pub type ExecutionPayloadHeader =
-    deneb::ExecutionPayloadHeader<BYTES_PER_LOGS_BLOOM, MAX_EXTRA_DATA_BYTES>;
+    spec::ExecutionPayloadHeader<BYTES_PER_LOGS_BLOOM, MAX_EXTRA_DATA_BYTES>;
 
 pub type BlindedBeaconBlockBody = spec::BlindedBeaconBlockBody<
     MAX_PROPOSER_SLASHINGS,
@@ -75,7 +70,7 @@ pub type BlindedBeaconBlock = spec::BlindedBeaconBlock<
     MAX_BLOB_COMMITMENTS_PER_BLOCK,
 >;
 
-pub type SignedBlindedBeaconBlock = deneb::SignedBlindedBeaconBlock<
+pub type SignedBlindedBeaconBlock = spec::SignedBlindedBeaconBlock<
     MAX_PROPOSER_SLASHINGS,
     MAX_VALIDATORS_PER_COMMITTEE,
     MAX_ATTESTER_SLASHINGS,
@@ -89,7 +84,7 @@ pub type SignedBlindedBeaconBlock = deneb::SignedBlindedBeaconBlock<
     MAX_BLOB_COMMITMENTS_PER_BLOCK,
 >;
 
-pub type BeaconState = deneb::BeaconState<
+pub type BeaconState = spec::BeaconState<
     SLOTS_PER_HISTORICAL_ROOT,
     HISTORICAL_ROOTS_LIMIT,
     ETH1_DATA_VOTES_BOUND,
@@ -102,7 +97,7 @@ pub type BeaconState = deneb::BeaconState<
     MAX_EXTRA_DATA_BYTES,
 >;
 
-pub type BeaconBlockBody = deneb::BeaconBlockBody<
+pub type BeaconBlockBody = spec::BeaconBlockBody<
     MAX_PROPOSER_SLASHINGS,
     MAX_VALIDATORS_PER_COMMITTEE,
     MAX_ATTESTER_SLASHINGS,
@@ -119,7 +114,7 @@ pub type BeaconBlockBody = deneb::BeaconBlockBody<
     MAX_BLOBS_PER_BLOCK,
 >;
 
-pub type BeaconBlock = deneb::BeaconBlock<
+pub type BeaconBlock = spec::BeaconBlock<
     MAX_PROPOSER_SLASHINGS,
     MAX_VALIDATORS_PER_COMMITTEE,
     MAX_ATTESTER_SLASHINGS,
@@ -136,7 +131,7 @@ pub type BeaconBlock = deneb::BeaconBlock<
     MAX_BLOBS_PER_BLOCK,
 >;
 
-pub type SignedBeaconBlock = deneb::SignedBeaconBlock<
+pub type SignedBeaconBlock = spec::SignedBeaconBlock<
     MAX_PROPOSER_SLASHINGS,
     MAX_VALIDATORS_PER_COMMITTEE,
     MAX_ATTESTER_SLASHINGS,
@@ -153,6 +148,6 @@ pub type SignedBeaconBlock = deneb::SignedBeaconBlock<
     MAX_BLOBS_PER_BLOCK,
 >;
 
-pub type Blob = deneb::Blob<BYTES_PER_BLOB>;
-pub type BlobSidecar = deneb::BlobSidecar<BYTES_PER_BLOB>;
-pub type SignedBlobSidecar = deneb::SignedBlobSidecar<BYTES_PER_BLOB>;
+pub type Blob = spec::Blob<BYTES_PER_BLOB>;
+pub type BlobSidecar = spec::BlobSidecar<BYTES_PER_BLOB>;
+pub type SignedBlobSidecar = spec::SignedBlobSidecar<BYTES_PER_BLOB>;
