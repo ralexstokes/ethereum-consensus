@@ -1,6 +1,7 @@
 use crate::{primitives, ssz::prelude::*};
 use alloy_primitives::{uint, U256};
-use c_kzg::{Bytes32, Bytes48, Error, KzgSettings};
+pub use c_kzg::KzgSettings;
+use c_kzg::{Bytes32, Bytes48, Error};
 use std::ops::Deref;
 
 pub const BLS_MODULUS: U256 =
@@ -20,8 +21,8 @@ pub type Polynomial = Vec<BLSFieldElement>; // Should this polynomial type be an
 pub struct Blob(ByteVector<BYTES_PER_BLOB>);
 
 pub struct ProofAndEvaluation {
-    proof: KzgProof,
-    evaluation: Bytes32,
+    pub proof: KzgProof,
+    pub evaluation: Bytes32,
 }
 
 #[derive(SimpleSerialize, Default, Debug, Clone, PartialEq, Eq)]
@@ -40,7 +41,10 @@ impl Deref for KzgCommitment {
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct KzgProof(ByteVector<BYTES_PER_PROOF>);
 
-fn blob_to_kzg_commitment(blob: Blob, kzg_settings: &KzgSettings) -> Result<KzgCommitment, Error> {
+pub fn blob_to_kzg_commitment(
+    blob: Blob,
+    kzg_settings: &KzgSettings,
+) -> Result<KzgCommitment, Error> {
     let inner = &blob.0;
     let blob = c_kzg::Blob::from_bytes(inner.as_ref()).unwrap();
 
@@ -50,7 +54,7 @@ fn blob_to_kzg_commitment(blob: Blob, kzg_settings: &KzgSettings) -> Result<KzgC
     Ok(KzgCommitment(inner))
 }
 
-fn compute_kzg_proof(
+pub fn compute_kzg_proof(
     blob: Blob,
     z_bytes: Bytes32,
     kzg_settings: &KzgSettings,
@@ -66,7 +70,7 @@ fn compute_kzg_proof(
     Ok(result)
 }
 
-fn compute_blob_kzg_proof(
+pub fn compute_blob_kzg_proof(
     blob: Blob,
     commitment_bytes: Bytes48,
     kzg_settings: &KzgSettings,
@@ -83,7 +87,7 @@ fn compute_blob_kzg_proof(
     Ok(KzgProof(proof))
 }
 
-fn verify_kzg_proof(
+pub fn verify_kzg_proof(
     commitment_bytes: Bytes48,
     z_bytes: Bytes32,
     y_bytes: Bytes32,
@@ -101,7 +105,7 @@ fn verify_kzg_proof(
     Ok(out)
 }
 
-fn verify_blob_kzg_proof(
+pub fn verify_blob_kzg_proof(
     blob: Blob,
     commitment_bytes: Bytes48,
     proof_bytes: Bytes48,
@@ -120,7 +124,7 @@ fn verify_blob_kzg_proof(
     Ok(out)
 }
 
-fn verify_blob_kzg_proof_batch(
+pub fn verify_blob_kzg_proof_batch(
     blobs: &[Blob],
     commitments_bytes: &[Bytes48],
     proofs_bytes: &[Bytes48],
