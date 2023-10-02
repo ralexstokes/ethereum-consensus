@@ -202,11 +202,13 @@ use tokio_stream::Stream;
 impl<T: TimeProvider + Send + Sync> Clock<T> {
     pub fn stream_slots(&self) -> impl Stream<Item = Slot> + '_ {
         async_stream::stream! {
-            loop {
-                let slot = self.current_slot().expect("after genesis");
-                yield slot;
-                let duration_until_next_slot = self.duration_until_slot(slot + 1);
-                tokio::time::sleep(duration_until_next_slot).await;
+            let mut slot = self.current_slot().expect("after genesis");
+            let mut interval_tick = tokio::time::interval(self.duration_until_slot(slot + 1));
+
+            loop{
+            yield slot;
+            interval_tick.tick().await;
+            slot = self.current_slot().expect("after genesis");
             }
         }
     }
