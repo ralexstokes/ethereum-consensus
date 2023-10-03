@@ -1,6 +1,6 @@
 use crate::visitors::{
-    collate_generics_from, collect_lifetimes, collect_type_params, generics_to_arguments,
-    ArgumentsEditor, TypeNameVisitor,
+    as_syn_ident, collate_generics_from, collect_lifetimes, collect_type_params,
+    generics_to_arguments, ArgumentsEditor, TypeNameVisitor,
 };
 use std::{
     collections::{BTreeMap, HashMap},
@@ -12,12 +12,8 @@ use syn::{parse_quote, visit_mut::VisitMut, Ident, Item};
 
 const SOURCE_ROOT: &str = "ethereum-consensus/src";
 
-fn as_syn_ident(s: String) -> Ident {
-    syn::parse_str(&s).unwrap()
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default)]
-enum Fork {
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Default)]
+pub enum Fork {
     #[default]
     Phase0,
     Altair,
@@ -27,7 +23,7 @@ enum Fork {
 }
 
 impl Fork {
-    fn name(&self) -> String {
+    pub fn name(&self) -> String {
         format!("{self:?}").to_lowercase()
     }
 
