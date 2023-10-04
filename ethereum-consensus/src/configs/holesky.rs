@@ -5,8 +5,9 @@ use crate::{
 };
 
 pub const MIN_GENESIS_ACTIVE_VALIDATOR_COUNT: usize = 16384;
-pub const MIN_GENESIS_TIME: u64 = 1694786400;
-pub const GENESIS_FORK_VERSION: Version = [0, 1, 112, 0];
+// Sep-28-2023 11:55:00 +UTC
+pub const MIN_GENESIS_TIME: u64 = 1695902100;
+pub const GENESIS_FORK_VERSION: Version = [1, 1, 112, 0];
 pub const GENESIS_DELAY: u64 = 300;
 pub const SECONDS_PER_SLOT: u64 = 12;
 pub const SECONDS_PER_ETH1_BLOCK: u64 = 14;
@@ -18,11 +19,11 @@ pub const MIN_PER_EPOCH_CHURN_LIMIT: u64 = 4;
 pub const MAX_PER_EPOCH_ACTIVATION_CHURN_LIMIT: u64 = 8;
 pub const CHURN_LIMIT_QUOTIENT: u64 = 65536;
 pub const TERMINAL_BLOCK_HASH_ACTIVATION_EPOCH: Epoch = FAR_FUTURE_EPOCH;
-pub const ALTAIR_FORK_VERSION: Version = [16, 1, 112, 0];
+pub const ALTAIR_FORK_VERSION: Version = [2, 1, 112, 0];
 pub const ALTAIR_FORK_EPOCH: Epoch = 0;
-pub const BELLATRIX_FORK_VERSION: Version = [32, 1, 112, 0];
+pub const BELLATRIX_FORK_VERSION: Version = [3, 1, 112, 0];
 pub const BELLATRIX_FORK_EPOCH: Epoch = 0;
-pub const CAPELLA_FORK_VERSION: Version = [48, 1, 112, 0];
+pub const CAPELLA_FORK_VERSION: Version = [4, 1, 112, 0];
 pub const CAPELLA_FORK_EPOCH: Epoch = 256;
 pub const DENEB_FORK_VERSION: Version = [64, 1, 112, 0];
 pub const DENEB_FORK_EPOCH: Epoch = FAR_FUTURE_EPOCH;
