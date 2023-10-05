@@ -17,7 +17,11 @@ gen-tests:
     just fmt
 
 gen-spec:
-    cargo run -p spec-gen --bin spec-gen
+    cargo run -p spec-gen -- forks
+    just fmt
+
+gen-types:
+    cargo run -p spec-gen -- types
     just fmt
 
 run-integration-tests:

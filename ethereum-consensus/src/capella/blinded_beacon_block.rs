@@ -8,7 +8,7 @@ use crate::{
     ssz::prelude::*,
 };
 
-#[derive(Default, Debug, Clone, SimpleSerialize)]
+#[derive(Default, Debug, Clone, PartialEq, Eq, SimpleSerialize)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct BlindedBeaconBlockBody<
     const MAX_PROPOSER_SLASHINGS: usize,
@@ -20,7 +20,6 @@ pub struct BlindedBeaconBlockBody<
     const SYNC_COMMITTEE_SIZE: usize,
     const BYTES_PER_LOGS_BLOOM: usize,
     const MAX_EXTRA_DATA_BYTES: usize,
-    const MAX_WITHDRAWALS_PER_PAYLOAD: usize,
     const MAX_BLS_TO_EXECUTION_CHANGES: usize,
 > {
     pub randao_reveal: BlsSignature,
@@ -38,7 +37,7 @@ pub struct BlindedBeaconBlockBody<
     pub bls_to_execution_changes: List<SignedBlsToExecutionChange, MAX_BLS_TO_EXECUTION_CHANGES>,
 }
 
-#[derive(Default, Debug, Clone, SimpleSerialize)]
+#[derive(Default, Debug, Clone, PartialEq, Eq, SimpleSerialize)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct BlindedBeaconBlock<
     const MAX_PROPOSER_SLASHINGS: usize,
@@ -50,7 +49,6 @@ pub struct BlindedBeaconBlock<
     const SYNC_COMMITTEE_SIZE: usize,
     const BYTES_PER_LOGS_BLOOM: usize,
     const MAX_EXTRA_DATA_BYTES: usize,
-    const MAX_WITHDRAWALS_PER_PAYLOAD: usize,
     const MAX_BLS_TO_EXECUTION_CHANGES: usize,
 > {
     #[serde(with = "crate::serde::as_string")]
@@ -69,12 +67,11 @@ pub struct BlindedBeaconBlock<
         SYNC_COMMITTEE_SIZE,
         BYTES_PER_LOGS_BLOOM,
         MAX_EXTRA_DATA_BYTES,
-        MAX_WITHDRAWALS_PER_PAYLOAD,
         MAX_BLS_TO_EXECUTION_CHANGES,
     >,
 }
 
-#[derive(Default, Debug, Clone, SimpleSerialize)]
+#[derive(Default, Debug, Clone, PartialEq, Eq, SimpleSerialize)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct SignedBlindedBeaconBlock<
     const MAX_PROPOSER_SLASHINGS: usize,
@@ -86,7 +83,6 @@ pub struct SignedBlindedBeaconBlock<
     const SYNC_COMMITTEE_SIZE: usize,
     const BYTES_PER_LOGS_BLOOM: usize,
     const MAX_EXTRA_DATA_BYTES: usize,
-    const MAX_WITHDRAWALS_PER_PAYLOAD: usize,
     const MAX_BLS_TO_EXECUTION_CHANGES: usize,
 > {
     pub message: BlindedBeaconBlock<
@@ -99,7 +95,6 @@ pub struct SignedBlindedBeaconBlock<
         SYNC_COMMITTEE_SIZE,
         BYTES_PER_LOGS_BLOOM,
         MAX_EXTRA_DATA_BYTES,
-        MAX_WITHDRAWALS_PER_PAYLOAD,
         MAX_BLS_TO_EXECUTION_CHANGES,
     >,
     pub signature: BlsSignature,
