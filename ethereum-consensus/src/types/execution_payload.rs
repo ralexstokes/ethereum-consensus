@@ -2,7 +2,8 @@
 use crate::{
     bellatrix::execution_payload::{self as bellatrix, Transaction},
     capella::{execution_payload as capella, withdrawal::Withdrawal},
-    deneb::execution_payload as deneb, primitives::{Hash32, ExecutionAddress, Bytes32},
+    deneb::execution_payload as deneb,
+    primitives::{Bytes32, ExecutionAddress, Hash32},
     ssz::prelude::*,
 };
 #[derive(Debug, SimpleSerialize, Clone, PartialEq, Eq)]
@@ -42,18 +43,20 @@ pub enum ExecutionPayload<
     ),
 }
 impl<
-    const BYTES_PER_LOGS_BLOOM: usize,
-    const MAX_EXTRA_DATA_BYTES: usize,
-    const MAX_BYTES_PER_TRANSACTION: usize,
-    const MAX_TRANSACTIONS_PER_PAYLOAD: usize,
-    const MAX_WITHDRAWALS_PER_PAYLOAD: usize,
-> ExecutionPayload<
-    BYTES_PER_LOGS_BLOOM,
-    MAX_EXTRA_DATA_BYTES,
-    MAX_BYTES_PER_TRANSACTION,
-    MAX_TRANSACTIONS_PER_PAYLOAD,
-    MAX_WITHDRAWALS_PER_PAYLOAD,
-> {
+        const BYTES_PER_LOGS_BLOOM: usize,
+        const MAX_EXTRA_DATA_BYTES: usize,
+        const MAX_BYTES_PER_TRANSACTION: usize,
+        const MAX_TRANSACTIONS_PER_PAYLOAD: usize,
+        const MAX_WITHDRAWALS_PER_PAYLOAD: usize,
+    >
+    ExecutionPayload<
+        BYTES_PER_LOGS_BLOOM,
+        MAX_EXTRA_DATA_BYTES,
+        MAX_BYTES_PER_TRANSACTION,
+        MAX_TRANSACTIONS_PER_PAYLOAD,
+        MAX_WITHDRAWALS_PER_PAYLOAD,
+    >
+{
     pub fn bellatrix(
         &self,
     ) -> Option<
@@ -332,9 +335,7 @@ impl<
     }
     pub fn transactions(
         &self,
-    ) -> Option<
-        &List<Transaction<MAX_BYTES_PER_TRANSACTION>, MAX_TRANSACTIONS_PER_PAYLOAD>,
-    > {
+    ) -> Option<&List<Transaction<MAX_BYTES_PER_TRANSACTION>, MAX_TRANSACTIONS_PER_PAYLOAD>> {
         match self {
             Self::Bellatrix(inner) => Some(&inner.transactions),
             Self::Capella(inner) => Some(&inner.transactions),
@@ -343,9 +344,8 @@ impl<
     }
     pub fn transactions_mut(
         &mut self,
-    ) -> Option<
-        &mut List<Transaction<MAX_BYTES_PER_TRANSACTION>, MAX_TRANSACTIONS_PER_PAYLOAD>,
-    > {
+    ) -> Option<&mut List<Transaction<MAX_BYTES_PER_TRANSACTION>, MAX_TRANSACTIONS_PER_PAYLOAD>>
+    {
         match self {
             Self::Bellatrix(inner) => Some(&mut inner.transactions),
             Self::Capella(inner) => Some(&mut inner.transactions),
@@ -434,20 +434,22 @@ pub enum ExecutionPayloadRef<
     ),
 }
 impl<
-    'a,
-    const BYTES_PER_LOGS_BLOOM: usize,
-    const MAX_EXTRA_DATA_BYTES: usize,
-    const MAX_BYTES_PER_TRANSACTION: usize,
-    const MAX_TRANSACTIONS_PER_PAYLOAD: usize,
-    const MAX_WITHDRAWALS_PER_PAYLOAD: usize,
-> ExecutionPayloadRef<
-    'a,
-    BYTES_PER_LOGS_BLOOM,
-    MAX_EXTRA_DATA_BYTES,
-    MAX_BYTES_PER_TRANSACTION,
-    MAX_TRANSACTIONS_PER_PAYLOAD,
-    MAX_WITHDRAWALS_PER_PAYLOAD,
-> {
+        'a,
+        const BYTES_PER_LOGS_BLOOM: usize,
+        const MAX_EXTRA_DATA_BYTES: usize,
+        const MAX_BYTES_PER_TRANSACTION: usize,
+        const MAX_TRANSACTIONS_PER_PAYLOAD: usize,
+        const MAX_WITHDRAWALS_PER_PAYLOAD: usize,
+    >
+    ExecutionPayloadRef<
+        'a,
+        BYTES_PER_LOGS_BLOOM,
+        MAX_EXTRA_DATA_BYTES,
+        MAX_BYTES_PER_TRANSACTION,
+        MAX_TRANSACTIONS_PER_PAYLOAD,
+        MAX_WITHDRAWALS_PER_PAYLOAD,
+    >
+{
     pub fn bellatrix(
         &self,
     ) -> Option<
@@ -588,9 +590,7 @@ impl<
     }
     pub fn transactions(
         &self,
-    ) -> Option<
-        &List<Transaction<MAX_BYTES_PER_TRANSACTION>, MAX_TRANSACTIONS_PER_PAYLOAD>,
-    > {
+    ) -> Option<&List<Transaction<MAX_BYTES_PER_TRANSACTION>, MAX_TRANSACTIONS_PER_PAYLOAD>> {
         match self {
             Self::Bellatrix(inner) => Some(&inner.transactions),
             Self::Capella(inner) => Some(&inner.transactions),
@@ -620,28 +620,30 @@ impl<
     }
 }
 impl<
-    'a,
-    const BYTES_PER_LOGS_BLOOM: usize,
-    const MAX_EXTRA_DATA_BYTES: usize,
-    const MAX_BYTES_PER_TRANSACTION: usize,
-    const MAX_TRANSACTIONS_PER_PAYLOAD: usize,
-    const MAX_WITHDRAWALS_PER_PAYLOAD: usize,
-> From<
-    &'a bellatrix::ExecutionPayload<
+        'a,
+        const BYTES_PER_LOGS_BLOOM: usize,
+        const MAX_EXTRA_DATA_BYTES: usize,
+        const MAX_BYTES_PER_TRANSACTION: usize,
+        const MAX_TRANSACTIONS_PER_PAYLOAD: usize,
+        const MAX_WITHDRAWALS_PER_PAYLOAD: usize,
+    >
+    From<
+        &'a bellatrix::ExecutionPayload<
+            BYTES_PER_LOGS_BLOOM,
+            MAX_EXTRA_DATA_BYTES,
+            MAX_BYTES_PER_TRANSACTION,
+            MAX_TRANSACTIONS_PER_PAYLOAD,
+        >,
+    >
+    for ExecutionPayloadRef<
+        'a,
         BYTES_PER_LOGS_BLOOM,
         MAX_EXTRA_DATA_BYTES,
         MAX_BYTES_PER_TRANSACTION,
         MAX_TRANSACTIONS_PER_PAYLOAD,
-    >,
->
-for ExecutionPayloadRef<
-    'a,
-    BYTES_PER_LOGS_BLOOM,
-    MAX_EXTRA_DATA_BYTES,
-    MAX_BYTES_PER_TRANSACTION,
-    MAX_TRANSACTIONS_PER_PAYLOAD,
-    MAX_WITHDRAWALS_PER_PAYLOAD,
-> {
+        MAX_WITHDRAWALS_PER_PAYLOAD,
+    >
+{
     fn from(
         value: &'a bellatrix::ExecutionPayload<
             BYTES_PER_LOGS_BLOOM,
@@ -654,29 +656,31 @@ for ExecutionPayloadRef<
     }
 }
 impl<
-    'a,
-    const BYTES_PER_LOGS_BLOOM: usize,
-    const MAX_EXTRA_DATA_BYTES: usize,
-    const MAX_BYTES_PER_TRANSACTION: usize,
-    const MAX_TRANSACTIONS_PER_PAYLOAD: usize,
-    const MAX_WITHDRAWALS_PER_PAYLOAD: usize,
-> From<
-    &'a capella::ExecutionPayload<
+        'a,
+        const BYTES_PER_LOGS_BLOOM: usize,
+        const MAX_EXTRA_DATA_BYTES: usize,
+        const MAX_BYTES_PER_TRANSACTION: usize,
+        const MAX_TRANSACTIONS_PER_PAYLOAD: usize,
+        const MAX_WITHDRAWALS_PER_PAYLOAD: usize,
+    >
+    From<
+        &'a capella::ExecutionPayload<
+            BYTES_PER_LOGS_BLOOM,
+            MAX_EXTRA_DATA_BYTES,
+            MAX_BYTES_PER_TRANSACTION,
+            MAX_TRANSACTIONS_PER_PAYLOAD,
+            MAX_WITHDRAWALS_PER_PAYLOAD,
+        >,
+    >
+    for ExecutionPayloadRef<
+        'a,
         BYTES_PER_LOGS_BLOOM,
         MAX_EXTRA_DATA_BYTES,
         MAX_BYTES_PER_TRANSACTION,
         MAX_TRANSACTIONS_PER_PAYLOAD,
         MAX_WITHDRAWALS_PER_PAYLOAD,
-    >,
->
-for ExecutionPayloadRef<
-    'a,
-    BYTES_PER_LOGS_BLOOM,
-    MAX_EXTRA_DATA_BYTES,
-    MAX_BYTES_PER_TRANSACTION,
-    MAX_TRANSACTIONS_PER_PAYLOAD,
-    MAX_WITHDRAWALS_PER_PAYLOAD,
-> {
+    >
+{
     fn from(
         value: &'a capella::ExecutionPayload<
             BYTES_PER_LOGS_BLOOM,
@@ -690,29 +694,31 @@ for ExecutionPayloadRef<
     }
 }
 impl<
-    'a,
-    const BYTES_PER_LOGS_BLOOM: usize,
-    const MAX_EXTRA_DATA_BYTES: usize,
-    const MAX_BYTES_PER_TRANSACTION: usize,
-    const MAX_TRANSACTIONS_PER_PAYLOAD: usize,
-    const MAX_WITHDRAWALS_PER_PAYLOAD: usize,
-> From<
-    &'a deneb::ExecutionPayload<
+        'a,
+        const BYTES_PER_LOGS_BLOOM: usize,
+        const MAX_EXTRA_DATA_BYTES: usize,
+        const MAX_BYTES_PER_TRANSACTION: usize,
+        const MAX_TRANSACTIONS_PER_PAYLOAD: usize,
+        const MAX_WITHDRAWALS_PER_PAYLOAD: usize,
+    >
+    From<
+        &'a deneb::ExecutionPayload<
+            BYTES_PER_LOGS_BLOOM,
+            MAX_EXTRA_DATA_BYTES,
+            MAX_BYTES_PER_TRANSACTION,
+            MAX_TRANSACTIONS_PER_PAYLOAD,
+            MAX_WITHDRAWALS_PER_PAYLOAD,
+        >,
+    >
+    for ExecutionPayloadRef<
+        'a,
         BYTES_PER_LOGS_BLOOM,
         MAX_EXTRA_DATA_BYTES,
         MAX_BYTES_PER_TRANSACTION,
         MAX_TRANSACTIONS_PER_PAYLOAD,
         MAX_WITHDRAWALS_PER_PAYLOAD,
-    >,
->
-for ExecutionPayloadRef<
-    'a,
-    BYTES_PER_LOGS_BLOOM,
-    MAX_EXTRA_DATA_BYTES,
-    MAX_BYTES_PER_TRANSACTION,
-    MAX_TRANSACTIONS_PER_PAYLOAD,
-    MAX_WITHDRAWALS_PER_PAYLOAD,
-> {
+    >
+{
     fn from(
         value: &'a deneb::ExecutionPayload<
             BYTES_PER_LOGS_BLOOM,
@@ -762,20 +768,22 @@ pub enum ExecutionPayloadRefMut<
     ),
 }
 impl<
-    'a,
-    const BYTES_PER_LOGS_BLOOM: usize,
-    const MAX_EXTRA_DATA_BYTES: usize,
-    const MAX_BYTES_PER_TRANSACTION: usize,
-    const MAX_TRANSACTIONS_PER_PAYLOAD: usize,
-    const MAX_WITHDRAWALS_PER_PAYLOAD: usize,
-> ExecutionPayloadRefMut<
-    'a,
-    BYTES_PER_LOGS_BLOOM,
-    MAX_EXTRA_DATA_BYTES,
-    MAX_BYTES_PER_TRANSACTION,
-    MAX_TRANSACTIONS_PER_PAYLOAD,
-    MAX_WITHDRAWALS_PER_PAYLOAD,
-> {
+        'a,
+        const BYTES_PER_LOGS_BLOOM: usize,
+        const MAX_EXTRA_DATA_BYTES: usize,
+        const MAX_BYTES_PER_TRANSACTION: usize,
+        const MAX_TRANSACTIONS_PER_PAYLOAD: usize,
+        const MAX_WITHDRAWALS_PER_PAYLOAD: usize,
+    >
+    ExecutionPayloadRefMut<
+        'a,
+        BYTES_PER_LOGS_BLOOM,
+        MAX_EXTRA_DATA_BYTES,
+        MAX_BYTES_PER_TRANSACTION,
+        MAX_TRANSACTIONS_PER_PAYLOAD,
+        MAX_WITHDRAWALS_PER_PAYLOAD,
+    >
+{
     pub fn bellatrix_mut(
         &mut self,
     ) -> Option<
@@ -916,9 +924,8 @@ impl<
     }
     pub fn transactions_mut(
         &mut self,
-    ) -> Option<
-        &mut List<Transaction<MAX_BYTES_PER_TRANSACTION>, MAX_TRANSACTIONS_PER_PAYLOAD>,
-    > {
+    ) -> Option<&mut List<Transaction<MAX_BYTES_PER_TRANSACTION>, MAX_TRANSACTIONS_PER_PAYLOAD>>
+    {
         match self {
             Self::Bellatrix(inner) => Some(&mut inner.transactions),
             Self::Capella(inner) => Some(&mut inner.transactions),
@@ -950,28 +957,30 @@ impl<
     }
 }
 impl<
-    'a,
-    const BYTES_PER_LOGS_BLOOM: usize,
-    const MAX_EXTRA_DATA_BYTES: usize,
-    const MAX_BYTES_PER_TRANSACTION: usize,
-    const MAX_TRANSACTIONS_PER_PAYLOAD: usize,
-    const MAX_WITHDRAWALS_PER_PAYLOAD: usize,
-> From<
-    &'a mut bellatrix::ExecutionPayload<
+        'a,
+        const BYTES_PER_LOGS_BLOOM: usize,
+        const MAX_EXTRA_DATA_BYTES: usize,
+        const MAX_BYTES_PER_TRANSACTION: usize,
+        const MAX_TRANSACTIONS_PER_PAYLOAD: usize,
+        const MAX_WITHDRAWALS_PER_PAYLOAD: usize,
+    >
+    From<
+        &'a mut bellatrix::ExecutionPayload<
+            BYTES_PER_LOGS_BLOOM,
+            MAX_EXTRA_DATA_BYTES,
+            MAX_BYTES_PER_TRANSACTION,
+            MAX_TRANSACTIONS_PER_PAYLOAD,
+        >,
+    >
+    for ExecutionPayloadRefMut<
+        'a,
         BYTES_PER_LOGS_BLOOM,
         MAX_EXTRA_DATA_BYTES,
         MAX_BYTES_PER_TRANSACTION,
         MAX_TRANSACTIONS_PER_PAYLOAD,
-    >,
->
-for ExecutionPayloadRefMut<
-    'a,
-    BYTES_PER_LOGS_BLOOM,
-    MAX_EXTRA_DATA_BYTES,
-    MAX_BYTES_PER_TRANSACTION,
-    MAX_TRANSACTIONS_PER_PAYLOAD,
-    MAX_WITHDRAWALS_PER_PAYLOAD,
-> {
+        MAX_WITHDRAWALS_PER_PAYLOAD,
+    >
+{
     fn from(
         value: &'a mut bellatrix::ExecutionPayload<
             BYTES_PER_LOGS_BLOOM,
@@ -984,29 +993,31 @@ for ExecutionPayloadRefMut<
     }
 }
 impl<
-    'a,
-    const BYTES_PER_LOGS_BLOOM: usize,
-    const MAX_EXTRA_DATA_BYTES: usize,
-    const MAX_BYTES_PER_TRANSACTION: usize,
-    const MAX_TRANSACTIONS_PER_PAYLOAD: usize,
-    const MAX_WITHDRAWALS_PER_PAYLOAD: usize,
-> From<
-    &'a mut capella::ExecutionPayload<
+        'a,
+        const BYTES_PER_LOGS_BLOOM: usize,
+        const MAX_EXTRA_DATA_BYTES: usize,
+        const MAX_BYTES_PER_TRANSACTION: usize,
+        const MAX_TRANSACTIONS_PER_PAYLOAD: usize,
+        const MAX_WITHDRAWALS_PER_PAYLOAD: usize,
+    >
+    From<
+        &'a mut capella::ExecutionPayload<
+            BYTES_PER_LOGS_BLOOM,
+            MAX_EXTRA_DATA_BYTES,
+            MAX_BYTES_PER_TRANSACTION,
+            MAX_TRANSACTIONS_PER_PAYLOAD,
+            MAX_WITHDRAWALS_PER_PAYLOAD,
+        >,
+    >
+    for ExecutionPayloadRefMut<
+        'a,
         BYTES_PER_LOGS_BLOOM,
         MAX_EXTRA_DATA_BYTES,
         MAX_BYTES_PER_TRANSACTION,
         MAX_TRANSACTIONS_PER_PAYLOAD,
         MAX_WITHDRAWALS_PER_PAYLOAD,
-    >,
->
-for ExecutionPayloadRefMut<
-    'a,
-    BYTES_PER_LOGS_BLOOM,
-    MAX_EXTRA_DATA_BYTES,
-    MAX_BYTES_PER_TRANSACTION,
-    MAX_TRANSACTIONS_PER_PAYLOAD,
-    MAX_WITHDRAWALS_PER_PAYLOAD,
-> {
+    >
+{
     fn from(
         value: &'a mut capella::ExecutionPayload<
             BYTES_PER_LOGS_BLOOM,
@@ -1020,29 +1031,31 @@ for ExecutionPayloadRefMut<
     }
 }
 impl<
-    'a,
-    const BYTES_PER_LOGS_BLOOM: usize,
-    const MAX_EXTRA_DATA_BYTES: usize,
-    const MAX_BYTES_PER_TRANSACTION: usize,
-    const MAX_TRANSACTIONS_PER_PAYLOAD: usize,
-    const MAX_WITHDRAWALS_PER_PAYLOAD: usize,
-> From<
-    &'a mut deneb::ExecutionPayload<
+        'a,
+        const BYTES_PER_LOGS_BLOOM: usize,
+        const MAX_EXTRA_DATA_BYTES: usize,
+        const MAX_BYTES_PER_TRANSACTION: usize,
+        const MAX_TRANSACTIONS_PER_PAYLOAD: usize,
+        const MAX_WITHDRAWALS_PER_PAYLOAD: usize,
+    >
+    From<
+        &'a mut deneb::ExecutionPayload<
+            BYTES_PER_LOGS_BLOOM,
+            MAX_EXTRA_DATA_BYTES,
+            MAX_BYTES_PER_TRANSACTION,
+            MAX_TRANSACTIONS_PER_PAYLOAD,
+            MAX_WITHDRAWALS_PER_PAYLOAD,
+        >,
+    >
+    for ExecutionPayloadRefMut<
+        'a,
         BYTES_PER_LOGS_BLOOM,
         MAX_EXTRA_DATA_BYTES,
         MAX_BYTES_PER_TRANSACTION,
         MAX_TRANSACTIONS_PER_PAYLOAD,
         MAX_WITHDRAWALS_PER_PAYLOAD,
-    >,
->
-for ExecutionPayloadRefMut<
-    'a,
-    BYTES_PER_LOGS_BLOOM,
-    MAX_EXTRA_DATA_BYTES,
-    MAX_BYTES_PER_TRANSACTION,
-    MAX_TRANSACTIONS_PER_PAYLOAD,
-    MAX_WITHDRAWALS_PER_PAYLOAD,
-> {
+    >
+{
     fn from(
         value: &'a mut deneb::ExecutionPayload<
             BYTES_PER_LOGS_BLOOM,

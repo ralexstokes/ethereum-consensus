@@ -1,12 +1,14 @@
 //! WARNING: This file was derived by the `spec-gen` utility. DO NOT EDIT MANUALLY.
 use crate::{
-    altair::beacon_block as altair, bellatrix::beacon_block as bellatrix,
-    capella::beacon_block as capella, deneb::beacon_block as deneb,
+    altair::{beacon_block as altair, SyncAggregate},
+    bellatrix::beacon_block as bellatrix,
+    capella::{beacon_block as capella, SignedBlsToExecutionChange},
+    deneb::beacon_block as deneb,
+    kzg::KzgCommitment,
     phase0::{
-        beacon_block as phase0, Attestation, AttesterSlashing, Deposit, Eth1Data,
-        ProposerSlashing, SignedVoluntaryExit,
+        beacon_block as phase0, Attestation, AttesterSlashing, Deposit, Eth1Data, ProposerSlashing,
+        SignedVoluntaryExit,
     },
-    altair::SyncAggregate, capella::SignedBlsToExecutionChange, kzg::KzgCommitment,
     primitives::{BlsSignature, Bytes32},
     ssz::prelude::*,
     types::execution_payload::{ExecutionPayloadRef, ExecutionPayloadRefMut},
@@ -102,36 +104,38 @@ pub enum BeaconBlockBody<
     ),
 }
 impl<
-    const MAX_PROPOSER_SLASHINGS: usize,
-    const MAX_VALIDATORS_PER_COMMITTEE: usize,
-    const MAX_ATTESTER_SLASHINGS: usize,
-    const MAX_ATTESTATIONS: usize,
-    const MAX_DEPOSITS: usize,
-    const MAX_VOLUNTARY_EXITS: usize,
-    const SYNC_COMMITTEE_SIZE: usize,
-    const BYTES_PER_LOGS_BLOOM: usize,
-    const MAX_EXTRA_DATA_BYTES: usize,
-    const MAX_BYTES_PER_TRANSACTION: usize,
-    const MAX_TRANSACTIONS_PER_PAYLOAD: usize,
-    const MAX_WITHDRAWALS_PER_PAYLOAD: usize,
-    const MAX_BLS_TO_EXECUTION_CHANGES: usize,
-    const MAX_BLOB_COMMITMENTS_PER_BLOCK: usize,
-> BeaconBlockBody<
-    MAX_PROPOSER_SLASHINGS,
-    MAX_VALIDATORS_PER_COMMITTEE,
-    MAX_ATTESTER_SLASHINGS,
-    MAX_ATTESTATIONS,
-    MAX_DEPOSITS,
-    MAX_VOLUNTARY_EXITS,
-    SYNC_COMMITTEE_SIZE,
-    BYTES_PER_LOGS_BLOOM,
-    MAX_EXTRA_DATA_BYTES,
-    MAX_BYTES_PER_TRANSACTION,
-    MAX_TRANSACTIONS_PER_PAYLOAD,
-    MAX_WITHDRAWALS_PER_PAYLOAD,
-    MAX_BLS_TO_EXECUTION_CHANGES,
-    MAX_BLOB_COMMITMENTS_PER_BLOCK,
-> {
+        const MAX_PROPOSER_SLASHINGS: usize,
+        const MAX_VALIDATORS_PER_COMMITTEE: usize,
+        const MAX_ATTESTER_SLASHINGS: usize,
+        const MAX_ATTESTATIONS: usize,
+        const MAX_DEPOSITS: usize,
+        const MAX_VOLUNTARY_EXITS: usize,
+        const SYNC_COMMITTEE_SIZE: usize,
+        const BYTES_PER_LOGS_BLOOM: usize,
+        const MAX_EXTRA_DATA_BYTES: usize,
+        const MAX_BYTES_PER_TRANSACTION: usize,
+        const MAX_TRANSACTIONS_PER_PAYLOAD: usize,
+        const MAX_WITHDRAWALS_PER_PAYLOAD: usize,
+        const MAX_BLS_TO_EXECUTION_CHANGES: usize,
+        const MAX_BLOB_COMMITMENTS_PER_BLOCK: usize,
+    >
+    BeaconBlockBody<
+        MAX_PROPOSER_SLASHINGS,
+        MAX_VALIDATORS_PER_COMMITTEE,
+        MAX_ATTESTER_SLASHINGS,
+        MAX_ATTESTATIONS,
+        MAX_DEPOSITS,
+        MAX_VOLUNTARY_EXITS,
+        SYNC_COMMITTEE_SIZE,
+        BYTES_PER_LOGS_BLOOM,
+        MAX_EXTRA_DATA_BYTES,
+        MAX_BYTES_PER_TRANSACTION,
+        MAX_TRANSACTIONS_PER_PAYLOAD,
+        MAX_WITHDRAWALS_PER_PAYLOAD,
+        MAX_BLS_TO_EXECUTION_CHANGES,
+        MAX_BLOB_COMMITMENTS_PER_BLOCK,
+    >
+{
     pub fn phase0(
         &self,
     ) -> Option<
@@ -431,10 +435,7 @@ impl<
     }
     pub fn attester_slashings_mut(
         &mut self,
-    ) -> &mut List<
-        AttesterSlashing<MAX_VALIDATORS_PER_COMMITTEE>,
-        MAX_ATTESTER_SLASHINGS,
-    > {
+    ) -> &mut List<AttesterSlashing<MAX_VALIDATORS_PER_COMMITTEE>, MAX_ATTESTER_SLASHINGS> {
         match self {
             Self::Phase0(inner) => &mut inner.attester_slashings,
             Self::Altair(inner) => &mut inner.attester_slashings,
@@ -492,9 +493,7 @@ impl<
             Self::Deneb(inner) => &inner.voluntary_exits,
         }
     }
-    pub fn voluntary_exits_mut(
-        &mut self,
-    ) -> &mut List<SignedVoluntaryExit, MAX_VOLUNTARY_EXITS> {
+    pub fn voluntary_exits_mut(&mut self) -> &mut List<SignedVoluntaryExit, MAX_VOLUNTARY_EXITS> {
         match self {
             Self::Phase0(inner) => &mut inner.voluntary_exits,
             Self::Altair(inner) => &mut inner.voluntary_exits,
@@ -512,9 +511,7 @@ impl<
             Self::Deneb(inner) => Some(&inner.sync_aggregate),
         }
     }
-    pub fn sync_aggregate_mut(
-        &mut self,
-    ) -> Option<&mut SyncAggregate<SYNC_COMMITTEE_SIZE>> {
+    pub fn sync_aggregate_mut(&mut self) -> Option<&mut SyncAggregate<SYNC_COMMITTEE_SIZE>> {
         match self {
             Self::Phase0(_) => None,
             Self::Altair(inner) => Some(&mut inner.sync_aggregate),
@@ -697,38 +694,40 @@ pub enum BeaconBlockBodyRef<
     ),
 }
 impl<
-    'a,
-    const MAX_PROPOSER_SLASHINGS: usize,
-    const MAX_VALIDATORS_PER_COMMITTEE: usize,
-    const MAX_ATTESTER_SLASHINGS: usize,
-    const MAX_ATTESTATIONS: usize,
-    const MAX_DEPOSITS: usize,
-    const MAX_VOLUNTARY_EXITS: usize,
-    const SYNC_COMMITTEE_SIZE: usize,
-    const BYTES_PER_LOGS_BLOOM: usize,
-    const MAX_EXTRA_DATA_BYTES: usize,
-    const MAX_BYTES_PER_TRANSACTION: usize,
-    const MAX_TRANSACTIONS_PER_PAYLOAD: usize,
-    const MAX_WITHDRAWALS_PER_PAYLOAD: usize,
-    const MAX_BLS_TO_EXECUTION_CHANGES: usize,
-    const MAX_BLOB_COMMITMENTS_PER_BLOCK: usize,
-> BeaconBlockBodyRef<
-    'a,
-    MAX_PROPOSER_SLASHINGS,
-    MAX_VALIDATORS_PER_COMMITTEE,
-    MAX_ATTESTER_SLASHINGS,
-    MAX_ATTESTATIONS,
-    MAX_DEPOSITS,
-    MAX_VOLUNTARY_EXITS,
-    SYNC_COMMITTEE_SIZE,
-    BYTES_PER_LOGS_BLOOM,
-    MAX_EXTRA_DATA_BYTES,
-    MAX_BYTES_PER_TRANSACTION,
-    MAX_TRANSACTIONS_PER_PAYLOAD,
-    MAX_WITHDRAWALS_PER_PAYLOAD,
-    MAX_BLS_TO_EXECUTION_CHANGES,
-    MAX_BLOB_COMMITMENTS_PER_BLOCK,
-> {
+        'a,
+        const MAX_PROPOSER_SLASHINGS: usize,
+        const MAX_VALIDATORS_PER_COMMITTEE: usize,
+        const MAX_ATTESTER_SLASHINGS: usize,
+        const MAX_ATTESTATIONS: usize,
+        const MAX_DEPOSITS: usize,
+        const MAX_VOLUNTARY_EXITS: usize,
+        const SYNC_COMMITTEE_SIZE: usize,
+        const BYTES_PER_LOGS_BLOOM: usize,
+        const MAX_EXTRA_DATA_BYTES: usize,
+        const MAX_BYTES_PER_TRANSACTION: usize,
+        const MAX_TRANSACTIONS_PER_PAYLOAD: usize,
+        const MAX_WITHDRAWALS_PER_PAYLOAD: usize,
+        const MAX_BLS_TO_EXECUTION_CHANGES: usize,
+        const MAX_BLOB_COMMITMENTS_PER_BLOCK: usize,
+    >
+    BeaconBlockBodyRef<
+        'a,
+        MAX_PROPOSER_SLASHINGS,
+        MAX_VALIDATORS_PER_COMMITTEE,
+        MAX_ATTESTER_SLASHINGS,
+        MAX_ATTESTATIONS,
+        MAX_DEPOSITS,
+        MAX_VOLUNTARY_EXITS,
+        SYNC_COMMITTEE_SIZE,
+        BYTES_PER_LOGS_BLOOM,
+        MAX_EXTRA_DATA_BYTES,
+        MAX_BYTES_PER_TRANSACTION,
+        MAX_TRANSACTIONS_PER_PAYLOAD,
+        MAX_WITHDRAWALS_PER_PAYLOAD,
+        MAX_BLS_TO_EXECUTION_CHANGES,
+        MAX_BLOB_COMMITMENTS_PER_BLOCK,
+    >
+{
     pub fn phase0(
         &self,
     ) -> Option<
@@ -963,48 +962,50 @@ impl<
     }
 }
 impl<
-    'a,
-    const MAX_PROPOSER_SLASHINGS: usize,
-    const MAX_VALIDATORS_PER_COMMITTEE: usize,
-    const MAX_ATTESTER_SLASHINGS: usize,
-    const MAX_ATTESTATIONS: usize,
-    const MAX_DEPOSITS: usize,
-    const MAX_VOLUNTARY_EXITS: usize,
-    const SYNC_COMMITTEE_SIZE: usize,
-    const BYTES_PER_LOGS_BLOOM: usize,
-    const MAX_EXTRA_DATA_BYTES: usize,
-    const MAX_BYTES_PER_TRANSACTION: usize,
-    const MAX_TRANSACTIONS_PER_PAYLOAD: usize,
-    const MAX_WITHDRAWALS_PER_PAYLOAD: usize,
-    const MAX_BLS_TO_EXECUTION_CHANGES: usize,
-    const MAX_BLOB_COMMITMENTS_PER_BLOCK: usize,
-> From<
-    &'a phase0::BeaconBlockBody<
+        'a,
+        const MAX_PROPOSER_SLASHINGS: usize,
+        const MAX_VALIDATORS_PER_COMMITTEE: usize,
+        const MAX_ATTESTER_SLASHINGS: usize,
+        const MAX_ATTESTATIONS: usize,
+        const MAX_DEPOSITS: usize,
+        const MAX_VOLUNTARY_EXITS: usize,
+        const SYNC_COMMITTEE_SIZE: usize,
+        const BYTES_PER_LOGS_BLOOM: usize,
+        const MAX_EXTRA_DATA_BYTES: usize,
+        const MAX_BYTES_PER_TRANSACTION: usize,
+        const MAX_TRANSACTIONS_PER_PAYLOAD: usize,
+        const MAX_WITHDRAWALS_PER_PAYLOAD: usize,
+        const MAX_BLS_TO_EXECUTION_CHANGES: usize,
+        const MAX_BLOB_COMMITMENTS_PER_BLOCK: usize,
+    >
+    From<
+        &'a phase0::BeaconBlockBody<
+            MAX_PROPOSER_SLASHINGS,
+            MAX_VALIDATORS_PER_COMMITTEE,
+            MAX_ATTESTER_SLASHINGS,
+            MAX_ATTESTATIONS,
+            MAX_DEPOSITS,
+            MAX_VOLUNTARY_EXITS,
+        >,
+    >
+    for BeaconBlockBodyRef<
+        'a,
         MAX_PROPOSER_SLASHINGS,
         MAX_VALIDATORS_PER_COMMITTEE,
         MAX_ATTESTER_SLASHINGS,
         MAX_ATTESTATIONS,
         MAX_DEPOSITS,
         MAX_VOLUNTARY_EXITS,
-    >,
->
-for BeaconBlockBodyRef<
-    'a,
-    MAX_PROPOSER_SLASHINGS,
-    MAX_VALIDATORS_PER_COMMITTEE,
-    MAX_ATTESTER_SLASHINGS,
-    MAX_ATTESTATIONS,
-    MAX_DEPOSITS,
-    MAX_VOLUNTARY_EXITS,
-    SYNC_COMMITTEE_SIZE,
-    BYTES_PER_LOGS_BLOOM,
-    MAX_EXTRA_DATA_BYTES,
-    MAX_BYTES_PER_TRANSACTION,
-    MAX_TRANSACTIONS_PER_PAYLOAD,
-    MAX_WITHDRAWALS_PER_PAYLOAD,
-    MAX_BLS_TO_EXECUTION_CHANGES,
-    MAX_BLOB_COMMITMENTS_PER_BLOCK,
-> {
+        SYNC_COMMITTEE_SIZE,
+        BYTES_PER_LOGS_BLOOM,
+        MAX_EXTRA_DATA_BYTES,
+        MAX_BYTES_PER_TRANSACTION,
+        MAX_TRANSACTIONS_PER_PAYLOAD,
+        MAX_WITHDRAWALS_PER_PAYLOAD,
+        MAX_BLS_TO_EXECUTION_CHANGES,
+        MAX_BLOB_COMMITMENTS_PER_BLOCK,
+    >
+{
     fn from(
         value: &'a phase0::BeaconBlockBody<
             MAX_PROPOSER_SLASHINGS,
@@ -1019,23 +1020,35 @@ for BeaconBlockBodyRef<
     }
 }
 impl<
-    'a,
-    const MAX_PROPOSER_SLASHINGS: usize,
-    const MAX_VALIDATORS_PER_COMMITTEE: usize,
-    const MAX_ATTESTER_SLASHINGS: usize,
-    const MAX_ATTESTATIONS: usize,
-    const MAX_DEPOSITS: usize,
-    const MAX_VOLUNTARY_EXITS: usize,
-    const SYNC_COMMITTEE_SIZE: usize,
-    const BYTES_PER_LOGS_BLOOM: usize,
-    const MAX_EXTRA_DATA_BYTES: usize,
-    const MAX_BYTES_PER_TRANSACTION: usize,
-    const MAX_TRANSACTIONS_PER_PAYLOAD: usize,
-    const MAX_WITHDRAWALS_PER_PAYLOAD: usize,
-    const MAX_BLS_TO_EXECUTION_CHANGES: usize,
-    const MAX_BLOB_COMMITMENTS_PER_BLOCK: usize,
-> From<
-    &'a altair::BeaconBlockBody<
+        'a,
+        const MAX_PROPOSER_SLASHINGS: usize,
+        const MAX_VALIDATORS_PER_COMMITTEE: usize,
+        const MAX_ATTESTER_SLASHINGS: usize,
+        const MAX_ATTESTATIONS: usize,
+        const MAX_DEPOSITS: usize,
+        const MAX_VOLUNTARY_EXITS: usize,
+        const SYNC_COMMITTEE_SIZE: usize,
+        const BYTES_PER_LOGS_BLOOM: usize,
+        const MAX_EXTRA_DATA_BYTES: usize,
+        const MAX_BYTES_PER_TRANSACTION: usize,
+        const MAX_TRANSACTIONS_PER_PAYLOAD: usize,
+        const MAX_WITHDRAWALS_PER_PAYLOAD: usize,
+        const MAX_BLS_TO_EXECUTION_CHANGES: usize,
+        const MAX_BLOB_COMMITMENTS_PER_BLOCK: usize,
+    >
+    From<
+        &'a altair::BeaconBlockBody<
+            MAX_PROPOSER_SLASHINGS,
+            MAX_VALIDATORS_PER_COMMITTEE,
+            MAX_ATTESTER_SLASHINGS,
+            MAX_ATTESTATIONS,
+            MAX_DEPOSITS,
+            MAX_VOLUNTARY_EXITS,
+            SYNC_COMMITTEE_SIZE,
+        >,
+    >
+    for BeaconBlockBodyRef<
+        'a,
         MAX_PROPOSER_SLASHINGS,
         MAX_VALIDATORS_PER_COMMITTEE,
         MAX_ATTESTER_SLASHINGS,
@@ -1043,25 +1056,15 @@ impl<
         MAX_DEPOSITS,
         MAX_VOLUNTARY_EXITS,
         SYNC_COMMITTEE_SIZE,
-    >,
->
-for BeaconBlockBodyRef<
-    'a,
-    MAX_PROPOSER_SLASHINGS,
-    MAX_VALIDATORS_PER_COMMITTEE,
-    MAX_ATTESTER_SLASHINGS,
-    MAX_ATTESTATIONS,
-    MAX_DEPOSITS,
-    MAX_VOLUNTARY_EXITS,
-    SYNC_COMMITTEE_SIZE,
-    BYTES_PER_LOGS_BLOOM,
-    MAX_EXTRA_DATA_BYTES,
-    MAX_BYTES_PER_TRANSACTION,
-    MAX_TRANSACTIONS_PER_PAYLOAD,
-    MAX_WITHDRAWALS_PER_PAYLOAD,
-    MAX_BLS_TO_EXECUTION_CHANGES,
-    MAX_BLOB_COMMITMENTS_PER_BLOCK,
-> {
+        BYTES_PER_LOGS_BLOOM,
+        MAX_EXTRA_DATA_BYTES,
+        MAX_BYTES_PER_TRANSACTION,
+        MAX_TRANSACTIONS_PER_PAYLOAD,
+        MAX_WITHDRAWALS_PER_PAYLOAD,
+        MAX_BLS_TO_EXECUTION_CHANGES,
+        MAX_BLOB_COMMITMENTS_PER_BLOCK,
+    >
+{
     fn from(
         value: &'a altair::BeaconBlockBody<
             MAX_PROPOSER_SLASHINGS,
@@ -1077,23 +1080,39 @@ for BeaconBlockBodyRef<
     }
 }
 impl<
-    'a,
-    const MAX_PROPOSER_SLASHINGS: usize,
-    const MAX_VALIDATORS_PER_COMMITTEE: usize,
-    const MAX_ATTESTER_SLASHINGS: usize,
-    const MAX_ATTESTATIONS: usize,
-    const MAX_DEPOSITS: usize,
-    const MAX_VOLUNTARY_EXITS: usize,
-    const SYNC_COMMITTEE_SIZE: usize,
-    const BYTES_PER_LOGS_BLOOM: usize,
-    const MAX_EXTRA_DATA_BYTES: usize,
-    const MAX_BYTES_PER_TRANSACTION: usize,
-    const MAX_TRANSACTIONS_PER_PAYLOAD: usize,
-    const MAX_WITHDRAWALS_PER_PAYLOAD: usize,
-    const MAX_BLS_TO_EXECUTION_CHANGES: usize,
-    const MAX_BLOB_COMMITMENTS_PER_BLOCK: usize,
-> From<
-    &'a bellatrix::BeaconBlockBody<
+        'a,
+        const MAX_PROPOSER_SLASHINGS: usize,
+        const MAX_VALIDATORS_PER_COMMITTEE: usize,
+        const MAX_ATTESTER_SLASHINGS: usize,
+        const MAX_ATTESTATIONS: usize,
+        const MAX_DEPOSITS: usize,
+        const MAX_VOLUNTARY_EXITS: usize,
+        const SYNC_COMMITTEE_SIZE: usize,
+        const BYTES_PER_LOGS_BLOOM: usize,
+        const MAX_EXTRA_DATA_BYTES: usize,
+        const MAX_BYTES_PER_TRANSACTION: usize,
+        const MAX_TRANSACTIONS_PER_PAYLOAD: usize,
+        const MAX_WITHDRAWALS_PER_PAYLOAD: usize,
+        const MAX_BLS_TO_EXECUTION_CHANGES: usize,
+        const MAX_BLOB_COMMITMENTS_PER_BLOCK: usize,
+    >
+    From<
+        &'a bellatrix::BeaconBlockBody<
+            MAX_PROPOSER_SLASHINGS,
+            MAX_VALIDATORS_PER_COMMITTEE,
+            MAX_ATTESTER_SLASHINGS,
+            MAX_ATTESTATIONS,
+            MAX_DEPOSITS,
+            MAX_VOLUNTARY_EXITS,
+            SYNC_COMMITTEE_SIZE,
+            BYTES_PER_LOGS_BLOOM,
+            MAX_EXTRA_DATA_BYTES,
+            MAX_BYTES_PER_TRANSACTION,
+            MAX_TRANSACTIONS_PER_PAYLOAD,
+        >,
+    >
+    for BeaconBlockBodyRef<
+        'a,
         MAX_PROPOSER_SLASHINGS,
         MAX_VALIDATORS_PER_COMMITTEE,
         MAX_ATTESTER_SLASHINGS,
@@ -1105,25 +1124,11 @@ impl<
         MAX_EXTRA_DATA_BYTES,
         MAX_BYTES_PER_TRANSACTION,
         MAX_TRANSACTIONS_PER_PAYLOAD,
-    >,
->
-for BeaconBlockBodyRef<
-    'a,
-    MAX_PROPOSER_SLASHINGS,
-    MAX_VALIDATORS_PER_COMMITTEE,
-    MAX_ATTESTER_SLASHINGS,
-    MAX_ATTESTATIONS,
-    MAX_DEPOSITS,
-    MAX_VOLUNTARY_EXITS,
-    SYNC_COMMITTEE_SIZE,
-    BYTES_PER_LOGS_BLOOM,
-    MAX_EXTRA_DATA_BYTES,
-    MAX_BYTES_PER_TRANSACTION,
-    MAX_TRANSACTIONS_PER_PAYLOAD,
-    MAX_WITHDRAWALS_PER_PAYLOAD,
-    MAX_BLS_TO_EXECUTION_CHANGES,
-    MAX_BLOB_COMMITMENTS_PER_BLOCK,
-> {
+        MAX_WITHDRAWALS_PER_PAYLOAD,
+        MAX_BLS_TO_EXECUTION_CHANGES,
+        MAX_BLOB_COMMITMENTS_PER_BLOCK,
+    >
+{
     fn from(
         value: &'a bellatrix::BeaconBlockBody<
             MAX_PROPOSER_SLASHINGS,
@@ -1143,23 +1148,41 @@ for BeaconBlockBodyRef<
     }
 }
 impl<
-    'a,
-    const MAX_PROPOSER_SLASHINGS: usize,
-    const MAX_VALIDATORS_PER_COMMITTEE: usize,
-    const MAX_ATTESTER_SLASHINGS: usize,
-    const MAX_ATTESTATIONS: usize,
-    const MAX_DEPOSITS: usize,
-    const MAX_VOLUNTARY_EXITS: usize,
-    const SYNC_COMMITTEE_SIZE: usize,
-    const BYTES_PER_LOGS_BLOOM: usize,
-    const MAX_EXTRA_DATA_BYTES: usize,
-    const MAX_BYTES_PER_TRANSACTION: usize,
-    const MAX_TRANSACTIONS_PER_PAYLOAD: usize,
-    const MAX_WITHDRAWALS_PER_PAYLOAD: usize,
-    const MAX_BLS_TO_EXECUTION_CHANGES: usize,
-    const MAX_BLOB_COMMITMENTS_PER_BLOCK: usize,
-> From<
-    &'a capella::BeaconBlockBody<
+        'a,
+        const MAX_PROPOSER_SLASHINGS: usize,
+        const MAX_VALIDATORS_PER_COMMITTEE: usize,
+        const MAX_ATTESTER_SLASHINGS: usize,
+        const MAX_ATTESTATIONS: usize,
+        const MAX_DEPOSITS: usize,
+        const MAX_VOLUNTARY_EXITS: usize,
+        const SYNC_COMMITTEE_SIZE: usize,
+        const BYTES_PER_LOGS_BLOOM: usize,
+        const MAX_EXTRA_DATA_BYTES: usize,
+        const MAX_BYTES_PER_TRANSACTION: usize,
+        const MAX_TRANSACTIONS_PER_PAYLOAD: usize,
+        const MAX_WITHDRAWALS_PER_PAYLOAD: usize,
+        const MAX_BLS_TO_EXECUTION_CHANGES: usize,
+        const MAX_BLOB_COMMITMENTS_PER_BLOCK: usize,
+    >
+    From<
+        &'a capella::BeaconBlockBody<
+            MAX_PROPOSER_SLASHINGS,
+            MAX_VALIDATORS_PER_COMMITTEE,
+            MAX_ATTESTER_SLASHINGS,
+            MAX_ATTESTATIONS,
+            MAX_DEPOSITS,
+            MAX_VOLUNTARY_EXITS,
+            SYNC_COMMITTEE_SIZE,
+            BYTES_PER_LOGS_BLOOM,
+            MAX_EXTRA_DATA_BYTES,
+            MAX_BYTES_PER_TRANSACTION,
+            MAX_TRANSACTIONS_PER_PAYLOAD,
+            MAX_WITHDRAWALS_PER_PAYLOAD,
+            MAX_BLS_TO_EXECUTION_CHANGES,
+        >,
+    >
+    for BeaconBlockBodyRef<
+        'a,
         MAX_PROPOSER_SLASHINGS,
         MAX_VALIDATORS_PER_COMMITTEE,
         MAX_ATTESTER_SLASHINGS,
@@ -1173,25 +1196,9 @@ impl<
         MAX_TRANSACTIONS_PER_PAYLOAD,
         MAX_WITHDRAWALS_PER_PAYLOAD,
         MAX_BLS_TO_EXECUTION_CHANGES,
-    >,
->
-for BeaconBlockBodyRef<
-    'a,
-    MAX_PROPOSER_SLASHINGS,
-    MAX_VALIDATORS_PER_COMMITTEE,
-    MAX_ATTESTER_SLASHINGS,
-    MAX_ATTESTATIONS,
-    MAX_DEPOSITS,
-    MAX_VOLUNTARY_EXITS,
-    SYNC_COMMITTEE_SIZE,
-    BYTES_PER_LOGS_BLOOM,
-    MAX_EXTRA_DATA_BYTES,
-    MAX_BYTES_PER_TRANSACTION,
-    MAX_TRANSACTIONS_PER_PAYLOAD,
-    MAX_WITHDRAWALS_PER_PAYLOAD,
-    MAX_BLS_TO_EXECUTION_CHANGES,
-    MAX_BLOB_COMMITMENTS_PER_BLOCK,
-> {
+        MAX_BLOB_COMMITMENTS_PER_BLOCK,
+    >
+{
     fn from(
         value: &'a capella::BeaconBlockBody<
             MAX_PROPOSER_SLASHINGS,
@@ -1213,23 +1220,42 @@ for BeaconBlockBodyRef<
     }
 }
 impl<
-    'a,
-    const MAX_PROPOSER_SLASHINGS: usize,
-    const MAX_VALIDATORS_PER_COMMITTEE: usize,
-    const MAX_ATTESTER_SLASHINGS: usize,
-    const MAX_ATTESTATIONS: usize,
-    const MAX_DEPOSITS: usize,
-    const MAX_VOLUNTARY_EXITS: usize,
-    const SYNC_COMMITTEE_SIZE: usize,
-    const BYTES_PER_LOGS_BLOOM: usize,
-    const MAX_EXTRA_DATA_BYTES: usize,
-    const MAX_BYTES_PER_TRANSACTION: usize,
-    const MAX_TRANSACTIONS_PER_PAYLOAD: usize,
-    const MAX_WITHDRAWALS_PER_PAYLOAD: usize,
-    const MAX_BLS_TO_EXECUTION_CHANGES: usize,
-    const MAX_BLOB_COMMITMENTS_PER_BLOCK: usize,
-> From<
-    &'a deneb::BeaconBlockBody<
+        'a,
+        const MAX_PROPOSER_SLASHINGS: usize,
+        const MAX_VALIDATORS_PER_COMMITTEE: usize,
+        const MAX_ATTESTER_SLASHINGS: usize,
+        const MAX_ATTESTATIONS: usize,
+        const MAX_DEPOSITS: usize,
+        const MAX_VOLUNTARY_EXITS: usize,
+        const SYNC_COMMITTEE_SIZE: usize,
+        const BYTES_PER_LOGS_BLOOM: usize,
+        const MAX_EXTRA_DATA_BYTES: usize,
+        const MAX_BYTES_PER_TRANSACTION: usize,
+        const MAX_TRANSACTIONS_PER_PAYLOAD: usize,
+        const MAX_WITHDRAWALS_PER_PAYLOAD: usize,
+        const MAX_BLS_TO_EXECUTION_CHANGES: usize,
+        const MAX_BLOB_COMMITMENTS_PER_BLOCK: usize,
+    >
+    From<
+        &'a deneb::BeaconBlockBody<
+            MAX_PROPOSER_SLASHINGS,
+            MAX_VALIDATORS_PER_COMMITTEE,
+            MAX_ATTESTER_SLASHINGS,
+            MAX_ATTESTATIONS,
+            MAX_DEPOSITS,
+            MAX_VOLUNTARY_EXITS,
+            SYNC_COMMITTEE_SIZE,
+            BYTES_PER_LOGS_BLOOM,
+            MAX_EXTRA_DATA_BYTES,
+            MAX_BYTES_PER_TRANSACTION,
+            MAX_TRANSACTIONS_PER_PAYLOAD,
+            MAX_WITHDRAWALS_PER_PAYLOAD,
+            MAX_BLS_TO_EXECUTION_CHANGES,
+            MAX_BLOB_COMMITMENTS_PER_BLOCK,
+        >,
+    >
+    for BeaconBlockBodyRef<
+        'a,
         MAX_PROPOSER_SLASHINGS,
         MAX_VALIDATORS_PER_COMMITTEE,
         MAX_ATTESTER_SLASHINGS,
@@ -1244,25 +1270,8 @@ impl<
         MAX_WITHDRAWALS_PER_PAYLOAD,
         MAX_BLS_TO_EXECUTION_CHANGES,
         MAX_BLOB_COMMITMENTS_PER_BLOCK,
-    >,
->
-for BeaconBlockBodyRef<
-    'a,
-    MAX_PROPOSER_SLASHINGS,
-    MAX_VALIDATORS_PER_COMMITTEE,
-    MAX_ATTESTER_SLASHINGS,
-    MAX_ATTESTATIONS,
-    MAX_DEPOSITS,
-    MAX_VOLUNTARY_EXITS,
-    SYNC_COMMITTEE_SIZE,
-    BYTES_PER_LOGS_BLOOM,
-    MAX_EXTRA_DATA_BYTES,
-    MAX_BYTES_PER_TRANSACTION,
-    MAX_TRANSACTIONS_PER_PAYLOAD,
-    MAX_WITHDRAWALS_PER_PAYLOAD,
-    MAX_BLS_TO_EXECUTION_CHANGES,
-    MAX_BLOB_COMMITMENTS_PER_BLOCK,
-> {
+    >
+{
     fn from(
         value: &'a deneb::BeaconBlockBody<
             MAX_PROPOSER_SLASHINGS,
@@ -1375,38 +1384,40 @@ pub enum BeaconBlockBodyRefMut<
     ),
 }
 impl<
-    'a,
-    const MAX_PROPOSER_SLASHINGS: usize,
-    const MAX_VALIDATORS_PER_COMMITTEE: usize,
-    const MAX_ATTESTER_SLASHINGS: usize,
-    const MAX_ATTESTATIONS: usize,
-    const MAX_DEPOSITS: usize,
-    const MAX_VOLUNTARY_EXITS: usize,
-    const SYNC_COMMITTEE_SIZE: usize,
-    const BYTES_PER_LOGS_BLOOM: usize,
-    const MAX_EXTRA_DATA_BYTES: usize,
-    const MAX_BYTES_PER_TRANSACTION: usize,
-    const MAX_TRANSACTIONS_PER_PAYLOAD: usize,
-    const MAX_WITHDRAWALS_PER_PAYLOAD: usize,
-    const MAX_BLS_TO_EXECUTION_CHANGES: usize,
-    const MAX_BLOB_COMMITMENTS_PER_BLOCK: usize,
-> BeaconBlockBodyRefMut<
-    'a,
-    MAX_PROPOSER_SLASHINGS,
-    MAX_VALIDATORS_PER_COMMITTEE,
-    MAX_ATTESTER_SLASHINGS,
-    MAX_ATTESTATIONS,
-    MAX_DEPOSITS,
-    MAX_VOLUNTARY_EXITS,
-    SYNC_COMMITTEE_SIZE,
-    BYTES_PER_LOGS_BLOOM,
-    MAX_EXTRA_DATA_BYTES,
-    MAX_BYTES_PER_TRANSACTION,
-    MAX_TRANSACTIONS_PER_PAYLOAD,
-    MAX_WITHDRAWALS_PER_PAYLOAD,
-    MAX_BLS_TO_EXECUTION_CHANGES,
-    MAX_BLOB_COMMITMENTS_PER_BLOCK,
-> {
+        'a,
+        const MAX_PROPOSER_SLASHINGS: usize,
+        const MAX_VALIDATORS_PER_COMMITTEE: usize,
+        const MAX_ATTESTER_SLASHINGS: usize,
+        const MAX_ATTESTATIONS: usize,
+        const MAX_DEPOSITS: usize,
+        const MAX_VOLUNTARY_EXITS: usize,
+        const SYNC_COMMITTEE_SIZE: usize,
+        const BYTES_PER_LOGS_BLOOM: usize,
+        const MAX_EXTRA_DATA_BYTES: usize,
+        const MAX_BYTES_PER_TRANSACTION: usize,
+        const MAX_TRANSACTIONS_PER_PAYLOAD: usize,
+        const MAX_WITHDRAWALS_PER_PAYLOAD: usize,
+        const MAX_BLS_TO_EXECUTION_CHANGES: usize,
+        const MAX_BLOB_COMMITMENTS_PER_BLOCK: usize,
+    >
+    BeaconBlockBodyRefMut<
+        'a,
+        MAX_PROPOSER_SLASHINGS,
+        MAX_VALIDATORS_PER_COMMITTEE,
+        MAX_ATTESTER_SLASHINGS,
+        MAX_ATTESTATIONS,
+        MAX_DEPOSITS,
+        MAX_VOLUNTARY_EXITS,
+        SYNC_COMMITTEE_SIZE,
+        BYTES_PER_LOGS_BLOOM,
+        MAX_EXTRA_DATA_BYTES,
+        MAX_BYTES_PER_TRANSACTION,
+        MAX_TRANSACTIONS_PER_PAYLOAD,
+        MAX_WITHDRAWALS_PER_PAYLOAD,
+        MAX_BLS_TO_EXECUTION_CHANGES,
+        MAX_BLOB_COMMITMENTS_PER_BLOCK,
+    >
+{
     pub fn phase0_mut(
         &mut self,
     ) -> Option<
@@ -1553,10 +1564,7 @@ impl<
     }
     pub fn attester_slashings_mut(
         &mut self,
-    ) -> &mut List<
-        AttesterSlashing<MAX_VALIDATORS_PER_COMMITTEE>,
-        MAX_ATTESTER_SLASHINGS,
-    > {
+    ) -> &mut List<AttesterSlashing<MAX_VALIDATORS_PER_COMMITTEE>, MAX_ATTESTER_SLASHINGS> {
         match self {
             Self::Phase0(inner) => &mut inner.attester_slashings,
             Self::Altair(inner) => &mut inner.attester_slashings,
@@ -1585,9 +1593,7 @@ impl<
             Self::Deneb(inner) => &mut inner.deposits,
         }
     }
-    pub fn voluntary_exits_mut(
-        &mut self,
-    ) -> &mut List<SignedVoluntaryExit, MAX_VOLUNTARY_EXITS> {
+    pub fn voluntary_exits_mut(&mut self) -> &mut List<SignedVoluntaryExit, MAX_VOLUNTARY_EXITS> {
         match self {
             Self::Phase0(inner) => &mut inner.voluntary_exits,
             Self::Altair(inner) => &mut inner.voluntary_exits,
@@ -1596,9 +1602,7 @@ impl<
             Self::Deneb(inner) => &mut inner.voluntary_exits,
         }
     }
-    pub fn sync_aggregate_mut(
-        &mut self,
-    ) -> Option<&mut SyncAggregate<SYNC_COMMITTEE_SIZE>> {
+    pub fn sync_aggregate_mut(&mut self) -> Option<&mut SyncAggregate<SYNC_COMMITTEE_SIZE>> {
         match self {
             Self::Phase0(_) => None,
             Self::Altair(inner) => Some(&mut inner.sync_aggregate),
@@ -1650,48 +1654,50 @@ impl<
     }
 }
 impl<
-    'a,
-    const MAX_PROPOSER_SLASHINGS: usize,
-    const MAX_VALIDATORS_PER_COMMITTEE: usize,
-    const MAX_ATTESTER_SLASHINGS: usize,
-    const MAX_ATTESTATIONS: usize,
-    const MAX_DEPOSITS: usize,
-    const MAX_VOLUNTARY_EXITS: usize,
-    const SYNC_COMMITTEE_SIZE: usize,
-    const BYTES_PER_LOGS_BLOOM: usize,
-    const MAX_EXTRA_DATA_BYTES: usize,
-    const MAX_BYTES_PER_TRANSACTION: usize,
-    const MAX_TRANSACTIONS_PER_PAYLOAD: usize,
-    const MAX_WITHDRAWALS_PER_PAYLOAD: usize,
-    const MAX_BLS_TO_EXECUTION_CHANGES: usize,
-    const MAX_BLOB_COMMITMENTS_PER_BLOCK: usize,
-> From<
-    &'a mut phase0::BeaconBlockBody<
+        'a,
+        const MAX_PROPOSER_SLASHINGS: usize,
+        const MAX_VALIDATORS_PER_COMMITTEE: usize,
+        const MAX_ATTESTER_SLASHINGS: usize,
+        const MAX_ATTESTATIONS: usize,
+        const MAX_DEPOSITS: usize,
+        const MAX_VOLUNTARY_EXITS: usize,
+        const SYNC_COMMITTEE_SIZE: usize,
+        const BYTES_PER_LOGS_BLOOM: usize,
+        const MAX_EXTRA_DATA_BYTES: usize,
+        const MAX_BYTES_PER_TRANSACTION: usize,
+        const MAX_TRANSACTIONS_PER_PAYLOAD: usize,
+        const MAX_WITHDRAWALS_PER_PAYLOAD: usize,
+        const MAX_BLS_TO_EXECUTION_CHANGES: usize,
+        const MAX_BLOB_COMMITMENTS_PER_BLOCK: usize,
+    >
+    From<
+        &'a mut phase0::BeaconBlockBody<
+            MAX_PROPOSER_SLASHINGS,
+            MAX_VALIDATORS_PER_COMMITTEE,
+            MAX_ATTESTER_SLASHINGS,
+            MAX_ATTESTATIONS,
+            MAX_DEPOSITS,
+            MAX_VOLUNTARY_EXITS,
+        >,
+    >
+    for BeaconBlockBodyRefMut<
+        'a,
         MAX_PROPOSER_SLASHINGS,
         MAX_VALIDATORS_PER_COMMITTEE,
         MAX_ATTESTER_SLASHINGS,
         MAX_ATTESTATIONS,
         MAX_DEPOSITS,
         MAX_VOLUNTARY_EXITS,
-    >,
->
-for BeaconBlockBodyRefMut<
-    'a,
-    MAX_PROPOSER_SLASHINGS,
-    MAX_VALIDATORS_PER_COMMITTEE,
-    MAX_ATTESTER_SLASHINGS,
-    MAX_ATTESTATIONS,
-    MAX_DEPOSITS,
-    MAX_VOLUNTARY_EXITS,
-    SYNC_COMMITTEE_SIZE,
-    BYTES_PER_LOGS_BLOOM,
-    MAX_EXTRA_DATA_BYTES,
-    MAX_BYTES_PER_TRANSACTION,
-    MAX_TRANSACTIONS_PER_PAYLOAD,
-    MAX_WITHDRAWALS_PER_PAYLOAD,
-    MAX_BLS_TO_EXECUTION_CHANGES,
-    MAX_BLOB_COMMITMENTS_PER_BLOCK,
-> {
+        SYNC_COMMITTEE_SIZE,
+        BYTES_PER_LOGS_BLOOM,
+        MAX_EXTRA_DATA_BYTES,
+        MAX_BYTES_PER_TRANSACTION,
+        MAX_TRANSACTIONS_PER_PAYLOAD,
+        MAX_WITHDRAWALS_PER_PAYLOAD,
+        MAX_BLS_TO_EXECUTION_CHANGES,
+        MAX_BLOB_COMMITMENTS_PER_BLOCK,
+    >
+{
     fn from(
         value: &'a mut phase0::BeaconBlockBody<
             MAX_PROPOSER_SLASHINGS,
@@ -1706,23 +1712,35 @@ for BeaconBlockBodyRefMut<
     }
 }
 impl<
-    'a,
-    const MAX_PROPOSER_SLASHINGS: usize,
-    const MAX_VALIDATORS_PER_COMMITTEE: usize,
-    const MAX_ATTESTER_SLASHINGS: usize,
-    const MAX_ATTESTATIONS: usize,
-    const MAX_DEPOSITS: usize,
-    const MAX_VOLUNTARY_EXITS: usize,
-    const SYNC_COMMITTEE_SIZE: usize,
-    const BYTES_PER_LOGS_BLOOM: usize,
-    const MAX_EXTRA_DATA_BYTES: usize,
-    const MAX_BYTES_PER_TRANSACTION: usize,
-    const MAX_TRANSACTIONS_PER_PAYLOAD: usize,
-    const MAX_WITHDRAWALS_PER_PAYLOAD: usize,
-    const MAX_BLS_TO_EXECUTION_CHANGES: usize,
-    const MAX_BLOB_COMMITMENTS_PER_BLOCK: usize,
-> From<
-    &'a mut altair::BeaconBlockBody<
+        'a,
+        const MAX_PROPOSER_SLASHINGS: usize,
+        const MAX_VALIDATORS_PER_COMMITTEE: usize,
+        const MAX_ATTESTER_SLASHINGS: usize,
+        const MAX_ATTESTATIONS: usize,
+        const MAX_DEPOSITS: usize,
+        const MAX_VOLUNTARY_EXITS: usize,
+        const SYNC_COMMITTEE_SIZE: usize,
+        const BYTES_PER_LOGS_BLOOM: usize,
+        const MAX_EXTRA_DATA_BYTES: usize,
+        const MAX_BYTES_PER_TRANSACTION: usize,
+        const MAX_TRANSACTIONS_PER_PAYLOAD: usize,
+        const MAX_WITHDRAWALS_PER_PAYLOAD: usize,
+        const MAX_BLS_TO_EXECUTION_CHANGES: usize,
+        const MAX_BLOB_COMMITMENTS_PER_BLOCK: usize,
+    >
+    From<
+        &'a mut altair::BeaconBlockBody<
+            MAX_PROPOSER_SLASHINGS,
+            MAX_VALIDATORS_PER_COMMITTEE,
+            MAX_ATTESTER_SLASHINGS,
+            MAX_ATTESTATIONS,
+            MAX_DEPOSITS,
+            MAX_VOLUNTARY_EXITS,
+            SYNC_COMMITTEE_SIZE,
+        >,
+    >
+    for BeaconBlockBodyRefMut<
+        'a,
         MAX_PROPOSER_SLASHINGS,
         MAX_VALIDATORS_PER_COMMITTEE,
         MAX_ATTESTER_SLASHINGS,
@@ -1730,25 +1748,15 @@ impl<
         MAX_DEPOSITS,
         MAX_VOLUNTARY_EXITS,
         SYNC_COMMITTEE_SIZE,
-    >,
->
-for BeaconBlockBodyRefMut<
-    'a,
-    MAX_PROPOSER_SLASHINGS,
-    MAX_VALIDATORS_PER_COMMITTEE,
-    MAX_ATTESTER_SLASHINGS,
-    MAX_ATTESTATIONS,
-    MAX_DEPOSITS,
-    MAX_VOLUNTARY_EXITS,
-    SYNC_COMMITTEE_SIZE,
-    BYTES_PER_LOGS_BLOOM,
-    MAX_EXTRA_DATA_BYTES,
-    MAX_BYTES_PER_TRANSACTION,
-    MAX_TRANSACTIONS_PER_PAYLOAD,
-    MAX_WITHDRAWALS_PER_PAYLOAD,
-    MAX_BLS_TO_EXECUTION_CHANGES,
-    MAX_BLOB_COMMITMENTS_PER_BLOCK,
-> {
+        BYTES_PER_LOGS_BLOOM,
+        MAX_EXTRA_DATA_BYTES,
+        MAX_BYTES_PER_TRANSACTION,
+        MAX_TRANSACTIONS_PER_PAYLOAD,
+        MAX_WITHDRAWALS_PER_PAYLOAD,
+        MAX_BLS_TO_EXECUTION_CHANGES,
+        MAX_BLOB_COMMITMENTS_PER_BLOCK,
+    >
+{
     fn from(
         value: &'a mut altair::BeaconBlockBody<
             MAX_PROPOSER_SLASHINGS,
@@ -1764,23 +1772,39 @@ for BeaconBlockBodyRefMut<
     }
 }
 impl<
-    'a,
-    const MAX_PROPOSER_SLASHINGS: usize,
-    const MAX_VALIDATORS_PER_COMMITTEE: usize,
-    const MAX_ATTESTER_SLASHINGS: usize,
-    const MAX_ATTESTATIONS: usize,
-    const MAX_DEPOSITS: usize,
-    const MAX_VOLUNTARY_EXITS: usize,
-    const SYNC_COMMITTEE_SIZE: usize,
-    const BYTES_PER_LOGS_BLOOM: usize,
-    const MAX_EXTRA_DATA_BYTES: usize,
-    const MAX_BYTES_PER_TRANSACTION: usize,
-    const MAX_TRANSACTIONS_PER_PAYLOAD: usize,
-    const MAX_WITHDRAWALS_PER_PAYLOAD: usize,
-    const MAX_BLS_TO_EXECUTION_CHANGES: usize,
-    const MAX_BLOB_COMMITMENTS_PER_BLOCK: usize,
-> From<
-    &'a mut bellatrix::BeaconBlockBody<
+        'a,
+        const MAX_PROPOSER_SLASHINGS: usize,
+        const MAX_VALIDATORS_PER_COMMITTEE: usize,
+        const MAX_ATTESTER_SLASHINGS: usize,
+        const MAX_ATTESTATIONS: usize,
+        const MAX_DEPOSITS: usize,
+        const MAX_VOLUNTARY_EXITS: usize,
+        const SYNC_COMMITTEE_SIZE: usize,
+        const BYTES_PER_LOGS_BLOOM: usize,
+        const MAX_EXTRA_DATA_BYTES: usize,
+        const MAX_BYTES_PER_TRANSACTION: usize,
+        const MAX_TRANSACTIONS_PER_PAYLOAD: usize,
+        const MAX_WITHDRAWALS_PER_PAYLOAD: usize,
+        const MAX_BLS_TO_EXECUTION_CHANGES: usize,
+        const MAX_BLOB_COMMITMENTS_PER_BLOCK: usize,
+    >
+    From<
+        &'a mut bellatrix::BeaconBlockBody<
+            MAX_PROPOSER_SLASHINGS,
+            MAX_VALIDATORS_PER_COMMITTEE,
+            MAX_ATTESTER_SLASHINGS,
+            MAX_ATTESTATIONS,
+            MAX_DEPOSITS,
+            MAX_VOLUNTARY_EXITS,
+            SYNC_COMMITTEE_SIZE,
+            BYTES_PER_LOGS_BLOOM,
+            MAX_EXTRA_DATA_BYTES,
+            MAX_BYTES_PER_TRANSACTION,
+            MAX_TRANSACTIONS_PER_PAYLOAD,
+        >,
+    >
+    for BeaconBlockBodyRefMut<
+        'a,
         MAX_PROPOSER_SLASHINGS,
         MAX_VALIDATORS_PER_COMMITTEE,
         MAX_ATTESTER_SLASHINGS,
@@ -1792,25 +1816,11 @@ impl<
         MAX_EXTRA_DATA_BYTES,
         MAX_BYTES_PER_TRANSACTION,
         MAX_TRANSACTIONS_PER_PAYLOAD,
-    >,
->
-for BeaconBlockBodyRefMut<
-    'a,
-    MAX_PROPOSER_SLASHINGS,
-    MAX_VALIDATORS_PER_COMMITTEE,
-    MAX_ATTESTER_SLASHINGS,
-    MAX_ATTESTATIONS,
-    MAX_DEPOSITS,
-    MAX_VOLUNTARY_EXITS,
-    SYNC_COMMITTEE_SIZE,
-    BYTES_PER_LOGS_BLOOM,
-    MAX_EXTRA_DATA_BYTES,
-    MAX_BYTES_PER_TRANSACTION,
-    MAX_TRANSACTIONS_PER_PAYLOAD,
-    MAX_WITHDRAWALS_PER_PAYLOAD,
-    MAX_BLS_TO_EXECUTION_CHANGES,
-    MAX_BLOB_COMMITMENTS_PER_BLOCK,
-> {
+        MAX_WITHDRAWALS_PER_PAYLOAD,
+        MAX_BLS_TO_EXECUTION_CHANGES,
+        MAX_BLOB_COMMITMENTS_PER_BLOCK,
+    >
+{
     fn from(
         value: &'a mut bellatrix::BeaconBlockBody<
             MAX_PROPOSER_SLASHINGS,
@@ -1830,23 +1840,41 @@ for BeaconBlockBodyRefMut<
     }
 }
 impl<
-    'a,
-    const MAX_PROPOSER_SLASHINGS: usize,
-    const MAX_VALIDATORS_PER_COMMITTEE: usize,
-    const MAX_ATTESTER_SLASHINGS: usize,
-    const MAX_ATTESTATIONS: usize,
-    const MAX_DEPOSITS: usize,
-    const MAX_VOLUNTARY_EXITS: usize,
-    const SYNC_COMMITTEE_SIZE: usize,
-    const BYTES_PER_LOGS_BLOOM: usize,
-    const MAX_EXTRA_DATA_BYTES: usize,
-    const MAX_BYTES_PER_TRANSACTION: usize,
-    const MAX_TRANSACTIONS_PER_PAYLOAD: usize,
-    const MAX_WITHDRAWALS_PER_PAYLOAD: usize,
-    const MAX_BLS_TO_EXECUTION_CHANGES: usize,
-    const MAX_BLOB_COMMITMENTS_PER_BLOCK: usize,
-> From<
-    &'a mut capella::BeaconBlockBody<
+        'a,
+        const MAX_PROPOSER_SLASHINGS: usize,
+        const MAX_VALIDATORS_PER_COMMITTEE: usize,
+        const MAX_ATTESTER_SLASHINGS: usize,
+        const MAX_ATTESTATIONS: usize,
+        const MAX_DEPOSITS: usize,
+        const MAX_VOLUNTARY_EXITS: usize,
+        const SYNC_COMMITTEE_SIZE: usize,
+        const BYTES_PER_LOGS_BLOOM: usize,
+        const MAX_EXTRA_DATA_BYTES: usize,
+        const MAX_BYTES_PER_TRANSACTION: usize,
+        const MAX_TRANSACTIONS_PER_PAYLOAD: usize,
+        const MAX_WITHDRAWALS_PER_PAYLOAD: usize,
+        const MAX_BLS_TO_EXECUTION_CHANGES: usize,
+        const MAX_BLOB_COMMITMENTS_PER_BLOCK: usize,
+    >
+    From<
+        &'a mut capella::BeaconBlockBody<
+            MAX_PROPOSER_SLASHINGS,
+            MAX_VALIDATORS_PER_COMMITTEE,
+            MAX_ATTESTER_SLASHINGS,
+            MAX_ATTESTATIONS,
+            MAX_DEPOSITS,
+            MAX_VOLUNTARY_EXITS,
+            SYNC_COMMITTEE_SIZE,
+            BYTES_PER_LOGS_BLOOM,
+            MAX_EXTRA_DATA_BYTES,
+            MAX_BYTES_PER_TRANSACTION,
+            MAX_TRANSACTIONS_PER_PAYLOAD,
+            MAX_WITHDRAWALS_PER_PAYLOAD,
+            MAX_BLS_TO_EXECUTION_CHANGES,
+        >,
+    >
+    for BeaconBlockBodyRefMut<
+        'a,
         MAX_PROPOSER_SLASHINGS,
         MAX_VALIDATORS_PER_COMMITTEE,
         MAX_ATTESTER_SLASHINGS,
@@ -1860,25 +1888,9 @@ impl<
         MAX_TRANSACTIONS_PER_PAYLOAD,
         MAX_WITHDRAWALS_PER_PAYLOAD,
         MAX_BLS_TO_EXECUTION_CHANGES,
-    >,
->
-for BeaconBlockBodyRefMut<
-    'a,
-    MAX_PROPOSER_SLASHINGS,
-    MAX_VALIDATORS_PER_COMMITTEE,
-    MAX_ATTESTER_SLASHINGS,
-    MAX_ATTESTATIONS,
-    MAX_DEPOSITS,
-    MAX_VOLUNTARY_EXITS,
-    SYNC_COMMITTEE_SIZE,
-    BYTES_PER_LOGS_BLOOM,
-    MAX_EXTRA_DATA_BYTES,
-    MAX_BYTES_PER_TRANSACTION,
-    MAX_TRANSACTIONS_PER_PAYLOAD,
-    MAX_WITHDRAWALS_PER_PAYLOAD,
-    MAX_BLS_TO_EXECUTION_CHANGES,
-    MAX_BLOB_COMMITMENTS_PER_BLOCK,
-> {
+        MAX_BLOB_COMMITMENTS_PER_BLOCK,
+    >
+{
     fn from(
         value: &'a mut capella::BeaconBlockBody<
             MAX_PROPOSER_SLASHINGS,
@@ -1900,23 +1912,42 @@ for BeaconBlockBodyRefMut<
     }
 }
 impl<
-    'a,
-    const MAX_PROPOSER_SLASHINGS: usize,
-    const MAX_VALIDATORS_PER_COMMITTEE: usize,
-    const MAX_ATTESTER_SLASHINGS: usize,
-    const MAX_ATTESTATIONS: usize,
-    const MAX_DEPOSITS: usize,
-    const MAX_VOLUNTARY_EXITS: usize,
-    const SYNC_COMMITTEE_SIZE: usize,
-    const BYTES_PER_LOGS_BLOOM: usize,
-    const MAX_EXTRA_DATA_BYTES: usize,
-    const MAX_BYTES_PER_TRANSACTION: usize,
-    const MAX_TRANSACTIONS_PER_PAYLOAD: usize,
-    const MAX_WITHDRAWALS_PER_PAYLOAD: usize,
-    const MAX_BLS_TO_EXECUTION_CHANGES: usize,
-    const MAX_BLOB_COMMITMENTS_PER_BLOCK: usize,
-> From<
-    &'a mut deneb::BeaconBlockBody<
+        'a,
+        const MAX_PROPOSER_SLASHINGS: usize,
+        const MAX_VALIDATORS_PER_COMMITTEE: usize,
+        const MAX_ATTESTER_SLASHINGS: usize,
+        const MAX_ATTESTATIONS: usize,
+        const MAX_DEPOSITS: usize,
+        const MAX_VOLUNTARY_EXITS: usize,
+        const SYNC_COMMITTEE_SIZE: usize,
+        const BYTES_PER_LOGS_BLOOM: usize,
+        const MAX_EXTRA_DATA_BYTES: usize,
+        const MAX_BYTES_PER_TRANSACTION: usize,
+        const MAX_TRANSACTIONS_PER_PAYLOAD: usize,
+        const MAX_WITHDRAWALS_PER_PAYLOAD: usize,
+        const MAX_BLS_TO_EXECUTION_CHANGES: usize,
+        const MAX_BLOB_COMMITMENTS_PER_BLOCK: usize,
+    >
+    From<
+        &'a mut deneb::BeaconBlockBody<
+            MAX_PROPOSER_SLASHINGS,
+            MAX_VALIDATORS_PER_COMMITTEE,
+            MAX_ATTESTER_SLASHINGS,
+            MAX_ATTESTATIONS,
+            MAX_DEPOSITS,
+            MAX_VOLUNTARY_EXITS,
+            SYNC_COMMITTEE_SIZE,
+            BYTES_PER_LOGS_BLOOM,
+            MAX_EXTRA_DATA_BYTES,
+            MAX_BYTES_PER_TRANSACTION,
+            MAX_TRANSACTIONS_PER_PAYLOAD,
+            MAX_WITHDRAWALS_PER_PAYLOAD,
+            MAX_BLS_TO_EXECUTION_CHANGES,
+            MAX_BLOB_COMMITMENTS_PER_BLOCK,
+        >,
+    >
+    for BeaconBlockBodyRefMut<
+        'a,
         MAX_PROPOSER_SLASHINGS,
         MAX_VALIDATORS_PER_COMMITTEE,
         MAX_ATTESTER_SLASHINGS,
@@ -1931,25 +1962,8 @@ impl<
         MAX_WITHDRAWALS_PER_PAYLOAD,
         MAX_BLS_TO_EXECUTION_CHANGES,
         MAX_BLOB_COMMITMENTS_PER_BLOCK,
-    >,
->
-for BeaconBlockBodyRefMut<
-    'a,
-    MAX_PROPOSER_SLASHINGS,
-    MAX_VALIDATORS_PER_COMMITTEE,
-    MAX_ATTESTER_SLASHINGS,
-    MAX_ATTESTATIONS,
-    MAX_DEPOSITS,
-    MAX_VOLUNTARY_EXITS,
-    SYNC_COMMITTEE_SIZE,
-    BYTES_PER_LOGS_BLOOM,
-    MAX_EXTRA_DATA_BYTES,
-    MAX_BYTES_PER_TRANSACTION,
-    MAX_TRANSACTIONS_PER_PAYLOAD,
-    MAX_WITHDRAWALS_PER_PAYLOAD,
-    MAX_BLS_TO_EXECUTION_CHANGES,
-    MAX_BLOB_COMMITMENTS_PER_BLOCK,
-> {
+    >
+{
     fn from(
         value: &'a mut deneb::BeaconBlockBody<
             MAX_PROPOSER_SLASHINGS,

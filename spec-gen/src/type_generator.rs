@@ -51,16 +51,16 @@ impl Type {
     // and support `From::from` implementations to ease conversion into and out of
     // the reference wrapper.
     fn needs_ref_types(&self) -> bool {
-        match self {
-            Self::BeaconBlockBody => true,
-            Self::BlindedBeaconBlockBody => true,
-            Self::BeaconBlock => true,
-            Self::BlindedBeaconBlock => true,
-            Self::ExecutionPayload => true,
-            Self::ExecutionPayloadHeader => true,
-            Self::BeaconState => true,
-            _ => false,
-        }
+        matches!(
+            self,
+            Self::BeaconBlockBody |
+                Self::BlindedBeaconBlockBody |
+                Self::BeaconBlock |
+                Self::BlindedBeaconBlock |
+                Self::ExecutionPayload |
+                Self::ExecutionPayloadHeader |
+                Self::BeaconState
+        )
     }
 
     // Return any fields of this (polymorphic) type that are themselves polymorphic, as
@@ -245,7 +245,7 @@ fn load_type_defns(target_type: &Type, forks: &[Fork]) -> Vec<TypeDefn> {
             match item {
                 Item::Struct(item) => {
                     if item.ident == target_type.name() {
-                        defns.push(TypeDefn { fork: fork.clone(), item });
+                        defns.push(TypeDefn { fork: *fork, item });
                     }
                 }
                 _ => continue,
@@ -264,7 +264,7 @@ struct MergeType {
 
 impl MergeType {
     fn supported_forks(&self) -> Vec<Fork> {
-        self.variants.iter().map(|v| v.fork.clone()).collect()
+        self.variants.iter().map(|v| v.fork).collect()
     }
 }
 
@@ -301,17 +301,17 @@ fn derive_merge_type(fork_sequence: &[Fork], defns: Vec<TypeDefn>) -> MergeType 
     for (fork, defn) in iter.zip(defns.iter()) {
         let mut visitor = ToGenericsVisitor::default();
         visitor.visit_generics(&defn.item.generics);
-        let variant = Variant { fork: fork.clone(), generics: visitor.bounds };
+        let variant = Variant { fork: *fork, generics: visitor.bounds };
         variants.push(variant);
 
         for field in &defn.item.fields {
             let ident = field.ident.clone().unwrap();
             let mut field_defn =
-                FieldDefn { fork: fork.clone(), ident: ident.clone(), type_def: field.ty.clone() };
+                FieldDefn { fork: *fork, ident: ident.clone(), type_def: field.ty.clone() };
             if seen_fields.contains(&ident) {
                 let target = fields.iter().position(|field| field.ident == ident).unwrap();
                 let field_to_update = &mut fields[target];
-                field_defn.fork = field_to_update.fork.clone();
+                field_defn.fork = field_to_update.fork;
                 let _ = std::mem::replace(field_to_update, field_defn);
             } else {
                 fields.push(field_defn);
@@ -424,7 +424,7 @@ fn derive_maybe_non_optional_method_set(
     let identifier = ident.to_string();
     let deletion_fork = target_type.field_deletions().and_then(|(fork, fields)| {
         if fields.contains(&identifier.as_str()) {
-            Some(fork.clone())
+            Some(fork)
         } else {
             None
         }
@@ -673,7 +673,7 @@ fn derive_fields_impl(
             derive_method_set(target_type, field_defn, &fork_sequence, &ref_type)
         })
         .collect::<Vec<ImplItemMethod>>();
-    fields.extend(field_accessors.into_iter());
+    fields.extend(field_accessors);
     fields
 }
 
@@ -698,7 +698,7 @@ fn derive_ref_impl_type(
     is_mut: bool,
 ) -> (Item, Generics) {
     let name_extension = if is_mut { "Mut" } else { "" };
-    let base_type_name = as_syn_ident(format!("{0}", target_type.name()));
+    let base_type_name = as_syn_ident(target_type.name());
     let type_name = as_syn_ident(format!("{0}Ref{1}", target_type.name(), name_extension));
     let bounds = &merge_type.generics;
     let generics: syn::Generics = parse_quote! {
@@ -748,7 +748,7 @@ fn derive_ref_impl_impl(
     generics: &Generics,
 ) -> Item {
     let name_extension = if is_mut { "Mut" } else { "" };
-    let base_type_name = as_syn_ident(format!("{0}", target_type.name()));
+    let base_type_name = as_syn_ident(target_type.name());
     let type_name = as_syn_ident(format!("{0}Ref{1}", target_type.name(), name_extension));
     let mut arguments = generics_to_arguments(generics);
     let lifetime: syn::GenericArgument = parse_quote! {
@@ -778,7 +778,7 @@ fn derive_ref_impl_from(
     arguments.args.insert(0, lifetime);
 
     let type_name = as_syn_ident(format!("{0}Ref{1}", target_type.name(), name_extension));
-    let base_type = as_syn_ident(format!("{0}", target_type.name()));
+    let base_type = as_syn_ident(target_type.name());
     let mutability = if is_mut { Some(Mut::default()) } else { None };
     merge_type
         .variants

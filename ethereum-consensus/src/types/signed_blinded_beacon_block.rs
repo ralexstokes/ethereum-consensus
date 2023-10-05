@@ -1,8 +1,10 @@
 //! WARNING: This file was derived by the `spec-gen` utility. DO NOT EDIT MANUALLY.
 use crate::{
     bellatrix::blinded_beacon_block as bellatrix,
-    capella::blinded_beacon_block as capella, deneb::blinded_beacon_block as deneb,
-    primitives::BlsSignature, ssz::prelude::*,
+    capella::blinded_beacon_block as capella,
+    deneb::blinded_beacon_block as deneb,
+    primitives::BlsSignature,
+    ssz::prelude::*,
     types::blinded_beacon_block::{BlindedBeaconBlockRef, BlindedBeaconBlockRefMut},
 };
 #[derive(Debug, SimpleSerialize, Clone, PartialEq, Eq)]
@@ -64,30 +66,32 @@ pub enum SignedBlindedBeaconBlock<
     ),
 }
 impl<
-    const MAX_PROPOSER_SLASHINGS: usize,
-    const MAX_VALIDATORS_PER_COMMITTEE: usize,
-    const MAX_ATTESTER_SLASHINGS: usize,
-    const MAX_ATTESTATIONS: usize,
-    const MAX_DEPOSITS: usize,
-    const MAX_VOLUNTARY_EXITS: usize,
-    const SYNC_COMMITTEE_SIZE: usize,
-    const BYTES_PER_LOGS_BLOOM: usize,
-    const MAX_EXTRA_DATA_BYTES: usize,
-    const MAX_BLS_TO_EXECUTION_CHANGES: usize,
-    const MAX_BLOB_COMMITMENTS_PER_BLOCK: usize,
-> SignedBlindedBeaconBlock<
-    MAX_PROPOSER_SLASHINGS,
-    MAX_VALIDATORS_PER_COMMITTEE,
-    MAX_ATTESTER_SLASHINGS,
-    MAX_ATTESTATIONS,
-    MAX_DEPOSITS,
-    MAX_VOLUNTARY_EXITS,
-    SYNC_COMMITTEE_SIZE,
-    BYTES_PER_LOGS_BLOOM,
-    MAX_EXTRA_DATA_BYTES,
-    MAX_BLS_TO_EXECUTION_CHANGES,
-    MAX_BLOB_COMMITMENTS_PER_BLOCK,
-> {
+        const MAX_PROPOSER_SLASHINGS: usize,
+        const MAX_VALIDATORS_PER_COMMITTEE: usize,
+        const MAX_ATTESTER_SLASHINGS: usize,
+        const MAX_ATTESTATIONS: usize,
+        const MAX_DEPOSITS: usize,
+        const MAX_VOLUNTARY_EXITS: usize,
+        const SYNC_COMMITTEE_SIZE: usize,
+        const BYTES_PER_LOGS_BLOOM: usize,
+        const MAX_EXTRA_DATA_BYTES: usize,
+        const MAX_BLS_TO_EXECUTION_CHANGES: usize,
+        const MAX_BLOB_COMMITMENTS_PER_BLOCK: usize,
+    >
+    SignedBlindedBeaconBlock<
+        MAX_PROPOSER_SLASHINGS,
+        MAX_VALIDATORS_PER_COMMITTEE,
+        MAX_ATTESTER_SLASHINGS,
+        MAX_ATTESTATIONS,
+        MAX_DEPOSITS,
+        MAX_VOLUNTARY_EXITS,
+        SYNC_COMMITTEE_SIZE,
+        BYTES_PER_LOGS_BLOOM,
+        MAX_EXTRA_DATA_BYTES,
+        MAX_BLS_TO_EXECUTION_CHANGES,
+        MAX_BLOB_COMMITMENTS_PER_BLOCK,
+    >
+{
     pub fn bellatrix(
         &self,
     ) -> Option<

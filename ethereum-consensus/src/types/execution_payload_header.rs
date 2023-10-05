@@ -1,8 +1,9 @@
 //! WARNING: This file was derived by the `spec-gen` utility. DO NOT EDIT MANUALLY.
 use crate::{
-    bellatrix::execution_payload as bellatrix, capella::execution_payload as capella,
+    bellatrix::execution_payload as bellatrix,
+    capella::execution_payload as capella,
     deneb::execution_payload as deneb,
-    primitives::{Hash32, Root, ExecutionAddress, Bytes32},
+    primitives::{Bytes32, ExecutionAddress, Hash32, Root},
     ssz::prelude::*,
 };
 #[derive(Debug, SimpleSerialize, Clone, PartialEq, Eq)]
@@ -11,21 +12,17 @@ pub enum ExecutionPayloadHeader<
     const BYTES_PER_LOGS_BLOOM: usize,
     const MAX_EXTRA_DATA_BYTES: usize,
 > {
-    Bellatrix(
-        bellatrix::ExecutionPayloadHeader<BYTES_PER_LOGS_BLOOM, MAX_EXTRA_DATA_BYTES>,
-    ),
+    Bellatrix(bellatrix::ExecutionPayloadHeader<BYTES_PER_LOGS_BLOOM, MAX_EXTRA_DATA_BYTES>),
     Capella(capella::ExecutionPayloadHeader<BYTES_PER_LOGS_BLOOM, MAX_EXTRA_DATA_BYTES>),
     Deneb(deneb::ExecutionPayloadHeader<BYTES_PER_LOGS_BLOOM, MAX_EXTRA_DATA_BYTES>),
 }
-impl<
-    const BYTES_PER_LOGS_BLOOM: usize,
-    const MAX_EXTRA_DATA_BYTES: usize,
-> ExecutionPayloadHeader<BYTES_PER_LOGS_BLOOM, MAX_EXTRA_DATA_BYTES> {
+impl<const BYTES_PER_LOGS_BLOOM: usize, const MAX_EXTRA_DATA_BYTES: usize>
+    ExecutionPayloadHeader<BYTES_PER_LOGS_BLOOM, MAX_EXTRA_DATA_BYTES>
+{
     pub fn bellatrix(
         &self,
-    ) -> Option<
-        &bellatrix::ExecutionPayloadHeader<BYTES_PER_LOGS_BLOOM, MAX_EXTRA_DATA_BYTES>,
-    > {
+    ) -> Option<&bellatrix::ExecutionPayloadHeader<BYTES_PER_LOGS_BLOOM, MAX_EXTRA_DATA_BYTES>>
+    {
         match self {
             Self::Bellatrix(inner) => Some(inner),
             _ => None,
@@ -33,12 +30,8 @@ impl<
     }
     pub fn bellatrix_mut(
         &mut self,
-    ) -> Option<
-        &mut bellatrix::ExecutionPayloadHeader<
-            BYTES_PER_LOGS_BLOOM,
-            MAX_EXTRA_DATA_BYTES,
-        >,
-    > {
+    ) -> Option<&mut bellatrix::ExecutionPayloadHeader<BYTES_PER_LOGS_BLOOM, MAX_EXTRA_DATA_BYTES>>
+    {
         match self {
             Self::Bellatrix(inner) => Some(inner),
             _ => None,
@@ -46,9 +39,7 @@ impl<
     }
     pub fn capella(
         &self,
-    ) -> Option<
-        &capella::ExecutionPayloadHeader<BYTES_PER_LOGS_BLOOM, MAX_EXTRA_DATA_BYTES>,
-    > {
+    ) -> Option<&capella::ExecutionPayloadHeader<BYTES_PER_LOGS_BLOOM, MAX_EXTRA_DATA_BYTES>> {
         match self {
             Self::Capella(inner) => Some(inner),
             _ => None,
@@ -56,9 +47,8 @@ impl<
     }
     pub fn capella_mut(
         &mut self,
-    ) -> Option<
-        &mut capella::ExecutionPayloadHeader<BYTES_PER_LOGS_BLOOM, MAX_EXTRA_DATA_BYTES>,
-    > {
+    ) -> Option<&mut capella::ExecutionPayloadHeader<BYTES_PER_LOGS_BLOOM, MAX_EXTRA_DATA_BYTES>>
+    {
         match self {
             Self::Capella(inner) => Some(inner),
             _ => None,
@@ -66,9 +56,7 @@ impl<
     }
     pub fn deneb(
         &self,
-    ) -> Option<
-        &deneb::ExecutionPayloadHeader<BYTES_PER_LOGS_BLOOM, MAX_EXTRA_DATA_BYTES>,
-    > {
+    ) -> Option<&deneb::ExecutionPayloadHeader<BYTES_PER_LOGS_BLOOM, MAX_EXTRA_DATA_BYTES>> {
         match self {
             Self::Deneb(inner) => Some(inner),
             _ => None,
@@ -76,9 +64,8 @@ impl<
     }
     pub fn deneb_mut(
         &mut self,
-    ) -> Option<
-        &mut deneb::ExecutionPayloadHeader<BYTES_PER_LOGS_BLOOM, MAX_EXTRA_DATA_BYTES>,
-    > {
+    ) -> Option<&mut deneb::ExecutionPayloadHeader<BYTES_PER_LOGS_BLOOM, MAX_EXTRA_DATA_BYTES>>
+    {
         match self {
             Self::Deneb(inner) => Some(inner),
             _ => None,
@@ -329,24 +316,17 @@ pub enum ExecutionPayloadHeaderRef<
     const BYTES_PER_LOGS_BLOOM: usize,
     const MAX_EXTRA_DATA_BYTES: usize,
 > {
-    Bellatrix(
-        &'a bellatrix::ExecutionPayloadHeader<BYTES_PER_LOGS_BLOOM, MAX_EXTRA_DATA_BYTES>,
-    ),
-    Capella(
-        &'a capella::ExecutionPayloadHeader<BYTES_PER_LOGS_BLOOM, MAX_EXTRA_DATA_BYTES>,
-    ),
+    Bellatrix(&'a bellatrix::ExecutionPayloadHeader<BYTES_PER_LOGS_BLOOM, MAX_EXTRA_DATA_BYTES>),
+    Capella(&'a capella::ExecutionPayloadHeader<BYTES_PER_LOGS_BLOOM, MAX_EXTRA_DATA_BYTES>),
     Deneb(&'a deneb::ExecutionPayloadHeader<BYTES_PER_LOGS_BLOOM, MAX_EXTRA_DATA_BYTES>),
 }
-impl<
-    'a,
-    const BYTES_PER_LOGS_BLOOM: usize,
-    const MAX_EXTRA_DATA_BYTES: usize,
-> ExecutionPayloadHeaderRef<'a, BYTES_PER_LOGS_BLOOM, MAX_EXTRA_DATA_BYTES> {
+impl<'a, const BYTES_PER_LOGS_BLOOM: usize, const MAX_EXTRA_DATA_BYTES: usize>
+    ExecutionPayloadHeaderRef<'a, BYTES_PER_LOGS_BLOOM, MAX_EXTRA_DATA_BYTES>
+{
     pub fn bellatrix(
         &self,
-    ) -> Option<
-        &bellatrix::ExecutionPayloadHeader<BYTES_PER_LOGS_BLOOM, MAX_EXTRA_DATA_BYTES>,
-    > {
+    ) -> Option<&bellatrix::ExecutionPayloadHeader<BYTES_PER_LOGS_BLOOM, MAX_EXTRA_DATA_BYTES>>
+    {
         match self {
             Self::Bellatrix(inner) => Some(inner),
             _ => None,
@@ -354,9 +334,7 @@ impl<
     }
     pub fn capella(
         &self,
-    ) -> Option<
-        &capella::ExecutionPayloadHeader<BYTES_PER_LOGS_BLOOM, MAX_EXTRA_DATA_BYTES>,
-    > {
+    ) -> Option<&capella::ExecutionPayloadHeader<BYTES_PER_LOGS_BLOOM, MAX_EXTRA_DATA_BYTES>> {
         match self {
             Self::Capella(inner) => Some(inner),
             _ => None,
@@ -364,9 +342,7 @@ impl<
     }
     pub fn deneb(
         &self,
-    ) -> Option<
-        &deneb::ExecutionPayloadHeader<BYTES_PER_LOGS_BLOOM, MAX_EXTRA_DATA_BYTES>,
-    > {
+    ) -> Option<&deneb::ExecutionPayloadHeader<BYTES_PER_LOGS_BLOOM, MAX_EXTRA_DATA_BYTES>> {
         match self {
             Self::Deneb(inner) => Some(inner),
             _ => None,
@@ -492,47 +468,32 @@ impl<
         }
     }
 }
-impl<
-    'a,
-    const BYTES_PER_LOGS_BLOOM: usize,
-    const MAX_EXTRA_DATA_BYTES: usize,
-> From<&'a bellatrix::ExecutionPayloadHeader<BYTES_PER_LOGS_BLOOM, MAX_EXTRA_DATA_BYTES>>
-for ExecutionPayloadHeaderRef<'a, BYTES_PER_LOGS_BLOOM, MAX_EXTRA_DATA_BYTES> {
+impl<'a, const BYTES_PER_LOGS_BLOOM: usize, const MAX_EXTRA_DATA_BYTES: usize>
+    From<&'a bellatrix::ExecutionPayloadHeader<BYTES_PER_LOGS_BLOOM, MAX_EXTRA_DATA_BYTES>>
+    for ExecutionPayloadHeaderRef<'a, BYTES_PER_LOGS_BLOOM, MAX_EXTRA_DATA_BYTES>
+{
     fn from(
-        value: &'a bellatrix::ExecutionPayloadHeader<
-            BYTES_PER_LOGS_BLOOM,
-            MAX_EXTRA_DATA_BYTES,
-        >,
+        value: &'a bellatrix::ExecutionPayloadHeader<BYTES_PER_LOGS_BLOOM, MAX_EXTRA_DATA_BYTES>,
     ) -> Self {
         Self::Bellatrix(value)
     }
 }
-impl<
-    'a,
-    const BYTES_PER_LOGS_BLOOM: usize,
-    const MAX_EXTRA_DATA_BYTES: usize,
-> From<&'a capella::ExecutionPayloadHeader<BYTES_PER_LOGS_BLOOM, MAX_EXTRA_DATA_BYTES>>
-for ExecutionPayloadHeaderRef<'a, BYTES_PER_LOGS_BLOOM, MAX_EXTRA_DATA_BYTES> {
+impl<'a, const BYTES_PER_LOGS_BLOOM: usize, const MAX_EXTRA_DATA_BYTES: usize>
+    From<&'a capella::ExecutionPayloadHeader<BYTES_PER_LOGS_BLOOM, MAX_EXTRA_DATA_BYTES>>
+    for ExecutionPayloadHeaderRef<'a, BYTES_PER_LOGS_BLOOM, MAX_EXTRA_DATA_BYTES>
+{
     fn from(
-        value: &'a capella::ExecutionPayloadHeader<
-            BYTES_PER_LOGS_BLOOM,
-            MAX_EXTRA_DATA_BYTES,
-        >,
+        value: &'a capella::ExecutionPayloadHeader<BYTES_PER_LOGS_BLOOM, MAX_EXTRA_DATA_BYTES>,
     ) -> Self {
         Self::Capella(value)
     }
 }
-impl<
-    'a,
-    const BYTES_PER_LOGS_BLOOM: usize,
-    const MAX_EXTRA_DATA_BYTES: usize,
-> From<&'a deneb::ExecutionPayloadHeader<BYTES_PER_LOGS_BLOOM, MAX_EXTRA_DATA_BYTES>>
-for ExecutionPayloadHeaderRef<'a, BYTES_PER_LOGS_BLOOM, MAX_EXTRA_DATA_BYTES> {
+impl<'a, const BYTES_PER_LOGS_BLOOM: usize, const MAX_EXTRA_DATA_BYTES: usize>
+    From<&'a deneb::ExecutionPayloadHeader<BYTES_PER_LOGS_BLOOM, MAX_EXTRA_DATA_BYTES>>
+    for ExecutionPayloadHeaderRef<'a, BYTES_PER_LOGS_BLOOM, MAX_EXTRA_DATA_BYTES>
+{
     fn from(
-        value: &'a deneb::ExecutionPayloadHeader<
-            BYTES_PER_LOGS_BLOOM,
-            MAX_EXTRA_DATA_BYTES,
-        >,
+        value: &'a deneb::ExecutionPayloadHeader<BYTES_PER_LOGS_BLOOM, MAX_EXTRA_DATA_BYTES>,
     ) -> Self {
         Self::Deneb(value)
     }
@@ -544,34 +505,18 @@ pub enum ExecutionPayloadHeaderRefMut<
     const MAX_EXTRA_DATA_BYTES: usize,
 > {
     Bellatrix(
-        &'a mut bellatrix::ExecutionPayloadHeader<
-            BYTES_PER_LOGS_BLOOM,
-            MAX_EXTRA_DATA_BYTES,
-        >,
+        &'a mut bellatrix::ExecutionPayloadHeader<BYTES_PER_LOGS_BLOOM, MAX_EXTRA_DATA_BYTES>,
     ),
-    Capella(
-        &'a mut capella::ExecutionPayloadHeader<
-            BYTES_PER_LOGS_BLOOM,
-            MAX_EXTRA_DATA_BYTES,
-        >,
-    ),
-    Deneb(
-        &'a mut deneb::ExecutionPayloadHeader<BYTES_PER_LOGS_BLOOM, MAX_EXTRA_DATA_BYTES>,
-    ),
+    Capella(&'a mut capella::ExecutionPayloadHeader<BYTES_PER_LOGS_BLOOM, MAX_EXTRA_DATA_BYTES>),
+    Deneb(&'a mut deneb::ExecutionPayloadHeader<BYTES_PER_LOGS_BLOOM, MAX_EXTRA_DATA_BYTES>),
 }
-impl<
-    'a,
-    const BYTES_PER_LOGS_BLOOM: usize,
-    const MAX_EXTRA_DATA_BYTES: usize,
-> ExecutionPayloadHeaderRefMut<'a, BYTES_PER_LOGS_BLOOM, MAX_EXTRA_DATA_BYTES> {
+impl<'a, const BYTES_PER_LOGS_BLOOM: usize, const MAX_EXTRA_DATA_BYTES: usize>
+    ExecutionPayloadHeaderRefMut<'a, BYTES_PER_LOGS_BLOOM, MAX_EXTRA_DATA_BYTES>
+{
     pub fn bellatrix_mut(
         &mut self,
-    ) -> Option<
-        &mut bellatrix::ExecutionPayloadHeader<
-            BYTES_PER_LOGS_BLOOM,
-            MAX_EXTRA_DATA_BYTES,
-        >,
-    > {
+    ) -> Option<&mut bellatrix::ExecutionPayloadHeader<BYTES_PER_LOGS_BLOOM, MAX_EXTRA_DATA_BYTES>>
+    {
         match self {
             Self::Bellatrix(inner) => Some(inner),
             _ => None,
@@ -579,9 +524,8 @@ impl<
     }
     pub fn capella_mut(
         &mut self,
-    ) -> Option<
-        &mut capella::ExecutionPayloadHeader<BYTES_PER_LOGS_BLOOM, MAX_EXTRA_DATA_BYTES>,
-    > {
+    ) -> Option<&mut capella::ExecutionPayloadHeader<BYTES_PER_LOGS_BLOOM, MAX_EXTRA_DATA_BYTES>>
+    {
         match self {
             Self::Capella(inner) => Some(inner),
             _ => None,
@@ -589,9 +533,8 @@ impl<
     }
     pub fn deneb_mut(
         &mut self,
-    ) -> Option<
-        &mut deneb::ExecutionPayloadHeader<BYTES_PER_LOGS_BLOOM, MAX_EXTRA_DATA_BYTES>,
-    > {
+    ) -> Option<&mut deneb::ExecutionPayloadHeader<BYTES_PER_LOGS_BLOOM, MAX_EXTRA_DATA_BYTES>>
+    {
         match self {
             Self::Deneb(inner) => Some(inner),
             _ => None,
@@ -717,13 +660,10 @@ impl<
         }
     }
 }
-impl<
-    'a,
-    const BYTES_PER_LOGS_BLOOM: usize,
-    const MAX_EXTRA_DATA_BYTES: usize,
-> From<
-    &'a mut bellatrix::ExecutionPayloadHeader<BYTES_PER_LOGS_BLOOM, MAX_EXTRA_DATA_BYTES>,
-> for ExecutionPayloadHeaderRefMut<'a, BYTES_PER_LOGS_BLOOM, MAX_EXTRA_DATA_BYTES> {
+impl<'a, const BYTES_PER_LOGS_BLOOM: usize, const MAX_EXTRA_DATA_BYTES: usize>
+    From<&'a mut bellatrix::ExecutionPayloadHeader<BYTES_PER_LOGS_BLOOM, MAX_EXTRA_DATA_BYTES>>
+    for ExecutionPayloadHeaderRefMut<'a, BYTES_PER_LOGS_BLOOM, MAX_EXTRA_DATA_BYTES>
+{
     fn from(
         value: &'a mut bellatrix::ExecutionPayloadHeader<
             BYTES_PER_LOGS_BLOOM,
@@ -733,33 +673,22 @@ impl<
         Self::Bellatrix(value)
     }
 }
-impl<
-    'a,
-    const BYTES_PER_LOGS_BLOOM: usize,
-    const MAX_EXTRA_DATA_BYTES: usize,
-> From<
-    &'a mut capella::ExecutionPayloadHeader<BYTES_PER_LOGS_BLOOM, MAX_EXTRA_DATA_BYTES>,
-> for ExecutionPayloadHeaderRefMut<'a, BYTES_PER_LOGS_BLOOM, MAX_EXTRA_DATA_BYTES> {
+impl<'a, const BYTES_PER_LOGS_BLOOM: usize, const MAX_EXTRA_DATA_BYTES: usize>
+    From<&'a mut capella::ExecutionPayloadHeader<BYTES_PER_LOGS_BLOOM, MAX_EXTRA_DATA_BYTES>>
+    for ExecutionPayloadHeaderRefMut<'a, BYTES_PER_LOGS_BLOOM, MAX_EXTRA_DATA_BYTES>
+{
     fn from(
-        value: &'a mut capella::ExecutionPayloadHeader<
-            BYTES_PER_LOGS_BLOOM,
-            MAX_EXTRA_DATA_BYTES,
-        >,
+        value: &'a mut capella::ExecutionPayloadHeader<BYTES_PER_LOGS_BLOOM, MAX_EXTRA_DATA_BYTES>,
     ) -> Self {
         Self::Capella(value)
     }
 }
-impl<
-    'a,
-    const BYTES_PER_LOGS_BLOOM: usize,
-    const MAX_EXTRA_DATA_BYTES: usize,
-> From<&'a mut deneb::ExecutionPayloadHeader<BYTES_PER_LOGS_BLOOM, MAX_EXTRA_DATA_BYTES>>
-for ExecutionPayloadHeaderRefMut<'a, BYTES_PER_LOGS_BLOOM, MAX_EXTRA_DATA_BYTES> {
+impl<'a, const BYTES_PER_LOGS_BLOOM: usize, const MAX_EXTRA_DATA_BYTES: usize>
+    From<&'a mut deneb::ExecutionPayloadHeader<BYTES_PER_LOGS_BLOOM, MAX_EXTRA_DATA_BYTES>>
+    for ExecutionPayloadHeaderRefMut<'a, BYTES_PER_LOGS_BLOOM, MAX_EXTRA_DATA_BYTES>
+{
     fn from(
-        value: &'a mut deneb::ExecutionPayloadHeader<
-            BYTES_PER_LOGS_BLOOM,
-            MAX_EXTRA_DATA_BYTES,
-        >,
+        value: &'a mut deneb::ExecutionPayloadHeader<BYTES_PER_LOGS_BLOOM, MAX_EXTRA_DATA_BYTES>,
     ) -> Self {
         Self::Deneb(value)
     }
