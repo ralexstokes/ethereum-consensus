@@ -17,3 +17,4 @@ pub mod serde;
 pub mod signing;
 pub mod ssz;
 pub mod state_transition;
+pub mod types;
