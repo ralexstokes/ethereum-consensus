@@ -28,8 +28,8 @@ pub use crate::{
             BlindedBeaconBlock, BlindedBeaconBlockBody, SignedBlindedBeaconBlock,
         },
         block_processing::{
-            process_block, process_bls_to_execution_change, process_execution_payload,
-            process_operations, process_withdrawals,
+            get_expected_withdrawals, process_block, process_bls_to_execution_change,
+            process_execution_payload, process_operations, process_withdrawals,
         },
         bls_to_execution_change::{BlsToExecutionChange, SignedBlsToExecutionChange},
         epoch_processing::{process_epoch, process_historical_summaries_update},
