@@ -41,7 +41,7 @@ multihash = { version = "0.16", default-features = false, features = [
     "sha2",
 ] }
 multiaddr = "0.14.0"
-c-kzg = { git = "https://github.com/ethereum/c-kzg-4844", rev = "f5f6f863d475847876a2bd5ee252058d37c3a15d" }
+c-kzg = "0.1.1"
 
 serde = { version = "1.0", features = ["derive"] }
 serde_json = { version = "1.0.81", optional = true }

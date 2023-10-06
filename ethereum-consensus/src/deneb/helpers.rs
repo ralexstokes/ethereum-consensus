@@ -18,7 +18,7 @@ use integer_sqrt::IntegerSquareRoot;
 pub fn kzg_commitment_to_versioned_hash(kzg_commitment: &KzgCommitment) -> VersionedHash {
     let mut result = VersionedHash::default();
     result[0] = VERSIONED_HASH_VERSION_KZG;
-    result[1..].copy_from_slice(&hash(kzg_commitment.0.as_ref())[1..]);
+    result[1..].copy_from_slice(&hash(kzg_commitment.as_ref())[1..]);
     result
 }
 
