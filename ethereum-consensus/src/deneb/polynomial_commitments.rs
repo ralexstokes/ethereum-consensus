@@ -29,8 +29,7 @@ pub fn blob_to_kzg_commitment<const BYTES_PER_BLOB: usize>(
 
     let commitment = c_kzg::KzgCommitment::blob_to_kzg_commitment(&blob, kzg_settings)?;
     let inner = ByteVector::try_from(commitment.to_bytes().as_slice()).unwrap();
-
-    Ok(KzgCommitment(inner))
+    Ok(inner)
 }
 
 // TODO: Map error
@@ -44,7 +43,7 @@ pub fn compute_kzg_proof<const BYTES_PER_BLOB: usize>(
 
     let (proof, evaluation) =
         c_kzg::KzgProof::compute_kzg_proof(&blob, &evaluation_point, kzg_settings)?;
-    let proof = KzgProof(ByteVector::try_from(proof.to_bytes().as_ref()).unwrap());
+    let proof = ByteVector::try_from(proof.to_bytes().as_ref()).unwrap();
     let evaluation = ByteVector::try_from(evaluation.as_slice()).unwrap();
 
     let result = ProofAndEvaluation { proof, evaluation };
@@ -64,7 +63,7 @@ pub fn compute_blob_kzg_proof<const BYTES_PER_BLOB: usize>(
 
     let bytes_proof = ckzg_proof.to_bytes();
     let proof = ByteVector::try_from(bytes_proof.as_ref()).unwrap();
-    Ok(KzgProof(proof))
+    Ok(proof)
 }
 
 // TODO: Map error
