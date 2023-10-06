@@ -356,8 +356,9 @@ fn derive_type_defn(target_type: &Type, merge_type: &MergeType) -> (Item, Generi
         })
         .collect::<Vec<syn::Variant>>();
     let enum_defn = parse_quote! {
-        #[derive(Debug, SimpleSerialize, Clone, PartialEq, Eq)]
-        #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+        #[derive(Debug, Clone, PartialEq, Eq, SimpleSerialize, serde::Serialize, serde::Deserialize)]
+        #[serde(tag = "version", content = "data")]
+        #[serde(rename_all = "lowercase")]
         pub enum #type_name #generics {
             #(#variant_defns),*
         }

@@ -15,8 +15,9 @@ use crate::{
     ssz::prelude::*,
     types::execution_payload_header::{ExecutionPayloadHeaderRef, ExecutionPayloadHeaderRefMut},
 };
-#[derive(Debug, SimpleSerialize, Clone, PartialEq, Eq)]
-#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[derive(Debug, Clone, PartialEq, Eq, SimpleSerialize, serde::Serialize, serde::Deserialize)]
+#[serde(tag = "version", content = "data")]
+#[serde(rename_all = "lowercase")]
 pub enum BeaconState<
     const SLOTS_PER_HISTORICAL_ROOT: usize,
     const HISTORICAL_ROOTS_LIMIT: usize,

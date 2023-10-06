@@ -7,8 +7,9 @@ use crate::{
     ssz::prelude::*,
     types::blinded_beacon_block::{BlindedBeaconBlockRef, BlindedBeaconBlockRefMut},
 };
-#[derive(Debug, SimpleSerialize, Clone, PartialEq, Eq)]
-#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[derive(Debug, Clone, PartialEq, Eq, SimpleSerialize, serde::Serialize, serde::Deserialize)]
+#[serde(tag = "version", content = "data")]
+#[serde(rename_all = "lowercase")]
 pub enum SignedBlindedBeaconBlock<
     const MAX_PROPOSER_SLASHINGS: usize,
     const MAX_VALIDATORS_PER_COMMITTEE: usize,

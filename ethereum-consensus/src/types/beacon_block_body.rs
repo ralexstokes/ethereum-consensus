@@ -13,8 +13,9 @@ use crate::{
     ssz::prelude::*,
     types::execution_payload::{ExecutionPayloadRef, ExecutionPayloadRefMut},
 };
-#[derive(Debug, SimpleSerialize, Clone, PartialEq, Eq)]
-#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[derive(Debug, Clone, PartialEq, Eq, SimpleSerialize, serde::Serialize, serde::Deserialize)]
+#[serde(tag = "version", content = "data")]
+#[serde(rename_all = "lowercase")]
 pub enum BeaconBlockBody<
     const MAX_PROPOSER_SLASHINGS: usize,
     const MAX_VALIDATORS_PER_COMMITTEE: usize,
