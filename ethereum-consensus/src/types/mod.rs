@@ -11,6 +11,7 @@ mod blinded_beacon_block;
 mod blinded_beacon_block_body;
 mod execution_payload;
 mod execution_payload_header;
+pub mod presets;
 mod signed_beacon_block;
 mod signed_blinded_beacon_block;
 
