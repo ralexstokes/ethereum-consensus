@@ -23,6 +23,7 @@ pub use crate::{
     bellatrix::{execution_payload::Transaction, fork_choice::PowBlock},
     capella::{
         bls_to_execution_change::{BlsToExecutionChange, SignedBlsToExecutionChange},
+        execution_engine::NewPayloadRequest,
         withdrawal::Withdrawal,
     },
     deneb::{
@@ -40,7 +41,7 @@ pub use crate::{
             process_attestation, process_block, process_execution_payload, process_voluntary_exit,
         },
         epoch_processing::process_registry_updates,
-        execution_engine::{DefaultExecutionEngine, NewPayloadRequest},
+        execution_engine::DefaultExecutionEngine,
         execution_payload::{ExecutionPayload, ExecutionPayloadHeader},
         fork::upgrade_to_deneb,
         genesis::initialize_beacon_state_from_eth1,
@@ -3383,4 +3384,4 @@ pub fn state_transition<
     process_slots(state, signed_block.message.slot, context)?;
     state_transition_block_in_slot(state, signed_block, execution_engine, validation, context)
 }
-pub use crate::deneb::execution_engine::ExecutionEngine;
+pub use crate::capella::execution_engine::ExecutionEngine;

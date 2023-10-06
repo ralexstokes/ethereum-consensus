@@ -7,6 +7,8 @@ pub mod configs;
 pub mod crypto;
 pub mod deneb;
 pub mod domains;
+pub mod execution_engine;
+pub mod fork;
 pub mod kzg;
 pub mod networking;
 pub mod networks;
@@ -18,3 +20,5 @@ pub mod signing;
 pub mod ssz;
 pub mod state_transition;
 pub mod types;
+
+pub use fork::Fork;

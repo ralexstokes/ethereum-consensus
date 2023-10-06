@@ -8,10 +8,11 @@ use crate::{
         is_valid_indexed_attestation, kzg_commitment_to_versioned_hash, process_block_header,
         process_eth1_data, process_operations, process_randao, process_sync_aggregate,
         process_withdrawals, Attestation, BeaconBlock, BeaconBlockBody, BeaconState,
-        ExecutionEngine, ExecutionPayloadHeader, NewPayloadRequest, SignedVoluntaryExit,
-        PARTICIPATION_FLAG_WEIGHTS, PROPOSER_WEIGHT, WEIGHT_DENOMINATOR,
+        ExecutionPayloadHeader, SignedVoluntaryExit, PARTICIPATION_FLAG_WEIGHTS, PROPOSER_WEIGHT,
+        WEIGHT_DENOMINATOR,
     },
     domains::DomainType,
+    execution_engine::{ExecutionEngine, NewPayloadRequest},
     primitives::FAR_FUTURE_EPOCH,
     signing::verify_signed_data,
     ssz::prelude::*,
@@ -19,6 +20,7 @@ use crate::{
         invalid_operation_error, Context, InvalidAttestation, InvalidExecutionPayload,
         InvalidOperation, InvalidVoluntaryExit, Result,
     },
+    types::ExecutionPayloadRef,
 };
 
 pub fn process_attestation<
@@ -243,10 +245,11 @@ pub fn process_execution_payload<
     let versioned_hashes =
         body.blob_kzg_commitments.iter().map(kzg_commitment_to_versioned_hash).collect::<Vec<_>>();
 
+    let payload_ref = ExecutionPayloadRef::from(&*payload);
     let new_payload_request = NewPayloadRequest {
-        execution_payload: &*payload,
+        execution_payload: payload_ref,
         versioned_hashes: &versioned_hashes,
-        parent_beacon_block_root: state.latest_block_header.parent_root,
+        parent_beacon_block_root: Some(state.latest_block_header.parent_root),
     };
     execution_engine.verify_and_notify_new_payload(&new_payload_request)?;
 

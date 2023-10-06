@@ -1,9 +1,8 @@
 use crate::{
-    altair, bellatrix, phase0,
-    state_transition::{
-        execution_engine::ExecutionEngine, BeaconState, Context, Error, Forks, Result,
-        SignedBeaconBlock, Validation,
-    },
+    altair, bellatrix, capella, deneb, phase0,
+    state_transition::{Context, Error, Result, Validation},
+    types::{BeaconState, ExecutionEngine, SignedBeaconBlock},
+    Fork,
 };
 
 #[derive(Debug)]
@@ -26,11 +25,28 @@ pub struct Executor<
     const MAX_ATTESTATIONS: usize,
     const MAX_DEPOSITS: usize,
     const MAX_VOLUNTARY_EXITS: usize,
+    const MAX_WITHDRAWALS_PER_PAYLOAD: usize,
+    const MAX_BLS_TO_EXECUTION_CHANGES: usize,
+    const MAX_BLOB_COMMITMENTS_PER_BLOCK: usize,
     B: bellatrix::ExecutionEngine<
         BYTES_PER_LOGS_BLOOM,
         MAX_EXTRA_DATA_BYTES,
         MAX_BYTES_PER_TRANSACTION,
         MAX_TRANSACTIONS_PER_PAYLOAD,
+    >,
+    C: capella::ExecutionEngine<
+        BYTES_PER_LOGS_BLOOM,
+        MAX_EXTRA_DATA_BYTES,
+        MAX_BYTES_PER_TRANSACTION,
+        MAX_TRANSACTIONS_PER_PAYLOAD,
+        MAX_WITHDRAWALS_PER_PAYLOAD,
+    >,
+    D: deneb::ExecutionEngine<
+        BYTES_PER_LOGS_BLOOM,
+        MAX_EXTRA_DATA_BYTES,
+        MAX_BYTES_PER_TRANSACTION,
+        MAX_TRANSACTIONS_PER_PAYLOAD,
+        MAX_WITHDRAWALS_PER_PAYLOAD,
     >,
 > {
     pub state: BeaconState<
@@ -51,7 +67,10 @@ pub struct Executor<
         MAX_EXTRA_DATA_BYTES,
         MAX_BYTES_PER_TRANSACTION,
         MAX_TRANSACTIONS_PER_PAYLOAD,
+        MAX_WITHDRAWALS_PER_PAYLOAD,
         B,
+        C,
+        D,
     >,
     pub context: Context,
 }
@@ -75,11 +94,28 @@ impl<
         const MAX_ATTESTATIONS: usize,
         const MAX_DEPOSITS: usize,
         const MAX_VOLUNTARY_EXITS: usize,
+        const MAX_WITHDRAWALS_PER_PAYLOAD: usize,
+        const MAX_BLS_TO_EXECUTION_CHANGES: usize,
+        const MAX_BLOB_COMMITMENTS_PER_BLOCK: usize,
         B: bellatrix::ExecutionEngine<
             BYTES_PER_LOGS_BLOOM,
             MAX_EXTRA_DATA_BYTES,
             MAX_BYTES_PER_TRANSACTION,
             MAX_TRANSACTIONS_PER_PAYLOAD,
+        >,
+        C: capella::ExecutionEngine<
+            BYTES_PER_LOGS_BLOOM,
+            MAX_EXTRA_DATA_BYTES,
+            MAX_BYTES_PER_TRANSACTION,
+            MAX_TRANSACTIONS_PER_PAYLOAD,
+            MAX_WITHDRAWALS_PER_PAYLOAD,
+        >,
+        D: deneb::ExecutionEngine<
+            BYTES_PER_LOGS_BLOOM,
+            MAX_EXTRA_DATA_BYTES,
+            MAX_BYTES_PER_TRANSACTION,
+            MAX_TRANSACTIONS_PER_PAYLOAD,
+            MAX_WITHDRAWALS_PER_PAYLOAD,
         >,
     >
     Executor<
@@ -101,7 +137,12 @@ impl<
         MAX_ATTESTATIONS,
         MAX_DEPOSITS,
         MAX_VOLUNTARY_EXITS,
+        MAX_WITHDRAWALS_PER_PAYLOAD,
+        MAX_BLS_TO_EXECUTION_CHANGES,
+        MAX_BLOB_COMMITMENTS_PER_BLOCK,
         B,
+        C,
+        D,
     >
 {
     pub fn new(
@@ -123,7 +164,10 @@ impl<
             MAX_EXTRA_DATA_BYTES,
             MAX_BYTES_PER_TRANSACTION,
             MAX_TRANSACTIONS_PER_PAYLOAD,
+            MAX_WITHDRAWALS_PER_PAYLOAD,
             B,
+            C,
+            D,
         >,
         context: Context,
     ) -> Self {
@@ -144,6 +188,9 @@ impl<
             MAX_EXTRA_DATA_BYTES,
             MAX_BYTES_PER_TRANSACTION,
             MAX_TRANSACTIONS_PER_PAYLOAD,
+            MAX_WITHDRAWALS_PER_PAYLOAD,
+            MAX_BLS_TO_EXECUTION_CHANGES,
+            MAX_BLOB_COMMITMENTS_PER_BLOCK,
         >,
     ) -> Result<()> {
         self.apply_block_with_validation(signed_block, Validation::Enabled)
@@ -163,6 +210,9 @@ impl<
             MAX_EXTRA_DATA_BYTES,
             MAX_BYTES_PER_TRANSACTION,
             MAX_TRANSACTIONS_PER_PAYLOAD,
+            MAX_WITHDRAWALS_PER_PAYLOAD,
+            MAX_BLS_TO_EXECUTION_CHANGES,
+            MAX_BLOB_COMMITMENTS_PER_BLOCK,
         >,
         validation: Validation,
     ) -> Result<()> {
@@ -195,13 +245,13 @@ impl<
             BeaconState::Phase0(state) => {
                 phase0::state_transition(state, signed_block, validation, &self.context)
             }
-            BeaconState::Altair(_) => Err(Error::IncompatibleForks {
-                source_fork: Forks::Altair,
-                destination_fork: Forks::Phase0,
+            BeaconState::Altair(_) => Err(Error::IncompatibleFork {
+                source_fork: Fork::Altair,
+                destination_fork: Fork::Phase0,
             }),
-            BeaconState::Bellatrix(_) => Err(Error::IncompatibleForks {
-                source_fork: Forks::Bellatrix,
-                destination_fork: Forks::Phase0,
+            BeaconState::Bellatrix(_) => Err(Error::IncompatibleFork {
+                source_fork: Fork::Bellatrix,
+                destination_fork: Fork::Phase0,
             }),
         }
     }
@@ -240,9 +290,9 @@ impl<
             BeaconState::Altair(state) => {
                 altair::state_transition(state, signed_block, validation, &self.context)
             }
-            BeaconState::Bellatrix(_) => Err(Error::IncompatibleForks {
-                source_fork: Forks::Bellatrix,
-                destination_fork: Forks::Altair,
+            BeaconState::Bellatrix(_) => Err(Error::IncompatibleFork {
+                source_fork: Fork::Bellatrix,
+                destination_fork: Fork::Altair,
             }),
         }
     }

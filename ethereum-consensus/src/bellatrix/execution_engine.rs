@@ -1,6 +1,6 @@
 use crate::{
     bellatrix::execution_payload::ExecutionPayload,
-    state_transition::{self, ExecutionEngineError, Result},
+    state_transition::{ExecutionEngineError, Result},
 };
 
 pub struct NewPayloadRequest<
@@ -121,30 +121,5 @@ impl<
     ) -> Result<()> {
         self.is_valid_block_hash(new_payload_request.0)?;
         self.notify_new_payload(new_payload_request.0)
-    }
-}
-
-impl<
-        const BYTES_PER_LOGS_BLOOM: usize,
-        const MAX_EXTRA_DATA_BYTES: usize,
-        const MAX_BYTES_PER_TRANSACTION: usize,
-        const MAX_TRANSACTIONS_PER_PAYLOAD: usize,
-        B: ExecutionEngine<
-            BYTES_PER_LOGS_BLOOM,
-            MAX_EXTRA_DATA_BYTES,
-            MAX_BYTES_PER_TRANSACTION,
-            MAX_TRANSACTIONS_PER_PAYLOAD,
-        >,
-    > From<B>
-    for state_transition::ExecutionEngine<
-        BYTES_PER_LOGS_BLOOM,
-        MAX_EXTRA_DATA_BYTES,
-        MAX_BYTES_PER_TRANSACTION,
-        MAX_TRANSACTIONS_PER_PAYLOAD,
-        B,
-    >
-{
-    fn from(value: B) -> Self {
-        Self::Bellatrix(value)
     }
 }

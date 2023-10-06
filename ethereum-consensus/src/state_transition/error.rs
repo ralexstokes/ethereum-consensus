@@ -4,7 +4,7 @@ use crate::{
     phase0::{AttestationData, BeaconBlockHeader, Checkpoint},
     primitives::{BlsPublicKey, BlsSignature, Bytes32, Epoch, Hash32, Root, Slot, ValidatorIndex},
     ssz::prelude::*,
-    state_transition::Forks,
+    Fork,
 };
 use thiserror::Error;
 
@@ -47,7 +47,7 @@ pub enum Error {
     #[error(
         "transition requested from a later fork {destination_fork:?} to an earlier fork {source_fork:?}"
     )]
-    IncompatibleForks { source_fork: Forks, destination_fork: Forks },
+    IncompatibleFork { source_fork: Fork, destination_fork: Fork },
     #[error("genesis time unknown for network {0}")]
     UnknownGenesisTime(String),
     #[cfg(feature = "serde")]
@@ -235,4 +235,8 @@ pub enum ExecutionEngineError {
     InvalidPayload,
     #[error("invalid versioned hashes in payload")]
     InvalidVersionedHashes,
+    #[error("missing payload for fork {0:?} in request")]
+    MissingPayloadForFork(Fork),
+    #[error("missing parent beacon block root in request")]
+    MissingParentBeaconBlockRoot,
 }
