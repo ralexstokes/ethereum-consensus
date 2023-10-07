@@ -20,7 +20,6 @@ pub struct ProofAndEvaluation {
     pub evaluation: Bytes32,
 }
 
-// TODO: Map error
 pub fn blob_to_kzg_commitment<const BYTES_PER_BLOB: usize>(
     blob: &Blob<BYTES_PER_BLOB>,
     kzg_settings: &KzgSettings,
@@ -32,7 +31,6 @@ pub fn blob_to_kzg_commitment<const BYTES_PER_BLOB: usize>(
     Ok(inner)
 }
 
-// TODO: Map error
 pub fn compute_kzg_proof<const BYTES_PER_BLOB: usize>(
     blob: &Blob<BYTES_PER_BLOB>,
     evaluation_point: &FieldElement,
@@ -50,7 +48,6 @@ pub fn compute_kzg_proof<const BYTES_PER_BLOB: usize>(
     Ok(result)
 }
 
-// TODO: Map error
 pub fn compute_blob_kzg_proof<const BYTES_PER_BLOB: usize>(
     blob: &Blob<BYTES_PER_BLOB>,
     commitment: &KzgCommitment,
@@ -66,42 +63,52 @@ pub fn compute_blob_kzg_proof<const BYTES_PER_BLOB: usize>(
     Ok(proof)
 }
 
-// TODO: Map error
 pub fn verify_kzg_proof(
     commitment: &KzgCommitment,
     evaluation_point: &FieldElement,
     result_point: &FieldElement,
     proof: &KzgProof,
     kzg_settings: &KzgSettings,
-) -> Result<bool, Error> {
+) -> Result<(), Error> {
     let evaluation_point = c_kzg::Bytes32::from_bytes(evaluation_point.as_ref())?;
     let result_point = c_kzg::Bytes32::from_bytes(result_point.as_ref())?;
     let commitment = c_kzg::Bytes48::from_bytes(commitment.as_ref()).unwrap();
     let proof = c_kzg::Bytes48::from_bytes(proof.as_ref()).unwrap();
 
-    let out = c_kzg::KzgProof::verify_kzg_proof(
+    let res = c_kzg::KzgProof::verify_kzg_proof(
         &commitment,
         &evaluation_point,
         &result_point,
         &proof,
         kzg_settings,
-    )?;
-    Ok(out)
+    )
+    .map_err(Into::into);
+
+    if res? == true {
+        Ok(())
+    } else {
+        Err(Error::InvalidKzgProof(String::from("Invalid Proof")))
+    }
 }
 
-// TODO: Map error
 pub fn verify_blob_kzg_proof<const BYTES_PER_BLOB: usize>(
     blob: &Blob<BYTES_PER_BLOB>,
     commitment: &KzgCommitment,
     proof: &KzgProof,
     kzg_settings: &KzgSettings,
-) -> Result<bool, Error> {
+) -> Result<(), Error> {
     let blob = c_kzg::Blob::from_bytes(blob.as_ref()).unwrap();
     let commitment = c_kzg::Bytes48::from_bytes(commitment.as_ref()).unwrap();
     let proof = c_kzg::Bytes48::from_bytes(proof.as_ref()).unwrap();
 
-    let out = c_kzg::KzgProof::verify_blob_kzg_proof(&blob, &commitment, &proof, kzg_settings)?;
-    Ok(out)
+    let res = c_kzg::KzgProof::verify_blob_kzg_proof(&blob, &commitment, &proof, kzg_settings)
+        .map_err(Into::into);
+
+    if res? == true {
+        Ok(())
+    } else {
+        Err(Error::InvalidKzgProof(String::from("Invalid Blob")))
+    }
 }
 
 pub fn verify_blob_kzg_proof_batch<const BYTES_PER_BLOB: usize>(
@@ -109,7 +116,7 @@ pub fn verify_blob_kzg_proof_batch<const BYTES_PER_BLOB: usize>(
     commitments: &[KzgCommitment],
     proofs: &[KzgProof],
     kzg_settings: &KzgSettings,
-) -> Result<bool, Error> {
+) -> Result<(), Error> {
     let mut c_kzg_blobs = Vec::with_capacity(blobs.len());
     let mut c_kzg_commitments = Vec::with_capacity(commitments.len());
     let mut c_kzg_proofs = Vec::with_capacity(proofs.len());
@@ -129,11 +136,17 @@ pub fn verify_blob_kzg_proof_batch<const BYTES_PER_BLOB: usize>(
         c_kzg_proofs.push(proof);
     }
 
-    c_kzg::KzgProof::verify_blob_kzg_proof_batch(
+    let res = c_kzg::KzgProof::verify_blob_kzg_proof_batch(
         &c_kzg_blobs,
         &c_kzg_commitments,
         &c_kzg_proofs,
         kzg_settings,
     )
-    .map_err(Into::into)
+    .map_err(Into::into);
+
+    if res? == true {
+        Ok(())
+    } else {
+        Err(Error::InvalidKzgProof(String::from("Invalid Proof Batch")))
+    }
 }
