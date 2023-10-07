@@ -25,4 +25,4 @@ pub use execution_payload_header::*;
 pub use signed_beacon_block::*;
 pub use signed_blinded_beacon_block::*;
 
-pub use presets::mainnet;
+pub use presets::{mainnet, minimal};
