@@ -34,21 +34,26 @@ mod error {
 pub mod presets {
     pub mod mainnet {
         use ethereum_consensus::{
-            altair::mainnet as altair, bellatrix::mainnet as bellatrix, deneb::mainnet as deneb,
+            altair::mainnet as altair,
+            deneb::mainnet as deneb,
             phase0::mainnet as phase0,
+            types::mainnet::{
+                BeaconBlock, BeaconState, BlindedBeaconBlock, SignedBeaconBlock,
+                SignedBlindedBeaconBlock,
+            },
         };
 
         pub type Client = crate::Client<
             altair::SignedContributionAndProof,
             altair::SyncCommitteeContribution,
-            bellatrix::BlindedBeaconBlock,
-            bellatrix::SignedBlindedBeaconBlock,
+            BlindedBeaconBlock,
+            SignedBlindedBeaconBlock,
             phase0::Attestation,
             phase0::AttesterSlashing,
-            phase0::BeaconBlock,
-            phase0::BeaconState,
+            BeaconBlock,
+            BeaconState,
             phase0::SignedAggregateAndProof,
-            phase0::SignedBeaconBlock,
+            SignedBeaconBlock,
             deneb::BlobSidecar,
             altair::LightClientBootstrap,
             altair::LightClientUpdate,
@@ -58,21 +63,26 @@ pub mod presets {
     }
     pub mod minimal {
         use ethereum_consensus::{
-            altair::minimal as altair, bellatrix::minimal as bellatrix, deneb::minimal as deneb,
+            altair::minimal as altair,
+            deneb::minimal as deneb,
             phase0::minimal as phase0,
+            types::minimal::{
+                BeaconBlock, BeaconState, BlindedBeaconBlock, SignedBeaconBlock,
+                SignedBlindedBeaconBlock,
+            },
         };
 
         pub type Client = crate::Client<
             altair::SignedContributionAndProof,
             altair::SyncCommitteeContribution,
-            bellatrix::BlindedBeaconBlock,
-            bellatrix::SignedBlindedBeaconBlock,
+            BlindedBeaconBlock,
+            SignedBlindedBeaconBlock,
             phase0::Attestation,
             phase0::AttesterSlashing,
-            phase0::BeaconBlock,
-            phase0::BeaconState,
+            BeaconBlock,
+            BeaconState,
             phase0::SignedAggregateAndProof,
-            phase0::SignedBeaconBlock,
+            SignedBeaconBlock,
             deneb::BlobSidecar,
             altair::LightClientBootstrap,
             altair::LightClientUpdate,

@@ -1,14 +1,8 @@
 use beacon_api_client::{ApiError, ApiResult, Value, VersionedValue};
-use ethereum_consensus::{bellatrix::mainnet as bellatrix, capella::mainnet as capella};
+use ethereum_consensus::{
+    bellatrix::mainnet as bellatrix, state_transition::Forks, types::mainnet::BlindedBeaconBlock,
+};
 use std::collections::HashMap;
-
-#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
-#[serde(tag = "version", content = "data")]
-#[serde(rename_all = "lowercase")]
-enum BlindedBeaconBlock {
-    Bellatrix(bellatrix::BlindedBeaconBlock),
-    Capella(capella::BlindedBeaconBlock),
-}
 
 fn main() {
     let block = Value { meta: HashMap::new(), data: bellatrix::BlindedBeaconBlock::default() };
@@ -43,7 +37,8 @@ fn main() {
     println!("{recovered_success:#?}");
 
     let full_success_response = ApiResult::Ok(VersionedValue {
-        payload: block,
+        version: Forks::Capella,
+        data: block,
         meta: HashMap::from_iter([(
             String::from("finalized_root"),
             serde_json::Value::String("0xdeadbeefcafe".to_string()),
