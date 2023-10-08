@@ -5,8 +5,7 @@ use crate::{
     state_transition::{Context, Error},
 };
 
-#[derive(Debug, Clone, Default, SimpleSerialize)]
-#[derive(serde::Serialize, serde::Deserialize)]
+#[derive(Debug, Clone, Default, SimpleSerialize, serde::Serialize, serde::Deserialize)]
 pub struct ValidatorRegistration {
     pub fee_recipient: ExecutionAddress,
     #[serde(with = "crate::serde::as_string")]
@@ -17,8 +16,7 @@ pub struct ValidatorRegistration {
     pub public_key: BlsPublicKey,
 }
 
-#[derive(Debug, Clone, Default, SimpleSerialize)]
-#[derive(serde::Serialize, serde::Deserialize)]
+#[derive(Debug, Clone, Default, SimpleSerialize, serde::Serialize, serde::Deserialize)]
 pub struct SignedValidatorRegistration {
     pub message: ValidatorRegistration,
     pub signature: BlsSignature,

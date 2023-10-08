@@ -7,8 +7,9 @@ use crate::{
     ssz::prelude::*,
 };
 
-#[derive(Default, Debug, Clone, SimpleSerialize, PartialEq, Eq)]
-#[derive(serde::Serialize, serde::Deserialize)]
+#[derive(
+    Default, Debug, Clone, SimpleSerialize, PartialEq, Eq, serde::Serialize, serde::Deserialize,
+)]
 pub struct BeaconBlockBody<
     const MAX_PROPOSER_SLASHINGS: usize,
     const MAX_VALIDATORS_PER_COMMITTEE: usize,
@@ -30,8 +31,9 @@ pub struct BeaconBlockBody<
     pub sync_aggregate: SyncAggregate<SYNC_COMMITTEE_SIZE>,
 }
 
-#[derive(Default, Debug, Clone, SimpleSerialize, PartialEq, Eq)]
-#[derive(serde::Serialize, serde::Deserialize)]
+#[derive(
+    Default, Debug, Clone, SimpleSerialize, PartialEq, Eq, serde::Serialize, serde::Deserialize,
+)]
 pub struct BeaconBlock<
     const MAX_PROPOSER_SLASHINGS: usize,
     const MAX_VALIDATORS_PER_COMMITTEE: usize,
@@ -58,8 +60,9 @@ pub struct BeaconBlock<
     >,
 }
 
-#[derive(Default, Debug, Clone, SimpleSerialize, PartialEq, Eq)]
-#[derive(serde::Serialize, serde::Deserialize)]
+#[derive(
+    Default, Debug, Clone, SimpleSerialize, PartialEq, Eq, serde::Serialize, serde::Deserialize,
+)]
 pub struct SignedBeaconBlock<
     const MAX_PROPOSER_SLASHINGS: usize,
     const MAX_VALIDATORS_PER_COMMITTEE: usize,

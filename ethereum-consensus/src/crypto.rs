@@ -159,8 +159,7 @@ pub fn eth_fast_aggregate_verify(
     }
 }
 
-#[derive(Clone, Default)]
-#[derive(serde::Deserialize)]
+#[derive(Clone, Default, serde::Deserialize)]
 #[cfg_attr(feature = "spec-tests", derive(Debug))]
 #[serde(try_from = "String")]
 pub struct SecretKey(bls_impl::SecretKey);
@@ -218,8 +217,9 @@ impl SecretKey {
     }
 }
 
-#[derive(Clone, Default, Hash, PartialEq, Eq, SimpleSerialize)]
-#[derive(serde::Serialize, serde::Deserialize)]
+#[derive(
+    Clone, Default, Hash, PartialEq, Eq, SimpleSerialize, serde::Serialize, serde::Deserialize,
+)]
 pub struct PublicKey(ByteVector<BLS_PUBLIC_KEY_BYTES_LEN>);
 
 impl fmt::Debug for PublicKey {
@@ -268,8 +268,9 @@ impl TryFrom<&PublicKey> for bls_impl::PublicKey {
     }
 }
 
-#[derive(Clone, Default, Hash, PartialEq, Eq, SimpleSerialize)]
-#[derive(serde::Serialize, serde::Deserialize)]
+#[derive(
+    Clone, Default, Hash, PartialEq, Eq, SimpleSerialize, serde::Serialize, serde::Deserialize,
+)]
 pub struct Signature(ByteVector<BLS_SIGNATURE_BYTES_LEN>);
 
 impl fmt::Debug for Signature {

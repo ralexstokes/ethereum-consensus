@@ -4,8 +4,7 @@ use crate::state_transition::{Context, Error};
 /// `Network` describes one of the established networks this repository supports
 /// or otherwise a `Custom` variant that wraps a path to a local configuration file
 /// for the custom network (useful for devnets).
-#[derive(Default, Debug, Clone)]
-#[derive(serde::Deserialize)]
+#[derive(Default, Debug, Clone, serde::Deserialize)]
 #[serde(rename_all = "lowercase")]
 pub enum Network {
     #[default]

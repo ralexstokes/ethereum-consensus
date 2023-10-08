@@ -6,8 +6,7 @@ use std::{
     ops::{Deref, DerefMut},
 };
 
-#[derive(Default, Clone, PartialEq, Eq, SimpleSerialize)]
-#[derive(serde::Serialize, serde::Deserialize)]
+#[derive(Default, Clone, PartialEq, Eq, SimpleSerialize, serde::Serialize, serde::Deserialize)]
 pub struct ByteVector<const N: usize>(#[serde(with = "crate::serde::as_hex")] Vector<u8, N>);
 
 impl<const N: usize> TryFrom<&[u8]> for ByteVector<N> {

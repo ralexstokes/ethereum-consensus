@@ -9,8 +9,7 @@ use crate::{
     primitives::{Epoch, ExecutionAddress, Gwei, Hash32, Version, U256},
 };
 
-#[derive(Debug)]
-#[derive(serde::Deserialize)]
+#[derive(Debug, serde::Deserialize)]
 #[serde(rename_all = "UPPERCASE")]
 pub struct Config {
     pub preset_base: String,

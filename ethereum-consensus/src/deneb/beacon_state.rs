@@ -7,8 +7,9 @@ use crate::{
     ssz::prelude::*,
 };
 
-#[derive(Default, Debug, SimpleSerialize, Clone, PartialEq, Eq)]
-#[derive(serde::Serialize, serde::Deserialize)]
+#[derive(
+    Default, Debug, SimpleSerialize, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize,
+)]
 pub struct BeaconState<
     const SLOTS_PER_HISTORICAL_ROOT: usize,
     const HISTORICAL_ROOTS_LIMIT: usize,

@@ -4,8 +4,9 @@ use crate::{
     ssz::prelude::*,
 };
 
-#[derive(Default, Debug, Clone, SimpleSerialize, PartialEq, Eq)]
-#[derive(serde::Serialize, serde::Deserialize)]
+#[derive(
+    Default, Debug, Clone, SimpleSerialize, PartialEq, Eq, serde::Serialize, serde::Deserialize,
+)]
 pub struct BlindedBlobSidecar {
     pub block_root: Root,
     #[serde(with = "crate::serde::as_string")]
@@ -20,8 +21,9 @@ pub struct BlindedBlobSidecar {
     pub kzg_proof: KzgProof,
 }
 
-#[derive(Default, Debug, Clone, SimpleSerialize, PartialEq, Eq)]
-#[derive(serde::Serialize, serde::Deserialize)]
+#[derive(
+    Default, Debug, Clone, SimpleSerialize, PartialEq, Eq, serde::Serialize, serde::Deserialize,
+)]
 pub struct SignedBlindedBlobSidecar {
     pub message: BlindedBlobSidecar,
     pub signature: BlsSignature,

@@ -3,8 +3,9 @@ use crate::{
     ssz::prelude::*,
 };
 
-#[derive(Default, Debug, Clone, SimpleSerialize, PartialEq, Eq)]
-#[derive(serde::Serialize, serde::Deserialize)]
+#[derive(
+    Default, Debug, Clone, SimpleSerialize, PartialEq, Eq, serde::Serialize, serde::Deserialize,
+)]
 pub struct Withdrawal {
     #[serde(with = "crate::serde::as_string")]
     pub index: WithdrawalIndex,

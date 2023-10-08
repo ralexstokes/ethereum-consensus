@@ -10,8 +10,9 @@ use crate::{
     ssz::prelude::*,
 };
 
-#[derive(Default, Debug, Clone, PartialEq, Eq, SimpleSerialize)]
-#[derive(serde::Serialize, serde::Deserialize)]
+#[derive(
+    Default, Debug, Clone, PartialEq, Eq, SimpleSerialize, serde::Serialize, serde::Deserialize,
+)]
 pub struct BlindedBeaconBlockBody<
     const MAX_PROPOSER_SLASHINGS: usize,
     const MAX_VALIDATORS_PER_COMMITTEE: usize,
@@ -41,8 +42,9 @@ pub struct BlindedBeaconBlockBody<
     pub blob_kzg_commitments: List<KzgCommitment, MAX_BLOB_COMMITMENTS_PER_BLOCK>,
 }
 
-#[derive(Default, Debug, Clone, PartialEq, Eq, SimpleSerialize)]
-#[derive(serde::Serialize, serde::Deserialize)]
+#[derive(
+    Default, Debug, Clone, PartialEq, Eq, SimpleSerialize, serde::Serialize, serde::Deserialize,
+)]
 pub struct BlindedBeaconBlock<
     const MAX_PROPOSER_SLASHINGS: usize,
     const MAX_VALIDATORS_PER_COMMITTEE: usize,
@@ -77,8 +79,9 @@ pub struct BlindedBeaconBlock<
     >,
 }
 
-#[derive(Default, Debug, Clone, PartialEq, Eq, SimpleSerialize)]
-#[derive(serde::Serialize, serde::Deserialize)]
+#[derive(
+    Default, Debug, Clone, PartialEq, Eq, SimpleSerialize, serde::Serialize, serde::Deserialize,
+)]
 pub struct SignedBlindedBeaconBlock<
     const MAX_PROPOSER_SLASHINGS: usize,
     const MAX_VALIDATORS_PER_COMMITTEE: usize,

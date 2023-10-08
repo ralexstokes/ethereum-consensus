@@ -18,8 +18,7 @@ pub enum Forks {
     Deneb,
 }
 
-#[derive(Debug, Default, Clone)]
-#[derive(serde::Deserialize)]
+#[derive(Debug, Default, Clone, serde::Deserialize)]
 pub struct Context {
     // phase0 preset
     pub max_committees_per_slot: u64,
