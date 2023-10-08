@@ -3,6 +3,10 @@ use syn::{
     AngleBracketedGenericArguments, Generics, Ident, ItemFn, Type,
 };
 
+pub fn as_syn_ident(s: String) -> Ident {
+    syn::parse_str(&s).unwrap()
+}
+
 #[derive(Default)]
 struct LifetimeTypeVisitor {
     items: Vec<syn::Lifetime>,
@@ -63,16 +67,29 @@ pub fn collect_type_params(g: &Generics) -> (Vec<syn::TypeParam>, Vec<String>) {
 }
 
 #[derive(Default)]
-struct ToGenericsVisitor {
-    bounds: Vec<Ident>,
+pub struct ToGenericsVisitor {
+    pub bounds: Vec<Ident>,
+    in_context: bool,
 }
 
 impl<'ast> Visit<'ast> for ToGenericsVisitor {
     fn visit_ident(&mut self, i: &'ast Ident) {
-        if !self.bounds.contains(i) {
+        if !self.bounds.contains(i) && i != "usize" && self.in_context {
             self.bounds.push(i.clone());
         }
         visit::visit_ident(self, i);
+    }
+
+    fn visit_angle_bracketed_generic_arguments(&mut self, i: &'ast AngleBracketedGenericArguments) {
+        self.in_context = true;
+        visit::visit_angle_bracketed_generic_arguments(self, i);
+        self.in_context = false;
+    }
+
+    fn visit_generics(&mut self, i: &'ast Generics) {
+        self.in_context = true;
+        visit::visit_generics(self, i);
+        self.in_context = false;
     }
 }
 
