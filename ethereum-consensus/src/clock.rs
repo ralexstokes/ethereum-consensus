@@ -196,19 +196,15 @@ impl<T: TimeProvider + Send + Sync> Clock<T> {
 pub type SystemClock = Clock<SystemTimeProvider>;
 
 #[cfg(feature = "async")]
-use tokio_stream::Stream;
+use tokio_stream::{wrappers::IntervalStream, Stream, StreamExt};
 
 #[cfg(feature = "async")]
 impl<T: TimeProvider + Send + Sync> Clock<T> {
     pub fn stream_slots(&self) -> impl Stream<Item = Slot> + '_ {
-        async_stream::stream! {
-            loop {
-                let slot = self.current_slot().expect("after genesis");
-                yield slot;
-                let duration_until_next_slot = self.duration_until_slot(slot + 1);
-                tokio::time::sleep(duration_until_next_slot).await;
-            }
-        }
+        let slot = self.current_slot().expect("after genesis");
+        let duration_until_next_slot = self.duration_until_slot(slot + 1);
+        let interval_stream = IntervalStream::new(tokio::time::interval(duration_until_next_slot));
+        interval_stream.map(move |_| self.current_slot().expect("after genesis"))
     }
 }
 
