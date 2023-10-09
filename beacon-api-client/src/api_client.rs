@@ -7,7 +7,7 @@ use crate::{
         HealthStatus, NetworkIdentity, PeerDescription, PeerState, PeerSummary, ProposerDuty,
         PublicKeyOrIndex, RootData, StateId, SyncCommitteeDescriptor, SyncCommitteeDuty,
         SyncCommitteeSummary, SyncStatus, ValidatorLiveness, ValidatorStatus, ValidatorSummary,
-        Value, VersionData,
+        Value, VersionData, VersionedValue,
     },
     ApiError, Error,
 };
@@ -370,7 +370,7 @@ impl<
 
     // v2 endpoint
     pub async fn get_beacon_block(&self, id: BlockId) -> Result<SignedBeaconBlock, Error> {
-        let result: Value<SignedBeaconBlock> =
+        let result: VersionedValue<SignedBeaconBlock> =
             self.get(&format!("eth/v2/beacon/blocks/{id}")).await?;
         Ok(result.data)
     }
@@ -414,7 +414,7 @@ impl<
     }
 
     pub async fn get_blinded_block(&self, id: BlockId) -> Result<SignedBlindedBeaconBlock, Error> {
-        let result: Value<SignedBlindedBeaconBlock> =
+        let result: VersionedValue<SignedBlindedBeaconBlock> =
             self.get(&format!("eth/v1/beacon/blinded_blocks/{id}")).await?;
         Ok(result.data)
     }
@@ -586,7 +586,7 @@ impl<
     /* debug namespace */
     // v2 endpoint
     pub async fn get_state(&self, id: StateId) -> Result<BeaconState, Error> {
-        let result: Value<BeaconState> =
+        let result: VersionedValue<BeaconState> =
             self.get(&format!("eth/v2/debug/beacon/states/{id}")).await?;
         Ok(result.data)
     }
@@ -724,7 +724,7 @@ impl<
             request = request.query(&[("graffiti", graffiti)]);
         }
         let response = request.send().await?;
-        let result: ApiResult<Value<BeaconBlock>> = response.json().await?;
+        let result: ApiResult<VersionedValue<BeaconBlock>> = response.json().await?;
         match result {
             ApiResult::Ok(result) => Ok(result.data),
             ApiResult::Err(err) => Err(err.into()),
@@ -745,7 +745,7 @@ impl<
             request = request.query(&[("graffiti", graffiti)]);
         }
         let response = request.send().await?;
-        let result: ApiResult<Value<BlindedBeaconBlock>> = response.json().await?;
+        let result: ApiResult<VersionedValue<BlindedBeaconBlock>> = response.json().await?;
         match result {
             ApiResult::Ok(result) => Ok(result.data),
             ApiResult::Err(err) => Err(err.into()),

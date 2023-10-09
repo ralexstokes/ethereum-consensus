@@ -11,6 +11,7 @@ mod blinded_beacon_block;
 mod blinded_beacon_block_body;
 mod execution_payload;
 mod execution_payload_header;
+mod presets;
 mod signed_beacon_block;
 mod signed_blinded_beacon_block;
 
@@ -23,3 +24,5 @@ pub use execution_payload::*;
 pub use execution_payload_header::*;
 pub use signed_beacon_block::*;
 pub use signed_blinded_beacon_block::*;
+
+pub use presets::{mainnet, minimal};

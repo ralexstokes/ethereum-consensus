@@ -1,13 +1,14 @@
 use beacon_api_client::{ApiError, ApiResult, Value, VersionedValue};
-use ethereum_consensus::{bellatrix::mainnet as bellatrix, capella::mainnet as capella};
+use ethereum_consensus::{
+    bellatrix::mainnet as bellatrix, state_transition::Forks, types::mainnet::BlindedBeaconBlock,
+};
 use std::collections::HashMap;
 
-#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
-#[serde(tag = "version", content = "data")]
-#[serde(rename_all = "lowercase")]
-enum BlindedBeaconBlock {
-    Bellatrix(bellatrix::BlindedBeaconBlock),
-    Capella(capella::BlindedBeaconBlock),
+fn with_fork<T: serde::Serialize>(fork: Forks, value: T) -> serde_json::Value {
+    serde_json::json!( {
+        "version": fork,
+        "data": value,
+    })
 }
 
 fn main() {
@@ -24,9 +25,10 @@ fn main() {
     println!("{block_with_version_repr}");
 
     let block = BlindedBeaconBlock::Bellatrix(Default::default());
-    let block_with_version_repr = serde_json::to_string(&block).unwrap();
+    let block_with_version_repr =
+        serde_json::to_string(&with_fork(Forks::Bellatrix, &block)).unwrap();
     println!("{block_with_version_repr}");
-    let recovered_block: BlindedBeaconBlock =
+    let recovered_block: VersionedValue<BlindedBeaconBlock> =
         serde_json::from_str(&block_with_version_repr).unwrap();
     println!("{recovered_block:#?}");
 
@@ -34,7 +36,11 @@ fn main() {
     let block_with_version_repr = serde_json::to_string(&block).unwrap();
     println!("{block_with_version_repr}");
 
-    let full_success_response = ApiResult::Ok(block.clone());
+    let full_success_response = ApiResult::Ok(VersionedValue {
+        version: Forks::Capella,
+        data: block.clone(),
+        meta: Default::default(),
+    });
     let str_repr = serde_json::to_string(&full_success_response).unwrap();
     println!("{str_repr}");
 
@@ -43,7 +49,8 @@ fn main() {
     println!("{recovered_success:#?}");
 
     let full_success_response = ApiResult::Ok(VersionedValue {
-        payload: block,
+        version: Forks::Capella,
+        data: block,
         meta: HashMap::from_iter([(
             String::from("finalized_root"),
             serde_json::Value::String("0xdeadbeefcafe".to_string()),

@@ -9,7 +9,8 @@ use crate::{
     state_transition::Error,
 };
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy, serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "lowercase")]
 pub enum Forks {
     Phase0,
     Altair,

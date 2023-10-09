@@ -15,8 +15,9 @@ use crate::{
     ssz::prelude::*,
     types::execution_payload_header::{ExecutionPayloadHeaderRef, ExecutionPayloadHeaderRefMut},
 };
-#[derive(Debug, SimpleSerialize, Clone, PartialEq, Eq)]
-#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[derive(Debug, Clone, PartialEq, Eq, SimpleSerialize, serde::Deserialize)]
+#[serde(tag = "version", content = "data")]
+#[serde(rename_all = "lowercase")]
 pub enum BeaconState<
     const SLOTS_PER_HISTORICAL_ROOT: usize,
     const HISTORICAL_ROOTS_LIMIT: usize,
@@ -894,6 +895,46 @@ impl<
             Self::Bellatrix(_) => None,
             Self::Capella(inner) => Some(&mut inner.historical_summaries),
             Self::Deneb(inner) => Some(&mut inner.historical_summaries),
+        }
+    }
+}
+impl<
+        const SLOTS_PER_HISTORICAL_ROOT: usize,
+        const HISTORICAL_ROOTS_LIMIT: usize,
+        const ETH1_DATA_VOTES_BOUND: usize,
+        const VALIDATOR_REGISTRY_LIMIT: usize,
+        const EPOCHS_PER_HISTORICAL_VECTOR: usize,
+        const EPOCHS_PER_SLASHINGS_VECTOR: usize,
+        const MAX_VALIDATORS_PER_COMMITTEE: usize,
+        const PENDING_ATTESTATIONS_BOUND: usize,
+        const SYNC_COMMITTEE_SIZE: usize,
+        const BYTES_PER_LOGS_BLOOM: usize,
+        const MAX_EXTRA_DATA_BYTES: usize,
+    > serde::Serialize
+    for BeaconState<
+        SLOTS_PER_HISTORICAL_ROOT,
+        HISTORICAL_ROOTS_LIMIT,
+        ETH1_DATA_VOTES_BOUND,
+        VALIDATOR_REGISTRY_LIMIT,
+        EPOCHS_PER_HISTORICAL_VECTOR,
+        EPOCHS_PER_SLASHINGS_VECTOR,
+        MAX_VALIDATORS_PER_COMMITTEE,
+        PENDING_ATTESTATIONS_BOUND,
+        SYNC_COMMITTEE_SIZE,
+        BYTES_PER_LOGS_BLOOM,
+        MAX_EXTRA_DATA_BYTES,
+    >
+{
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        match self {
+            Self::Phase0(inner) => <_ as serde::Serialize>::serialize(inner, serializer),
+            Self::Altair(inner) => <_ as serde::Serialize>::serialize(inner, serializer),
+            Self::Bellatrix(inner) => <_ as serde::Serialize>::serialize(inner, serializer),
+            Self::Capella(inner) => <_ as serde::Serialize>::serialize(inner, serializer),
+            Self::Deneb(inner) => <_ as serde::Serialize>::serialize(inner, serializer),
         }
     }
 }
