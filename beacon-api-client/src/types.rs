@@ -8,7 +8,7 @@ use ethereum_consensus::{
         Root, Slot, ValidatorIndex, Version,
     },
     serde::try_bytes_from_hex_str,
-    state_transition::Forks,
+    Fork,
 };
 use serde::{Deserialize, Serialize};
 use std::{collections::HashMap, fmt, marker::PhantomData, str::FromStr};
@@ -467,7 +467,7 @@ pub struct Value<T> {
 
 #[derive(Debug, Serialize)]
 pub struct VersionedValue<T: serde::Serialize + serde::de::DeserializeOwned> {
-    pub version: Forks,
+    pub version: Fork,
     pub data: T,
     pub meta: HashMap<String, serde_json::Value>,
 }
@@ -541,7 +541,7 @@ impl<'de, T: serde::Serialize + serde::de::DeserializeOwned> serde::Deserialize<
                                 return Err(serde::de::Error::duplicate_field("version"))
                             }
                             let version_value: serde_json::Value = map.next_value()?;
-                            let fork: Forks = serde_json::from_value(version_value.clone())
+                            let fork: Fork = serde_json::from_value(version_value.clone())
                                 .map_err(serde::de::Error::custom)?;
                             version = Some(fork);
                             match version_value {
