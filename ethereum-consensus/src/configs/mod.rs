@@ -9,12 +9,11 @@ use crate::{
     primitives::{Epoch, ExecutionAddress, Gwei, Hash32, Version, U256},
 };
 
-#[derive(Debug)]
-#[cfg_attr(feature = "serde", derive(serde::Deserialize))]
-#[cfg_attr(feature = "serde", serde(rename_all = "UPPERCASE"))]
+#[derive(Debug, serde::Deserialize)]
+#[serde(rename_all = "UPPERCASE")]
 pub struct Config {
     pub preset_base: String,
-    #[cfg_attr(feature = "serde", serde(rename = "CONFIG_NAME"))]
+    #[serde(rename = "CONFIG_NAME")]
     pub name: Network,
 
     pub terminal_total_difficulty: U256,

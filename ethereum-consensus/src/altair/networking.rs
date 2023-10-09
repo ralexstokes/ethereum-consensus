@@ -3,7 +3,7 @@ use crate::{
     ssz::prelude::Bitvector,
 };
 
-#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[derive(serde::Serialize, serde::Deserialize)]
 pub struct MetaData {
     #[serde(with = "crate::serde::as_string")]
     pub seq_number: u64,
