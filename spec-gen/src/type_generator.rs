@@ -356,7 +356,7 @@ fn derive_type_defn(target_type: &Type, merge_type: &MergeType) -> (Item, Generi
         })
         .collect::<Vec<syn::Variant>>();
     let enum_defn = parse_quote! {
-        #[derive(Debug, Clone, PartialEq, Eq, SimpleSerialize, serde::Serialize, serde::Deserialize)]
+        #[derive(Debug, Clone, PartialEq, Eq, SimpleSerialize, serde::Deserialize)]
         #[serde(tag = "version", content = "data")]
         #[serde(rename_all = "lowercase")]
         pub enum #type_name #generics {
@@ -678,13 +678,9 @@ fn derive_fields_impl(
     fields
 }
 
-fn derive_impl_defn(
-    target_type: &Type,
-    merge_type: &MergeType,
-    generics: syn::Generics,
-) -> syn::Item {
+fn derive_impl_defn(target_type: &Type, merge_type: &MergeType, generics: &Generics) -> syn::Item {
     let type_name = as_syn_ident(target_type.name());
-    let arguments = generics_to_arguments(&generics);
+    let arguments = generics_to_arguments(generics);
     let fields_impl = derive_fields_impl(target_type, &type_name, merge_type, None);
     parse_quote! {
         impl #generics #type_name #arguments {
@@ -814,13 +810,42 @@ fn derive_ref_impl(target_type: &Type, merge_type: &MergeType, is_mut: bool) -> 
     result
 }
 
+fn derive_serde_ser_impl(target_type: &Type, generics: &Generics, merge_type: &MergeType) -> Item {
+    let type_name = as_syn_ident(target_type.name());
+    let arguments = generics_to_arguments(generics);
+    let match_arms: Vec<Arm> = merge_type
+        .variants
+        .iter()
+        .map(|variant| {
+            let fork_name = as_syn_ident(format!("{:?}", variant.fork));
+            parse_quote! {
+                Self::#fork_name(inner) => <_ as serde::Serialize>::serialize(inner, serializer)
+            }
+        })
+        .collect();
+    parse_quote! {
+        impl #generics serde::Serialize for #type_name #arguments {
+            fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+            where
+              S: serde::Serializer
+            {
+                match self {
+                    #(#match_arms,)*
+                }
+            }
+        }
+    }
+}
+
 fn as_syn(target_type: &Type, merge_type: &MergeType) -> Vec<Item> {
     let (type_defn, generics) = derive_type_defn(target_type, merge_type);
 
-    let impl_defn = derive_impl_defn(target_type, merge_type, generics);
+    let impl_defn = derive_impl_defn(target_type, merge_type, &generics);
+
+    let serde_ser_impl = derive_serde_ser_impl(target_type, &generics, merge_type);
 
     let imports = target_type.imports();
-    let mut result = vec![imports, type_defn, impl_defn];
+    let mut result = vec![imports, type_defn, impl_defn, serde_ser_impl];
 
     if target_type.needs_ref_types() {
         result.extend(derive_ref_impl(target_type, merge_type, false));

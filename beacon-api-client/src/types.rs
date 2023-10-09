@@ -10,7 +10,7 @@ use ethereum_consensus::{
     serde::try_bytes_from_hex_str,
     state_transition::Forks,
 };
-use serde::{ser::SerializeMap, Deserialize, Serialize};
+use serde::{Deserialize, Serialize};
 use std::{collections::HashMap, fmt, marker::PhantomData, str::FromStr};
 
 #[derive(Serialize, Deserialize)]
@@ -465,28 +465,11 @@ pub struct Value<T> {
     pub meta: HashMap<String, serde_json::Value>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Serialize)]
 pub struct VersionedValue<T: serde::Serialize + serde::de::DeserializeOwned> {
     pub version: Forks,
     pub data: T,
     pub meta: HashMap<String, serde_json::Value>,
-}
-
-impl<T: serde::Serialize + serde::de::DeserializeOwned> serde::Serialize for VersionedValue<T> {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: serde::Serializer,
-    {
-        let count = 2 + self.meta.len();
-        let mut versioned_value = serializer.serialize_map(Some(count))?;
-        let inner = serde_json::to_value(&self.data).map_err(serde::ser::Error::custom)?;
-        versioned_value.serialize_entry("version", inner.get("version").unwrap())?;
-        versioned_value.serialize_entry("data", inner.get("data").unwrap())?;
-        for (name, value) in &self.meta {
-            versioned_value.serialize_entry(name, value)?;
-        }
-        versioned_value.end()
-    }
 }
 
 impl<'de, T: serde::Serialize + serde::de::DeserializeOwned> serde::Deserialize<'de>

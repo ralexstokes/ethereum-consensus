@@ -6,7 +6,7 @@ use crate::{
     primitives::{Bytes32, ExecutionAddress, Hash32, Root},
     ssz::prelude::*,
 };
-#[derive(Debug, Clone, PartialEq, Eq, SimpleSerialize, serde::Serialize, serde::Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, SimpleSerialize, serde::Deserialize)]
 #[serde(tag = "version", content = "data")]
 #[serde(rename_all = "lowercase")]
 pub enum ExecutionPayloadHeader<
@@ -308,6 +308,20 @@ impl<const BYTES_PER_LOGS_BLOOM: usize, const MAX_EXTRA_DATA_BYTES: usize>
             Self::Bellatrix(_) => None,
             Self::Capella(_) => None,
             Self::Deneb(inner) => Some(&mut inner.excess_blob_gas),
+        }
+    }
+}
+impl<const BYTES_PER_LOGS_BLOOM: usize, const MAX_EXTRA_DATA_BYTES: usize> serde::Serialize
+    for ExecutionPayloadHeader<BYTES_PER_LOGS_BLOOM, MAX_EXTRA_DATA_BYTES>
+{
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        match self {
+            Self::Bellatrix(inner) => <_ as serde::Serialize>::serialize(inner, serializer),
+            Self::Capella(inner) => <_ as serde::Serialize>::serialize(inner, serializer),
+            Self::Deneb(inner) => <_ as serde::Serialize>::serialize(inner, serializer),
         }
     }
 }
