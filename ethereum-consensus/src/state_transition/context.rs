@@ -7,17 +7,8 @@ use crate::{
     phase0,
     primitives::{Epoch, ExecutionAddress, Gwei, Hash32, Slot, Version, U256},
     state_transition::Error,
+    Fork,
 };
-
-#[derive(Debug, Clone, Copy, serde::Serialize, serde::Deserialize)]
-#[serde(rename_all = "lowercase")]
-pub enum Forks {
-    Phase0,
-    Altair,
-    Bellatrix,
-    Capella,
-    Deneb,
-}
 
 #[derive(Debug, Default, Clone, serde::Deserialize)]
 pub struct Context {
@@ -357,18 +348,18 @@ impl Context {
         )
     }
 
-    pub fn fork_for(&self, slot: Slot) -> Forks {
+    pub fn fork_for(&self, slot: Slot) -> Fork {
         let epoch = slot / self.slots_per_epoch;
         if epoch >= self.deneb_fork_epoch {
-            Forks::Deneb
+            Fork::Deneb
         } else if epoch >= self.capella_fork_epoch {
-            Forks::Capella
+            Fork::Capella
         } else if epoch >= self.bellatrix_fork_epoch {
-            Forks::Bellatrix
+            Fork::Bellatrix
         } else if epoch >= self.altair_fork_epoch {
-            Forks::Altair
+            Fork::Altair
         } else {
-            Forks::Phase0
+            Fork::Phase0
         }
     }
 

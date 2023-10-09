@@ -1,9 +1,10 @@
 use crate::{
     altair, bellatrix, phase0,
     state_transition::{
-        execution_engine::ExecutionEngine, BeaconState, Context, Error, Forks, Result,
-        SignedBeaconBlock, Validation,
+        execution_engine::ExecutionEngine, BeaconState, Context, Error, Result, SignedBeaconBlock,
+        Validation,
     },
+    Fork,
 };
 
 #[derive(Debug)]
@@ -195,13 +196,13 @@ impl<
             BeaconState::Phase0(state) => {
                 phase0::state_transition(state, signed_block, validation, &self.context)
             }
-            BeaconState::Altair(_) => Err(Error::IncompatibleForks {
-                source_fork: Forks::Altair,
-                destination_fork: Forks::Phase0,
+            BeaconState::Altair(_) => Err(Error::IncompatibleFork {
+                source_fork: Fork::Altair,
+                destination_fork: Fork::Phase0,
             }),
-            BeaconState::Bellatrix(_) => Err(Error::IncompatibleForks {
-                source_fork: Forks::Bellatrix,
-                destination_fork: Forks::Phase0,
+            BeaconState::Bellatrix(_) => Err(Error::IncompatibleFork {
+                source_fork: Fork::Bellatrix,
+                destination_fork: Fork::Phase0,
             }),
         }
     }
@@ -240,9 +241,9 @@ impl<
             BeaconState::Altair(state) => {
                 altair::state_transition(state, signed_block, validation, &self.context)
             }
-            BeaconState::Bellatrix(_) => Err(Error::IncompatibleForks {
-                source_fork: Forks::Bellatrix,
-                destination_fork: Forks::Altair,
+            BeaconState::Bellatrix(_) => Err(Error::IncompatibleFork {
+                source_fork: Fork::Bellatrix,
+                destination_fork: Fork::Altair,
             }),
         }
     }

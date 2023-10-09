@@ -1,10 +1,10 @@
 use beacon_api_client::{ApiError, ApiResult, Value, VersionedValue};
 use ethereum_consensus::{
-    bellatrix::mainnet as bellatrix, state_transition::Forks, types::mainnet::BlindedBeaconBlock,
+    bellatrix::mainnet as bellatrix, types::mainnet::BlindedBeaconBlock, Fork,
 };
 use std::collections::HashMap;
 
-fn with_fork<T: serde::Serialize>(fork: Forks, value: T) -> serde_json::Value {
+fn with_fork<T: serde::Serialize>(fork: Fork, value: T) -> serde_json::Value {
     serde_json::json!( {
         "version": fork,
         "data": value,
@@ -26,7 +26,7 @@ fn main() {
 
     let block = BlindedBeaconBlock::Bellatrix(Default::default());
     let block_with_version_repr =
-        serde_json::to_string(&with_fork(Forks::Bellatrix, &block)).unwrap();
+        serde_json::to_string(&with_fork(Fork::Bellatrix, &block)).unwrap();
     println!("{block_with_version_repr}");
     let recovered_block: VersionedValue<BlindedBeaconBlock> =
         serde_json::from_str(&block_with_version_repr).unwrap();
@@ -37,7 +37,7 @@ fn main() {
     println!("{block_with_version_repr}");
 
     let full_success_response = ApiResult::Ok(VersionedValue {
-        version: Forks::Capella,
+        version: Fork::Capella,
         data: block.clone(),
         meta: Default::default(),
     });
@@ -49,7 +49,7 @@ fn main() {
     println!("{recovered_success:#?}");
 
     let full_success_response = ApiResult::Ok(VersionedValue {
-        version: Forks::Capella,
+        version: Fork::Capella,
         data: block,
         meta: HashMap::from_iter([(
             String::from("finalized_root"),
