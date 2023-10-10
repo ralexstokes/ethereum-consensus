@@ -195,15 +195,24 @@ impl<T: TimeProvider + Send + Sync> Clock<T> {
 
 pub type SystemClock = Clock<SystemTimeProvider>;
 
+use tokio::time::interval_at;
 #[cfg(feature = "async")]
 use tokio_stream::{wrappers::IntervalStream, Stream, StreamExt};
 
 #[cfg(feature = "async")]
 impl<T: TimeProvider + Send + Sync> Clock<T> {
+    /// Returns a stream of slots. The stream will start from the next slot i.e it will not emit the
+    /// current slot.
     pub fn stream_slots(&self) -> impl Stream<Item = Slot> + '_ {
         let slot = self.current_slot().expect("after genesis");
         let duration_until_next_slot = self.duration_until_slot(slot + 1);
-        let interval_stream = IntervalStream::new(tokio::time::interval(duration_until_next_slot));
+
+        // Stream will not emit the `current_slot`, it starts from the next slot. This is until a custom stream implementation is added to fix this. Ref: https://github.com/ralexstokes/ethereum-consensus/pull/281#discussion_r1350932968
+        let interval = interval_at(
+            tokio::time::Instant::now() + duration_until_next_slot,
+            Duration::from_secs(configs::mainnet::SECONDS_PER_SLOT),
+        );
+        let interval_stream = IntervalStream::new(interval);
         interval_stream.map(move |_| self.current_slot().expect("after genesis"))
     }
 }
@@ -325,6 +334,7 @@ mod tests {
             }
             slots.push(slot);
         }
-        assert_eq!(slots, (current_slot..target_slot).collect::<Vec<_>>());
+        // `current_slot + 1` because the tick for the current slot is not emitted as a compromise to use Interval, IntervalStream Ref: https://github.com/ralexstokes/ethereum-consensus/pull/281#discussion_r1350932968. A custom stream implementation is required to emit the current slot.
+        assert_eq!(slots, (current_slot + 1..target_slot).collect::<Vec<_>>());
     }
 }
