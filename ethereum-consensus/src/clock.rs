@@ -195,6 +195,7 @@ impl<T: TimeProvider + Send + Sync> Clock<T> {
 
 pub type SystemClock = Clock<SystemTimeProvider>;
 
+#[cfg(feature = "async")]
 use tokio::time::interval_at;
 #[cfg(feature = "async")]
 use tokio_stream::{wrappers::IntervalStream, Stream, StreamExt};
