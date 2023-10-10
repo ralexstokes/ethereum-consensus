@@ -3,8 +3,7 @@ use crate::{
     altair::{beacon_block as altair, SyncAggregate},
     bellatrix::beacon_block as bellatrix,
     capella::{beacon_block as capella, SignedBlsToExecutionChange},
-    deneb::beacon_block as deneb,
-    deneb::polynomial_commitments::KzgCommitment,
+    deneb::{beacon_block as deneb, polynomial_commitments::KzgCommitment},
     phase0::{
         beacon_block as phase0, Attestation, AttesterSlashing, Deposit, Eth1Data, ProposerSlashing,
         SignedVoluntaryExit,

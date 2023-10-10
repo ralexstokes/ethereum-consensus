@@ -2,10 +2,7 @@ use crate::{deneb::blob_sidecar::Blob, primitives::Bytes32, ssz::prelude::*};
 use c_kzg::Error;
 pub use c_kzg::KzgSettings;
 
-use super::mainnet::FIELD_ELEMENTS_PER_BLOB;
-
 pub const BYTES_PER_FIELD_ELEMENT: usize = 32;
-pub const BYTES_PER_BLOB: usize = BYTES_PER_FIELD_ELEMENT * FIELD_ELEMENTS_PER_BLOB;
 pub const BYTES_PER_COMMITMENT: usize = 48;
 pub const BYTES_PER_PROOF: usize = 48;
 
@@ -53,8 +50,8 @@ pub fn compute_blob_kzg_proof<const BYTES_PER_BLOB: usize>(
     commitment: &KzgCommitment,
     kzg_settings: &KzgSettings,
 ) -> Result<KzgProof, Error> {
-    let blob = c_kzg::Blob::from_bytes(blob.as_ref()).unwrap();
-    let commitment = c_kzg::Bytes48::from_bytes(commitment.as_ref()).unwrap();
+    let blob = c_kzg::Blob::from_bytes(blob.as_ref())?;
+    let commitment = c_kzg::Bytes48::from_bytes(commitment.as_ref()).unwrap(); // Can leave as unwrap()
 
     let ckzg_proof = c_kzg::KzgProof::compute_blob_kzg_proof(&blob, &commitment, kzg_settings)?;
 
@@ -84,6 +81,7 @@ pub fn verify_kzg_proof(
     )
     .map_err(Into::into);
 
+    // Question mark should go where we're defining res
     if res? == true {
         Ok(())
     } else {
@@ -121,8 +119,6 @@ pub fn verify_blob_kzg_proof_batch<const BYTES_PER_BLOB: usize>(
     let mut c_kzg_commitments = Vec::with_capacity(commitments.len());
     let mut c_kzg_proofs = Vec::with_capacity(proofs.len());
 
-    // TODO: Can we assume there are *always* the same number of
-    //       blobs, commitments and proofs?  We could then use one for loop.
     for blob in blobs {
         let blob = c_kzg::Blob::from_bytes(blob.as_ref())?;
         c_kzg_blobs.push(blob);

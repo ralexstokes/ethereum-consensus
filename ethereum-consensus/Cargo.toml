@@ -16,6 +16,7 @@ ec = [
     "bip39",
     "rand_core",
     "rayon",
+    "ruint",
     "hkdf",
     "uuid",
     "scrypt",
