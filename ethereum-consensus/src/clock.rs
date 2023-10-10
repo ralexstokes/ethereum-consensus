@@ -211,7 +211,7 @@ impl<T: TimeProvider + Send + Sync> Clock<T> {
         // Stream will not emit the `current_slot`, it starts from the next slot. This is until a custom stream implementation is added to fix this. Ref: https://github.com/ralexstokes/ethereum-consensus/pull/281#discussion_r1350932968
         let interval = interval_at(
             tokio::time::Instant::now() + duration_until_next_slot,
-            Duration::from_secs(configs::mainnet::SECONDS_PER_SLOT),
+            Duration::from_secs(self.seconds_per_slot),
         );
         let interval_stream = IntervalStream::new(interval);
         interval_stream.map(move |_| self.current_slot().expect("after genesis"))
