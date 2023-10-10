@@ -21,10 +21,10 @@ pub fn blob_to_kzg_commitment<const BYTES_PER_BLOB: usize>(
     blob: &Blob<BYTES_PER_BLOB>,
     kzg_settings: &KzgSettings,
 ) -> Result<KzgCommitment, Error> {
-    let blob = c_kzg::Blob::from_bytes(blob.as_ref()).unwrap();
+    let blob = c_kzg::Blob::from_bytes(blob.as_ref())?;
 
     let commitment = c_kzg::KzgCommitment::blob_to_kzg_commitment(&blob, kzg_settings)?;
-    let inner = ByteVector::try_from(commitment.to_bytes().as_slice()).unwrap();
+    let inner = ByteVector::try_from(commitment.to_bytes().as_slice()).expect("Correct size");
     Ok(inner)
 }
 
@@ -33,13 +33,13 @@ pub fn compute_kzg_proof<const BYTES_PER_BLOB: usize>(
     evaluation_point: &FieldElement,
     kzg_settings: &KzgSettings,
 ) -> Result<ProofAndEvaluation, Error> {
-    let blob = c_kzg::Blob::from_bytes(blob.as_ref()).unwrap();
+    let blob = c_kzg::Blob::from_bytes(blob.as_ref())?;
     let evaluation_point = c_kzg::Bytes32::from_bytes(evaluation_point.as_ref())?;
 
     let (proof, evaluation) =
         c_kzg::KzgProof::compute_kzg_proof(&blob, &evaluation_point, kzg_settings)?;
-    let proof = ByteVector::try_from(proof.to_bytes().as_ref()).unwrap();
-    let evaluation = ByteVector::try_from(evaluation.as_slice()).unwrap();
+    let proof = ByteVector::try_from(proof.to_bytes().as_ref()).expect("Correct size");
+    let evaluation = ByteVector::try_from(evaluation.as_slice()).expect("Correct size");
 
     let result = ProofAndEvaluation { proof, evaluation };
     Ok(result)
@@ -51,13 +51,11 @@ pub fn compute_blob_kzg_proof<const BYTES_PER_BLOB: usize>(
     kzg_settings: &KzgSettings,
 ) -> Result<KzgProof, Error> {
     let blob = c_kzg::Blob::from_bytes(blob.as_ref())?;
-    let commitment = c_kzg::Bytes48::from_bytes(commitment.as_ref()).unwrap(); // Can leave as unwrap()
+    let commitment = c_kzg::Bytes48::from_bytes(commitment.as_ref()).expect("Correct size");
 
-    let ckzg_proof = c_kzg::KzgProof::compute_blob_kzg_proof(&blob, &commitment, kzg_settings)?;
+    let proof = c_kzg::KzgProof::compute_blob_kzg_proof(&blob, &commitment, kzg_settings)?;
 
-    let bytes_proof = ckzg_proof.to_bytes();
-    let proof = ByteVector::try_from(bytes_proof.as_ref()).unwrap();
-    Ok(proof)
+    Ok(KzgProof::try_from(proof.to_bytes().as_ref()).expect("input is correct size"))
 }
 
 pub fn verify_kzg_proof(
@@ -69,8 +67,8 @@ pub fn verify_kzg_proof(
 ) -> Result<(), Error> {
     let evaluation_point = c_kzg::Bytes32::from_bytes(evaluation_point.as_ref())?;
     let result_point = c_kzg::Bytes32::from_bytes(result_point.as_ref())?;
-    let commitment = c_kzg::Bytes48::from_bytes(commitment.as_ref()).unwrap();
-    let proof = c_kzg::Bytes48::from_bytes(proof.as_ref()).unwrap();
+    let commitment = c_kzg::Bytes48::from_bytes(commitment.as_ref()).expect("Correct size");
+    let proof = c_kzg::Bytes48::from_bytes(proof.as_ref()).expect("Correct size");
 
     let res = c_kzg::KzgProof::verify_kzg_proof(
         &commitment,
@@ -78,11 +76,9 @@ pub fn verify_kzg_proof(
         &result_point,
         &proof,
         kzg_settings,
-    )
-    .map_err(Into::into);
+    )?;
 
-    // Question mark should go where we're defining res
-    if res? == true {
+    if res == true {
         Ok(())
     } else {
         Err(Error::InvalidKzgProof(String::from("Invalid Proof")))
@@ -99,10 +95,9 @@ pub fn verify_blob_kzg_proof<const BYTES_PER_BLOB: usize>(
     let commitment = c_kzg::Bytes48::from_bytes(commitment.as_ref()).unwrap();
     let proof = c_kzg::Bytes48::from_bytes(proof.as_ref()).unwrap();
 
-    let res = c_kzg::KzgProof::verify_blob_kzg_proof(&blob, &commitment, &proof, kzg_settings)
-        .map_err(Into::into);
+    let res = c_kzg::KzgProof::verify_blob_kzg_proof(&blob, &commitment, &proof, kzg_settings)?;
 
-    if res? == true {
+    if res == true {
         Ok(())
     } else {
         Err(Error::InvalidKzgProof(String::from("Invalid Blob")))
@@ -137,10 +132,9 @@ pub fn verify_blob_kzg_proof_batch<const BYTES_PER_BLOB: usize>(
         &c_kzg_commitments,
         &c_kzg_proofs,
         kzg_settings,
-    )
-    .map_err(Into::into);
+    )?;
 
-    if res? == true {
+    if res == true {
         Ok(())
     } else {
         Err(Error::InvalidKzgProof(String::from("Invalid Proof Batch")))
