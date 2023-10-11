@@ -6,11 +6,10 @@ pub const BYTES_PER_FIELD_ELEMENT: usize = 32;
 pub const BYTES_PER_COMMITMENT: usize = 48;
 pub const BYTES_PER_PROOF: usize = 48;
 
-pub type Bytes48 = ByteVector<48>;
 pub type VersionedHash = Bytes32;
 pub type FieldElement = Bytes32;
-pub type KzgCommitment = Bytes48;
-pub type KzgProof = Bytes48;
+pub type KzgCommitment = ByteVector<BYTES_PER_COMMITMENT>;
+pub type KzgProof = ByteVector<BYTES_PER_PROOF>;
 
 pub struct ProofAndEvaluation {
     pub proof: KzgProof,
@@ -78,11 +77,7 @@ pub fn verify_kzg_proof(
         kzg_settings,
     )?;
 
-    if res == true {
-        Ok(())
-    } else {
-        Err(Error::InvalidKzgProof(String::from("Invalid Proof")))
-    }
+    res.then_some(()).ok_or(Error::InvalidKzgProof(String::from("Invalid Proof")))
 }
 
 pub fn verify_blob_kzg_proof<const BYTES_PER_BLOB: usize>(
@@ -97,11 +92,7 @@ pub fn verify_blob_kzg_proof<const BYTES_PER_BLOB: usize>(
 
     let res = c_kzg::KzgProof::verify_blob_kzg_proof(&blob, &commitment, &proof, kzg_settings)?;
 
-    if res == true {
-        Ok(())
-    } else {
-        Err(Error::InvalidKzgProof(String::from("Invalid Blob")))
-    }
+    res.then_some(()).ok_or(Error::InvalidKzgProof(String::from("Invalid Blob")))
 }
 
 pub fn verify_blob_kzg_proof_batch<const BYTES_PER_BLOB: usize>(
@@ -134,9 +125,5 @@ pub fn verify_blob_kzg_proof_batch<const BYTES_PER_BLOB: usize>(
         kzg_settings,
     )?;
 
-    if res == true {
-        Ok(())
-    } else {
-        Err(Error::InvalidKzgProof(String::from("Invalid Proof Batch")))
-    }
+    res.then_some(()).ok_or(Error::InvalidKzgProof(String::from("Invalid Proof Batch")))
 }
