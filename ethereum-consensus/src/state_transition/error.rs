@@ -1,6 +1,7 @@
 use crate::{
     capella::Withdrawal,
     crypto::Error as CryptoError,
+    deneb::polynomial_commitments::Error as PolynomialCommitmentError,
     phase0::{AttestationData, BeaconBlockHeader, Checkpoint},
     primitives::{BlsPublicKey, BlsSignature, Bytes32, Epoch, Hash32, Root, Slot, ValidatorIndex},
     ssz::prelude::*,
@@ -56,7 +57,7 @@ pub enum Error {
     #[error(transparent)]
     ExecutionEngine(#[from] ExecutionEngineError),
     #[error(transparent)]
-    PolynomialCommitment(#[from] crate::deneb::polynomial_commitments::Error),
+    PolynomialCommitment(#[from] PolynomialCommitmentError),
 }
 
 #[derive(Debug, Error)]
