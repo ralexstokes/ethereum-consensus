@@ -50,5 +50,5 @@ pub fn verify_signature(
     signing_root: &[u8],
     signature: &BlsSignature,
 ) -> Result<(), Error> {
-    crypto::verify_signature(public_key, signing_root.as_ref(), signature).map_err(Into::into)
+    crypto::verify_signature(public_key, signing_root, signature).map_err(Into::into)
 }

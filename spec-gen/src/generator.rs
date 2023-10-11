@@ -128,7 +128,7 @@ impl Fork {
                     use std::cmp;
                     use std::collections::HashSet;
                     use crate::ssz::prelude::*;
-                    use crate::crypto::{hash, verify_signature, fast_aggregate_verify};
+                    use crate::crypto::{hash, fast_aggregate_verify};
 
                     pub use crate::altair::fork::upgrade_to_altair;
                 };
@@ -142,7 +142,7 @@ impl Fork {
                     use std::iter::zip;
                     use crate::ssz::prelude::*;
                     use integer_sqrt::IntegerSquareRoot;
-                    use crate::crypto::{hash, verify_signature, fast_aggregate_verify, eth_aggregate_public_keys, eth_fast_aggregate_verify};
+                    use crate::crypto::{hash, fast_aggregate_verify, eth_aggregate_public_keys, eth_fast_aggregate_verify};
 
                     pub use crate::bellatrix::fork::upgrade_to_bellatrix;
                 };
@@ -156,7 +156,7 @@ impl Fork {
                     use std::iter::zip;
                     use crate::ssz::prelude::*;
                     use integer_sqrt::IntegerSquareRoot;
-                    use crate::crypto::{hash, verify_signature, fast_aggregate_verify, eth_aggregate_public_keys, eth_fast_aggregate_verify};
+                    use crate::crypto::{hash, fast_aggregate_verify, eth_aggregate_public_keys, eth_fast_aggregate_verify};
 
                     pub use crate::capella::fork::upgrade_to_capella;
                 };
@@ -170,7 +170,7 @@ impl Fork {
                     use std::iter::zip;
                     use crate::ssz::prelude::*;
                     use integer_sqrt::IntegerSquareRoot;
-                    use crate::crypto::{hash, verify_signature, fast_aggregate_verify, eth_aggregate_public_keys, eth_fast_aggregate_verify};
+                    use crate::crypto::{hash, fast_aggregate_verify, eth_aggregate_public_keys, eth_fast_aggregate_verify};
 
                     pub use crate::deneb::fork::upgrade_to_deneb;
                 };

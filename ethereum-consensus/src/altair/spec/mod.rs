@@ -58,7 +58,7 @@ pub use crate::{
     state_transition::{Context, Result, Validation},
 };
 use crate::{
-    crypto::{fast_aggregate_verify, hash, verify_signature},
+    crypto::{fast_aggregate_verify, hash},
     ssz::prelude::*,
 };
 use std::{cmp, collections::HashSet};
