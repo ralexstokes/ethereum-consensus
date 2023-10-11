@@ -838,6 +838,26 @@ impl<
         MAX_BLOB_COMMITMENTS_PER_BLOCK,
     >
 {
+    pub fn bellatrix(
+        &self,
+    ) -> Option<
+        &bellatrix::BlindedBeaconBlock<
+            MAX_PROPOSER_SLASHINGS,
+            MAX_VALIDATORS_PER_COMMITTEE,
+            MAX_ATTESTER_SLASHINGS,
+            MAX_ATTESTATIONS,
+            MAX_DEPOSITS,
+            MAX_VOLUNTARY_EXITS,
+            SYNC_COMMITTEE_SIZE,
+            BYTES_PER_LOGS_BLOOM,
+            MAX_EXTRA_DATA_BYTES,
+        >,
+    > {
+        match self {
+            Self::Bellatrix(inner) => Some(inner),
+            _ => None,
+        }
+    }
     pub fn bellatrix_mut(
         &mut self,
     ) -> Option<
@@ -855,6 +875,27 @@ impl<
     > {
         match self {
             Self::Bellatrix(inner) => Some(inner),
+            _ => None,
+        }
+    }
+    pub fn capella(
+        &self,
+    ) -> Option<
+        &capella::BlindedBeaconBlock<
+            MAX_PROPOSER_SLASHINGS,
+            MAX_VALIDATORS_PER_COMMITTEE,
+            MAX_ATTESTER_SLASHINGS,
+            MAX_ATTESTATIONS,
+            MAX_DEPOSITS,
+            MAX_VOLUNTARY_EXITS,
+            SYNC_COMMITTEE_SIZE,
+            BYTES_PER_LOGS_BLOOM,
+            MAX_EXTRA_DATA_BYTES,
+            MAX_BLS_TO_EXECUTION_CHANGES,
+        >,
+    > {
+        match self {
+            Self::Capella(inner) => Some(inner),
             _ => None,
         }
     }
@@ -876,6 +917,28 @@ impl<
     > {
         match self {
             Self::Capella(inner) => Some(inner),
+            _ => None,
+        }
+    }
+    pub fn deneb(
+        &self,
+    ) -> Option<
+        &deneb::BlindedBeaconBlock<
+            MAX_PROPOSER_SLASHINGS,
+            MAX_VALIDATORS_PER_COMMITTEE,
+            MAX_ATTESTER_SLASHINGS,
+            MAX_ATTESTATIONS,
+            MAX_DEPOSITS,
+            MAX_VOLUNTARY_EXITS,
+            SYNC_COMMITTEE_SIZE,
+            BYTES_PER_LOGS_BLOOM,
+            MAX_EXTRA_DATA_BYTES,
+            MAX_BLS_TO_EXECUTION_CHANGES,
+            MAX_BLOB_COMMITMENTS_PER_BLOCK,
+        >,
+    > {
+        match self {
+            Self::Deneb(inner) => Some(inner),
             _ => None,
         }
     }
@@ -908,11 +971,25 @@ impl<
             Self::Deneb(_) => Version::Deneb,
         }
     }
+    pub fn slot(&self) -> &Slot {
+        match self {
+            Self::Bellatrix(inner) => &inner.slot,
+            Self::Capella(inner) => &inner.slot,
+            Self::Deneb(inner) => &inner.slot,
+        }
+    }
     pub fn slot_mut(&mut self) -> &mut Slot {
         match self {
             Self::Bellatrix(inner) => &mut inner.slot,
             Self::Capella(inner) => &mut inner.slot,
             Self::Deneb(inner) => &mut inner.slot,
+        }
+    }
+    pub fn proposer_index(&self) -> &ValidatorIndex {
+        match self {
+            Self::Bellatrix(inner) => &inner.proposer_index,
+            Self::Capella(inner) => &inner.proposer_index,
+            Self::Deneb(inner) => &inner.proposer_index,
         }
     }
     pub fn proposer_index_mut(&mut self) -> &mut ValidatorIndex {
@@ -922,6 +999,13 @@ impl<
             Self::Deneb(inner) => &mut inner.proposer_index,
         }
     }
+    pub fn parent_root(&self) -> &Root {
+        match self {
+            Self::Bellatrix(inner) => &inner.parent_root,
+            Self::Capella(inner) => &inner.parent_root,
+            Self::Deneb(inner) => &inner.parent_root,
+        }
+    }
     pub fn parent_root_mut(&mut self) -> &mut Root {
         match self {
             Self::Bellatrix(inner) => &mut inner.parent_root,
@@ -929,11 +1013,39 @@ impl<
             Self::Deneb(inner) => &mut inner.parent_root,
         }
     }
+    pub fn state_root(&self) -> &Root {
+        match self {
+            Self::Bellatrix(inner) => &inner.state_root,
+            Self::Capella(inner) => &inner.state_root,
+            Self::Deneb(inner) => &inner.state_root,
+        }
+    }
     pub fn state_root_mut(&mut self) -> &mut Root {
         match self {
             Self::Bellatrix(inner) => &mut inner.state_root,
             Self::Capella(inner) => &mut inner.state_root,
             Self::Deneb(inner) => &mut inner.state_root,
+        }
+    }
+    pub fn body(
+        &self,
+    ) -> BlindedBeaconBlockBodyRef<
+        MAX_PROPOSER_SLASHINGS,
+        MAX_VALIDATORS_PER_COMMITTEE,
+        MAX_ATTESTER_SLASHINGS,
+        MAX_ATTESTATIONS,
+        MAX_DEPOSITS,
+        MAX_VOLUNTARY_EXITS,
+        SYNC_COMMITTEE_SIZE,
+        BYTES_PER_LOGS_BLOOM,
+        MAX_EXTRA_DATA_BYTES,
+        MAX_BLS_TO_EXECUTION_CHANGES,
+        MAX_BLOB_COMMITMENTS_PER_BLOCK,
+    > {
+        match self {
+            Self::Bellatrix(inner) => From::from(&inner.body),
+            Self::Capella(inner) => From::from(&inner.body),
+            Self::Deneb(inner) => From::from(&inner.body),
         }
     }
     pub fn body_mut(

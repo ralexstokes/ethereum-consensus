@@ -1483,6 +1483,23 @@ impl<
         MAX_BLOB_COMMITMENTS_PER_BLOCK,
     >
 {
+    pub fn phase0(
+        &self,
+    ) -> Option<
+        &phase0::BeaconBlockBody<
+            MAX_PROPOSER_SLASHINGS,
+            MAX_VALIDATORS_PER_COMMITTEE,
+            MAX_ATTESTER_SLASHINGS,
+            MAX_ATTESTATIONS,
+            MAX_DEPOSITS,
+            MAX_VOLUNTARY_EXITS,
+        >,
+    > {
+        match self {
+            Self::Phase0(inner) => Some(inner),
+            _ => None,
+        }
+    }
     pub fn phase0_mut(
         &mut self,
     ) -> Option<
@@ -1497,6 +1514,24 @@ impl<
     > {
         match self {
             Self::Phase0(inner) => Some(inner),
+            _ => None,
+        }
+    }
+    pub fn altair(
+        &self,
+    ) -> Option<
+        &altair::BeaconBlockBody<
+            MAX_PROPOSER_SLASHINGS,
+            MAX_VALIDATORS_PER_COMMITTEE,
+            MAX_ATTESTER_SLASHINGS,
+            MAX_ATTESTATIONS,
+            MAX_DEPOSITS,
+            MAX_VOLUNTARY_EXITS,
+            SYNC_COMMITTEE_SIZE,
+        >,
+    > {
+        match self {
+            Self::Altair(inner) => Some(inner),
             _ => None,
         }
     }
@@ -1515,6 +1550,28 @@ impl<
     > {
         match self {
             Self::Altair(inner) => Some(inner),
+            _ => None,
+        }
+    }
+    pub fn bellatrix(
+        &self,
+    ) -> Option<
+        &bellatrix::BeaconBlockBody<
+            MAX_PROPOSER_SLASHINGS,
+            MAX_VALIDATORS_PER_COMMITTEE,
+            MAX_ATTESTER_SLASHINGS,
+            MAX_ATTESTATIONS,
+            MAX_DEPOSITS,
+            MAX_VOLUNTARY_EXITS,
+            SYNC_COMMITTEE_SIZE,
+            BYTES_PER_LOGS_BLOOM,
+            MAX_EXTRA_DATA_BYTES,
+            MAX_BYTES_PER_TRANSACTION,
+            MAX_TRANSACTIONS_PER_PAYLOAD,
+        >,
+    > {
+        match self {
+            Self::Bellatrix(inner) => Some(inner),
             _ => None,
         }
     }
@@ -1540,6 +1597,30 @@ impl<
             _ => None,
         }
     }
+    pub fn capella(
+        &self,
+    ) -> Option<
+        &capella::BeaconBlockBody<
+            MAX_PROPOSER_SLASHINGS,
+            MAX_VALIDATORS_PER_COMMITTEE,
+            MAX_ATTESTER_SLASHINGS,
+            MAX_ATTESTATIONS,
+            MAX_DEPOSITS,
+            MAX_VOLUNTARY_EXITS,
+            SYNC_COMMITTEE_SIZE,
+            BYTES_PER_LOGS_BLOOM,
+            MAX_EXTRA_DATA_BYTES,
+            MAX_BYTES_PER_TRANSACTION,
+            MAX_TRANSACTIONS_PER_PAYLOAD,
+            MAX_WITHDRAWALS_PER_PAYLOAD,
+            MAX_BLS_TO_EXECUTION_CHANGES,
+        >,
+    > {
+        match self {
+            Self::Capella(inner) => Some(inner),
+            _ => None,
+        }
+    }
     pub fn capella_mut(
         &mut self,
     ) -> Option<
@@ -1561,6 +1642,31 @@ impl<
     > {
         match self {
             Self::Capella(inner) => Some(inner),
+            _ => None,
+        }
+    }
+    pub fn deneb(
+        &self,
+    ) -> Option<
+        &deneb::BeaconBlockBody<
+            MAX_PROPOSER_SLASHINGS,
+            MAX_VALIDATORS_PER_COMMITTEE,
+            MAX_ATTESTER_SLASHINGS,
+            MAX_ATTESTATIONS,
+            MAX_DEPOSITS,
+            MAX_VOLUNTARY_EXITS,
+            SYNC_COMMITTEE_SIZE,
+            BYTES_PER_LOGS_BLOOM,
+            MAX_EXTRA_DATA_BYTES,
+            MAX_BYTES_PER_TRANSACTION,
+            MAX_TRANSACTIONS_PER_PAYLOAD,
+            MAX_WITHDRAWALS_PER_PAYLOAD,
+            MAX_BLS_TO_EXECUTION_CHANGES,
+            MAX_BLOB_COMMITMENTS_PER_BLOCK,
+        >,
+    > {
+        match self {
+            Self::Deneb(inner) => Some(inner),
             _ => None,
         }
     }
@@ -1598,6 +1704,15 @@ impl<
             Self::Deneb(_) => Version::Deneb,
         }
     }
+    pub fn randao_reveal(&self) -> &BlsSignature {
+        match self {
+            Self::Phase0(inner) => &inner.randao_reveal,
+            Self::Altair(inner) => &inner.randao_reveal,
+            Self::Bellatrix(inner) => &inner.randao_reveal,
+            Self::Capella(inner) => &inner.randao_reveal,
+            Self::Deneb(inner) => &inner.randao_reveal,
+        }
+    }
     pub fn randao_reveal_mut(&mut self) -> &mut BlsSignature {
         match self {
             Self::Phase0(inner) => &mut inner.randao_reveal,
@@ -1605,6 +1720,15 @@ impl<
             Self::Bellatrix(inner) => &mut inner.randao_reveal,
             Self::Capella(inner) => &mut inner.randao_reveal,
             Self::Deneb(inner) => &mut inner.randao_reveal,
+        }
+    }
+    pub fn eth1_data(&self) -> &Eth1Data {
+        match self {
+            Self::Phase0(inner) => &inner.eth1_data,
+            Self::Altair(inner) => &inner.eth1_data,
+            Self::Bellatrix(inner) => &inner.eth1_data,
+            Self::Capella(inner) => &inner.eth1_data,
+            Self::Deneb(inner) => &inner.eth1_data,
         }
     }
     pub fn eth1_data_mut(&mut self) -> &mut Eth1Data {
@@ -1616,6 +1740,15 @@ impl<
             Self::Deneb(inner) => &mut inner.eth1_data,
         }
     }
+    pub fn graffiti(&self) -> &Bytes32 {
+        match self {
+            Self::Phase0(inner) => &inner.graffiti,
+            Self::Altair(inner) => &inner.graffiti,
+            Self::Bellatrix(inner) => &inner.graffiti,
+            Self::Capella(inner) => &inner.graffiti,
+            Self::Deneb(inner) => &inner.graffiti,
+        }
+    }
     pub fn graffiti_mut(&mut self) -> &mut Bytes32 {
         match self {
             Self::Phase0(inner) => &mut inner.graffiti,
@@ -1623,6 +1756,15 @@ impl<
             Self::Bellatrix(inner) => &mut inner.graffiti,
             Self::Capella(inner) => &mut inner.graffiti,
             Self::Deneb(inner) => &mut inner.graffiti,
+        }
+    }
+    pub fn proposer_slashings(&self) -> &List<ProposerSlashing, MAX_PROPOSER_SLASHINGS> {
+        match self {
+            Self::Phase0(inner) => &inner.proposer_slashings,
+            Self::Altair(inner) => &inner.proposer_slashings,
+            Self::Bellatrix(inner) => &inner.proposer_slashings,
+            Self::Capella(inner) => &inner.proposer_slashings,
+            Self::Deneb(inner) => &inner.proposer_slashings,
         }
     }
     pub fn proposer_slashings_mut(
@@ -1636,6 +1778,17 @@ impl<
             Self::Deneb(inner) => &mut inner.proposer_slashings,
         }
     }
+    pub fn attester_slashings(
+        &self,
+    ) -> &List<AttesterSlashing<MAX_VALIDATORS_PER_COMMITTEE>, MAX_ATTESTER_SLASHINGS> {
+        match self {
+            Self::Phase0(inner) => &inner.attester_slashings,
+            Self::Altair(inner) => &inner.attester_slashings,
+            Self::Bellatrix(inner) => &inner.attester_slashings,
+            Self::Capella(inner) => &inner.attester_slashings,
+            Self::Deneb(inner) => &inner.attester_slashings,
+        }
+    }
     pub fn attester_slashings_mut(
         &mut self,
     ) -> &mut List<AttesterSlashing<MAX_VALIDATORS_PER_COMMITTEE>, MAX_ATTESTER_SLASHINGS> {
@@ -1645,6 +1798,17 @@ impl<
             Self::Bellatrix(inner) => &mut inner.attester_slashings,
             Self::Capella(inner) => &mut inner.attester_slashings,
             Self::Deneb(inner) => &mut inner.attester_slashings,
+        }
+    }
+    pub fn attestations(
+        &self,
+    ) -> &List<Attestation<MAX_VALIDATORS_PER_COMMITTEE>, MAX_ATTESTATIONS> {
+        match self {
+            Self::Phase0(inner) => &inner.attestations,
+            Self::Altair(inner) => &inner.attestations,
+            Self::Bellatrix(inner) => &inner.attestations,
+            Self::Capella(inner) => &inner.attestations,
+            Self::Deneb(inner) => &inner.attestations,
         }
     }
     pub fn attestations_mut(
@@ -1658,6 +1822,15 @@ impl<
             Self::Deneb(inner) => &mut inner.attestations,
         }
     }
+    pub fn deposits(&self) -> &List<Deposit, MAX_DEPOSITS> {
+        match self {
+            Self::Phase0(inner) => &inner.deposits,
+            Self::Altair(inner) => &inner.deposits,
+            Self::Bellatrix(inner) => &inner.deposits,
+            Self::Capella(inner) => &inner.deposits,
+            Self::Deneb(inner) => &inner.deposits,
+        }
+    }
     pub fn deposits_mut(&mut self) -> &mut List<Deposit, MAX_DEPOSITS> {
         match self {
             Self::Phase0(inner) => &mut inner.deposits,
@@ -1665,6 +1838,15 @@ impl<
             Self::Bellatrix(inner) => &mut inner.deposits,
             Self::Capella(inner) => &mut inner.deposits,
             Self::Deneb(inner) => &mut inner.deposits,
+        }
+    }
+    pub fn voluntary_exits(&self) -> &List<SignedVoluntaryExit, MAX_VOLUNTARY_EXITS> {
+        match self {
+            Self::Phase0(inner) => &inner.voluntary_exits,
+            Self::Altair(inner) => &inner.voluntary_exits,
+            Self::Bellatrix(inner) => &inner.voluntary_exits,
+            Self::Capella(inner) => &inner.voluntary_exits,
+            Self::Deneb(inner) => &inner.voluntary_exits,
         }
     }
     pub fn voluntary_exits_mut(&mut self) -> &mut List<SignedVoluntaryExit, MAX_VOLUNTARY_EXITS> {
@@ -1676,6 +1858,15 @@ impl<
             Self::Deneb(inner) => &mut inner.voluntary_exits,
         }
     }
+    pub fn sync_aggregate(&self) -> Option<&SyncAggregate<SYNC_COMMITTEE_SIZE>> {
+        match self {
+            Self::Phase0(_) => None,
+            Self::Altair(inner) => Some(&inner.sync_aggregate),
+            Self::Bellatrix(inner) => Some(&inner.sync_aggregate),
+            Self::Capella(inner) => Some(&inner.sync_aggregate),
+            Self::Deneb(inner) => Some(&inner.sync_aggregate),
+        }
+    }
     pub fn sync_aggregate_mut(&mut self) -> Option<&mut SyncAggregate<SYNC_COMMITTEE_SIZE>> {
         match self {
             Self::Phase0(_) => None,
@@ -1683,6 +1874,25 @@ impl<
             Self::Bellatrix(inner) => Some(&mut inner.sync_aggregate),
             Self::Capella(inner) => Some(&mut inner.sync_aggregate),
             Self::Deneb(inner) => Some(&mut inner.sync_aggregate),
+        }
+    }
+    pub fn execution_payload(
+        &self,
+    ) -> Option<
+        ExecutionPayloadRef<
+            BYTES_PER_LOGS_BLOOM,
+            MAX_EXTRA_DATA_BYTES,
+            MAX_BYTES_PER_TRANSACTION,
+            MAX_TRANSACTIONS_PER_PAYLOAD,
+            MAX_WITHDRAWALS_PER_PAYLOAD,
+        >,
+    > {
+        match self {
+            Self::Phase0(_) => None,
+            Self::Altair(_) => None,
+            Self::Bellatrix(inner) => Some(From::from(&inner.execution_payload)),
+            Self::Capella(inner) => Some(From::from(&inner.execution_payload)),
+            Self::Deneb(inner) => Some(From::from(&inner.execution_payload)),
         }
     }
     pub fn execution_payload_mut(
@@ -1704,6 +1914,17 @@ impl<
             Self::Deneb(inner) => Some(From::from(&mut inner.execution_payload)),
         }
     }
+    pub fn bls_to_execution_changes(
+        &self,
+    ) -> Option<&List<SignedBlsToExecutionChange, MAX_BLS_TO_EXECUTION_CHANGES>> {
+        match self {
+            Self::Phase0(_) => None,
+            Self::Altair(_) => None,
+            Self::Bellatrix(_) => None,
+            Self::Capella(inner) => Some(&inner.bls_to_execution_changes),
+            Self::Deneb(inner) => Some(&inner.bls_to_execution_changes),
+        }
+    }
     pub fn bls_to_execution_changes_mut(
         &mut self,
     ) -> Option<&mut List<SignedBlsToExecutionChange, MAX_BLS_TO_EXECUTION_CHANGES>> {
@@ -1713,6 +1934,17 @@ impl<
             Self::Bellatrix(_) => None,
             Self::Capella(inner) => Some(&mut inner.bls_to_execution_changes),
             Self::Deneb(inner) => Some(&mut inner.bls_to_execution_changes),
+        }
+    }
+    pub fn blob_kzg_commitments(
+        &self,
+    ) -> Option<&List<KzgCommitment, MAX_BLOB_COMMITMENTS_PER_BLOCK>> {
+        match self {
+            Self::Phase0(_) => None,
+            Self::Altair(_) => None,
+            Self::Bellatrix(_) => None,
+            Self::Capella(_) => None,
+            Self::Deneb(inner) => Some(&inner.blob_kzg_commitments),
         }
     }
     pub fn blob_kzg_commitments_mut(

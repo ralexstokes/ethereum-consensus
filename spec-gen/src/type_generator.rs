@@ -476,7 +476,7 @@ fn derive_method_set(
     };
     match ref_type {
         Some(RefType::Immutable) => vec![immut_ref],
-        Some(RefType::Mutable) => vec![mut_ref],
+        Some(RefType::Mutable) => vec![immut_ref, mut_ref],
         None => vec![immut_ref, mut_ref],
     }
 }
@@ -566,7 +566,7 @@ fn derive_fields_impl(
             };
             match ref_type {
                 Some(RefType::Immutable) => vec![immut_ref],
-                Some(RefType::Mutable) => vec![mut_ref],
+                Some(RefType::Mutable) => vec![immut_ref, mut_ref],
                 None => vec![immut_ref, mut_ref],
             }
         })
