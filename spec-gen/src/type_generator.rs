@@ -375,16 +375,23 @@ fn derive_type_defn(target_type: &Type, merge_type: &MergeType) -> (Item, Generi
     (enum_defn, generics_copy)
 }
 
-// NOTE: this should be fused w/ `derive_optional_method_set`
-// it started out distinct but after supporting all the features we need, it is
-// worthwhile to just make one merged routine...
-fn derive_maybe_non_optional_method_set(
+fn derive_method_set(
     target_type: &Type,
     field_defn: &FieldDefn,
     fork_sequence: &[Fork],
     ref_type: &Option<RefType>,
 ) -> Vec<ImplItemMethod> {
     let ident = &field_defn.ident;
+    let deletion_fork = target_type.field_deletions().and_then(|(fork, fields)| {
+        let identifier = ident.to_string();
+        if fields.contains(&identifier.as_str()) {
+            Some(fork)
+        } else {
+            None
+        }
+    });
+    let field_defined_in_all_forks = &field_defn.fork == &fork_sequence[0];
+    let is_optional = deletion_fork.is_some() || !field_defined_in_all_forks;
     let is_polymorphic = target_type.polymorphic_fields().contains(&ident.to_string().as_ref());
     let ty: syn::Type = if is_polymorphic {
         let base = target_type.get_polymorphic_type();
@@ -403,11 +410,31 @@ fn derive_maybe_non_optional_method_set(
             #name #arguments
         }
     } else {
-        let ty = &field_defn.type_def;
+        let type_def = &field_defn.type_def;
         parse_quote! {
-            &#ty
+            &#type_def
         }
     };
+    let ty: syn::Type = if is_optional { parse_quote!(Option<#ty>) } else { ty };
+
+    let match_arms = derive_match_arms(
+        &field_defn.fork,
+        fork_sequence,
+        ident,
+        false,
+        is_polymorphic,
+        is_optional,
+        deletion_fork,
+    );
+    let immut_ref = parse_quote! {
+        pub fn #ident(&self) -> #ty {
+            match self {
+                #(#match_arms)*
+            }
+        }
+    };
+
+    let mut_ident = as_syn_ident(format!("{ident}_mut"));
     let ty_mut: syn::Type = if is_polymorphic {
         let base = target_type.get_polymorphic_type();
         let name = as_syn_ident(format!("{base}RefMut"));
@@ -425,50 +452,21 @@ fn derive_maybe_non_optional_method_set(
             #name #arguments
         }
     } else {
-        let ty = &field_defn.type_def;
+        let type_def = &field_defn.type_def;
         parse_quote! {
-            &mut #ty
+            &mut #type_def
         }
     };
-
-    let identifier = ident.to_string();
-    let deletion_fork = target_type.field_deletions().and_then(|(fork, fields)| {
-        if fields.contains(&identifier.as_str()) {
-            Some(fork)
-        } else {
-            None
-        }
-    });
-
+    let ty_mut: syn::Type = if is_optional { parse_quote!(Option<#ty_mut>) } else { ty_mut };
     let match_arms = derive_match_arms(
         &field_defn.fork,
         fork_sequence,
         ident,
-        false,
-        false,
-        is_polymorphic,
-        deletion_fork,
-    );
-    let ty: syn::Type = if deletion_fork.is_some() { parse_quote!(Option<#ty>) } else { ty };
-    let immut_ref = parse_quote! {
-        pub fn #ident(&self) -> #ty {
-            match self {
-                #(#match_arms)*
-            }
-        }
-    };
-    let mut_ident = as_syn_ident(format!("{ident}_mut"));
-    let match_arms = derive_match_arms(
-        &field_defn.fork,
-        fork_sequence,
-        ident,
-        false,
         true,
         is_polymorphic,
+        is_optional,
         deletion_fork,
     );
-    let ty_mut: syn::Type =
-        if deletion_fork.is_some() { parse_quote!(Option<#ty_mut>) } else { ty_mut };
     let mut_ref = parse_quote! {
         pub fn #mut_ident(&mut self) -> #ty_mut {
             match self {
@@ -487,9 +485,9 @@ fn derive_match_arms(
     source_fork: &Fork,
     fork_sequence: &[Fork],
     ident: &Ident,
-    is_optional: bool,
     is_mut: bool,
     is_polymorphic: bool,
+    is_optional: bool,
     deletion_fork: Option<Fork>,
 ) -> Vec<Arm> {
     let mutability = if is_mut { Some(Mut::default()) } else { None };
@@ -498,8 +496,6 @@ fn derive_match_arms(
     } else {
         parse_quote!(&#mutability inner.#ident)
     };
-    let accessor_expr: syn::Expr =
-        if is_optional { parse_quote!(Some(#accessor_expr)) } else { accessor_expr };
     fork_sequence
         .iter()
         .map(|fork| {
@@ -509,7 +505,7 @@ fn derive_match_arms(
             } else {
                 false
             };
-            let accessor_expr = if deletion_fork.is_some() {
+            let accessor_expr = if is_optional {
                 parse_quote!(Some(#accessor_expr))
             } else {
                 accessor_expr.clone()
@@ -525,105 +521,6 @@ fn derive_match_arms(
             }
         })
         .collect()
-}
-
-fn derive_optional_method_set(
-    target_type: &Type,
-    field_defn: &FieldDefn,
-    fork_sequence: &[Fork],
-    ref_type: &Option<RefType>,
-) -> Vec<ImplItemMethod> {
-    let ident = &field_defn.ident;
-    let is_polymorphic = target_type.polymorphic_fields().contains(&ident.to_string().as_ref());
-    let ty: syn::Type = if is_polymorphic {
-        let base = target_type.get_polymorphic_type();
-        let name = as_syn_ident(format!("{base}Ref"));
-
-        let ty = &field_defn.type_def;
-        let mut visitor = ToGenericsVisitor::default();
-        visitor.visit_type(ty);
-        let bounds = visitor.bounds;
-        let arguments: AngleBracketedGenericArguments = parse_quote! {
-            <
-            #(#bounds),*
-            >
-        };
-        parse_quote! {
-            #name #arguments
-        }
-    } else {
-        let ty = &field_defn.type_def;
-        parse_quote! {
-            &#ty
-        }
-    };
-    let ty_mut: syn::Type = if is_polymorphic {
-        let base = target_type.get_polymorphic_type();
-        let name = as_syn_ident(format!("{base}RefMut"));
-
-        let ty = &field_defn.type_def;
-        let mut visitor = ToGenericsVisitor::default();
-        visitor.visit_type(ty);
-        let bounds = visitor.bounds;
-        let arguments: AngleBracketedGenericArguments = parse_quote! {
-            <
-            #(#bounds),*
-            >
-        };
-        parse_quote! {
-            #name #arguments
-        }
-    } else {
-        let ty = &field_defn.type_def;
-        parse_quote! {
-            &mut #ty
-        }
-    };
-    let match_arms = derive_match_arms(
-        &field_defn.fork,
-        fork_sequence,
-        ident,
-        true,
-        false,
-        is_polymorphic,
-        None,
-    );
-    let immut_ref = parse_quote! {
-        pub fn #ident(&self) -> Option<#ty> {
-            match self {
-                #(#match_arms)*
-            }
-        }
-    };
-    let match_arms =
-        derive_match_arms(&field_defn.fork, fork_sequence, ident, true, true, is_polymorphic, None);
-    let mut_ident = as_syn_ident(format!("{ident}_mut"));
-    let mut_ref = parse_quote! {
-        pub fn #mut_ident(&mut self) -> Option<#ty_mut> {
-            match self {
-                #(#match_arms)*
-            }
-        }
-    };
-    match ref_type {
-        Some(RefType::Immutable) => vec![immut_ref],
-        Some(RefType::Mutable) => vec![mut_ref],
-        None => vec![immut_ref, mut_ref],
-    }
-}
-
-fn derive_method_set(
-    target_type: &Type,
-    field_defn: &FieldDefn,
-    fork_sequence: &[Fork],
-    ref_type: &Option<RefType>,
-) -> Vec<ImplItemMethod> {
-    match &field_defn.fork {
-        Fork::Phase0 => {
-            derive_maybe_non_optional_method_set(target_type, field_defn, fork_sequence, ref_type)
-        }
-        _ => derive_optional_method_set(target_type, field_defn, fork_sequence, ref_type),
-    }
 }
 
 enum RefType {
@@ -675,9 +572,9 @@ fn derive_fields_impl(
         })
         .collect::<Vec<ImplItemMethod>>();
 
-    let fork_accessor_arms = merge_type
-        .supported_forks()
-        .into_iter()
+    let fork_sequence = merge_type.supported_forks();
+    let fork_accessor_arms = fork_sequence
+        .iter()
         .map(|fork| {
             let fork = as_syn_ident(format!("{fork:?}"));
             parse_quote! {
@@ -693,14 +590,9 @@ fn derive_fields_impl(
         }
     });
 
-    let fork_sequence = merge_type.supported_forks();
-    let field_accessors = merge_type
-        .fields
-        .iter()
-        .flat_map(|field_defn| {
-            derive_method_set(target_type, field_defn, &fork_sequence, &ref_type)
-        })
-        .collect::<Vec<ImplItemMethod>>();
+    let field_accessors = merge_type.fields.iter().flat_map(|field_defn| {
+        derive_method_set(target_type, field_defn, &fork_sequence, &ref_type)
+    });
     fields.extend(field_accessors);
     fields
 }

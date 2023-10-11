@@ -229,62 +229,58 @@ impl<
     }
     pub fn message(
         &self,
-    ) -> Option<
-        BlindedBeaconBlockRef<
-            MAX_PROPOSER_SLASHINGS,
-            MAX_VALIDATORS_PER_COMMITTEE,
-            MAX_ATTESTER_SLASHINGS,
-            MAX_ATTESTATIONS,
-            MAX_DEPOSITS,
-            MAX_VOLUNTARY_EXITS,
-            SYNC_COMMITTEE_SIZE,
-            BYTES_PER_LOGS_BLOOM,
-            MAX_EXTRA_DATA_BYTES,
-            MAX_BLS_TO_EXECUTION_CHANGES,
-            MAX_BLOB_COMMITMENTS_PER_BLOCK,
-        >,
+    ) -> BlindedBeaconBlockRef<
+        MAX_PROPOSER_SLASHINGS,
+        MAX_VALIDATORS_PER_COMMITTEE,
+        MAX_ATTESTER_SLASHINGS,
+        MAX_ATTESTATIONS,
+        MAX_DEPOSITS,
+        MAX_VOLUNTARY_EXITS,
+        SYNC_COMMITTEE_SIZE,
+        BYTES_PER_LOGS_BLOOM,
+        MAX_EXTRA_DATA_BYTES,
+        MAX_BLS_TO_EXECUTION_CHANGES,
+        MAX_BLOB_COMMITMENTS_PER_BLOCK,
     > {
         match self {
-            Self::Bellatrix(inner) => Some(From::from(&inner.message)),
-            Self::Capella(inner) => Some(From::from(&inner.message)),
-            Self::Deneb(inner) => Some(From::from(&inner.message)),
+            Self::Bellatrix(inner) => From::from(&inner.message),
+            Self::Capella(inner) => From::from(&inner.message),
+            Self::Deneb(inner) => From::from(&inner.message),
         }
     }
     pub fn message_mut(
         &mut self,
-    ) -> Option<
-        BlindedBeaconBlockRefMut<
-            MAX_PROPOSER_SLASHINGS,
-            MAX_VALIDATORS_PER_COMMITTEE,
-            MAX_ATTESTER_SLASHINGS,
-            MAX_ATTESTATIONS,
-            MAX_DEPOSITS,
-            MAX_VOLUNTARY_EXITS,
-            SYNC_COMMITTEE_SIZE,
-            BYTES_PER_LOGS_BLOOM,
-            MAX_EXTRA_DATA_BYTES,
-            MAX_BLS_TO_EXECUTION_CHANGES,
-            MAX_BLOB_COMMITMENTS_PER_BLOCK,
-        >,
+    ) -> BlindedBeaconBlockRefMut<
+        MAX_PROPOSER_SLASHINGS,
+        MAX_VALIDATORS_PER_COMMITTEE,
+        MAX_ATTESTER_SLASHINGS,
+        MAX_ATTESTATIONS,
+        MAX_DEPOSITS,
+        MAX_VOLUNTARY_EXITS,
+        SYNC_COMMITTEE_SIZE,
+        BYTES_PER_LOGS_BLOOM,
+        MAX_EXTRA_DATA_BYTES,
+        MAX_BLS_TO_EXECUTION_CHANGES,
+        MAX_BLOB_COMMITMENTS_PER_BLOCK,
     > {
         match self {
-            Self::Bellatrix(inner) => Some(From::from(&mut inner.message)),
-            Self::Capella(inner) => Some(From::from(&mut inner.message)),
-            Self::Deneb(inner) => Some(From::from(&mut inner.message)),
+            Self::Bellatrix(inner) => From::from(&mut inner.message),
+            Self::Capella(inner) => From::from(&mut inner.message),
+            Self::Deneb(inner) => From::from(&mut inner.message),
         }
     }
-    pub fn signature(&self) -> Option<&BlsSignature> {
+    pub fn signature(&self) -> &BlsSignature {
         match self {
-            Self::Bellatrix(inner) => Some(&inner.signature),
-            Self::Capella(inner) => Some(&inner.signature),
-            Self::Deneb(inner) => Some(&inner.signature),
+            Self::Bellatrix(inner) => &inner.signature,
+            Self::Capella(inner) => &inner.signature,
+            Self::Deneb(inner) => &inner.signature,
         }
     }
-    pub fn signature_mut(&mut self) -> Option<&mut BlsSignature> {
+    pub fn signature_mut(&mut self) -> &mut BlsSignature {
         match self {
-            Self::Bellatrix(inner) => Some(&mut inner.signature),
-            Self::Capella(inner) => Some(&mut inner.signature),
-            Self::Deneb(inner) => Some(&mut inner.signature),
+            Self::Bellatrix(inner) => &mut inner.signature,
+            Self::Capella(inner) => &mut inner.signature,
+            Self::Deneb(inner) => &mut inner.signature,
         }
     }
 }

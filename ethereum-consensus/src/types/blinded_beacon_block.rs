@@ -227,106 +227,102 @@ impl<
             Self::Deneb(_) => Version::Deneb,
         }
     }
-    pub fn slot(&self) -> Option<&Slot> {
+    pub fn slot(&self) -> &Slot {
         match self {
-            Self::Bellatrix(inner) => Some(&inner.slot),
-            Self::Capella(inner) => Some(&inner.slot),
-            Self::Deneb(inner) => Some(&inner.slot),
+            Self::Bellatrix(inner) => &inner.slot,
+            Self::Capella(inner) => &inner.slot,
+            Self::Deneb(inner) => &inner.slot,
         }
     }
-    pub fn slot_mut(&mut self) -> Option<&mut Slot> {
+    pub fn slot_mut(&mut self) -> &mut Slot {
         match self {
-            Self::Bellatrix(inner) => Some(&mut inner.slot),
-            Self::Capella(inner) => Some(&mut inner.slot),
-            Self::Deneb(inner) => Some(&mut inner.slot),
+            Self::Bellatrix(inner) => &mut inner.slot,
+            Self::Capella(inner) => &mut inner.slot,
+            Self::Deneb(inner) => &mut inner.slot,
         }
     }
-    pub fn proposer_index(&self) -> Option<&ValidatorIndex> {
+    pub fn proposer_index(&self) -> &ValidatorIndex {
         match self {
-            Self::Bellatrix(inner) => Some(&inner.proposer_index),
-            Self::Capella(inner) => Some(&inner.proposer_index),
-            Self::Deneb(inner) => Some(&inner.proposer_index),
+            Self::Bellatrix(inner) => &inner.proposer_index,
+            Self::Capella(inner) => &inner.proposer_index,
+            Self::Deneb(inner) => &inner.proposer_index,
         }
     }
-    pub fn proposer_index_mut(&mut self) -> Option<&mut ValidatorIndex> {
+    pub fn proposer_index_mut(&mut self) -> &mut ValidatorIndex {
         match self {
-            Self::Bellatrix(inner) => Some(&mut inner.proposer_index),
-            Self::Capella(inner) => Some(&mut inner.proposer_index),
-            Self::Deneb(inner) => Some(&mut inner.proposer_index),
+            Self::Bellatrix(inner) => &mut inner.proposer_index,
+            Self::Capella(inner) => &mut inner.proposer_index,
+            Self::Deneb(inner) => &mut inner.proposer_index,
         }
     }
-    pub fn parent_root(&self) -> Option<&Root> {
+    pub fn parent_root(&self) -> &Root {
         match self {
-            Self::Bellatrix(inner) => Some(&inner.parent_root),
-            Self::Capella(inner) => Some(&inner.parent_root),
-            Self::Deneb(inner) => Some(&inner.parent_root),
+            Self::Bellatrix(inner) => &inner.parent_root,
+            Self::Capella(inner) => &inner.parent_root,
+            Self::Deneb(inner) => &inner.parent_root,
         }
     }
-    pub fn parent_root_mut(&mut self) -> Option<&mut Root> {
+    pub fn parent_root_mut(&mut self) -> &mut Root {
         match self {
-            Self::Bellatrix(inner) => Some(&mut inner.parent_root),
-            Self::Capella(inner) => Some(&mut inner.parent_root),
-            Self::Deneb(inner) => Some(&mut inner.parent_root),
+            Self::Bellatrix(inner) => &mut inner.parent_root,
+            Self::Capella(inner) => &mut inner.parent_root,
+            Self::Deneb(inner) => &mut inner.parent_root,
         }
     }
-    pub fn state_root(&self) -> Option<&Root> {
+    pub fn state_root(&self) -> &Root {
         match self {
-            Self::Bellatrix(inner) => Some(&inner.state_root),
-            Self::Capella(inner) => Some(&inner.state_root),
-            Self::Deneb(inner) => Some(&inner.state_root),
+            Self::Bellatrix(inner) => &inner.state_root,
+            Self::Capella(inner) => &inner.state_root,
+            Self::Deneb(inner) => &inner.state_root,
         }
     }
-    pub fn state_root_mut(&mut self) -> Option<&mut Root> {
+    pub fn state_root_mut(&mut self) -> &mut Root {
         match self {
-            Self::Bellatrix(inner) => Some(&mut inner.state_root),
-            Self::Capella(inner) => Some(&mut inner.state_root),
-            Self::Deneb(inner) => Some(&mut inner.state_root),
+            Self::Bellatrix(inner) => &mut inner.state_root,
+            Self::Capella(inner) => &mut inner.state_root,
+            Self::Deneb(inner) => &mut inner.state_root,
         }
     }
     pub fn body(
         &self,
-    ) -> Option<
-        BlindedBeaconBlockBodyRef<
-            MAX_PROPOSER_SLASHINGS,
-            MAX_VALIDATORS_PER_COMMITTEE,
-            MAX_ATTESTER_SLASHINGS,
-            MAX_ATTESTATIONS,
-            MAX_DEPOSITS,
-            MAX_VOLUNTARY_EXITS,
-            SYNC_COMMITTEE_SIZE,
-            BYTES_PER_LOGS_BLOOM,
-            MAX_EXTRA_DATA_BYTES,
-            MAX_BLS_TO_EXECUTION_CHANGES,
-            MAX_BLOB_COMMITMENTS_PER_BLOCK,
-        >,
+    ) -> BlindedBeaconBlockBodyRef<
+        MAX_PROPOSER_SLASHINGS,
+        MAX_VALIDATORS_PER_COMMITTEE,
+        MAX_ATTESTER_SLASHINGS,
+        MAX_ATTESTATIONS,
+        MAX_DEPOSITS,
+        MAX_VOLUNTARY_EXITS,
+        SYNC_COMMITTEE_SIZE,
+        BYTES_PER_LOGS_BLOOM,
+        MAX_EXTRA_DATA_BYTES,
+        MAX_BLS_TO_EXECUTION_CHANGES,
+        MAX_BLOB_COMMITMENTS_PER_BLOCK,
     > {
         match self {
-            Self::Bellatrix(inner) => Some(From::from(&inner.body)),
-            Self::Capella(inner) => Some(From::from(&inner.body)),
-            Self::Deneb(inner) => Some(From::from(&inner.body)),
+            Self::Bellatrix(inner) => From::from(&inner.body),
+            Self::Capella(inner) => From::from(&inner.body),
+            Self::Deneb(inner) => From::from(&inner.body),
         }
     }
     pub fn body_mut(
         &mut self,
-    ) -> Option<
-        BlindedBeaconBlockBodyRefMut<
-            MAX_PROPOSER_SLASHINGS,
-            MAX_VALIDATORS_PER_COMMITTEE,
-            MAX_ATTESTER_SLASHINGS,
-            MAX_ATTESTATIONS,
-            MAX_DEPOSITS,
-            MAX_VOLUNTARY_EXITS,
-            SYNC_COMMITTEE_SIZE,
-            BYTES_PER_LOGS_BLOOM,
-            MAX_EXTRA_DATA_BYTES,
-            MAX_BLS_TO_EXECUTION_CHANGES,
-            MAX_BLOB_COMMITMENTS_PER_BLOCK,
-        >,
+    ) -> BlindedBeaconBlockBodyRefMut<
+        MAX_PROPOSER_SLASHINGS,
+        MAX_VALIDATORS_PER_COMMITTEE,
+        MAX_ATTESTER_SLASHINGS,
+        MAX_ATTESTATIONS,
+        MAX_DEPOSITS,
+        MAX_VOLUNTARY_EXITS,
+        SYNC_COMMITTEE_SIZE,
+        BYTES_PER_LOGS_BLOOM,
+        MAX_EXTRA_DATA_BYTES,
+        MAX_BLS_TO_EXECUTION_CHANGES,
+        MAX_BLOB_COMMITMENTS_PER_BLOCK,
     > {
         match self {
-            Self::Bellatrix(inner) => Some(From::from(&mut inner.body)),
-            Self::Capella(inner) => Some(From::from(&mut inner.body)),
-            Self::Deneb(inner) => Some(From::from(&mut inner.body)),
+            Self::Bellatrix(inner) => From::from(&mut inner.body),
+            Self::Capella(inner) => From::from(&mut inner.body),
+            Self::Deneb(inner) => From::from(&mut inner.body),
         }
     }
 }
@@ -525,55 +521,53 @@ impl<
             Self::Deneb(_) => Version::Deneb,
         }
     }
-    pub fn slot(&self) -> Option<&Slot> {
+    pub fn slot(&self) -> &Slot {
         match self {
-            Self::Bellatrix(inner) => Some(&inner.slot),
-            Self::Capella(inner) => Some(&inner.slot),
-            Self::Deneb(inner) => Some(&inner.slot),
+            Self::Bellatrix(inner) => &inner.slot,
+            Self::Capella(inner) => &inner.slot,
+            Self::Deneb(inner) => &inner.slot,
         }
     }
-    pub fn proposer_index(&self) -> Option<&ValidatorIndex> {
+    pub fn proposer_index(&self) -> &ValidatorIndex {
         match self {
-            Self::Bellatrix(inner) => Some(&inner.proposer_index),
-            Self::Capella(inner) => Some(&inner.proposer_index),
-            Self::Deneb(inner) => Some(&inner.proposer_index),
+            Self::Bellatrix(inner) => &inner.proposer_index,
+            Self::Capella(inner) => &inner.proposer_index,
+            Self::Deneb(inner) => &inner.proposer_index,
         }
     }
-    pub fn parent_root(&self) -> Option<&Root> {
+    pub fn parent_root(&self) -> &Root {
         match self {
-            Self::Bellatrix(inner) => Some(&inner.parent_root),
-            Self::Capella(inner) => Some(&inner.parent_root),
-            Self::Deneb(inner) => Some(&inner.parent_root),
+            Self::Bellatrix(inner) => &inner.parent_root,
+            Self::Capella(inner) => &inner.parent_root,
+            Self::Deneb(inner) => &inner.parent_root,
         }
     }
-    pub fn state_root(&self) -> Option<&Root> {
+    pub fn state_root(&self) -> &Root {
         match self {
-            Self::Bellatrix(inner) => Some(&inner.state_root),
-            Self::Capella(inner) => Some(&inner.state_root),
-            Self::Deneb(inner) => Some(&inner.state_root),
+            Self::Bellatrix(inner) => &inner.state_root,
+            Self::Capella(inner) => &inner.state_root,
+            Self::Deneb(inner) => &inner.state_root,
         }
     }
     pub fn body(
         &self,
-    ) -> Option<
-        BlindedBeaconBlockBodyRef<
-            MAX_PROPOSER_SLASHINGS,
-            MAX_VALIDATORS_PER_COMMITTEE,
-            MAX_ATTESTER_SLASHINGS,
-            MAX_ATTESTATIONS,
-            MAX_DEPOSITS,
-            MAX_VOLUNTARY_EXITS,
-            SYNC_COMMITTEE_SIZE,
-            BYTES_PER_LOGS_BLOOM,
-            MAX_EXTRA_DATA_BYTES,
-            MAX_BLS_TO_EXECUTION_CHANGES,
-            MAX_BLOB_COMMITMENTS_PER_BLOCK,
-        >,
+    ) -> BlindedBeaconBlockBodyRef<
+        MAX_PROPOSER_SLASHINGS,
+        MAX_VALIDATORS_PER_COMMITTEE,
+        MAX_ATTESTER_SLASHINGS,
+        MAX_ATTESTATIONS,
+        MAX_DEPOSITS,
+        MAX_VOLUNTARY_EXITS,
+        SYNC_COMMITTEE_SIZE,
+        BYTES_PER_LOGS_BLOOM,
+        MAX_EXTRA_DATA_BYTES,
+        MAX_BLS_TO_EXECUTION_CHANGES,
+        MAX_BLOB_COMMITMENTS_PER_BLOCK,
     > {
         match self {
-            Self::Bellatrix(inner) => Some(From::from(&inner.body)),
-            Self::Capella(inner) => Some(From::from(&inner.body)),
-            Self::Deneb(inner) => Some(From::from(&inner.body)),
+            Self::Bellatrix(inner) => From::from(&inner.body),
+            Self::Capella(inner) => From::from(&inner.body),
+            Self::Deneb(inner) => From::from(&inner.body),
         }
     }
 }
@@ -914,55 +908,53 @@ impl<
             Self::Deneb(_) => Version::Deneb,
         }
     }
-    pub fn slot_mut(&mut self) -> Option<&mut Slot> {
+    pub fn slot_mut(&mut self) -> &mut Slot {
         match self {
-            Self::Bellatrix(inner) => Some(&mut inner.slot),
-            Self::Capella(inner) => Some(&mut inner.slot),
-            Self::Deneb(inner) => Some(&mut inner.slot),
+            Self::Bellatrix(inner) => &mut inner.slot,
+            Self::Capella(inner) => &mut inner.slot,
+            Self::Deneb(inner) => &mut inner.slot,
         }
     }
-    pub fn proposer_index_mut(&mut self) -> Option<&mut ValidatorIndex> {
+    pub fn proposer_index_mut(&mut self) -> &mut ValidatorIndex {
         match self {
-            Self::Bellatrix(inner) => Some(&mut inner.proposer_index),
-            Self::Capella(inner) => Some(&mut inner.proposer_index),
-            Self::Deneb(inner) => Some(&mut inner.proposer_index),
+            Self::Bellatrix(inner) => &mut inner.proposer_index,
+            Self::Capella(inner) => &mut inner.proposer_index,
+            Self::Deneb(inner) => &mut inner.proposer_index,
         }
     }
-    pub fn parent_root_mut(&mut self) -> Option<&mut Root> {
+    pub fn parent_root_mut(&mut self) -> &mut Root {
         match self {
-            Self::Bellatrix(inner) => Some(&mut inner.parent_root),
-            Self::Capella(inner) => Some(&mut inner.parent_root),
-            Self::Deneb(inner) => Some(&mut inner.parent_root),
+            Self::Bellatrix(inner) => &mut inner.parent_root,
+            Self::Capella(inner) => &mut inner.parent_root,
+            Self::Deneb(inner) => &mut inner.parent_root,
         }
     }
-    pub fn state_root_mut(&mut self) -> Option<&mut Root> {
+    pub fn state_root_mut(&mut self) -> &mut Root {
         match self {
-            Self::Bellatrix(inner) => Some(&mut inner.state_root),
-            Self::Capella(inner) => Some(&mut inner.state_root),
-            Self::Deneb(inner) => Some(&mut inner.state_root),
+            Self::Bellatrix(inner) => &mut inner.state_root,
+            Self::Capella(inner) => &mut inner.state_root,
+            Self::Deneb(inner) => &mut inner.state_root,
         }
     }
     pub fn body_mut(
         &mut self,
-    ) -> Option<
-        BlindedBeaconBlockBodyRefMut<
-            MAX_PROPOSER_SLASHINGS,
-            MAX_VALIDATORS_PER_COMMITTEE,
-            MAX_ATTESTER_SLASHINGS,
-            MAX_ATTESTATIONS,
-            MAX_DEPOSITS,
-            MAX_VOLUNTARY_EXITS,
-            SYNC_COMMITTEE_SIZE,
-            BYTES_PER_LOGS_BLOOM,
-            MAX_EXTRA_DATA_BYTES,
-            MAX_BLS_TO_EXECUTION_CHANGES,
-            MAX_BLOB_COMMITMENTS_PER_BLOCK,
-        >,
+    ) -> BlindedBeaconBlockBodyRefMut<
+        MAX_PROPOSER_SLASHINGS,
+        MAX_VALIDATORS_PER_COMMITTEE,
+        MAX_ATTESTER_SLASHINGS,
+        MAX_ATTESTATIONS,
+        MAX_DEPOSITS,
+        MAX_VOLUNTARY_EXITS,
+        SYNC_COMMITTEE_SIZE,
+        BYTES_PER_LOGS_BLOOM,
+        MAX_EXTRA_DATA_BYTES,
+        MAX_BLS_TO_EXECUTION_CHANGES,
+        MAX_BLOB_COMMITMENTS_PER_BLOCK,
     > {
         match self {
-            Self::Bellatrix(inner) => Some(From::from(&mut inner.body)),
-            Self::Capella(inner) => Some(From::from(&mut inner.body)),
-            Self::Deneb(inner) => Some(From::from(&mut inner.body)),
+            Self::Bellatrix(inner) => From::from(&mut inner.body),
+            Self::Capella(inner) => From::from(&mut inner.body),
+            Self::Deneb(inner) => From::from(&mut inner.body),
         }
     }
 }
