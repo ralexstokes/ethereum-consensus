@@ -125,6 +125,7 @@ impl Type {
                     kzg::KzgCommitment,
                     primitives::{BlsSignature, Bytes32},
                     ssz::prelude::*,
+                    Fork as Version,
                     types::execution_payload::{ExecutionPayloadRef, ExecutionPayloadRefMut},
                 };
             },
@@ -142,6 +143,7 @@ impl Type {
                     kzg::KzgCommitment,
                     primitives::{BlsSignature, Bytes32},
                     ssz::prelude::*,
+                    Fork as Version,
                     types::execution_payload_header::{ExecutionPayloadHeaderRef, ExecutionPayloadHeaderRefMut},
                 };
             },
@@ -154,6 +156,7 @@ impl Type {
                     phase0::beacon_block as phase0,
                     primitives::{Slot, ValidatorIndex, Root},
                     ssz::prelude::*,
+                    Fork as Version,
                     types::beacon_block_body::{BeaconBlockBodyRef, BeaconBlockBodyRefMut},
                 };
             },
@@ -164,6 +167,7 @@ impl Type {
                     deneb::blinded_beacon_block as deneb,
                     primitives::{Slot, ValidatorIndex, Root},
                     ssz::prelude::*,
+                    Fork as Version,
                     types::blinded_beacon_block_body::{BlindedBeaconBlockBodyRef, BlindedBeaconBlockBodyRefMut},
                 };
             },
@@ -176,6 +180,7 @@ impl Type {
                     phase0::beacon_block as phase0,
                     primitives::BlsSignature,
                     ssz::prelude::*,
+                    Fork as Version,
                     types::beacon_block::{BeaconBlockRef, BeaconBlockRefMut},
                 };
             },
@@ -186,6 +191,7 @@ impl Type {
                     deneb::blinded_beacon_block as deneb,
                     primitives::BlsSignature,
                     ssz::prelude::*,
+                    Fork as Version,
                     types::blinded_beacon_block::{BlindedBeaconBlockRef, BlindedBeaconBlockRefMut},
                 };
             },
@@ -196,6 +202,7 @@ impl Type {
                     deneb::execution_payload as deneb,
                     primitives::{Hash32, ExecutionAddress, Bytes32},
                     ssz::prelude::*,
+                    Fork as Version,
                 };
             },
             Self::ExecutionPayloadHeader => parse_quote! {
@@ -205,6 +212,7 @@ impl Type {
                     deneb::execution_payload as deneb,
                     primitives::{Hash32, Root, ExecutionAddress, Bytes32},
                     ssz::prelude::*,
+                    Fork as Version,
                 };
             },
             Self::BeaconState => parse_quote! {
@@ -218,6 +226,7 @@ impl Type {
                     phase0::{JUSTIFICATION_BITS_LENGTH, beacon_block::BeaconBlockHeader, validator::Validator, operations::{PendingAttestation, Checkpoint, Eth1Data}},
                     primitives::{Root, ValidatorIndex, WithdrawalIndex, ParticipationFlags, Slot, Gwei, Bytes32},
                     ssz::prelude::*,
+                    Fork as Version,
                     types::execution_payload_header::{ExecutionPayloadHeaderRef, ExecutionPayloadHeaderRefMut},
                 };
             },
@@ -665,6 +674,24 @@ fn derive_fields_impl(
             }
         })
         .collect::<Vec<ImplItemMethod>>();
+
+    let fork_accessor_arms = merge_type
+        .supported_forks()
+        .into_iter()
+        .map(|fork| {
+            let fork = as_syn_ident(format!("{fork:?}"));
+            parse_quote! {
+                Self::#fork(_) => Version::#fork,
+            }
+        })
+        .collect::<Vec<Arm>>();
+    fields.push(parse_quote! {
+        pub fn version(&self) -> Version {
+            match self {
+                #(#fork_accessor_arms)*
+            }
+        }
+    });
 
     let fork_sequence = merge_type.supported_forks();
     let field_accessors = merge_type

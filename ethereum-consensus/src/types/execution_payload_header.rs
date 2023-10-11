@@ -5,6 +5,7 @@ use crate::{
     deneb::execution_payload as deneb,
     primitives::{Bytes32, ExecutionAddress, Hash32, Root},
     ssz::prelude::*,
+    Fork as Version,
 };
 #[derive(Debug, Clone, PartialEq, Eq, SimpleSerialize, serde::Deserialize)]
 #[serde(tag = "version", content = "data")]
@@ -70,6 +71,13 @@ impl<const BYTES_PER_LOGS_BLOOM: usize, const MAX_EXTRA_DATA_BYTES: usize>
         match self {
             Self::Deneb(inner) => Some(inner),
             _ => None,
+        }
+    }
+    pub fn version(&self) -> Version {
+        match self {
+            Self::Bellatrix(_) => Version::Bellatrix,
+            Self::Capella(_) => Version::Capella,
+            Self::Deneb(_) => Version::Deneb,
         }
     }
     pub fn parent_hash(&self) -> Option<&Hash32> {
@@ -363,6 +371,13 @@ impl<'a, const BYTES_PER_LOGS_BLOOM: usize, const MAX_EXTRA_DATA_BYTES: usize>
             _ => None,
         }
     }
+    pub fn version(&self) -> Version {
+        match self {
+            Self::Bellatrix(_) => Version::Bellatrix,
+            Self::Capella(_) => Version::Capella,
+            Self::Deneb(_) => Version::Deneb,
+        }
+    }
     pub fn parent_hash(&self) -> Option<&Hash32> {
         match self {
             Self::Bellatrix(inner) => Some(&inner.parent_hash),
@@ -553,6 +568,13 @@ impl<'a, const BYTES_PER_LOGS_BLOOM: usize, const MAX_EXTRA_DATA_BYTES: usize>
         match self {
             Self::Deneb(inner) => Some(inner),
             _ => None,
+        }
+    }
+    pub fn version(&self) -> Version {
+        match self {
+            Self::Bellatrix(_) => Version::Bellatrix,
+            Self::Capella(_) => Version::Capella,
+            Self::Deneb(_) => Version::Deneb,
         }
     }
     pub fn parent_hash_mut(&mut self) -> Option<&mut Hash32> {

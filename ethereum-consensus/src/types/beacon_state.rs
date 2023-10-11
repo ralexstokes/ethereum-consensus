@@ -14,6 +14,7 @@ use crate::{
     primitives::{Bytes32, Gwei, ParticipationFlags, Root, Slot, ValidatorIndex, WithdrawalIndex},
     ssz::prelude::*,
     types::execution_payload_header::{ExecutionPayloadHeaderRef, ExecutionPayloadHeaderRefMut},
+    Fork as Version,
 };
 #[derive(Debug, Clone, PartialEq, Eq, SimpleSerialize, serde::Deserialize)]
 #[serde(tag = "version", content = "data")]
@@ -325,6 +326,15 @@ impl<
         match self {
             Self::Deneb(inner) => Some(inner),
             _ => None,
+        }
+    }
+    pub fn version(&self) -> Version {
+        match self {
+            Self::Phase0(_) => Version::Phase0,
+            Self::Altair(_) => Version::Altair,
+            Self::Bellatrix(_) => Version::Bellatrix,
+            Self::Capella(_) => Version::Capella,
+            Self::Deneb(_) => Version::Deneb,
         }
     }
     pub fn genesis_time(&self) -> &u64 {
@@ -1150,6 +1160,15 @@ impl<
             _ => None,
         }
     }
+    pub fn version(&self) -> Version {
+        match self {
+            Self::Phase0(_) => Version::Phase0,
+            Self::Altair(_) => Version::Altair,
+            Self::Bellatrix(_) => Version::Bellatrix,
+            Self::Capella(_) => Version::Capella,
+            Self::Deneb(_) => Version::Deneb,
+        }
+    }
     pub fn genesis_time(&self) -> &u64 {
         match self {
             Self::Phase0(inner) => &inner.genesis_time,
@@ -1935,6 +1954,15 @@ impl<
         match self {
             Self::Deneb(inner) => Some(inner),
             _ => None,
+        }
+    }
+    pub fn version(&self) -> Version {
+        match self {
+            Self::Phase0(_) => Version::Phase0,
+            Self::Altair(_) => Version::Altair,
+            Self::Bellatrix(_) => Version::Bellatrix,
+            Self::Capella(_) => Version::Capella,
+            Self::Deneb(_) => Version::Deneb,
         }
     }
     pub fn genesis_time_mut(&mut self) -> &mut u64 {

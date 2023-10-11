@@ -6,6 +6,7 @@ use crate::{
     primitives::{Root, Slot, ValidatorIndex},
     ssz::prelude::*,
     types::blinded_beacon_block_body::{BlindedBeaconBlockBodyRef, BlindedBeaconBlockBodyRefMut},
+    Fork as Version,
 };
 #[derive(Debug, Clone, PartialEq, Eq, SimpleSerialize, serde::Deserialize)]
 #[serde(tag = "version", content = "data")]
@@ -217,6 +218,13 @@ impl<
         match self {
             Self::Deneb(inner) => Some(inner),
             _ => None,
+        }
+    }
+    pub fn version(&self) -> Version {
+        match self {
+            Self::Bellatrix(_) => Version::Bellatrix,
+            Self::Capella(_) => Version::Capella,
+            Self::Deneb(_) => Version::Deneb,
         }
     }
     pub fn slot(&self) -> Option<&Slot> {
@@ -508,6 +516,13 @@ impl<
         match self {
             Self::Deneb(inner) => Some(inner),
             _ => None,
+        }
+    }
+    pub fn version(&self) -> Version {
+        match self {
+            Self::Bellatrix(_) => Version::Bellatrix,
+            Self::Capella(_) => Version::Capella,
+            Self::Deneb(_) => Version::Deneb,
         }
     }
     pub fn slot(&self) -> Option<&Slot> {
@@ -890,6 +905,13 @@ impl<
         match self {
             Self::Deneb(inner) => Some(inner),
             _ => None,
+        }
+    }
+    pub fn version(&self) -> Version {
+        match self {
+            Self::Bellatrix(_) => Version::Bellatrix,
+            Self::Capella(_) => Version::Capella,
+            Self::Deneb(_) => Version::Deneb,
         }
     }
     pub fn slot_mut(&mut self) -> Option<&mut Slot> {

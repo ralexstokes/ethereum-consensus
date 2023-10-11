@@ -8,6 +8,7 @@ use crate::{
     primitives::BlsSignature,
     ssz::prelude::*,
     types::beacon_block::{BeaconBlockRef, BeaconBlockRefMut},
+    Fork as Version,
 };
 #[derive(Debug, Clone, PartialEq, Eq, SimpleSerialize, serde::Deserialize)]
 #[serde(tag = "version", content = "data")]
@@ -343,6 +344,15 @@ impl<
         match self {
             Self::Deneb(inner) => Some(inner),
             _ => None,
+        }
+    }
+    pub fn version(&self) -> Version {
+        match self {
+            Self::Phase0(_) => Version::Phase0,
+            Self::Altair(_) => Version::Altair,
+            Self::Bellatrix(_) => Version::Bellatrix,
+            Self::Capella(_) => Version::Capella,
+            Self::Deneb(_) => Version::Deneb,
         }
     }
     pub fn message(

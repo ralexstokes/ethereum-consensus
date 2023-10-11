@@ -5,6 +5,7 @@ use crate::{
     deneb::execution_payload as deneb,
     primitives::{Bytes32, ExecutionAddress, Hash32},
     ssz::prelude::*,
+    Fork as Version,
 };
 #[derive(Debug, Clone, PartialEq, Eq, SimpleSerialize, serde::Deserialize)]
 #[serde(tag = "version", content = "data")]
@@ -150,6 +151,13 @@ impl<
         match self {
             Self::Deneb(inner) => Some(inner),
             _ => None,
+        }
+    }
+    pub fn version(&self) -> Version {
+        match self {
+            Self::Bellatrix(_) => Version::Bellatrix,
+            Self::Capella(_) => Version::Capella,
+            Self::Deneb(_) => Version::Deneb,
         }
     }
     pub fn parent_hash(&self) -> Option<&Hash32> {
@@ -524,6 +532,13 @@ impl<
             _ => None,
         }
     }
+    pub fn version(&self) -> Version {
+        match self {
+            Self::Bellatrix(_) => Version::Bellatrix,
+            Self::Capella(_) => Version::Capella,
+            Self::Deneb(_) => Version::Deneb,
+        }
+    }
     pub fn parent_hash(&self) -> Option<&Hash32> {
         match self {
             Self::Bellatrix(inner) => Some(&inner.parent_hash),
@@ -856,6 +871,13 @@ impl<
         match self {
             Self::Deneb(inner) => Some(inner),
             _ => None,
+        }
+    }
+    pub fn version(&self) -> Version {
+        match self {
+            Self::Bellatrix(_) => Version::Bellatrix,
+            Self::Capella(_) => Version::Capella,
+            Self::Deneb(_) => Version::Deneb,
         }
     }
     pub fn parent_hash_mut(&mut self) -> Option<&mut Hash32> {
