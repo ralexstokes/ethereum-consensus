@@ -55,6 +55,8 @@ pub enum Error {
     UnknownPreset(String),
     #[error(transparent)]
     ExecutionEngine(#[from] ExecutionEngineError),
+    #[error(transparent)]
+    PolynomialCommitment(#[from] crate::deneb::polynomial_commitments::Error),
 }
 
 #[derive(Debug, Error)]

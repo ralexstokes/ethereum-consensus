@@ -1,6 +1,7 @@
 use crate::{deneb::blob_sidecar::Blob, primitives::Bytes32, ssz::prelude::*};
-use c_kzg::Error;
 pub use c_kzg::KzgSettings;
+use std::fmt;
+use thiserror::Error;
 
 pub const BYTES_PER_FIELD_ELEMENT: usize = 32;
 pub const BYTES_PER_COMMITMENT: usize = 48;
@@ -10,6 +11,22 @@ pub type VersionedHash = Bytes32;
 pub type FieldElement = Bytes32;
 pub type KzgCommitment = ByteVector<BYTES_PER_COMMITMENT>;
 pub type KzgProof = ByteVector<BYTES_PER_PROOF>;
+
+#[derive(Debug, Error)]
+pub struct Error(c_kzg::Error);
+
+impl fmt::Display for Error {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        // Implement custom formatting logic here
+        write!(f, "Custom error: {:?}", self.0)
+    }
+}
+
+impl From<c_kzg::Error> for Error {
+    fn from(inner_error: c_kzg::Error) -> Self {
+        Error(inner_error)
+    }
+}
 
 pub struct ProofAndEvaluation {
     pub proof: KzgProof,
@@ -77,7 +94,7 @@ pub fn verify_kzg_proof(
         kzg_settings,
     )?;
 
-    res.then_some(()).ok_or(Error::InvalidKzgProof(String::from("Invalid Proof")))
+    res.then_some(()).ok_or(Error(c_kzg::Error::InvalidKzgProof(String::from("Invalid Proof"))))
 }
 
 pub fn verify_blob_kzg_proof<const BYTES_PER_BLOB: usize>(
@@ -92,7 +109,7 @@ pub fn verify_blob_kzg_proof<const BYTES_PER_BLOB: usize>(
 
     let res = c_kzg::KzgProof::verify_blob_kzg_proof(&blob, &commitment, &proof, kzg_settings)?;
 
-    res.then_some(()).ok_or(Error::InvalidKzgProof(String::from("Invalid Blob")))
+    res.then_some(()).ok_or(Error(c_kzg::Error::InvalidKzgProof(String::from("Invalid Blob"))))
 }
 
 pub fn verify_blob_kzg_proof_batch<const BYTES_PER_BLOB: usize>(
@@ -125,5 +142,6 @@ pub fn verify_blob_kzg_proof_batch<const BYTES_PER_BLOB: usize>(
         kzg_settings,
     )?;
 
-    res.then_some(()).ok_or(Error::InvalidKzgProof(String::from("Invalid Proof Batch")))
+    res.then_some(())
+        .ok_or(Error(c_kzg::Error::InvalidKzgProof(String::from("Invalid Proof Batch"))))
 }
