@@ -40,7 +40,7 @@ pub fn blob_to_kzg_commitment<const BYTES_PER_BLOB: usize>(
     let blob = c_kzg::Blob::from_bytes(blob.as_ref())?;
 
     let commitment = c_kzg::KzgCommitment::blob_to_kzg_commitment(&blob, kzg_settings)?;
-    let inner = ByteVector::try_from(commitment.to_bytes().as_slice()).expect("Correct size");
+    let inner = ByteVector::try_from(commitment.to_bytes().as_slice()).expect("correct size");
     Ok(inner)
 }
 
@@ -54,8 +54,8 @@ pub fn compute_kzg_proof<const BYTES_PER_BLOB: usize>(
 
     let (proof, evaluation) =
         c_kzg::KzgProof::compute_kzg_proof(&blob, &evaluation_point, kzg_settings)?;
-    let proof = ByteVector::try_from(proof.to_bytes().as_ref()).expect("Correct size");
-    let evaluation = ByteVector::try_from(evaluation.as_slice()).expect("Correct size");
+    let proof = ByteVector::try_from(proof.to_bytes().as_ref()).expect("correct size");
+    let evaluation = ByteVector::try_from(evaluation.as_slice()).expect("correct size");
 
     let result = ProofAndEvaluation { proof, evaluation };
     Ok(result)
@@ -67,7 +67,7 @@ pub fn compute_blob_kzg_proof<const BYTES_PER_BLOB: usize>(
     kzg_settings: &KzgSettings,
 ) -> Result<KzgProof, Error> {
     let blob = c_kzg::Blob::from_bytes(blob.as_ref())?;
-    let commitment = c_kzg::Bytes48::from_bytes(commitment.as_ref()).expect("Correct size");
+    let commitment = c_kzg::Bytes48::from_bytes(commitment.as_ref()).expect("correct size");
 
     let proof = c_kzg::KzgProof::compute_blob_kzg_proof(&blob, &commitment, kzg_settings)?;
 
@@ -83,8 +83,8 @@ pub fn verify_kzg_proof(
 ) -> Result<(), Error> {
     let evaluation_point = c_kzg::Bytes32::from_bytes(evaluation_point.as_ref())?;
     let result_point = c_kzg::Bytes32::from_bytes(result_point.as_ref())?;
-    let commitment = c_kzg::Bytes48::from_bytes(commitment.as_ref()).expect("Correct size");
-    let proof = c_kzg::Bytes48::from_bytes(proof.as_ref()).expect("Correct size");
+    let commitment = c_kzg::Bytes48::from_bytes(commitment.as_ref()).expect("correct size");
+    let proof = c_kzg::Bytes48::from_bytes(proof.as_ref()).expect("correct size");
 
     let res = c_kzg::KzgProof::verify_kzg_proof(
         &commitment,
@@ -103,7 +103,7 @@ pub fn verify_blob_kzg_proof<const BYTES_PER_BLOB: usize>(
     proof: &KzgProof,
     kzg_settings: &KzgSettings,
 ) -> Result<(), Error> {
-    let blob = c_kzg::Blob::from_bytes(blob.as_ref()).unwrap();
+    let blob = c_kzg::Blob::from_bytes(blob.as_ref())?;
     let commitment = c_kzg::Bytes48::from_bytes(commitment.as_ref()).unwrap();
     let proof = c_kzg::Bytes48::from_bytes(proof.as_ref()).unwrap();
 
