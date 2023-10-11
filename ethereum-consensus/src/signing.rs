@@ -1,5 +1,5 @@
 use crate::{
-    crypto::{verify_signature, SecretKey},
+    crypto::{self, SecretKey},
     primitives::{BlsPublicKey, BlsSignature, Domain, Root},
     ssz::prelude::*,
     Error,
@@ -37,5 +37,18 @@ pub fn verify_signed_data<T: SimpleSerialize>(
     domain: Domain,
 ) -> Result<(), Error> {
     let signing_root = compute_signing_root(data, domain)?;
-    verify_signature(public_key, signing_root.as_ref(), signature).map_err(Into::into)
+    crypto::verify_signature(public_key, signing_root.as_ref(), signature).map_err(Into::into)
+}
+
+// This function wraps the inner implementation defined in `crate::crypto` but presents a bit nicer
+// interface to users external to this crate.
+// NOTE: `verify_signed_data` serves a similar purpose but asking for a `&mut T` there
+// means that any message containing its public key (a common pattern in ethereum types)
+// needs to pass in a (ref to a) `clone` of the public key inside the message type.
+pub fn verify_signature(
+    public_key: &BlsPublicKey,
+    signing_root: &[u8],
+    signature: &BlsSignature,
+) -> Result<(), Error> {
+    crypto::verify_signature(public_key, signing_root.as_ref(), signature).map_err(Into::into)
 }
