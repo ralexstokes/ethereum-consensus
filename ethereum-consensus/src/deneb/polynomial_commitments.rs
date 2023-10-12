@@ -12,8 +12,8 @@ pub type KzgCommitment = ByteVector<BYTES_PER_COMMITMENT>;
 pub type KzgProof = ByteVector<BYTES_PER_PROOF>;
 
 #[derive(Debug, Error)]
-#[error(transparent)]
 pub enum Error {
+    #[error(transparent)]
     CKzg(#[from] c_kzg::Error),
     #[error("proof verification failed")]
     InvalidProof,
@@ -21,7 +21,7 @@ pub enum Error {
 
 pub struct ProofAndEvaluation {
     pub proof: KzgProof,
-    pub evaluation: Bytes32,
+    pub evaluation: FieldElement,
 }
 
 pub fn blob_to_kzg_commitment<const BYTES_PER_BLOB: usize>(
@@ -31,7 +31,7 @@ pub fn blob_to_kzg_commitment<const BYTES_PER_BLOB: usize>(
     let blob = c_kzg::Blob::from_bytes(blob.as_ref())?;
 
     let commitment = c_kzg::KzgCommitment::blob_to_kzg_commitment(&blob, kzg_settings)?;
-    let inner = ByteVector::try_from(commitment.to_bytes().as_slice()).expect("correct size");
+    let inner = KzgCommitment::try_from(commitment.to_bytes().as_slice()).expect("correct size");
     Ok(inner)
 }
 
@@ -45,8 +45,8 @@ pub fn compute_kzg_proof<const BYTES_PER_BLOB: usize>(
 
     let (proof, evaluation) =
         c_kzg::KzgProof::compute_kzg_proof(&blob, &evaluation_point, kzg_settings)?;
-    let proof = ByteVector::try_from(proof.to_bytes().as_ref()).expect("correct size");
-    let evaluation = ByteVector::try_from(evaluation.as_slice()).expect("correct size");
+    let proof = KzgProof::try_from(proof.to_bytes().as_ref()).expect("correct size");
+    let evaluation = FieldElement::try_from(evaluation.as_slice()).expect("correct size");
 
     let result = ProofAndEvaluation { proof, evaluation };
     Ok(result)
