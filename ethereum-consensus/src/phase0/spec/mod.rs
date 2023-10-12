@@ -1,5 +1,6 @@
 //! WARNING: This file was derived by the `spec-gen` utility. DO NOT EDIT MANUALLY.
 pub use crate::{
+    error::*,
     phase0::{
         beacon_block::{
             BeaconBlock, BeaconBlockBody, BeaconBlockHeader, SignedBeaconBlock,
@@ -55,5 +56,5 @@ pub use crate::{
     },
     primitives::*,
     signing::*,
-    state_transition::{error::*, Context, Result, Validation},
+    state_transition::{Context, Result, Validation},
 };

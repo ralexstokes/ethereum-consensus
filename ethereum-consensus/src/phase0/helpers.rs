@@ -1,5 +1,8 @@
 use crate::{
     crypto::{fast_aggregate_verify, hash, verify_signature},
+    error::{
+        invalid_operation_error, InvalidAttestation, InvalidIndexedAttestation, InvalidOperation,
+    },
     phase0::{
         beacon_block::SignedBeaconBlock,
         beacon_state::{BeaconState, ForkData},
@@ -12,10 +15,8 @@ use crate::{
     },
     signing::compute_signing_root,
     ssz::prelude::*,
-    state_transition::{
-        invalid_operation_error, Context, Error, InvalidAttestation, InvalidIndexedAttestation,
-        InvalidOperation, Result,
-    },
+    state_transition::{Context, Result},
+    Error,
 };
 use std::{cmp, collections::HashSet};
 

@@ -1,10 +1,10 @@
 use crate::{
     altair, bellatrix, phase0,
     state_transition::{
-        execution_engine::ExecutionEngine, BeaconState, Context, Error, Result, SignedBeaconBlock,
+        execution_engine::ExecutionEngine, BeaconState, Context, Result, SignedBeaconBlock,
         Validation,
     },
-    Fork,
+    Error, Fork,
 };
 
 #[derive(Debug)]

@@ -1,7 +1,7 @@
 use crate::{
     primitives::{Bytes32, ExecutionAddress, Hash32, Root, U256},
     ssz::prelude::*,
-    state_transition::Error,
+    Error,
 };
 
 pub type Transaction<const MAX_BYTES_PER_TRANSACTION: usize> = ByteList<MAX_BYTES_PER_TRANSACTION>;

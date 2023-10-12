@@ -13,9 +13,8 @@ use crate::{
     state_transition,
 };
 
-pub use state_transition::{
-    BeaconState, Context, Error, ExecutionEngine, SignedBeaconBlock, Validation,
-};
+pub use crate::Error;
+pub use state_transition::{BeaconState, Context, ExecutionEngine, SignedBeaconBlock, Validation};
 
 pub type Executor<B> = state_transition::Executor<
     SLOTS_PER_HISTORICAL_ROOT,

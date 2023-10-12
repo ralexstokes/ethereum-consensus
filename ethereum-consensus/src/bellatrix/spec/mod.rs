@@ -39,6 +39,7 @@ pub use crate::{
         },
         state_transition::{state_transition, state_transition_block_in_slot},
     },
+    error::*,
     phase0::{
         beacon_block::{BeaconBlockHeader, SignedBeaconBlockHeader},
         beacon_state::{Fork, ForkData, HistoricalBatch, HistoricalSummary},
@@ -55,7 +56,7 @@ pub use crate::{
     },
     primitives::*,
     signing::*,
-    state_transition::{error::*, Context, Result, Validation},
+    state_transition::{Context, Result, Validation},
 };
 use crate::{
     crypto::{

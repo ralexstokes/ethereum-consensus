@@ -49,6 +49,7 @@ pub use crate::{
             kzg_commitment_to_versioned_hash,
         },
     },
+    error::*,
     phase0::{
         beacon_block::{BeaconBlockHeader, SignedBeaconBlockHeader},
         beacon_state::{Fork, ForkData, HistoricalBatch, HistoricalSummary},
@@ -65,7 +66,7 @@ pub use crate::{
     },
     primitives::*,
     signing::*,
-    state_transition::{error::*, Context, Result, Validation},
+    state_transition::{Context, Result, Validation},
 };
 use crate::{
     crypto::{

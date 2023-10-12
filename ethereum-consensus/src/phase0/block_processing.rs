@@ -1,5 +1,10 @@
 use crate::{
     crypto::{hash, verify_signature},
+    error::{
+        invalid_header_error, invalid_operation_error, InvalidAttestation, InvalidAttesterSlashing,
+        InvalidBeaconBlockHeader, InvalidDeposit, InvalidOperation, InvalidProposerSlashing,
+        InvalidVoluntaryExit,
+    },
     phase0::{
         beacon_block::{BeaconBlock, BeaconBlockBody, BeaconBlockHeader},
         beacon_state::BeaconState,
@@ -20,11 +25,7 @@ use crate::{
     primitives::{BlsPublicKey, Bytes32, DomainType, Gwei, ValidatorIndex, FAR_FUTURE_EPOCH},
     signing::{compute_signing_root, verify_signed_data},
     ssz::prelude::*,
-    state_transition::{
-        invalid_header_error, invalid_operation_error, Context, InvalidAttestation,
-        InvalidAttesterSlashing, InvalidBeaconBlockHeader, InvalidDeposit, InvalidOperation,
-        InvalidProposerSlashing, InvalidVoluntaryExit, Result,
-    },
+    state_transition::{Context, Result},
 };
 use std::collections::HashSet;
 

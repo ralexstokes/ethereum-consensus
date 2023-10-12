@@ -1,6 +1,7 @@
 use crate::{
     bellatrix::execution_payload::ExecutionPayload,
-    state_transition::{self, ExecutionEngineError, Result},
+    error::ExecutionEngineError,
+    state_transition::{self, Result},
 };
 
 pub struct NewPayloadRequest<

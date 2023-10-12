@@ -1,5 +1,6 @@
 /// This module contains support for various Ethereum netowrks.
-use crate::state_transition::{Context, Error};
+use crate::state_transition::Context;
+use crate::Error;
 
 /// `Network` describes one of the established networks this repository supports
 /// or otherwise a `Custom` variant that wraps a path to a local configuration file

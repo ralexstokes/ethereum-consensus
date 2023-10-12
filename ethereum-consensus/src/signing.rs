@@ -2,7 +2,7 @@ use crate::{
     crypto::{verify_signature, SecretKey},
     primitives::{BlsPublicKey, BlsSignature, Domain, Root},
     ssz::prelude::*,
-    state_transition::Error,
+    Error,
 };
 
 #[derive(Default, Debug, SimpleSerialize)]

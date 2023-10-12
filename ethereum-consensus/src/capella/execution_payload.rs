@@ -3,7 +3,7 @@ use crate::{
     capella::withdrawal::Withdrawal,
     primitives::{Bytes32, ExecutionAddress, Hash32, Root, U256},
     ssz::prelude::*,
-    state_transition::Error,
+    Error,
 };
 
 #[derive(

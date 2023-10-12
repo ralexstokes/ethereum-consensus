@@ -616,9 +616,13 @@ fn render(fork: &Fork, items: &[Item]) {
         pub use crate::signing::*;
     };
     let state_transition_import = parse_quote! {
-        pub use crate::state_transition::{Result, Context, Validation, error::*};
+        pub use crate::state_transition::{Result, Context, Validation};
     };
-    let mut all_items = vec![primitives_import, signing_import, state_transition_import];
+    let error_import = parse_quote! {
+        pub use crate::error::*;
+    };
+    let mut all_items =
+        vec![primitives_import, signing_import, state_transition_import, error_import];
     let imports_for_fork = fork.imports();
     all_items.extend(imports_for_fork);
     all_items.extend(items.iter().cloned());

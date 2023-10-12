@@ -7,6 +7,7 @@ pub mod configs;
 pub mod crypto;
 pub mod deneb;
 pub mod domains;
+pub mod error;
 mod fork;
 pub mod networking;
 pub mod networks;
@@ -19,4 +20,5 @@ pub mod ssz;
 pub mod state_transition;
 pub mod types;
 
+pub use error::Error;
 pub use fork::Fork;

@@ -10,12 +10,13 @@ use crate::{
         Withdrawal,
     },
     crypto::{hash, verify_signature},
+    error::{
+        invalid_operation_error, InvalidBlsToExecutionChange, InvalidDeposit,
+        InvalidExecutionPayload, InvalidOperation, InvalidWithdrawals,
+    },
     primitives::{BLS_WITHDRAWAL_PREFIX, ETH1_ADDRESS_WITHDRAWAL_PREFIX},
     ssz::prelude::*,
-    state_transition::{
-        invalid_operation_error, Context, InvalidBlsToExecutionChange, InvalidDeposit,
-        InvalidExecutionPayload, InvalidOperation, InvalidWithdrawals, Result,
-    },
+    state_transition::{Context, Result},
 };
 
 pub fn process_bls_to_execution_change<

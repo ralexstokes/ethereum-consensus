@@ -13,7 +13,8 @@ use crate::{
     },
     primitives::{Epoch, Gwei, ValidatorIndex, GENESIS_EPOCH},
     ssz::prelude::*,
-    state_transition::{Context, Error, Result},
+    state_transition::{Context, Result},
+    Error,
 };
 use integer_sqrt::IntegerSquareRoot;
 use std::{collections::HashSet, mem};
