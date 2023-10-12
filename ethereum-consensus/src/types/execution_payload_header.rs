@@ -7,7 +7,7 @@ use crate::{
     ssz::prelude::*,
     Fork as Version,
 };
-#[derive(Debug, Clone, PartialEq, Eq, SimpleSerialize, serde::Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, serde::Deserialize)]
 #[serde(tag = "version", content = "data")]
 #[serde(rename_all = "lowercase")]
 pub enum ExecutionPayloadHeader<
@@ -316,6 +316,17 @@ impl<const BYTES_PER_LOGS_BLOOM: usize, const MAX_EXTRA_DATA_BYTES: usize>
             Self::Bellatrix(_) => None,
             Self::Capella(_) => None,
             Self::Deneb(inner) => Some(&mut inner.excess_blob_gas),
+        }
+    }
+}
+impl<const BYTES_PER_LOGS_BLOOM: usize, const MAX_EXTRA_DATA_BYTES: usize> Merkleized
+    for ExecutionPayloadHeader<BYTES_PER_LOGS_BLOOM, MAX_EXTRA_DATA_BYTES>
+{
+    fn hash_tree_root(&mut self) -> Result<Node, MerkleizationError> {
+        match self {
+            Self::Bellatrix(inner) => inner.hash_tree_root(),
+            Self::Capella(inner) => inner.hash_tree_root(),
+            Self::Deneb(inner) => inner.hash_tree_root(),
         }
     }
 }
@@ -872,5 +883,16 @@ impl<'a, const BYTES_PER_LOGS_BLOOM: usize, const MAX_EXTRA_DATA_BYTES: usize>
         value: &'a mut deneb::ExecutionPayloadHeader<BYTES_PER_LOGS_BLOOM, MAX_EXTRA_DATA_BYTES>,
     ) -> Self {
         Self::Deneb(value)
+    }
+}
+impl<'a, const BYTES_PER_LOGS_BLOOM: usize, const MAX_EXTRA_DATA_BYTES: usize> Merkleized
+    for ExecutionPayloadHeaderRefMut<'a, BYTES_PER_LOGS_BLOOM, MAX_EXTRA_DATA_BYTES>
+{
+    fn hash_tree_root(&mut self) -> Result<Node, MerkleizationError> {
+        match self {
+            Self::Bellatrix(inner) => inner.hash_tree_root(),
+            Self::Capella(inner) => inner.hash_tree_root(),
+            Self::Deneb(inner) => inner.hash_tree_root(),
+        }
     }
 }

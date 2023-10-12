@@ -8,7 +8,7 @@ use crate::{
     types::blinded_beacon_block_body::{BlindedBeaconBlockBodyRef, BlindedBeaconBlockBodyRefMut},
     Fork as Version,
 };
-#[derive(Debug, Clone, PartialEq, Eq, SimpleSerialize, serde::Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, serde::Deserialize)]
 #[serde(tag = "version", content = "data")]
 #[serde(rename_all = "lowercase")]
 pub enum BlindedBeaconBlock<
@@ -323,6 +323,41 @@ impl<
             Self::Bellatrix(inner) => From::from(&mut inner.body),
             Self::Capella(inner) => From::from(&mut inner.body),
             Self::Deneb(inner) => From::from(&mut inner.body),
+        }
+    }
+}
+impl<
+        const MAX_PROPOSER_SLASHINGS: usize,
+        const MAX_VALIDATORS_PER_COMMITTEE: usize,
+        const MAX_ATTESTER_SLASHINGS: usize,
+        const MAX_ATTESTATIONS: usize,
+        const MAX_DEPOSITS: usize,
+        const MAX_VOLUNTARY_EXITS: usize,
+        const SYNC_COMMITTEE_SIZE: usize,
+        const BYTES_PER_LOGS_BLOOM: usize,
+        const MAX_EXTRA_DATA_BYTES: usize,
+        const MAX_BLS_TO_EXECUTION_CHANGES: usize,
+        const MAX_BLOB_COMMITMENTS_PER_BLOCK: usize,
+    > Merkleized
+    for BlindedBeaconBlock<
+        MAX_PROPOSER_SLASHINGS,
+        MAX_VALIDATORS_PER_COMMITTEE,
+        MAX_ATTESTER_SLASHINGS,
+        MAX_ATTESTATIONS,
+        MAX_DEPOSITS,
+        MAX_VOLUNTARY_EXITS,
+        SYNC_COMMITTEE_SIZE,
+        BYTES_PER_LOGS_BLOOM,
+        MAX_EXTRA_DATA_BYTES,
+        MAX_BLS_TO_EXECUTION_CHANGES,
+        MAX_BLOB_COMMITMENTS_PER_BLOCK,
+    >
+{
+    fn hash_tree_root(&mut self) -> Result<Node, MerkleizationError> {
+        match self {
+            Self::Bellatrix(inner) => inner.hash_tree_root(),
+            Self::Capella(inner) => inner.hash_tree_root(),
+            Self::Deneb(inner) => inner.hash_tree_root(),
         }
     }
 }
@@ -1248,5 +1283,42 @@ impl<
         >,
     ) -> Self {
         Self::Deneb(value)
+    }
+}
+impl<
+        'a,
+        const MAX_PROPOSER_SLASHINGS: usize,
+        const MAX_VALIDATORS_PER_COMMITTEE: usize,
+        const MAX_ATTESTER_SLASHINGS: usize,
+        const MAX_ATTESTATIONS: usize,
+        const MAX_DEPOSITS: usize,
+        const MAX_VOLUNTARY_EXITS: usize,
+        const SYNC_COMMITTEE_SIZE: usize,
+        const BYTES_PER_LOGS_BLOOM: usize,
+        const MAX_EXTRA_DATA_BYTES: usize,
+        const MAX_BLS_TO_EXECUTION_CHANGES: usize,
+        const MAX_BLOB_COMMITMENTS_PER_BLOCK: usize,
+    > Merkleized
+    for BlindedBeaconBlockRefMut<
+        'a,
+        MAX_PROPOSER_SLASHINGS,
+        MAX_VALIDATORS_PER_COMMITTEE,
+        MAX_ATTESTER_SLASHINGS,
+        MAX_ATTESTATIONS,
+        MAX_DEPOSITS,
+        MAX_VOLUNTARY_EXITS,
+        SYNC_COMMITTEE_SIZE,
+        BYTES_PER_LOGS_BLOOM,
+        MAX_EXTRA_DATA_BYTES,
+        MAX_BLS_TO_EXECUTION_CHANGES,
+        MAX_BLOB_COMMITMENTS_PER_BLOCK,
+    >
+{
+    fn hash_tree_root(&mut self) -> Result<Node, MerkleizationError> {
+        match self {
+            Self::Bellatrix(inner) => inner.hash_tree_root(),
+            Self::Capella(inner) => inner.hash_tree_root(),
+            Self::Deneb(inner) => inner.hash_tree_root(),
+        }
     }
 }

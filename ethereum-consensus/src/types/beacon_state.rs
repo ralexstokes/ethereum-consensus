@@ -16,7 +16,7 @@ use crate::{
     types::execution_payload_header::{ExecutionPayloadHeaderRef, ExecutionPayloadHeaderRefMut},
     Fork as Version,
 };
-#[derive(Debug, Clone, PartialEq, Eq, SimpleSerialize, serde::Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, serde::Deserialize)]
 #[serde(tag = "version", content = "data")]
 #[serde(rename_all = "lowercase")]
 pub enum BeaconState<
@@ -905,6 +905,43 @@ impl<
             Self::Bellatrix(_) => None,
             Self::Capella(inner) => Some(&mut inner.historical_summaries),
             Self::Deneb(inner) => Some(&mut inner.historical_summaries),
+        }
+    }
+}
+impl<
+        const SLOTS_PER_HISTORICAL_ROOT: usize,
+        const HISTORICAL_ROOTS_LIMIT: usize,
+        const ETH1_DATA_VOTES_BOUND: usize,
+        const VALIDATOR_REGISTRY_LIMIT: usize,
+        const EPOCHS_PER_HISTORICAL_VECTOR: usize,
+        const EPOCHS_PER_SLASHINGS_VECTOR: usize,
+        const MAX_VALIDATORS_PER_COMMITTEE: usize,
+        const PENDING_ATTESTATIONS_BOUND: usize,
+        const SYNC_COMMITTEE_SIZE: usize,
+        const BYTES_PER_LOGS_BLOOM: usize,
+        const MAX_EXTRA_DATA_BYTES: usize,
+    > Merkleized
+    for BeaconState<
+        SLOTS_PER_HISTORICAL_ROOT,
+        HISTORICAL_ROOTS_LIMIT,
+        ETH1_DATA_VOTES_BOUND,
+        VALIDATOR_REGISTRY_LIMIT,
+        EPOCHS_PER_HISTORICAL_VECTOR,
+        EPOCHS_PER_SLASHINGS_VECTOR,
+        MAX_VALIDATORS_PER_COMMITTEE,
+        PENDING_ATTESTATIONS_BOUND,
+        SYNC_COMMITTEE_SIZE,
+        BYTES_PER_LOGS_BLOOM,
+        MAX_EXTRA_DATA_BYTES,
+    >
+{
+    fn hash_tree_root(&mut self) -> Result<Node, MerkleizationError> {
+        match self {
+            Self::Phase0(inner) => inner.hash_tree_root(),
+            Self::Altair(inner) => inner.hash_tree_root(),
+            Self::Bellatrix(inner) => inner.hash_tree_root(),
+            Self::Capella(inner) => inner.hash_tree_root(),
+            Self::Deneb(inner) => inner.hash_tree_root(),
         }
     }
 }
@@ -2927,5 +2964,44 @@ impl<
         >,
     ) -> Self {
         Self::Deneb(value)
+    }
+}
+impl<
+        'a,
+        const SLOTS_PER_HISTORICAL_ROOT: usize,
+        const HISTORICAL_ROOTS_LIMIT: usize,
+        const ETH1_DATA_VOTES_BOUND: usize,
+        const VALIDATOR_REGISTRY_LIMIT: usize,
+        const EPOCHS_PER_HISTORICAL_VECTOR: usize,
+        const EPOCHS_PER_SLASHINGS_VECTOR: usize,
+        const MAX_VALIDATORS_PER_COMMITTEE: usize,
+        const PENDING_ATTESTATIONS_BOUND: usize,
+        const SYNC_COMMITTEE_SIZE: usize,
+        const BYTES_PER_LOGS_BLOOM: usize,
+        const MAX_EXTRA_DATA_BYTES: usize,
+    > Merkleized
+    for BeaconStateRefMut<
+        'a,
+        SLOTS_PER_HISTORICAL_ROOT,
+        HISTORICAL_ROOTS_LIMIT,
+        ETH1_DATA_VOTES_BOUND,
+        VALIDATOR_REGISTRY_LIMIT,
+        EPOCHS_PER_HISTORICAL_VECTOR,
+        EPOCHS_PER_SLASHINGS_VECTOR,
+        MAX_VALIDATORS_PER_COMMITTEE,
+        PENDING_ATTESTATIONS_BOUND,
+        SYNC_COMMITTEE_SIZE,
+        BYTES_PER_LOGS_BLOOM,
+        MAX_EXTRA_DATA_BYTES,
+    >
+{
+    fn hash_tree_root(&mut self) -> Result<Node, MerkleizationError> {
+        match self {
+            Self::Phase0(inner) => inner.hash_tree_root(),
+            Self::Altair(inner) => inner.hash_tree_root(),
+            Self::Bellatrix(inner) => inner.hash_tree_root(),
+            Self::Capella(inner) => inner.hash_tree_root(),
+            Self::Deneb(inner) => inner.hash_tree_root(),
+        }
     }
 }
