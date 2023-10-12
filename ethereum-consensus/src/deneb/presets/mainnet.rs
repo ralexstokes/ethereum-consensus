@@ -20,7 +20,8 @@ pub const FIELD_ELEMENTS_PER_BLOB: usize = 4096;
 pub const MAX_BLOB_COMMITMENTS_PER_BLOCK: usize = 4096;
 pub const MAX_BLOBS_PER_BLOCK: usize = 6;
 
-pub const BYTES_PER_BLOB: usize = crate::kzg::BYTES_PER_FIELD_ELEMENT * FIELD_ELEMENTS_PER_BLOB;
+pub const BYTES_PER_BLOB: usize =
+    crate::deneb::polynomial_commitments::BYTES_PER_FIELD_ELEMENT * FIELD_ELEMENTS_PER_BLOB;
 
 pub const MAX_REQUEST_BLOB_SIDECARS: usize = MAX_REQUEST_BLOCKS_DENEB * MAX_BLOBS_PER_BLOCK;
 

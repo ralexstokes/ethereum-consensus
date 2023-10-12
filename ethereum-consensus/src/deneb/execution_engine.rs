@@ -1,6 +1,5 @@
 use crate::{
-    deneb::execution_payload::ExecutionPayload,
-    kzg::VersionedHash,
+    deneb::{execution_payload::ExecutionPayload, polynomial_commitments::VersionedHash},
     primitives::Root,
     state_transition::{ExecutionEngineError, Result},
 };

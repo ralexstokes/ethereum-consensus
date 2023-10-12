@@ -8,7 +8,6 @@ pub mod crypto;
 pub mod deneb;
 pub mod domains;
 mod fork;
-pub mod kzg;
 pub mod networking;
 pub mod networks;
 pub mod phase0;

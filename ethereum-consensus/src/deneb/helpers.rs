@@ -4,10 +4,11 @@ use crate::{
     },
     crypto::hash,
     deneb::{
-        beacon_state::BeaconState, get_block_root, get_block_root_at_slot, get_current_epoch,
-        get_validator_churn_limit, AttestationData, VERSIONED_HASH_VERSION_KZG,
+        beacon_state::BeaconState,
+        get_block_root, get_block_root_at_slot, get_current_epoch, get_validator_churn_limit,
+        polynomial_commitments::{KzgCommitment, VersionedHash},
+        AttestationData, VERSIONED_HASH_VERSION_KZG,
     },
-    kzg::{KzgCommitment, VersionedHash},
     state_transition::{
         invalid_operation_error, Context, InvalidAttestation, InvalidOperation, Result,
     },
