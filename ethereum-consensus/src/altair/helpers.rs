@@ -15,11 +15,10 @@ use crate::{
     },
     crypto::{eth_aggregate_public_keys, hash},
     domains::DomainType,
+    error::{invalid_operation_error, Error, InvalidAttestation, InvalidOperation},
     primitives::{BlsPublicKey, Epoch, Gwei, ParticipationFlags, ValidatorIndex},
     ssz::prelude::Vector,
-    state_transition::{
-        invalid_operation_error, Context, Error, InvalidAttestation, InvalidOperation, Result,
-    },
+    state_transition::{Context, Result},
 };
 use integer_sqrt::IntegerSquareRoot;
 use std::collections::HashSet;

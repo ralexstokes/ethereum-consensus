@@ -5,8 +5,9 @@ use crate::{
         process_randao, process_sync_aggregate, BeaconBlock, BeaconState, ExecutionEngine,
         ExecutionPayload, ExecutionPayloadHeader, NewPayloadRequest,
     },
+    error::{invalid_operation_error, InvalidExecutionPayload},
     ssz::prelude::*,
-    state_transition::{invalid_operation_error, Context, InvalidExecutionPayload, Result},
+    state_transition::{Context, Result},
 };
 
 pub fn process_execution_payload<

@@ -2,7 +2,8 @@ use crate::{
     phase0::{beacon_state::BeaconState, epoch_processing::process_epoch},
     primitives::{Root, Slot},
     ssz::prelude::*,
-    state_transition::{Context, Error, Result},
+    state_transition::{Context, Result},
+    Error,
 };
 
 pub fn process_slots<

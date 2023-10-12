@@ -12,13 +12,14 @@ use crate::{
         PARTICIPATION_FLAG_WEIGHTS, PROPOSER_WEIGHT, WEIGHT_DENOMINATOR,
     },
     domains::DomainType,
+    error::{
+        invalid_operation_error, InvalidAttestation, InvalidExecutionPayload, InvalidOperation,
+        InvalidVoluntaryExit,
+    },
     primitives::FAR_FUTURE_EPOCH,
     signing::verify_signed_data,
     ssz::prelude::*,
-    state_transition::{
-        invalid_operation_error, Context, InvalidAttestation, InvalidExecutionPayload,
-        InvalidOperation, InvalidVoluntaryExit, Result,
-    },
+    state_transition::{Context, Result},
 };
 
 pub fn process_attestation<

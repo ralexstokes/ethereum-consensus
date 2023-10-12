@@ -21,13 +21,14 @@ use crate::{
     },
     crypto::{eth_fast_aggregate_verify, verify_signature},
     domains::DomainType,
+    error::{
+        invalid_operation_error, InvalidAttestation, InvalidDeposit, InvalidOperation,
+        InvalidSyncAggregate,
+    },
     primitives::{BlsPublicKey, ParticipationFlags, ValidatorIndex},
     signing::compute_signing_root,
     ssz::prelude::*,
-    state_transition::{
-        invalid_operation_error, Context, InvalidAttestation, InvalidDeposit, InvalidOperation,
-        InvalidSyncAggregate, Result,
-    },
+    state_transition::{Context, Result},
 };
 use std::{
     collections::{HashMap, HashSet},

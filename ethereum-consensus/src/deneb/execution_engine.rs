@@ -1,7 +1,8 @@
 use crate::{
     deneb::{execution_payload::ExecutionPayload, polynomial_commitments::VersionedHash},
+    error::ExecutionEngineError,
     primitives::Root,
-    state_transition::{ExecutionEngineError, Result},
+    state_transition::Result,
 };
 
 pub struct NewPayloadRequest<

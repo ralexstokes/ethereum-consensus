@@ -4,7 +4,8 @@ use crate::{
         SignedBeaconBlock,
     },
     ssz::prelude::Merkleized,
-    state_transition::{Context, Error, Result, Validation},
+    state_transition::{Context, Result, Validation},
+    Error,
 };
 
 // `state_transition_block_in_slot` is separated out

@@ -2,7 +2,8 @@ use crate::{
     phase0::compute_domain,
     primitives::{BlsPublicKey, BlsSignature, Domain, DomainType, ExecutionAddress},
     ssz::prelude::*,
-    state_transition::{Context, Error},
+    state_transition::Context,
+    Error,
 };
 
 #[derive(Debug, Clone, Default, SimpleSerialize, serde::Serialize, serde::Deserialize)]

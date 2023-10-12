@@ -1,6 +1,6 @@
 use crate::{
-    capella::execution_payload::ExecutionPayload,
-    state_transition::{ExecutionEngineError, Result},
+    capella::execution_payload::ExecutionPayload, error::ExecutionEngineError,
+    state_transition::Result,
 };
 
 pub struct NewPayloadRequest<

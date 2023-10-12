@@ -6,7 +6,8 @@ use crate::{
         ExecutionPayloadHeader, PROPOSER_WEIGHT, TIMELY_TARGET_FLAG_INDEX, WEIGHT_DENOMINATOR,
     },
     primitives::{Gwei, Slot, ValidatorIndex, GENESIS_SLOT},
-    state_transition::{Context, Error, Result},
+    state_transition::{Context, Result},
+    Error,
 };
 
 pub fn get_inactivity_penalty_deltas<

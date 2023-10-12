@@ -5,7 +5,8 @@ use crate::{
         slot_processing::process_slots,
     },
     ssz::prelude::*,
-    state_transition::{Context, Error, Result, Validation},
+    state_transition::{Context, Result, Validation},
+    Error,
 };
 
 // `state_transition_block_in_slot` is separated out

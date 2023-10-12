@@ -9,9 +9,8 @@ use crate::{
         polynomial_commitments::{KzgCommitment, VersionedHash},
         AttestationData, VERSIONED_HASH_VERSION_KZG,
     },
-    state_transition::{
-        invalid_operation_error, Context, InvalidAttestation, InvalidOperation, Result,
-    },
+    error::{invalid_operation_error, InvalidAttestation, InvalidOperation},
+    state_transition::{Context, Result},
 };
 use integer_sqrt::IntegerSquareRoot;
 

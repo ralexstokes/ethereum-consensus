@@ -6,8 +6,7 @@ use crate::{
     networks::Network,
     phase0,
     primitives::{Epoch, ExecutionAddress, Gwei, Hash32, Slot, Version, U256},
-    state_transition::Error,
-    Fork,
+    Error, Fork,
 };
 
 #[derive(Debug, Default, Clone, serde::Deserialize)]
