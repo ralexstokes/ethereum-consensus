@@ -469,6 +469,7 @@ pub struct Value<T> {
 pub struct VersionedValue<T: serde::Serialize + serde::de::DeserializeOwned> {
     pub version: Fork,
     pub data: T,
+    #[serde(skip_serializing_if = "HashMap::is_empty")]
     pub meta: HashMap<String, serde_json::Value>,
 }
 
