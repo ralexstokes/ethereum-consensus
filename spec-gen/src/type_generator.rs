@@ -389,7 +389,7 @@ fn derive_method_set(
             None
         }
     });
-    let field_defined_in_all_forks = &field_defn.fork == &fork_sequence[0];
+    let field_defined_in_all_forks = field_defn.fork == fork_sequence[0];
     let is_optional = deletion_fork.is_some() || !field_defined_in_all_forks;
     let is_polymorphic = target_type.polymorphic_fields().contains(&ident.to_string().as_ref());
     let ty: syn::Type = if is_polymorphic {
