@@ -11,7 +11,7 @@ use ethereum_consensus::{
     Fork,
 };
 use serde::{Deserialize, Serialize};
-use std::{collections::HashMap, fmt, marker::PhantomData, str::FromStr};
+use std::{collections::HashMap, fmt, str::FromStr};
 
 #[derive(Serialize, Deserialize)]
 pub struct VersionData {
@@ -465,124 +465,14 @@ pub struct Value<T> {
     pub meta: HashMap<String, serde_json::Value>,
 }
 
-#[derive(Debug, Serialize)]
-pub struct VersionedValue<T: serde::Serialize + serde::de::DeserializeOwned> {
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(bound = "T: serde::Serialize + serde::de::DeserializeOwned")]
+pub struct VersionedValue<T> {
     pub version: Fork,
     pub data: T,
+    #[serde(flatten)]
     #[serde(skip_serializing_if = "HashMap::is_empty")]
     pub meta: HashMap<String, serde_json::Value>,
-}
-
-impl<'de, T: serde::Serialize + serde::de::DeserializeOwned> serde::Deserialize<'de>
-    for VersionedValue<T>
-{
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-    where
-        D: serde::Deserializer<'de>,
-    {
-        #[derive(Debug)]
-        enum Field<'de> {
-            Version,
-            Data,
-            Meta(&'de str),
-        }
-
-        impl<'de> serde::Deserialize<'de> for Field<'de> {
-            fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-            where
-                D: serde::Deserializer<'de>,
-            {
-                struct FieldVisitor;
-
-                impl<'de> serde::de::Visitor<'de> for FieldVisitor {
-                    type Value = Field<'de>;
-
-                    fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
-                        formatter.write_str("some field name")
-                    }
-
-                    fn visit_borrowed_str<E>(self, v: &'de str) -> Result<Self::Value, E>
-                    where
-                        E: serde::de::Error,
-                    {
-                        match v {
-                            "version" => Ok(Field::Version),
-                            "data" => Ok(Field::Data),
-                            s => Ok(Field::Meta(s)),
-                        }
-                    }
-                }
-                deserializer.deserialize_identifier(FieldVisitor)
-            }
-        }
-
-        struct Visitor<T>(PhantomData<T>);
-
-        impl<'de, T: serde::Serialize + serde::de::DeserializeOwned> serde::de::Visitor<'de>
-            for Visitor<T>
-        {
-            type Value = VersionedValue<T>;
-
-            fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
-                formatter.write_str("struct VersionedValue")
-            }
-
-            fn visit_map<A>(self, mut map: A) -> Result<Self::Value, A::Error>
-            where
-                A: serde::de::MapAccess<'de>,
-            {
-                let mut version = None;
-                let mut version_str = None;
-                let mut data: Option<serde_json::Value> = None;
-                let mut meta = HashMap::default();
-                while let Some(key) = map.next_key()? {
-                    match key {
-                        Field::Version => {
-                            if version.is_some() {
-                                return Err(serde::de::Error::duplicate_field("version"))
-                            }
-                            let version_value: serde_json::Value = map.next_value()?;
-                            let fork: Fork = serde_json::from_value(version_value.clone())
-                                .map_err(serde::de::Error::custom)?;
-                            version = Some(fork);
-                            match version_value {
-                                serde_json::Value::String(inner) => {
-                                    version_str = Some(inner);
-                                }
-                                other => {
-                                    return Err(serde::de::Error::custom(format!(
-                                        "expected JSON string, but found value {other}"
-                                    )))
-                                }
-                            };
-                        }
-                        Field::Data => {
-                            if data.is_some() {
-                                return Err(serde::de::Error::duplicate_field("data"))
-                            }
-                            data = Some(map.next_value()?);
-                        }
-                        Field::Meta(name) => {
-                            let next_value: serde_json::Value = map.next_value()?;
-                            meta.insert(name.to_string(), next_value);
-                        }
-                    }
-                }
-                let version = version.ok_or_else(|| serde::de::Error::missing_field("version"))?;
-                let data = data.ok_or_else(|| serde::de::Error::missing_field("data"))?;
-                let data_with_version = serde_json::json!({
-                    "version": version_str,
-                    "data": data,
-                });
-                let data: T =
-                    serde_json::from_value(data_with_version).map_err(serde::de::Error::custom)?;
-                Ok(VersionedValue { version, data, meta })
-            }
-        }
-
-        const FIELDS: &[&str] = &["version", "data", "meta"];
-        deserializer.deserialize_struct("VersionedValue", FIELDS, Visitor(PhantomData))
-    }
 }
 
 #[derive(Serialize, Deserialize, Debug)]
