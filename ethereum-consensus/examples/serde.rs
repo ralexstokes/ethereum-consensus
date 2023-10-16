@@ -7,6 +7,7 @@ use ethereum_consensus::{
         Attestation, AttesterSlashing, BeaconState, Deposit, PendingAttestation, ProposerSlashing,
         SignedBeaconBlock, SignedVoluntaryExit,
     },
+    types::mainnet as types,
 };
 
 fn main() {
@@ -37,4 +38,10 @@ fn main() {
     let header_json = serde_json::to_string(&header).unwrap();
     println!("{}", &header_json);
     let _: ExecutionPayloadHeader = serde_json::from_str(&header_json).unwrap();
+
+    let header = types::ExecutionPayloadHeader::Bellatrix(header);
+    let header_json = serde_json::to_string_pretty(&header).unwrap();
+    println!("{header_json}");
+    let recovered_header = serde_json::from_str(&header_json).unwrap();
+    assert_eq!(header, recovered_header);
 }
