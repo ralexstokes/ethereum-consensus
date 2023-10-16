@@ -7,10 +7,8 @@ use crate::{
     ssz::prelude::*,
     Fork as Version,
 };
-#[derive(Debug, Clone, PartialEq, Eq, Merkleized, serde::Deserialize)]
-#[serde(tag = "version", content = "data")]
-#[serde(rename_all = "lowercase")]
-#[ssz(transparent)]
+#[derive(Debug, Clone, PartialEq, Eq, Merkleized, serde::Serialize)]
+#[serde(untagged)]
 pub enum ExecutionPayloadHeader<
     const BYTES_PER_LOGS_BLOOM: usize,
     const MAX_EXTRA_DATA_BYTES: usize,
@@ -320,18 +318,24 @@ impl<const BYTES_PER_LOGS_BLOOM: usize, const MAX_EXTRA_DATA_BYTES: usize>
         }
     }
 }
-impl<const BYTES_PER_LOGS_BLOOM: usize, const MAX_EXTRA_DATA_BYTES: usize> serde::Serialize
-    for ExecutionPayloadHeader<BYTES_PER_LOGS_BLOOM, MAX_EXTRA_DATA_BYTES>
+impl<'de, const BYTES_PER_LOGS_BLOOM: usize, const MAX_EXTRA_DATA_BYTES: usize>
+    serde::Deserialize<'de> for ExecutionPayloadHeader<BYTES_PER_LOGS_BLOOM, MAX_EXTRA_DATA_BYTES>
 {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
-        S: serde::Serializer,
+        D: serde::Deserializer<'de>,
     {
-        match self {
-            Self::Bellatrix(inner) => <_ as serde::Serialize>::serialize(inner, serializer),
-            Self::Capella(inner) => <_ as serde::Serialize>::serialize(inner, serializer),
-            Self::Deneb(inner) => <_ as serde::Serialize>::serialize(inner, serializer),
+        let value = serde_json::Value::deserialize(deserializer)?;
+        if let Ok(inner) = <_ as serde::Deserialize>::deserialize(&value) {
+            return Ok(Self::Deneb(inner))
         }
+        if let Ok(inner) = <_ as serde::Deserialize>::deserialize(&value) {
+            return Ok(Self::Capella(inner))
+        }
+        if let Ok(inner) = <_ as serde::Deserialize>::deserialize(&value) {
+            return Ok(Self::Bellatrix(inner))
+        }
+        Err(serde::de::Error::custom("no variant could be deserialized from input"))
     }
 }
 #[derive(Debug, PartialEq, Eq)]

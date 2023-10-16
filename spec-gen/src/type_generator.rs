@@ -5,8 +5,8 @@ use crate::{
 use convert_case::{Case, Casing};
 use std::{collections::HashSet, fs};
 use syn::{
-    parse_quote, token::Mut, visit::Visit, AngleBracketedGenericArguments, Arm, Attribute,
-    Generics, Ident, ImplItemMethod, Item, ItemStruct,
+    parse_quote, token::Mut, visit::Visit, AngleBracketedGenericArguments, Arm, Attribute, Expr,
+    GenericParam, Generics, Ident, ImplItemMethod, Item, ItemStruct,
 };
 
 const SOURCE_ROOT: &str = "ethereum-consensus/src";
@@ -363,10 +363,8 @@ fn derive_type_defn(target_type: &Type, merge_type: &MergeType) -> (Item, Generi
         })
         .collect::<Vec<syn::Variant>>();
     let enum_defn = parse_quote! {
-        #[derive(Debug, Clone, PartialEq, Eq, Merkleized, serde::Deserialize)]
-        #[serde(tag = "version", content = "data")]
-        #[serde(rename_all = "lowercase")]
-        #[ssz(transparent)]
+        #[derive(Debug, Clone, PartialEq, Eq, Merkleized, serde::Serialize)]
+        #[serde(untagged)]
         pub enum #type_name #generics {
             #(#variant_defns),*
         }
@@ -733,49 +731,39 @@ fn derive_ref_impl(target_type: &Type, merge_type: &MergeType, is_mut: bool) -> 
     let from_defn = derive_ref_impl_from(target_type, merge_type, is_mut, &generics);
     let mut result = vec![type_defn, impl_defn];
     result.extend(from_defn);
-    // if is_mut {
-    //     let type_name = as_syn_ident(format!("{0}RefMut", target_type.name()));
-    //     result.push(derive_merkleized_impl(&type_name, &generics, merge_type, true))
-    // }
     result
 }
 
-// fn derive_merkleized_impl(
-//     type_name: &Ident,
-//     generics: &Generics,
-//     merge_type: &MergeType,
-//     include_lifetime: bool,
-// ) -> Item { let mut arguments = generics_to_arguments(generics); if include_lifetime { let
-//   lifetime: syn::GenericArgument = parse_quote! { 'a }; arguments.args.insert(0, lifetime); } let
-//   match_arms: Vec<Arm> = merge_type .variants .iter() .map(|variant| { let fork_name =
-//   as_syn_ident(format!("{:?}", variant.fork)); parse_quote! { Self::#fork_name(inner) =>
-//   inner.hash_tree_root() } }) .collect(); parse_quote! { impl #generics Merkleized for #type_name
-//   #arguments { fn hash_tree_root(&mut self) -> Result<Node, MerkleizationError> { match self {
-//   #(#match_arms,)* } } } }
-// }
-
-fn derive_serde_ser_impl(target_type: &Type, generics: &Generics, merge_type: &MergeType) -> Item {
+fn derive_serde_de_impl(target_type: &Type, generics: &Generics, merge_type: &MergeType) -> Item {
     let type_name = as_syn_ident(target_type.name());
     let arguments = generics_to_arguments(generics);
-    let match_arms: Vec<Arm> = merge_type
+    let de_by_fork: Vec<Expr> = merge_type
         .variants
         .iter()
+        .rev()
         .map(|variant| {
             let fork_name = as_syn_ident(format!("{:?}", variant.fork));
             parse_quote! {
-                Self::#fork_name(inner) => <_ as serde::Serialize>::serialize(inner, serializer)
+                if let Ok(inner) = <_ as serde::Deserialize>::deserialize(&value) {
+                    return Ok(Self::#fork_name(inner))
+                }
             }
         })
         .collect();
+    let mut generics = generics.clone();
+    let de_lifetime: GenericParam = parse_quote! {
+        'de
+    };
+    generics.params.insert(0, de_lifetime);
     parse_quote! {
-        impl #generics serde::Serialize for #type_name #arguments {
-            fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+        impl #generics serde::Deserialize<'de> for #type_name #arguments {
+            fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
             where
-              S: serde::Serializer
+              D: serde::Deserializer<'de>,
             {
-                match self {
-                    #(#match_arms,)*
-                }
+                let value = serde_json::Value::deserialize(deserializer)?;
+                #(#de_by_fork)*
+                Err(serde::de::Error::custom("no variant could be deserialized from input"))
             }
         }
     }
@@ -786,12 +774,10 @@ fn as_syn(target_type: &Type, merge_type: &MergeType) -> Vec<Item> {
 
     let impl_defn = derive_impl_defn(target_type, merge_type, &generics);
 
-    // let type_name = as_syn_ident(target_type.name());
-    // let merkleized_impl = derive_merkleized_impl(&type_name, &generics, merge_type, false);
-    let serde_ser_impl = derive_serde_ser_impl(target_type, &generics, merge_type);
+    let serde_de_impl = derive_serde_de_impl(target_type, &generics, merge_type);
 
     let imports = target_type.imports();
-    let mut result = vec![imports, type_defn, impl_defn, serde_ser_impl];
+    let mut result = vec![imports, type_defn, impl_defn, serde_de_impl];
 
     if target_type.needs_ref_types() {
         result.extend(derive_ref_impl(target_type, merge_type, false));

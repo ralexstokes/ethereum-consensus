@@ -10,10 +10,8 @@ use crate::{
     types::beacon_block::{BeaconBlockRef, BeaconBlockRefMut},
     Fork as Version,
 };
-#[derive(Debug, Clone, PartialEq, Eq, Merkleized, serde::Deserialize)]
-#[serde(tag = "version", content = "data")]
-#[serde(rename_all = "lowercase")]
-#[ssz(transparent)]
+#[derive(Debug, Clone, PartialEq, Eq, Merkleized, serde::Serialize)]
+#[serde(untagged)]
 pub enum SignedBeaconBlock<
     const MAX_PROPOSER_SLASHINGS: usize,
     const MAX_VALIDATORS_PER_COMMITTEE: usize,
@@ -428,6 +426,7 @@ impl<
     }
 }
 impl<
+        'de,
         const MAX_PROPOSER_SLASHINGS: usize,
         const MAX_VALIDATORS_PER_COMMITTEE: usize,
         const MAX_ATTESTER_SLASHINGS: usize,
@@ -442,7 +441,7 @@ impl<
         const MAX_WITHDRAWALS_PER_PAYLOAD: usize,
         const MAX_BLS_TO_EXECUTION_CHANGES: usize,
         const MAX_BLOB_COMMITMENTS_PER_BLOCK: usize,
-    > serde::Serialize
+    > serde::Deserialize<'de>
     for SignedBeaconBlock<
         MAX_PROPOSER_SLASHINGS,
         MAX_VALIDATORS_PER_COMMITTEE,
@@ -460,16 +459,26 @@ impl<
         MAX_BLOB_COMMITMENTS_PER_BLOCK,
     >
 {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
-        S: serde::Serializer,
+        D: serde::Deserializer<'de>,
     {
-        match self {
-            Self::Phase0(inner) => <_ as serde::Serialize>::serialize(inner, serializer),
-            Self::Altair(inner) => <_ as serde::Serialize>::serialize(inner, serializer),
-            Self::Bellatrix(inner) => <_ as serde::Serialize>::serialize(inner, serializer),
-            Self::Capella(inner) => <_ as serde::Serialize>::serialize(inner, serializer),
-            Self::Deneb(inner) => <_ as serde::Serialize>::serialize(inner, serializer),
+        let value = serde_json::Value::deserialize(deserializer)?;
+        if let Ok(inner) = <_ as serde::Deserialize>::deserialize(&value) {
+            return Ok(Self::Deneb(inner))
         }
+        if let Ok(inner) = <_ as serde::Deserialize>::deserialize(&value) {
+            return Ok(Self::Capella(inner))
+        }
+        if let Ok(inner) = <_ as serde::Deserialize>::deserialize(&value) {
+            return Ok(Self::Bellatrix(inner))
+        }
+        if let Ok(inner) = <_ as serde::Deserialize>::deserialize(&value) {
+            return Ok(Self::Altair(inner))
+        }
+        if let Ok(inner) = <_ as serde::Deserialize>::deserialize(&value) {
+            return Ok(Self::Phase0(inner))
+        }
+        Err(serde::de::Error::custom("no variant could be deserialized from input"))
     }
 }
