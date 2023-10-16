@@ -8,10 +8,10 @@ use crate::{
     primitives::{Root, Slot, ValidatorIndex},
     ssz::prelude::*,
     types::beacon_block_body::{BeaconBlockBodyRef, BeaconBlockBodyRefMut},
+    Fork as Version,
 };
-#[derive(Debug, Clone, PartialEq, Eq, SimpleSerialize, serde::Deserialize)]
-#[serde(tag = "version", content = "data")]
-#[serde(rename_all = "lowercase")]
+#[derive(Debug, Clone, PartialEq, Eq, Merkleized, serde::Serialize)]
+#[serde(untagged)]
 pub enum BeaconBlock<
     const MAX_PROPOSER_SLASHINGS: usize,
     const MAX_VALIDATORS_PER_COMMITTEE: usize,
@@ -345,6 +345,15 @@ impl<
             _ => None,
         }
     }
+    pub fn version(&self) -> Version {
+        match self {
+            Self::Phase0(_) => Version::Phase0,
+            Self::Altair(_) => Version::Altair,
+            Self::Bellatrix(_) => Version::Bellatrix,
+            Self::Capella(_) => Version::Capella,
+            Self::Deneb(_) => Version::Deneb,
+        }
+    }
     pub fn slot(&self) -> &Slot {
         match self {
             Self::Phase0(inner) => &inner.slot,
@@ -471,6 +480,7 @@ impl<
     }
 }
 impl<
+        'de,
         const MAX_PROPOSER_SLASHINGS: usize,
         const MAX_VALIDATORS_PER_COMMITTEE: usize,
         const MAX_ATTESTER_SLASHINGS: usize,
@@ -485,7 +495,7 @@ impl<
         const MAX_WITHDRAWALS_PER_PAYLOAD: usize,
         const MAX_BLS_TO_EXECUTION_CHANGES: usize,
         const MAX_BLOB_COMMITMENTS_PER_BLOCK: usize,
-    > serde::Serialize
+    > serde::Deserialize<'de>
     for BeaconBlock<
         MAX_PROPOSER_SLASHINGS,
         MAX_VALIDATORS_PER_COMMITTEE,
@@ -503,17 +513,27 @@ impl<
         MAX_BLOB_COMMITMENTS_PER_BLOCK,
     >
 {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
-        S: serde::Serializer,
+        D: serde::Deserializer<'de>,
     {
-        match self {
-            Self::Phase0(inner) => <_ as serde::Serialize>::serialize(inner, serializer),
-            Self::Altair(inner) => <_ as serde::Serialize>::serialize(inner, serializer),
-            Self::Bellatrix(inner) => <_ as serde::Serialize>::serialize(inner, serializer),
-            Self::Capella(inner) => <_ as serde::Serialize>::serialize(inner, serializer),
-            Self::Deneb(inner) => <_ as serde::Serialize>::serialize(inner, serializer),
+        let value = serde_json::Value::deserialize(deserializer)?;
+        if let Ok(inner) = <_ as serde::Deserialize>::deserialize(&value) {
+            return Ok(Self::Deneb(inner))
         }
+        if let Ok(inner) = <_ as serde::Deserialize>::deserialize(&value) {
+            return Ok(Self::Capella(inner))
+        }
+        if let Ok(inner) = <_ as serde::Deserialize>::deserialize(&value) {
+            return Ok(Self::Bellatrix(inner))
+        }
+        if let Ok(inner) = <_ as serde::Deserialize>::deserialize(&value) {
+            return Ok(Self::Altair(inner))
+        }
+        if let Ok(inner) = <_ as serde::Deserialize>::deserialize(&value) {
+            return Ok(Self::Phase0(inner))
+        }
+        Err(serde::de::Error::custom("no variant could be deserialized from input"))
     }
 }
 #[derive(Debug, PartialEq, Eq)]
@@ -745,6 +765,15 @@ impl<
         match self {
             Self::Deneb(inner) => Some(inner),
             _ => None,
+        }
+    }
+    pub fn version(&self) -> Version {
+        match self {
+            Self::Phase0(_) => Version::Phase0,
+            Self::Altair(_) => Version::Altair,
+            Self::Bellatrix(_) => Version::Bellatrix,
+            Self::Capella(_) => Version::Capella,
+            Self::Deneb(_) => Version::Deneb,
         }
     }
     pub fn slot(&self) -> &Slot {
@@ -1142,7 +1171,8 @@ impl<
         Self::Deneb(value)
     }
 }
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, PartialEq, Eq, Merkleized)]
+#[ssz(transparent)]
 pub enum BeaconBlockRefMut<
     'a,
     const MAX_PROPOSER_SLASHINGS: usize,
@@ -1267,6 +1297,23 @@ impl<
         MAX_BLOB_COMMITMENTS_PER_BLOCK,
     >
 {
+    pub fn phase0(
+        &self,
+    ) -> Option<
+        &phase0::BeaconBlock<
+            MAX_PROPOSER_SLASHINGS,
+            MAX_VALIDATORS_PER_COMMITTEE,
+            MAX_ATTESTER_SLASHINGS,
+            MAX_ATTESTATIONS,
+            MAX_DEPOSITS,
+            MAX_VOLUNTARY_EXITS,
+        >,
+    > {
+        match self {
+            Self::Phase0(inner) => Some(inner),
+            _ => None,
+        }
+    }
     pub fn phase0_mut(
         &mut self,
     ) -> Option<
@@ -1281,6 +1328,24 @@ impl<
     > {
         match self {
             Self::Phase0(inner) => Some(inner),
+            _ => None,
+        }
+    }
+    pub fn altair(
+        &self,
+    ) -> Option<
+        &altair::BeaconBlock<
+            MAX_PROPOSER_SLASHINGS,
+            MAX_VALIDATORS_PER_COMMITTEE,
+            MAX_ATTESTER_SLASHINGS,
+            MAX_ATTESTATIONS,
+            MAX_DEPOSITS,
+            MAX_VOLUNTARY_EXITS,
+            SYNC_COMMITTEE_SIZE,
+        >,
+    > {
+        match self {
+            Self::Altair(inner) => Some(inner),
             _ => None,
         }
     }
@@ -1299,6 +1364,28 @@ impl<
     > {
         match self {
             Self::Altair(inner) => Some(inner),
+            _ => None,
+        }
+    }
+    pub fn bellatrix(
+        &self,
+    ) -> Option<
+        &bellatrix::BeaconBlock<
+            MAX_PROPOSER_SLASHINGS,
+            MAX_VALIDATORS_PER_COMMITTEE,
+            MAX_ATTESTER_SLASHINGS,
+            MAX_ATTESTATIONS,
+            MAX_DEPOSITS,
+            MAX_VOLUNTARY_EXITS,
+            SYNC_COMMITTEE_SIZE,
+            BYTES_PER_LOGS_BLOOM,
+            MAX_EXTRA_DATA_BYTES,
+            MAX_BYTES_PER_TRANSACTION,
+            MAX_TRANSACTIONS_PER_PAYLOAD,
+        >,
+    > {
+        match self {
+            Self::Bellatrix(inner) => Some(inner),
             _ => None,
         }
     }
@@ -1324,6 +1411,30 @@ impl<
             _ => None,
         }
     }
+    pub fn capella(
+        &self,
+    ) -> Option<
+        &capella::BeaconBlock<
+            MAX_PROPOSER_SLASHINGS,
+            MAX_VALIDATORS_PER_COMMITTEE,
+            MAX_ATTESTER_SLASHINGS,
+            MAX_ATTESTATIONS,
+            MAX_DEPOSITS,
+            MAX_VOLUNTARY_EXITS,
+            SYNC_COMMITTEE_SIZE,
+            BYTES_PER_LOGS_BLOOM,
+            MAX_EXTRA_DATA_BYTES,
+            MAX_BYTES_PER_TRANSACTION,
+            MAX_TRANSACTIONS_PER_PAYLOAD,
+            MAX_WITHDRAWALS_PER_PAYLOAD,
+            MAX_BLS_TO_EXECUTION_CHANGES,
+        >,
+    > {
+        match self {
+            Self::Capella(inner) => Some(inner),
+            _ => None,
+        }
+    }
     pub fn capella_mut(
         &mut self,
     ) -> Option<
@@ -1345,6 +1456,31 @@ impl<
     > {
         match self {
             Self::Capella(inner) => Some(inner),
+            _ => None,
+        }
+    }
+    pub fn deneb(
+        &self,
+    ) -> Option<
+        &deneb::BeaconBlock<
+            MAX_PROPOSER_SLASHINGS,
+            MAX_VALIDATORS_PER_COMMITTEE,
+            MAX_ATTESTER_SLASHINGS,
+            MAX_ATTESTATIONS,
+            MAX_DEPOSITS,
+            MAX_VOLUNTARY_EXITS,
+            SYNC_COMMITTEE_SIZE,
+            BYTES_PER_LOGS_BLOOM,
+            MAX_EXTRA_DATA_BYTES,
+            MAX_BYTES_PER_TRANSACTION,
+            MAX_TRANSACTIONS_PER_PAYLOAD,
+            MAX_WITHDRAWALS_PER_PAYLOAD,
+            MAX_BLS_TO_EXECUTION_CHANGES,
+            MAX_BLOB_COMMITMENTS_PER_BLOCK,
+        >,
+    > {
+        match self {
+            Self::Deneb(inner) => Some(inner),
             _ => None,
         }
     }
@@ -1373,6 +1509,24 @@ impl<
             _ => None,
         }
     }
+    pub fn version(&self) -> Version {
+        match self {
+            Self::Phase0(_) => Version::Phase0,
+            Self::Altair(_) => Version::Altair,
+            Self::Bellatrix(_) => Version::Bellatrix,
+            Self::Capella(_) => Version::Capella,
+            Self::Deneb(_) => Version::Deneb,
+        }
+    }
+    pub fn slot(&self) -> &Slot {
+        match self {
+            Self::Phase0(inner) => &inner.slot,
+            Self::Altair(inner) => &inner.slot,
+            Self::Bellatrix(inner) => &inner.slot,
+            Self::Capella(inner) => &inner.slot,
+            Self::Deneb(inner) => &inner.slot,
+        }
+    }
     pub fn slot_mut(&mut self) -> &mut Slot {
         match self {
             Self::Phase0(inner) => &mut inner.slot,
@@ -1380,6 +1534,15 @@ impl<
             Self::Bellatrix(inner) => &mut inner.slot,
             Self::Capella(inner) => &mut inner.slot,
             Self::Deneb(inner) => &mut inner.slot,
+        }
+    }
+    pub fn proposer_index(&self) -> &ValidatorIndex {
+        match self {
+            Self::Phase0(inner) => &inner.proposer_index,
+            Self::Altair(inner) => &inner.proposer_index,
+            Self::Bellatrix(inner) => &inner.proposer_index,
+            Self::Capella(inner) => &inner.proposer_index,
+            Self::Deneb(inner) => &inner.proposer_index,
         }
     }
     pub fn proposer_index_mut(&mut self) -> &mut ValidatorIndex {
@@ -1391,6 +1554,15 @@ impl<
             Self::Deneb(inner) => &mut inner.proposer_index,
         }
     }
+    pub fn parent_root(&self) -> &Root {
+        match self {
+            Self::Phase0(inner) => &inner.parent_root,
+            Self::Altair(inner) => &inner.parent_root,
+            Self::Bellatrix(inner) => &inner.parent_root,
+            Self::Capella(inner) => &inner.parent_root,
+            Self::Deneb(inner) => &inner.parent_root,
+        }
+    }
     pub fn parent_root_mut(&mut self) -> &mut Root {
         match self {
             Self::Phase0(inner) => &mut inner.parent_root,
@@ -1400,6 +1572,15 @@ impl<
             Self::Deneb(inner) => &mut inner.parent_root,
         }
     }
+    pub fn state_root(&self) -> &Root {
+        match self {
+            Self::Phase0(inner) => &inner.state_root,
+            Self::Altair(inner) => &inner.state_root,
+            Self::Bellatrix(inner) => &inner.state_root,
+            Self::Capella(inner) => &inner.state_root,
+            Self::Deneb(inner) => &inner.state_root,
+        }
+    }
     pub fn state_root_mut(&mut self) -> &mut Root {
         match self {
             Self::Phase0(inner) => &mut inner.state_root,
@@ -1407,6 +1588,32 @@ impl<
             Self::Bellatrix(inner) => &mut inner.state_root,
             Self::Capella(inner) => &mut inner.state_root,
             Self::Deneb(inner) => &mut inner.state_root,
+        }
+    }
+    pub fn body(
+        &self,
+    ) -> BeaconBlockBodyRef<
+        MAX_PROPOSER_SLASHINGS,
+        MAX_VALIDATORS_PER_COMMITTEE,
+        MAX_ATTESTER_SLASHINGS,
+        MAX_ATTESTATIONS,
+        MAX_DEPOSITS,
+        MAX_VOLUNTARY_EXITS,
+        SYNC_COMMITTEE_SIZE,
+        BYTES_PER_LOGS_BLOOM,
+        MAX_EXTRA_DATA_BYTES,
+        MAX_BYTES_PER_TRANSACTION,
+        MAX_TRANSACTIONS_PER_PAYLOAD,
+        MAX_WITHDRAWALS_PER_PAYLOAD,
+        MAX_BLS_TO_EXECUTION_CHANGES,
+        MAX_BLOB_COMMITMENTS_PER_BLOCK,
+    > {
+        match self {
+            Self::Phase0(inner) => From::from(&inner.body),
+            Self::Altair(inner) => From::from(&inner.body),
+            Self::Bellatrix(inner) => From::from(&inner.body),
+            Self::Capella(inner) => From::from(&inner.body),
+            Self::Deneb(inner) => From::from(&inner.body),
         }
     }
     pub fn body_mut(

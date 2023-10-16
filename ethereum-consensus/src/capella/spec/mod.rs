@@ -63,10 +63,7 @@ pub use crate::{
     state_transition::{Context, Result, Validation},
 };
 use crate::{
-    crypto::{
-        eth_aggregate_public_keys, eth_fast_aggregate_verify, fast_aggregate_verify, hash,
-        verify_signature,
-    },
+    crypto::{eth_aggregate_public_keys, eth_fast_aggregate_verify, fast_aggregate_verify, hash},
     ssz::prelude::*,
 };
 use integer_sqrt::IntegerSquareRoot;

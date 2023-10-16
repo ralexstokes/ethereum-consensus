@@ -5,8 +5,8 @@ use crate::{
 use convert_case::{Case, Casing};
 use std::{collections::HashSet, fs};
 use syn::{
-    parse_quote, token::Mut, visit::Visit, AngleBracketedGenericArguments, Arm, Generics, Ident,
-    ImplItemMethod, Item, ItemStruct,
+    parse_quote, token::Mut, visit::Visit, AngleBracketedGenericArguments, Arm, Attribute, Expr,
+    GenericParam, Generics, Ident, ImplItemMethod, Item, ItemStruct,
 };
 
 const SOURCE_ROOT: &str = "ethereum-consensus/src";
@@ -115,16 +115,16 @@ impl Type {
                     altair::beacon_block as altair,
                     bellatrix::beacon_block as bellatrix,
                     capella::beacon_block as capella,
-                    deneb::beacon_block as deneb,
+                    deneb::{beacon_block as deneb, polynomial_commitments::KzgCommitment},
                     phase0::{
                         beacon_block as phase0, Attestation, AttesterSlashing, Deposit, Eth1Data, ProposerSlashing,
                         SignedVoluntaryExit,
                     },
                     altair::SyncAggregate,
                     capella::SignedBlsToExecutionChange,
-                    kzg::KzgCommitment,
                     primitives::{BlsSignature, Bytes32},
                     ssz::prelude::*,
+                    Fork as Version,
                     types::execution_payload::{ExecutionPayloadRef, ExecutionPayloadRefMut},
                 };
             },
@@ -132,16 +132,16 @@ impl Type {
                 use crate::{
                     bellatrix::blinded_beacon_block as bellatrix,
                     capella::blinded_beacon_block as capella,
-                    deneb::blinded_beacon_block as deneb,
+                    deneb::{blinded_beacon_block as deneb, polynomial_commitments::KzgCommitment},
                     phase0::{
                         Attestation, AttesterSlashing, Deposit, Eth1Data, ProposerSlashing,
                         SignedVoluntaryExit,
                     },
                     altair::SyncAggregate,
                     capella::SignedBlsToExecutionChange,
-                    kzg::KzgCommitment,
                     primitives::{BlsSignature, Bytes32},
                     ssz::prelude::*,
+                    Fork as Version,
                     types::execution_payload_header::{ExecutionPayloadHeaderRef, ExecutionPayloadHeaderRefMut},
                 };
             },
@@ -154,6 +154,7 @@ impl Type {
                     phase0::beacon_block as phase0,
                     primitives::{Slot, ValidatorIndex, Root},
                     ssz::prelude::*,
+                    Fork as Version,
                     types::beacon_block_body::{BeaconBlockBodyRef, BeaconBlockBodyRefMut},
                 };
             },
@@ -164,6 +165,7 @@ impl Type {
                     deneb::blinded_beacon_block as deneb,
                     primitives::{Slot, ValidatorIndex, Root},
                     ssz::prelude::*,
+                    Fork as Version,
                     types::blinded_beacon_block_body::{BlindedBeaconBlockBodyRef, BlindedBeaconBlockBodyRefMut},
                 };
             },
@@ -176,6 +178,7 @@ impl Type {
                     phase0::beacon_block as phase0,
                     primitives::BlsSignature,
                     ssz::prelude::*,
+                    Fork as Version,
                     types::beacon_block::{BeaconBlockRef, BeaconBlockRefMut},
                 };
             },
@@ -186,6 +189,7 @@ impl Type {
                     deneb::blinded_beacon_block as deneb,
                     primitives::BlsSignature,
                     ssz::prelude::*,
+                    Fork as Version,
                     types::blinded_beacon_block::{BlindedBeaconBlockRef, BlindedBeaconBlockRefMut},
                 };
             },
@@ -196,6 +200,7 @@ impl Type {
                     deneb::execution_payload as deneb,
                     primitives::{Hash32, ExecutionAddress, Bytes32},
                     ssz::prelude::*,
+                    Fork as Version,
                 };
             },
             Self::ExecutionPayloadHeader => parse_quote! {
@@ -205,6 +210,7 @@ impl Type {
                     deneb::execution_payload as deneb,
                     primitives::{Hash32, Root, ExecutionAddress, Bytes32},
                     ssz::prelude::*,
+                    Fork as Version,
                 };
             },
             Self::BeaconState => parse_quote! {
@@ -218,6 +224,7 @@ impl Type {
                     phase0::{JUSTIFICATION_BITS_LENGTH, beacon_block::BeaconBlockHeader, validator::Validator, operations::{PendingAttestation, Checkpoint, Eth1Data}},
                     primitives::{Root, ValidatorIndex, WithdrawalIndex, ParticipationFlags, Slot, Gwei, Bytes32},
                     ssz::prelude::*,
+                    Fork as Version,
                     types::execution_payload_header::{ExecutionPayloadHeaderRef, ExecutionPayloadHeaderRefMut},
                 };
             },
@@ -356,9 +363,8 @@ fn derive_type_defn(target_type: &Type, merge_type: &MergeType) -> (Item, Generi
         })
         .collect::<Vec<syn::Variant>>();
     let enum_defn = parse_quote! {
-        #[derive(Debug, Clone, PartialEq, Eq, SimpleSerialize, serde::Deserialize)]
-        #[serde(tag = "version", content = "data")]
-        #[serde(rename_all = "lowercase")]
+        #[derive(Debug, Clone, PartialEq, Eq, Merkleized, serde::Serialize)]
+        #[serde(untagged)]
         pub enum #type_name #generics {
             #(#variant_defns),*
         }
@@ -366,16 +372,23 @@ fn derive_type_defn(target_type: &Type, merge_type: &MergeType) -> (Item, Generi
     (enum_defn, generics_copy)
 }
 
-// NOTE: this should be fused w/ `derive_optional_method_set`
-// it started out distinct but after supporting all the features we need, it is
-// worthwhile to just make one merged routine...
-fn derive_maybe_non_optional_method_set(
+fn derive_method_set(
     target_type: &Type,
     field_defn: &FieldDefn,
     fork_sequence: &[Fork],
     ref_type: &Option<RefType>,
 ) -> Vec<ImplItemMethod> {
     let ident = &field_defn.ident;
+    let deletion_fork = target_type.field_deletions().and_then(|(fork, fields)| {
+        let identifier = ident.to_string();
+        if fields.contains(&identifier.as_str()) {
+            Some(fork)
+        } else {
+            None
+        }
+    });
+    let field_defined_in_all_forks = field_defn.fork == fork_sequence[0];
+    let is_optional = deletion_fork.is_some() || !field_defined_in_all_forks;
     let is_polymorphic = target_type.polymorphic_fields().contains(&ident.to_string().as_ref());
     let ty: syn::Type = if is_polymorphic {
         let base = target_type.get_polymorphic_type();
@@ -394,11 +407,31 @@ fn derive_maybe_non_optional_method_set(
             #name #arguments
         }
     } else {
-        let ty = &field_defn.type_def;
+        let type_def = &field_defn.type_def;
         parse_quote! {
-            &#ty
+            &#type_def
         }
     };
+    let ty: syn::Type = if is_optional { parse_quote!(Option<#ty>) } else { ty };
+
+    let match_arms = derive_match_arms(
+        &field_defn.fork,
+        fork_sequence,
+        ident,
+        false,
+        is_polymorphic,
+        is_optional,
+        deletion_fork,
+    );
+    let immut_ref = parse_quote! {
+        pub fn #ident(&self) -> #ty {
+            match self {
+                #(#match_arms)*
+            }
+        }
+    };
+
+    let mut_ident = as_syn_ident(format!("{ident}_mut"));
     let ty_mut: syn::Type = if is_polymorphic {
         let base = target_type.get_polymorphic_type();
         let name = as_syn_ident(format!("{base}RefMut"));
@@ -416,50 +449,21 @@ fn derive_maybe_non_optional_method_set(
             #name #arguments
         }
     } else {
-        let ty = &field_defn.type_def;
+        let type_def = &field_defn.type_def;
         parse_quote! {
-            &mut #ty
+            &mut #type_def
         }
     };
-
-    let identifier = ident.to_string();
-    let deletion_fork = target_type.field_deletions().and_then(|(fork, fields)| {
-        if fields.contains(&identifier.as_str()) {
-            Some(fork)
-        } else {
-            None
-        }
-    });
-
+    let ty_mut: syn::Type = if is_optional { parse_quote!(Option<#ty_mut>) } else { ty_mut };
     let match_arms = derive_match_arms(
         &field_defn.fork,
         fork_sequence,
         ident,
-        false,
-        false,
-        is_polymorphic,
-        deletion_fork,
-    );
-    let ty: syn::Type = if deletion_fork.is_some() { parse_quote!(Option<#ty>) } else { ty };
-    let immut_ref = parse_quote! {
-        pub fn #ident(&self) -> #ty {
-            match self {
-                #(#match_arms)*
-            }
-        }
-    };
-    let mut_ident = as_syn_ident(format!("{ident}_mut"));
-    let match_arms = derive_match_arms(
-        &field_defn.fork,
-        fork_sequence,
-        ident,
-        false,
         true,
         is_polymorphic,
+        is_optional,
         deletion_fork,
     );
-    let ty_mut: syn::Type =
-        if deletion_fork.is_some() { parse_quote!(Option<#ty_mut>) } else { ty_mut };
     let mut_ref = parse_quote! {
         pub fn #mut_ident(&mut self) -> #ty_mut {
             match self {
@@ -469,7 +473,7 @@ fn derive_maybe_non_optional_method_set(
     };
     match ref_type {
         Some(RefType::Immutable) => vec![immut_ref],
-        Some(RefType::Mutable) => vec![mut_ref],
+        Some(RefType::Mutable) => vec![immut_ref, mut_ref],
         None => vec![immut_ref, mut_ref],
     }
 }
@@ -478,9 +482,9 @@ fn derive_match_arms(
     source_fork: &Fork,
     fork_sequence: &[Fork],
     ident: &Ident,
-    is_optional: bool,
     is_mut: bool,
     is_polymorphic: bool,
+    is_optional: bool,
     deletion_fork: Option<Fork>,
 ) -> Vec<Arm> {
     let mutability = if is_mut { Some(Mut::default()) } else { None };
@@ -489,8 +493,6 @@ fn derive_match_arms(
     } else {
         parse_quote!(&#mutability inner.#ident)
     };
-    let accessor_expr: syn::Expr =
-        if is_optional { parse_quote!(Some(#accessor_expr)) } else { accessor_expr };
     fork_sequence
         .iter()
         .map(|fork| {
@@ -500,7 +502,7 @@ fn derive_match_arms(
             } else {
                 false
             };
-            let accessor_expr = if deletion_fork.is_some() {
+            let accessor_expr = if is_optional {
                 parse_quote!(Some(#accessor_expr))
             } else {
                 accessor_expr.clone()
@@ -516,105 +518,6 @@ fn derive_match_arms(
             }
         })
         .collect()
-}
-
-fn derive_optional_method_set(
-    target_type: &Type,
-    field_defn: &FieldDefn,
-    fork_sequence: &[Fork],
-    ref_type: &Option<RefType>,
-) -> Vec<ImplItemMethod> {
-    let ident = &field_defn.ident;
-    let is_polymorphic = target_type.polymorphic_fields().contains(&ident.to_string().as_ref());
-    let ty: syn::Type = if is_polymorphic {
-        let base = target_type.get_polymorphic_type();
-        let name = as_syn_ident(format!("{base}Ref"));
-
-        let ty = &field_defn.type_def;
-        let mut visitor = ToGenericsVisitor::default();
-        visitor.visit_type(ty);
-        let bounds = visitor.bounds;
-        let arguments: AngleBracketedGenericArguments = parse_quote! {
-            <
-            #(#bounds),*
-            >
-        };
-        parse_quote! {
-            #name #arguments
-        }
-    } else {
-        let ty = &field_defn.type_def;
-        parse_quote! {
-            &#ty
-        }
-    };
-    let ty_mut: syn::Type = if is_polymorphic {
-        let base = target_type.get_polymorphic_type();
-        let name = as_syn_ident(format!("{base}RefMut"));
-
-        let ty = &field_defn.type_def;
-        let mut visitor = ToGenericsVisitor::default();
-        visitor.visit_type(ty);
-        let bounds = visitor.bounds;
-        let arguments: AngleBracketedGenericArguments = parse_quote! {
-            <
-            #(#bounds),*
-            >
-        };
-        parse_quote! {
-            #name #arguments
-        }
-    } else {
-        let ty = &field_defn.type_def;
-        parse_quote! {
-            &mut #ty
-        }
-    };
-    let match_arms = derive_match_arms(
-        &field_defn.fork,
-        fork_sequence,
-        ident,
-        true,
-        false,
-        is_polymorphic,
-        None,
-    );
-    let immut_ref = parse_quote! {
-        pub fn #ident(&self) -> Option<#ty> {
-            match self {
-                #(#match_arms)*
-            }
-        }
-    };
-    let match_arms =
-        derive_match_arms(&field_defn.fork, fork_sequence, ident, true, true, is_polymorphic, None);
-    let mut_ident = as_syn_ident(format!("{ident}_mut"));
-    let mut_ref = parse_quote! {
-        pub fn #mut_ident(&mut self) -> Option<#ty_mut> {
-            match self {
-                #(#match_arms)*
-            }
-        }
-    };
-    match ref_type {
-        Some(RefType::Immutable) => vec![immut_ref],
-        Some(RefType::Mutable) => vec![mut_ref],
-        None => vec![immut_ref, mut_ref],
-    }
-}
-
-fn derive_method_set(
-    target_type: &Type,
-    field_defn: &FieldDefn,
-    fork_sequence: &[Fork],
-    ref_type: &Option<RefType>,
-) -> Vec<ImplItemMethod> {
-    match &field_defn.fork {
-        Fork::Phase0 => {
-            derive_maybe_non_optional_method_set(target_type, field_defn, fork_sequence, ref_type)
-        }
-        _ => derive_optional_method_set(target_type, field_defn, fork_sequence, ref_type),
-    }
 }
 
 enum RefType {
@@ -660,20 +563,33 @@ fn derive_fields_impl(
             };
             match ref_type {
                 Some(RefType::Immutable) => vec![immut_ref],
-                Some(RefType::Mutable) => vec![mut_ref],
+                Some(RefType::Mutable) => vec![immut_ref, mut_ref],
                 None => vec![immut_ref, mut_ref],
             }
         })
         .collect::<Vec<ImplItemMethod>>();
 
     let fork_sequence = merge_type.supported_forks();
-    let field_accessors = merge_type
-        .fields
+    let fork_accessor_arms = fork_sequence
         .iter()
-        .flat_map(|field_defn| {
-            derive_method_set(target_type, field_defn, &fork_sequence, &ref_type)
+        .map(|fork| {
+            let fork = as_syn_ident(format!("{fork:?}"));
+            parse_quote! {
+                Self::#fork(_) => Version::#fork,
+            }
         })
-        .collect::<Vec<ImplItemMethod>>();
+        .collect::<Vec<Arm>>();
+    fields.push(parse_quote! {
+        pub fn version(&self) -> Version {
+            match self {
+                #(#fork_accessor_arms)*
+            }
+        }
+    });
+
+    let field_accessors = merge_type.fields.iter().flat_map(|field_defn| {
+        derive_method_set(target_type, field_defn, &fork_sequence, &ref_type)
+    });
     fields.extend(field_accessors);
     fields
 }
@@ -727,9 +643,17 @@ fn derive_ref_impl_type(
             }
         })
         .collect::<Vec<syn::Variant>>();
+    let derive_attr: Attribute = if is_mut {
+        parse_quote!(#[derive(Debug, PartialEq, Eq, Merkleized)])
+    } else {
+        parse_quote!(#[derive(Debug, PartialEq, Eq)])
+    };
+    let ssz_attr: Option<Attribute> =
+        if is_mut { Some(parse_quote!(#[ssz(transparent)])) } else { None };
     (
         parse_quote! {
-            #[derive(Debug, PartialEq, Eq)]
+            #derive_attr
+            #ssz_attr
             pub enum #type_name #generics {
                 #(#variant_defns,)*
             }
@@ -810,28 +734,36 @@ fn derive_ref_impl(target_type: &Type, merge_type: &MergeType, is_mut: bool) -> 
     result
 }
 
-fn derive_serde_ser_impl(target_type: &Type, generics: &Generics, merge_type: &MergeType) -> Item {
+fn derive_serde_de_impl(target_type: &Type, generics: &Generics, merge_type: &MergeType) -> Item {
     let type_name = as_syn_ident(target_type.name());
     let arguments = generics_to_arguments(generics);
-    let match_arms: Vec<Arm> = merge_type
+    let de_by_fork: Vec<Expr> = merge_type
         .variants
         .iter()
+        .rev()
         .map(|variant| {
             let fork_name = as_syn_ident(format!("{:?}", variant.fork));
             parse_quote! {
-                Self::#fork_name(inner) => <_ as serde::Serialize>::serialize(inner, serializer)
+                if let Ok(inner) = <_ as serde::Deserialize>::deserialize(&value) {
+                    return Ok(Self::#fork_name(inner))
+                }
             }
         })
         .collect();
+    let mut generics = generics.clone();
+    let de_lifetime: GenericParam = parse_quote! {
+        'de
+    };
+    generics.params.insert(0, de_lifetime);
     parse_quote! {
-        impl #generics serde::Serialize for #type_name #arguments {
-            fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+        impl #generics serde::Deserialize<'de> for #type_name #arguments {
+            fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
             where
-              S: serde::Serializer
+              D: serde::Deserializer<'de>,
             {
-                match self {
-                    #(#match_arms,)*
-                }
+                let value = serde_json::Value::deserialize(deserializer)?;
+                #(#de_by_fork)*
+                Err(serde::de::Error::custom("no variant could be deserialized from input"))
             }
         }
     }
@@ -842,10 +774,10 @@ fn as_syn(target_type: &Type, merge_type: &MergeType) -> Vec<Item> {
 
     let impl_defn = derive_impl_defn(target_type, merge_type, &generics);
 
-    let serde_ser_impl = derive_serde_ser_impl(target_type, &generics, merge_type);
+    let serde_de_impl = derive_serde_de_impl(target_type, &generics, merge_type);
 
     let imports = target_type.imports();
-    let mut result = vec![imports, type_defn, impl_defn, serde_ser_impl];
+    let mut result = vec![imports, type_defn, impl_defn, serde_de_impl];
 
     if target_type.needs_ref_types() {
         result.extend(derive_ref_impl(target_type, merge_type, false));

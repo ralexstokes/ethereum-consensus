@@ -28,7 +28,7 @@ ec = [
 ]
 
 [dependencies]
-ssz_rs = { git = "https://github.com/ralexstokes/ssz-rs", rev = "51f3932d1578a62f856c19175482056912de5f3e" }
+ssz_rs = { git = "https://github.com/ralexstokes/ssz-rs", rev = "c00a4659b9d1980d410c487a88e983cf2506c928" }
 blst = "0.3.11"
 rand = "0.8.4"
 thiserror = "1.0.30"
