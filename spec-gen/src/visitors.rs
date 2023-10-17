@@ -167,6 +167,12 @@ impl TypeNameVisitor {
     pub fn analyze(&mut self, f: &ItemFn) {
         self.visit_item_fn(f)
     }
+
+    pub fn analyze_type(&mut self, t: &Type) {
+        self.in_context = true;
+        self.visit_type(t);
+        self.in_context = false;
+    }
 }
 
 impl<'ast> Visit<'ast> for TypeNameVisitor {
