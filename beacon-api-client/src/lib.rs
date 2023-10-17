@@ -43,23 +43,29 @@ pub mod presets {
             },
         };
 
-        pub type Client = crate::Client<
-            altair::SignedContributionAndProof,
-            altair::SyncCommitteeContribution,
-            BlindedBeaconBlock,
-            SignedBlindedBeaconBlock,
-            phase0::Attestation,
-            phase0::AttesterSlashing,
-            BeaconBlock,
-            BeaconState,
-            phase0::SignedAggregateAndProof,
-            SignedBeaconBlock,
-            deneb::BlobSidecar,
-            altair::LightClientBootstrap,
-            altair::LightClientUpdate,
-            altair::LightClientFinalityUpdate,
-            altair::LightClientOptimisticUpdate,
-        >;
+        use crate::ClientTypes;
+
+        pub struct MainnetClientTypes;
+
+        impl ClientTypes for MainnetClientTypes {
+            type SignedContributionAndProof = altair::SignedContributionAndProof;
+            type SyncCommitteeContribution = altair::SyncCommitteeContribution;
+            type BlindedBeaconBlock = BlindedBeaconBlock;
+            type SignedBlindedBeaconBlock = SignedBlindedBeaconBlock;
+            type Attestation = phase0::Attestation;
+            type AttesterSlashing = phase0::AttesterSlashing;
+            type BeaconBlock = BeaconBlock;
+            type BeaconState = BeaconState;
+            type SignedAggregateAndProof = phase0::SignedAggregateAndProof;
+            type SignedBeaconBlock = SignedBeaconBlock;
+            type BlobSidecar = deneb::BlobSidecar;
+            type LightClientBootstrap = altair::LightClientBootstrap;
+            type LightClientUpdate = altair::LightClientUpdate;
+            type LightClientFinalityUpdate = altair::LightClientFinalityUpdate;
+            type LightClientOptimisticUpdate = altair::LightClientOptimisticUpdate;
+        }
+
+        pub type Client = crate::Client<MainnetClientTypes>;
     }
     pub mod minimal {
         use ethereum_consensus::{
@@ -72,22 +78,28 @@ pub mod presets {
             },
         };
 
-        pub type Client = crate::Client<
-            altair::SignedContributionAndProof,
-            altair::SyncCommitteeContribution,
-            BlindedBeaconBlock,
-            SignedBlindedBeaconBlock,
-            phase0::Attestation,
-            phase0::AttesterSlashing,
-            BeaconBlock,
-            BeaconState,
-            phase0::SignedAggregateAndProof,
-            SignedBeaconBlock,
-            deneb::BlobSidecar,
-            altair::LightClientBootstrap,
-            altair::LightClientUpdate,
-            altair::LightClientFinalityUpdate,
-            altair::LightClientOptimisticUpdate,
-        >;
+        use crate::ClientTypes;
+
+        pub struct MinimalClientTypes;
+
+        impl ClientTypes for MinimalClientTypes {
+            type SignedContributionAndProof = altair::SignedContributionAndProof;
+            type SyncCommitteeContribution = altair::SyncCommitteeContribution;
+            type BlindedBeaconBlock = BlindedBeaconBlock;
+            type SignedBlindedBeaconBlock = SignedBlindedBeaconBlock;
+            type Attestation = phase0::Attestation;
+            type AttesterSlashing = phase0::AttesterSlashing;
+            type BeaconBlock = BeaconBlock;
+            type BeaconState = BeaconState;
+            type SignedAggregateAndProof = phase0::SignedAggregateAndProof;
+            type SignedBeaconBlock = SignedBeaconBlock;
+            type BlobSidecar = deneb::BlobSidecar;
+            type LightClientBootstrap = altair::LightClientBootstrap;
+            type LightClientUpdate = altair::LightClientUpdate;
+            type LightClientFinalityUpdate = altair::LightClientFinalityUpdate;
+            type LightClientOptimisticUpdate = altair::LightClientOptimisticUpdate;
+        }
+
+        pub type Client = crate::Client<MinimalClientTypes>;
     }
 }
