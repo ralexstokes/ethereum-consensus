@@ -43,11 +43,9 @@ pub mod presets {
             },
         };
 
-        use crate::ClientTypes;
-
         pub struct MainnetClientTypes;
 
-        impl ClientTypes for MainnetClientTypes {
+        impl crate::ClientTypes for MainnetClientTypes {
             type SignedContributionAndProof = altair::SignedContributionAndProof;
             type SyncCommitteeContribution = altair::SyncCommitteeContribution;
             type BlindedBeaconBlock = BlindedBeaconBlock;
@@ -78,11 +76,9 @@ pub mod presets {
             },
         };
 
-        use crate::ClientTypes;
-
         pub struct MinimalClientTypes;
 
-        impl ClientTypes for MinimalClientTypes {
+        impl crate::ClientTypes for MinimalClientTypes {
             type SignedContributionAndProof = altair::SignedContributionAndProof;
             type SyncCommitteeContribution = altair::SyncCommitteeContribution;
             type BlindedBeaconBlock = BlindedBeaconBlock;
