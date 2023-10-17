@@ -362,6 +362,16 @@ impl Context {
         }
     }
 
+    pub fn fork_version_for(&self, fork: Fork) -> Version {
+        match fork {
+            Fork::Phase0 => self.genesis_fork_version,
+            Fork::Altair => self.altair_fork_version,
+            Fork::Bellatrix => self.bellatrix_fork_version,
+            Fork::Capella => self.capella_fork_version,
+            Fork::Deneb => self.deneb_fork_version,
+        }
+    }
+
     pub fn genesis_time(&self) -> Result<u64, Error> {
         match &self.name {
             Network::Mainnet => Ok(crate::clock::MAINNET_GENESIS_TIME),
