@@ -51,49 +51,32 @@ async fn api_error_or_value<T: serde::de::DeserializeOwned>(
     }
 }
 
-#[allow(clippy::type_complexity)]
-#[derive(Clone)]
-pub struct Client<A, B, C, D, E, F, G, H, I, J, K, L, M, N, O> {
-    pub http: reqwest::Client,
-    pub endpoint: Url,
-    _phantom: std::marker::PhantomData<(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O)>,
+pub trait ClientTypes {
+    type SignedContributionAndProof: serde::Serialize;
+    type SyncCommitteeContribution: serde::Serialize + serde::de::DeserializeOwned;
+    type BlindedBeaconBlock: serde::Serialize + serde::de::DeserializeOwned;
+    type SignedBlindedBeaconBlock: serde::Serialize + serde::de::DeserializeOwned;
+    type Attestation: serde::Serialize + serde::de::DeserializeOwned;
+    type AttesterSlashing: serde::Serialize + serde::de::DeserializeOwned;
+    type BeaconBlock: serde::Serialize + serde::de::DeserializeOwned;
+    type BeaconState: serde::Serialize + serde::de::DeserializeOwned;
+    type SignedAggregateAndProof: serde::Serialize;
+    type SignedBeaconBlock: serde::Serialize + serde::de::DeserializeOwned;
+    type BlobSidecar: serde::Serialize + serde::de::DeserializeOwned;
+    type LightClientBootstrap: serde::Serialize + serde::de::DeserializeOwned;
+    type LightClientUpdate: serde::Serialize + serde::de::DeserializeOwned;
+    type LightClientFinalityUpdate: serde::Serialize + serde::de::DeserializeOwned;
+    type LightClientOptimisticUpdate: serde::Serialize + serde::de::DeserializeOwned;
 }
 
-impl<
-        SignedContributionAndProof: serde::Serialize,
-        SyncCommitteeContribution: serde::Serialize + serde::de::DeserializeOwned,
-        BlindedBeaconBlock: serde::Serialize + serde::de::DeserializeOwned,
-        SignedBlindedBeaconBlock: serde::Serialize + serde::de::DeserializeOwned,
-        Attestation: serde::Serialize + serde::de::DeserializeOwned,
-        AttesterSlashing: serde::Serialize + serde::de::DeserializeOwned,
-        BeaconBlock: serde::Serialize + serde::de::DeserializeOwned,
-        BeaconState: serde::Serialize + serde::de::DeserializeOwned,
-        SignedAggregateAndProof: serde::Serialize,
-        SignedBeaconBlock: serde::Serialize + serde::de::DeserializeOwned,
-        BlobSidecar: serde::Serialize + serde::de::DeserializeOwned,
-        LightClientBootstrap: serde::Serialize + serde::de::DeserializeOwned,
-        LightClientUpdate: serde::Serialize + serde::de::DeserializeOwned,
-        LightClientFinalityUpdate: serde::Serialize + serde::de::DeserializeOwned,
-        LightClientOptimisticUpdate: serde::Serialize + serde::de::DeserializeOwned,
-    >
-    Client<
-        SignedContributionAndProof,
-        SyncCommitteeContribution,
-        BlindedBeaconBlock,
-        SignedBlindedBeaconBlock,
-        Attestation,
-        AttesterSlashing,
-        BeaconBlock,
-        BeaconState,
-        SignedAggregateAndProof,
-        SignedBeaconBlock,
-        BlobSidecar,
-        LightClientBootstrap,
-        LightClientUpdate,
-        LightClientFinalityUpdate,
-        LightClientOptimisticUpdate,
-    >
-{
+#[derive(Clone)]
+pub struct Client<C> {
+    pub http: reqwest::Client,
+    pub endpoint: Url,
+    _phantom: std::marker::PhantomData<C>,
+}
+
+impl<C: ClientTypes> Client<C> {
     pub fn new_with_client<U: Into<Url>>(client: reqwest::Client, endpoint: U) -> Self {
         Self { http: client, endpoint: endpoint.into(), _phantom: std::marker::PhantomData }
     }
@@ -331,14 +314,14 @@ impl<
 
     pub async fn post_signed_blinded_beacon_block(
         &self,
-        block: &SignedBlindedBeaconBlock,
+        block: &C::SignedBlindedBeaconBlock,
     ) -> Result<(), Error> {
         self.post("eth/v1/beacon/blinded_blocks", block).await
     }
 
     pub async fn post_signed_blinded_beacon_block_v2(
         &self,
-        block: &SignedBlindedBeaconBlock,
+        block: &C::SignedBlindedBeaconBlock,
         broadcast_validation: Option<BroadcastValidation>,
     ) -> Result<(), Error> {
         let target = self.endpoint.join("eth/v2/beacon/blinded_blocks")?;
@@ -350,13 +333,16 @@ impl<
         api_error_or_ok(response).await
     }
 
-    pub async fn post_signed_beacon_block(&self, block: &SignedBeaconBlock) -> Result<(), Error> {
+    pub async fn post_signed_beacon_block(
+        &self,
+        block: &C::SignedBeaconBlock,
+    ) -> Result<(), Error> {
         self.post("eth/v1/beacon/blocks", block).await
     }
 
     pub async fn post_signed_beacon_block_v2(
         &self,
-        block: &SignedBeaconBlock,
+        block: &C::SignedBeaconBlock,
         broadcast_validation: Option<BroadcastValidation>,
     ) -> Result<(), Error> {
         let target = self.endpoint.join("eth/v2/beacon/blocks")?;
@@ -369,8 +355,8 @@ impl<
     }
 
     // v2 endpoint
-    pub async fn get_beacon_block(&self, id: BlockId) -> Result<SignedBeaconBlock, Error> {
-        let result: VersionedValue<SignedBeaconBlock> =
+    pub async fn get_beacon_block(&self, id: BlockId) -> Result<C::SignedBeaconBlock, Error> {
+        let result: VersionedValue<C::SignedBeaconBlock> =
             self.get(&format!("eth/v2/beacon/blocks/{id}")).await?;
         Ok(result.data)
     }
@@ -383,8 +369,8 @@ impl<
     pub async fn get_attestations_from_beacon_block(
         &self,
         id: BlockId,
-    ) -> Result<Vec<Attestation>, Error> {
-        let result: Value<Vec<Attestation>> =
+    ) -> Result<Vec<C::Attestation>, Error> {
+        let result: Value<Vec<C::Attestation>> =
             self.get(&format!("eth/v1/beacon/blocks/{id}/attestations")).await?;
         Ok(result.data)
     }
@@ -393,7 +379,7 @@ impl<
         &self,
         id: BlockId,
         indices: &[BlobIndex],
-    ) -> Result<Vec<BlobSidecar>, Error> {
+    ) -> Result<Vec<C::BlobSidecar>, Error> {
         let path = format!("eth/v1/beacon/blob_sidecars/{id}");
         let target = self.endpoint.join(&path)?;
         let mut request = self.http.get(target);
@@ -413,8 +399,11 @@ impl<
         Ok(result.data)
     }
 
-    pub async fn get_blinded_block(&self, id: BlockId) -> Result<SignedBlindedBeaconBlock, Error> {
-        let result: VersionedValue<SignedBlindedBeaconBlock> =
+    pub async fn get_blinded_block(
+        &self,
+        id: BlockId,
+    ) -> Result<C::SignedBlindedBeaconBlock, Error> {
+        let result: VersionedValue<C::SignedBlindedBeaconBlock> =
             self.get(&format!("eth/v1/beacon/blinded_blocks/{id}")).await?;
         Ok(result.data)
     }
@@ -422,7 +411,7 @@ impl<
     pub async fn get_light_client_bootstrap(
         &self,
         block: Root,
-    ) -> Result<LightClientBootstrap, Error> {
+    ) -> Result<C::LightClientBootstrap, Error> {
         let result: Value<_> =
             self.get(&format!("eth/v1/beacon/light_client/bootstrap/{block}")).await?;
         Ok(result.data)
@@ -432,7 +421,7 @@ impl<
         &self,
         start: u64,
         count: u64,
-    ) -> Result<Vec<LightClientUpdate>, Error> {
+    ) -> Result<Vec<C::LightClientUpdate>, Error> {
         let target = self.endpoint.join("eth/v1/beacon/light_client/updates")?;
         let mut request = self.http.get(target);
         request = request.query(&[("start_period", start), ("count", count)]);
@@ -447,14 +436,14 @@ impl<
 
     pub async fn get_light_client_finality_update(
         &self,
-    ) -> Result<LightClientFinalityUpdate, Error> {
+    ) -> Result<C::LightClientFinalityUpdate, Error> {
         let result: Value<_> = self.get("eth/v1/beacon/light_client/finality_update").await?;
         Ok(result.data)
     }
 
     pub async fn get_light_client_optimistic_update(
         &self,
-    ) -> Result<LightClientOptimisticUpdate, Error> {
+    ) -> Result<C::LightClientOptimisticUpdate, Error> {
         let result: Value<_> = self.get("eth/v1/beacon/light_client/optimistic_update").await?;
         Ok(result.data)
     }
@@ -463,7 +452,7 @@ impl<
         &self,
         slot: Option<Slot>,
         committee_index: Option<CommitteeIndex>,
-    ) -> Result<Vec<Attestation>, Error> {
+    ) -> Result<Vec<C::Attestation>, Error> {
         let path = "eth/v1/beacon/pool/attestations";
         let target = self.endpoint.join(path)?;
         let mut request = self.http.get(target);
@@ -474,26 +463,28 @@ impl<
             request = request.query(&[("committee_index", committee_index)]);
         }
         let response = request.send().await?;
-        let result: ApiResult<Value<Vec<Attestation>>> = response.json().await?;
+        let result: ApiResult<Value<Vec<C::Attestation>>> = response.json().await?;
         match result {
             ApiResult::Ok(result) => Ok(result.data),
             ApiResult::Err(err) => Err(err.into()),
         }
     }
 
-    pub async fn post_attestations(&self, attestations: &[Attestation]) -> Result<(), Error> {
+    pub async fn post_attestations(&self, attestations: &[C::Attestation]) -> Result<(), Error> {
         self.post("eth/v1/beacon/pool/attestations", attestations).await
     }
 
-    pub async fn get_attester_slashings_from_pool(&self) -> Result<Vec<AttesterSlashing>, Error> {
-        let result: Value<Vec<AttesterSlashing>> =
+    pub async fn get_attester_slashings_from_pool(
+        &self,
+    ) -> Result<Vec<C::AttesterSlashing>, Error> {
+        let result: Value<Vec<C::AttesterSlashing>> =
             self.get("eth/v1/beacon/pool/attester_slashings").await?;
         Ok(result.data)
     }
 
     pub async fn post_attester_slashing(
         &self,
-        attester_slashing: &AttesterSlashing,
+        attester_slashing: &C::AttesterSlashing,
     ) -> Result<(), Error> {
         self.post("eth/v1/beacon/pool/attester_slashings", attester_slashing).await
     }
@@ -585,8 +576,8 @@ impl<
 
     /* debug namespace */
     // v2 endpoint
-    pub async fn get_state(&self, id: StateId) -> Result<BeaconState, Error> {
-        let result: VersionedValue<BeaconState> =
+    pub async fn get_state(&self, id: StateId) -> Result<C::BeaconState, Error> {
+        let result: VersionedValue<C::BeaconState> =
             self.get(&format!("eth/v2/debug/beacon/states/{id}")).await?;
         Ok(result.data)
     }
@@ -715,7 +706,7 @@ impl<
         slot: Slot,
         randao_reveal: RandaoReveal,
         graffiti: Option<Bytes32>,
-    ) -> Result<BeaconBlock, Error> {
+    ) -> Result<C::BeaconBlock, Error> {
         let path = format!("eth/v2/validator/blocks/{slot}");
         let target = self.endpoint.join(&path)?;
         let mut request = self.http.get(target);
@@ -724,7 +715,7 @@ impl<
             request = request.query(&[("graffiti", graffiti)]);
         }
         let response = request.send().await?;
-        let result: ApiResult<VersionedValue<BeaconBlock>> = response.json().await?;
+        let result: ApiResult<VersionedValue<C::BeaconBlock>> = response.json().await?;
         match result {
             ApiResult::Ok(result) => Ok(result.data),
             ApiResult::Err(err) => Err(err.into()),
@@ -736,7 +727,7 @@ impl<
         slot: Slot,
         randao_reveal: RandaoReveal,
         graffiti: Option<Bytes32>,
-    ) -> Result<BlindedBeaconBlock, Error> {
+    ) -> Result<C::BlindedBeaconBlock, Error> {
         let path = format!("eth/v1/validator/blinded_blocks/{slot}");
         let target = self.endpoint.join(&path)?;
         let mut request = self.http.get(target);
@@ -745,7 +736,7 @@ impl<
             request = request.query(&[("graffiti", graffiti)]);
         }
         let response = request.send().await?;
-        let result: ApiResult<VersionedValue<BlindedBeaconBlock>> = response.json().await?;
+        let result: ApiResult<VersionedValue<C::BlindedBeaconBlock>> = response.json().await?;
         match result {
             ApiResult::Ok(result) => Ok(result.data),
             ApiResult::Err(err) => Err(err.into()),
@@ -773,13 +764,13 @@ impl<
         &self,
         attestation_data_root: Root,
         slot: Slot,
-    ) -> Result<Attestation, Error> {
+    ) -> Result<C::Attestation, Error> {
         let target = self.endpoint.join("eth/v1/validator/aggregate_attestation")?;
         let mut request = self.http.get(target);
         request = request.query(&[("attestation_data_root", attestation_data_root)]);
         request = request.query(&[("slot", slot)]);
         let response = request.send().await?;
-        let result: ApiResult<Value<Attestation>> = response.json().await?;
+        let result: ApiResult<Value<C::Attestation>> = response.json().await?;
         match result {
             ApiResult::Ok(result) => Ok(result.data),
             ApiResult::Err(err) => Err(err.into()),
@@ -788,7 +779,7 @@ impl<
 
     pub async fn post_aggregates_with_proofs(
         &self,
-        aggregates_with_proofs: &[SignedAggregateAndProof],
+        aggregates_with_proofs: &[C::SignedAggregateAndProof],
     ) -> Result<(), Error> {
         self.post("eth/v1/validator/aggregate_and_proofs", aggregates_with_proofs).await
     }
@@ -812,14 +803,14 @@ impl<
         slot: Slot,
         subcommittee_index: usize,
         beacon_block_root: Root,
-    ) -> Result<SyncCommitteeContribution, Error> {
+    ) -> Result<C::SyncCommitteeContribution, Error> {
         let target = self.endpoint.join("eth/v1/validator/sync_committee_contribution")?;
         let mut request = self.http.get(target);
         request = request.query(&[("slot", slot)]);
         request = request.query(&[("subcommittee_index", subcommittee_index)]);
         request = request.query(&[("beacon_block_root", beacon_block_root)]);
         let response = request.send().await?;
-        let result: ApiResult<Value<SyncCommitteeContribution>> = response.json().await?;
+        let result: ApiResult<Value<C::SyncCommitteeContribution>> = response.json().await?;
         match result {
             ApiResult::Ok(result) => Ok(result.data),
             ApiResult::Err(err) => Err(err.into()),
@@ -828,7 +819,7 @@ impl<
 
     pub async fn post_sync_committee_contributions_with_proofs(
         &self,
-        contributions_with_proofs: &[SignedContributionAndProof],
+        contributions_with_proofs: &[C::SignedContributionAndProof],
     ) -> Result<(), Error> {
         self.post("eth/v1/validator/contribution_and_proofs", contributions_with_proofs).await
     }
