@@ -590,7 +590,7 @@ impl<C: ClientTypes> Client<C> {
     }
 
     /* events namespace */
-    pub async fn get_events<M>(_topics: &[EventTopic]) -> Result<M, Error> {
+    pub async fn get_events<T>(_topics: &[EventTopic]) -> Result<T, Error> {
         unimplemented!("")
     }
 
