@@ -43,6 +43,7 @@ pub mod presets {
             },
         };
 
+        #[derive(Clone)]
         pub struct MainnetClientTypes;
 
         impl crate::ClientTypes for MainnetClientTypes {
@@ -76,6 +77,7 @@ pub mod presets {
             },
         };
 
+        #[derive(Clone)]
         pub struct MinimalClientTypes;
 
         impl crate::ClientTypes for MinimalClientTypes {

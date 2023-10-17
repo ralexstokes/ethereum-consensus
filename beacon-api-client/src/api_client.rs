@@ -51,7 +51,7 @@ async fn api_error_or_value<T: serde::de::DeserializeOwned>(
     }
 }
 
-pub trait ClientTypes {
+pub trait ClientTypes: Clone {
     type SignedContributionAndProof: serde::Serialize;
     type SyncCommitteeContribution: serde::Serialize + serde::de::DeserializeOwned;
     type BlindedBeaconBlock: serde::Serialize + serde::de::DeserializeOwned;
