@@ -336,58 +336,31 @@ impl<
             Self::Deneb(_) => Version::Deneb,
         }
     }
-    pub fn genesis_time(&self) -> &u64 {
+    pub fn genesis_time(&self) -> u64 {
         match self {
-            Self::Phase0(inner) => &inner.genesis_time,
-            Self::Altair(inner) => &inner.genesis_time,
-            Self::Bellatrix(inner) => &inner.genesis_time,
-            Self::Capella(inner) => &inner.genesis_time,
-            Self::Deneb(inner) => &inner.genesis_time,
+            Self::Phase0(inner) => inner.genesis_time,
+            Self::Altair(inner) => inner.genesis_time,
+            Self::Bellatrix(inner) => inner.genesis_time,
+            Self::Capella(inner) => inner.genesis_time,
+            Self::Deneb(inner) => inner.genesis_time,
         }
     }
-    pub fn genesis_time_mut(&mut self) -> &mut u64 {
+    pub fn genesis_validators_root(&self) -> Root {
         match self {
-            Self::Phase0(inner) => &mut inner.genesis_time,
-            Self::Altair(inner) => &mut inner.genesis_time,
-            Self::Bellatrix(inner) => &mut inner.genesis_time,
-            Self::Capella(inner) => &mut inner.genesis_time,
-            Self::Deneb(inner) => &mut inner.genesis_time,
+            Self::Phase0(inner) => inner.genesis_validators_root,
+            Self::Altair(inner) => inner.genesis_validators_root,
+            Self::Bellatrix(inner) => inner.genesis_validators_root,
+            Self::Capella(inner) => inner.genesis_validators_root,
+            Self::Deneb(inner) => inner.genesis_validators_root,
         }
     }
-    pub fn genesis_validators_root(&self) -> &Root {
+    pub fn slot(&self) -> Slot {
         match self {
-            Self::Phase0(inner) => &inner.genesis_validators_root,
-            Self::Altair(inner) => &inner.genesis_validators_root,
-            Self::Bellatrix(inner) => &inner.genesis_validators_root,
-            Self::Capella(inner) => &inner.genesis_validators_root,
-            Self::Deneb(inner) => &inner.genesis_validators_root,
-        }
-    }
-    pub fn genesis_validators_root_mut(&mut self) -> &mut Root {
-        match self {
-            Self::Phase0(inner) => &mut inner.genesis_validators_root,
-            Self::Altair(inner) => &mut inner.genesis_validators_root,
-            Self::Bellatrix(inner) => &mut inner.genesis_validators_root,
-            Self::Capella(inner) => &mut inner.genesis_validators_root,
-            Self::Deneb(inner) => &mut inner.genesis_validators_root,
-        }
-    }
-    pub fn slot(&self) -> &Slot {
-        match self {
-            Self::Phase0(inner) => &inner.slot,
-            Self::Altair(inner) => &inner.slot,
-            Self::Bellatrix(inner) => &inner.slot,
-            Self::Capella(inner) => &inner.slot,
-            Self::Deneb(inner) => &inner.slot,
-        }
-    }
-    pub fn slot_mut(&mut self) -> &mut Slot {
-        match self {
-            Self::Phase0(inner) => &mut inner.slot,
-            Self::Altair(inner) => &mut inner.slot,
-            Self::Bellatrix(inner) => &mut inner.slot,
-            Self::Capella(inner) => &mut inner.slot,
-            Self::Deneb(inner) => &mut inner.slot,
+            Self::Phase0(inner) => inner.slot,
+            Self::Altair(inner) => inner.slot,
+            Self::Bellatrix(inner) => inner.slot,
+            Self::Capella(inner) => inner.slot,
+            Self::Deneb(inner) => inner.slot,
         }
     }
     pub fn fork(&self) -> &Fork {
@@ -516,22 +489,13 @@ impl<
             Self::Deneb(inner) => &mut inner.eth1_data_votes,
         }
     }
-    pub fn eth1_deposit_index(&self) -> &u64 {
+    pub fn eth1_deposit_index(&self) -> u64 {
         match self {
-            Self::Phase0(inner) => &inner.eth1_deposit_index,
-            Self::Altair(inner) => &inner.eth1_deposit_index,
-            Self::Bellatrix(inner) => &inner.eth1_deposit_index,
-            Self::Capella(inner) => &inner.eth1_deposit_index,
-            Self::Deneb(inner) => &inner.eth1_deposit_index,
-        }
-    }
-    pub fn eth1_deposit_index_mut(&mut self) -> &mut u64 {
-        match self {
-            Self::Phase0(inner) => &mut inner.eth1_deposit_index,
-            Self::Altair(inner) => &mut inner.eth1_deposit_index,
-            Self::Bellatrix(inner) => &mut inner.eth1_deposit_index,
-            Self::Capella(inner) => &mut inner.eth1_deposit_index,
-            Self::Deneb(inner) => &mut inner.eth1_deposit_index,
+            Self::Phase0(inner) => inner.eth1_deposit_index,
+            Self::Altair(inner) => inner.eth1_deposit_index,
+            Self::Bellatrix(inner) => inner.eth1_deposit_index,
+            Self::Capella(inner) => inner.eth1_deposit_index,
+            Self::Deneb(inner) => inner.eth1_deposit_index,
         }
     }
     pub fn validators(&self) -> &List<Validator, VALIDATOR_REGISTRY_LIMIT> {
@@ -850,40 +814,22 @@ impl<
             Self::Deneb(inner) => Some(From::from(&mut inner.latest_execution_payload_header)),
         }
     }
-    pub fn next_withdrawal_index(&self) -> Option<&WithdrawalIndex> {
+    pub fn next_withdrawal_index(&self) -> Option<WithdrawalIndex> {
         match self {
             Self::Phase0(_) => None,
             Self::Altair(_) => None,
             Self::Bellatrix(_) => None,
-            Self::Capella(inner) => Some(&inner.next_withdrawal_index),
-            Self::Deneb(inner) => Some(&inner.next_withdrawal_index),
+            Self::Capella(inner) => Some(inner.next_withdrawal_index),
+            Self::Deneb(inner) => Some(inner.next_withdrawal_index),
         }
     }
-    pub fn next_withdrawal_index_mut(&mut self) -> Option<&mut WithdrawalIndex> {
+    pub fn next_withdrawal_validator_index(&self) -> Option<ValidatorIndex> {
         match self {
             Self::Phase0(_) => None,
             Self::Altair(_) => None,
             Self::Bellatrix(_) => None,
-            Self::Capella(inner) => Some(&mut inner.next_withdrawal_index),
-            Self::Deneb(inner) => Some(&mut inner.next_withdrawal_index),
-        }
-    }
-    pub fn next_withdrawal_validator_index(&self) -> Option<&ValidatorIndex> {
-        match self {
-            Self::Phase0(_) => None,
-            Self::Altair(_) => None,
-            Self::Bellatrix(_) => None,
-            Self::Capella(inner) => Some(&inner.next_withdrawal_validator_index),
-            Self::Deneb(inner) => Some(&inner.next_withdrawal_validator_index),
-        }
-    }
-    pub fn next_withdrawal_validator_index_mut(&mut self) -> Option<&mut ValidatorIndex> {
-        match self {
-            Self::Phase0(_) => None,
-            Self::Altair(_) => None,
-            Self::Bellatrix(_) => None,
-            Self::Capella(inner) => Some(&mut inner.next_withdrawal_validator_index),
-            Self::Deneb(inner) => Some(&mut inner.next_withdrawal_validator_index),
+            Self::Capella(inner) => Some(inner.next_withdrawal_validator_index),
+            Self::Deneb(inner) => Some(inner.next_withdrawal_validator_index),
         }
     }
     pub fn historical_summaries(&self) -> Option<&List<HistoricalSummary, HISTORICAL_ROOTS_LIMIT>> {
@@ -1179,31 +1125,31 @@ impl<
             Self::Deneb(_) => Version::Deneb,
         }
     }
-    pub fn genesis_time(&self) -> &u64 {
+    pub fn genesis_time(&self) -> u64 {
         match self {
-            Self::Phase0(inner) => &inner.genesis_time,
-            Self::Altair(inner) => &inner.genesis_time,
-            Self::Bellatrix(inner) => &inner.genesis_time,
-            Self::Capella(inner) => &inner.genesis_time,
-            Self::Deneb(inner) => &inner.genesis_time,
+            Self::Phase0(inner) => inner.genesis_time,
+            Self::Altair(inner) => inner.genesis_time,
+            Self::Bellatrix(inner) => inner.genesis_time,
+            Self::Capella(inner) => inner.genesis_time,
+            Self::Deneb(inner) => inner.genesis_time,
         }
     }
-    pub fn genesis_validators_root(&self) -> &Root {
+    pub fn genesis_validators_root(&self) -> Root {
         match self {
-            Self::Phase0(inner) => &inner.genesis_validators_root,
-            Self::Altair(inner) => &inner.genesis_validators_root,
-            Self::Bellatrix(inner) => &inner.genesis_validators_root,
-            Self::Capella(inner) => &inner.genesis_validators_root,
-            Self::Deneb(inner) => &inner.genesis_validators_root,
+            Self::Phase0(inner) => inner.genesis_validators_root,
+            Self::Altair(inner) => inner.genesis_validators_root,
+            Self::Bellatrix(inner) => inner.genesis_validators_root,
+            Self::Capella(inner) => inner.genesis_validators_root,
+            Self::Deneb(inner) => inner.genesis_validators_root,
         }
     }
-    pub fn slot(&self) -> &Slot {
+    pub fn slot(&self) -> Slot {
         match self {
-            Self::Phase0(inner) => &inner.slot,
-            Self::Altair(inner) => &inner.slot,
-            Self::Bellatrix(inner) => &inner.slot,
-            Self::Capella(inner) => &inner.slot,
-            Self::Deneb(inner) => &inner.slot,
+            Self::Phase0(inner) => inner.slot,
+            Self::Altair(inner) => inner.slot,
+            Self::Bellatrix(inner) => inner.slot,
+            Self::Capella(inner) => inner.slot,
+            Self::Deneb(inner) => inner.slot,
         }
     }
     pub fn fork(&self) -> &Fork {
@@ -1269,13 +1215,13 @@ impl<
             Self::Deneb(inner) => &inner.eth1_data_votes,
         }
     }
-    pub fn eth1_deposit_index(&self) -> &u64 {
+    pub fn eth1_deposit_index(&self) -> u64 {
         match self {
-            Self::Phase0(inner) => &inner.eth1_deposit_index,
-            Self::Altair(inner) => &inner.eth1_deposit_index,
-            Self::Bellatrix(inner) => &inner.eth1_deposit_index,
-            Self::Capella(inner) => &inner.eth1_deposit_index,
-            Self::Deneb(inner) => &inner.eth1_deposit_index,
+            Self::Phase0(inner) => inner.eth1_deposit_index,
+            Self::Altair(inner) => inner.eth1_deposit_index,
+            Self::Bellatrix(inner) => inner.eth1_deposit_index,
+            Self::Capella(inner) => inner.eth1_deposit_index,
+            Self::Deneb(inner) => inner.eth1_deposit_index,
         }
     }
     pub fn validators(&self) -> &List<Validator, VALIDATOR_REGISTRY_LIMIT> {
@@ -1434,22 +1380,22 @@ impl<
             Self::Deneb(inner) => Some(From::from(&inner.latest_execution_payload_header)),
         }
     }
-    pub fn next_withdrawal_index(&self) -> Option<&WithdrawalIndex> {
+    pub fn next_withdrawal_index(&self) -> Option<WithdrawalIndex> {
         match self {
             Self::Phase0(_) => None,
             Self::Altair(_) => None,
             Self::Bellatrix(_) => None,
-            Self::Capella(inner) => Some(&inner.next_withdrawal_index),
-            Self::Deneb(inner) => Some(&inner.next_withdrawal_index),
+            Self::Capella(inner) => Some(inner.next_withdrawal_index),
+            Self::Deneb(inner) => Some(inner.next_withdrawal_index),
         }
     }
-    pub fn next_withdrawal_validator_index(&self) -> Option<&ValidatorIndex> {
+    pub fn next_withdrawal_validator_index(&self) -> Option<ValidatorIndex> {
         match self {
             Self::Phase0(_) => None,
             Self::Altair(_) => None,
             Self::Bellatrix(_) => None,
-            Self::Capella(inner) => Some(&inner.next_withdrawal_validator_index),
-            Self::Deneb(inner) => Some(&inner.next_withdrawal_validator_index),
+            Self::Capella(inner) => Some(inner.next_withdrawal_validator_index),
+            Self::Deneb(inner) => Some(inner.next_withdrawal_validator_index),
         }
     }
     pub fn historical_summaries(&self) -> Option<&List<HistoricalSummary, HISTORICAL_ROOTS_LIMIT>> {
@@ -2077,58 +2023,31 @@ impl<
             Self::Deneb(_) => Version::Deneb,
         }
     }
-    pub fn genesis_time(&self) -> &u64 {
+    pub fn genesis_time(&self) -> u64 {
         match self {
-            Self::Phase0(inner) => &inner.genesis_time,
-            Self::Altair(inner) => &inner.genesis_time,
-            Self::Bellatrix(inner) => &inner.genesis_time,
-            Self::Capella(inner) => &inner.genesis_time,
-            Self::Deneb(inner) => &inner.genesis_time,
+            Self::Phase0(inner) => inner.genesis_time,
+            Self::Altair(inner) => inner.genesis_time,
+            Self::Bellatrix(inner) => inner.genesis_time,
+            Self::Capella(inner) => inner.genesis_time,
+            Self::Deneb(inner) => inner.genesis_time,
         }
     }
-    pub fn genesis_time_mut(&mut self) -> &mut u64 {
+    pub fn genesis_validators_root(&self) -> Root {
         match self {
-            Self::Phase0(inner) => &mut inner.genesis_time,
-            Self::Altair(inner) => &mut inner.genesis_time,
-            Self::Bellatrix(inner) => &mut inner.genesis_time,
-            Self::Capella(inner) => &mut inner.genesis_time,
-            Self::Deneb(inner) => &mut inner.genesis_time,
+            Self::Phase0(inner) => inner.genesis_validators_root,
+            Self::Altair(inner) => inner.genesis_validators_root,
+            Self::Bellatrix(inner) => inner.genesis_validators_root,
+            Self::Capella(inner) => inner.genesis_validators_root,
+            Self::Deneb(inner) => inner.genesis_validators_root,
         }
     }
-    pub fn genesis_validators_root(&self) -> &Root {
+    pub fn slot(&self) -> Slot {
         match self {
-            Self::Phase0(inner) => &inner.genesis_validators_root,
-            Self::Altair(inner) => &inner.genesis_validators_root,
-            Self::Bellatrix(inner) => &inner.genesis_validators_root,
-            Self::Capella(inner) => &inner.genesis_validators_root,
-            Self::Deneb(inner) => &inner.genesis_validators_root,
-        }
-    }
-    pub fn genesis_validators_root_mut(&mut self) -> &mut Root {
-        match self {
-            Self::Phase0(inner) => &mut inner.genesis_validators_root,
-            Self::Altair(inner) => &mut inner.genesis_validators_root,
-            Self::Bellatrix(inner) => &mut inner.genesis_validators_root,
-            Self::Capella(inner) => &mut inner.genesis_validators_root,
-            Self::Deneb(inner) => &mut inner.genesis_validators_root,
-        }
-    }
-    pub fn slot(&self) -> &Slot {
-        match self {
-            Self::Phase0(inner) => &inner.slot,
-            Self::Altair(inner) => &inner.slot,
-            Self::Bellatrix(inner) => &inner.slot,
-            Self::Capella(inner) => &inner.slot,
-            Self::Deneb(inner) => &inner.slot,
-        }
-    }
-    pub fn slot_mut(&mut self) -> &mut Slot {
-        match self {
-            Self::Phase0(inner) => &mut inner.slot,
-            Self::Altair(inner) => &mut inner.slot,
-            Self::Bellatrix(inner) => &mut inner.slot,
-            Self::Capella(inner) => &mut inner.slot,
-            Self::Deneb(inner) => &mut inner.slot,
+            Self::Phase0(inner) => inner.slot,
+            Self::Altair(inner) => inner.slot,
+            Self::Bellatrix(inner) => inner.slot,
+            Self::Capella(inner) => inner.slot,
+            Self::Deneb(inner) => inner.slot,
         }
     }
     pub fn fork(&self) -> &Fork {
@@ -2257,22 +2176,13 @@ impl<
             Self::Deneb(inner) => &mut inner.eth1_data_votes,
         }
     }
-    pub fn eth1_deposit_index(&self) -> &u64 {
+    pub fn eth1_deposit_index(&self) -> u64 {
         match self {
-            Self::Phase0(inner) => &inner.eth1_deposit_index,
-            Self::Altair(inner) => &inner.eth1_deposit_index,
-            Self::Bellatrix(inner) => &inner.eth1_deposit_index,
-            Self::Capella(inner) => &inner.eth1_deposit_index,
-            Self::Deneb(inner) => &inner.eth1_deposit_index,
-        }
-    }
-    pub fn eth1_deposit_index_mut(&mut self) -> &mut u64 {
-        match self {
-            Self::Phase0(inner) => &mut inner.eth1_deposit_index,
-            Self::Altair(inner) => &mut inner.eth1_deposit_index,
-            Self::Bellatrix(inner) => &mut inner.eth1_deposit_index,
-            Self::Capella(inner) => &mut inner.eth1_deposit_index,
-            Self::Deneb(inner) => &mut inner.eth1_deposit_index,
+            Self::Phase0(inner) => inner.eth1_deposit_index,
+            Self::Altair(inner) => inner.eth1_deposit_index,
+            Self::Bellatrix(inner) => inner.eth1_deposit_index,
+            Self::Capella(inner) => inner.eth1_deposit_index,
+            Self::Deneb(inner) => inner.eth1_deposit_index,
         }
     }
     pub fn validators(&self) -> &List<Validator, VALIDATOR_REGISTRY_LIMIT> {
@@ -2591,40 +2501,22 @@ impl<
             Self::Deneb(inner) => Some(From::from(&mut inner.latest_execution_payload_header)),
         }
     }
-    pub fn next_withdrawal_index(&self) -> Option<&WithdrawalIndex> {
+    pub fn next_withdrawal_index(&self) -> Option<WithdrawalIndex> {
         match self {
             Self::Phase0(_) => None,
             Self::Altair(_) => None,
             Self::Bellatrix(_) => None,
-            Self::Capella(inner) => Some(&inner.next_withdrawal_index),
-            Self::Deneb(inner) => Some(&inner.next_withdrawal_index),
+            Self::Capella(inner) => Some(inner.next_withdrawal_index),
+            Self::Deneb(inner) => Some(inner.next_withdrawal_index),
         }
     }
-    pub fn next_withdrawal_index_mut(&mut self) -> Option<&mut WithdrawalIndex> {
+    pub fn next_withdrawal_validator_index(&self) -> Option<ValidatorIndex> {
         match self {
             Self::Phase0(_) => None,
             Self::Altair(_) => None,
             Self::Bellatrix(_) => None,
-            Self::Capella(inner) => Some(&mut inner.next_withdrawal_index),
-            Self::Deneb(inner) => Some(&mut inner.next_withdrawal_index),
-        }
-    }
-    pub fn next_withdrawal_validator_index(&self) -> Option<&ValidatorIndex> {
-        match self {
-            Self::Phase0(_) => None,
-            Self::Altair(_) => None,
-            Self::Bellatrix(_) => None,
-            Self::Capella(inner) => Some(&inner.next_withdrawal_validator_index),
-            Self::Deneb(inner) => Some(&inner.next_withdrawal_validator_index),
-        }
-    }
-    pub fn next_withdrawal_validator_index_mut(&mut self) -> Option<&mut ValidatorIndex> {
-        match self {
-            Self::Phase0(_) => None,
-            Self::Altair(_) => None,
-            Self::Bellatrix(_) => None,
-            Self::Capella(inner) => Some(&mut inner.next_withdrawal_validator_index),
-            Self::Deneb(inner) => Some(&mut inner.next_withdrawal_validator_index),
+            Self::Capella(inner) => Some(inner.next_withdrawal_validator_index),
+            Self::Deneb(inner) => Some(inner.next_withdrawal_validator_index),
         }
     }
     pub fn historical_summaries(&self) -> Option<&List<HistoricalSummary, HISTORICAL_ROOTS_LIMIT>> {
