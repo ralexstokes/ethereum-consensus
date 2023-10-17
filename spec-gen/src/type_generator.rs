@@ -1,6 +1,6 @@
 use crate::{
     generator::Fork,
-    visitors::{as_syn_ident, generics_to_arguments, ToGenericsVisitor},
+    visitors::{as_syn_ident, generics_to_arguments, ToGenericsVisitor, TypeNameVisitor},
 };
 use convert_case::{Case, Casing};
 use std::{collections::HashSet, fs};
@@ -10,6 +10,13 @@ use syn::{
 };
 
 const SOURCE_ROOT: &str = "ethereum-consensus/src";
+
+fn is_copy(ident: &str) -> bool {
+    matches!(
+        ident.to_string().as_str(),
+        "Root" | "Slot" | "ValidatorIndex" | "WithdrawalIndex" | "u64"
+    )
+}
 
 #[derive(Debug)]
 enum Type {
@@ -390,6 +397,7 @@ fn derive_method_set(
     let field_defined_in_all_forks = field_defn.fork == fork_sequence[0];
     let is_optional = deletion_fork.is_some() || !field_defined_in_all_forks;
     let is_polymorphic = target_type.polymorphic_fields().contains(&ident.to_string().as_ref());
+    let mut is_type_copy = false;
     let ty: syn::Type = if is_polymorphic {
         let base = target_type.get_polymorphic_type();
         let name = as_syn_ident(format!("{base}Ref"));
@@ -408,8 +416,15 @@ fn derive_method_set(
         }
     } else {
         let type_def = &field_defn.type_def;
+        let mut visitor = TypeNameVisitor::default();
+        visitor.analyze_type(type_def);
+        let idents = visitor.names;
+        let maybe_copy = idents.len() == 1;
+        let is_copy = if maybe_copy { is_copy(&idents[0]) } else { false };
+        is_type_copy = is_copy;
+        let ref_item: Option<syn::Token!(&)> = if is_copy { None } else { Some(parse_quote!(&)) };
         parse_quote! {
-            &#type_def
+            #ref_item #type_def
         }
     };
     let ty: syn::Type = if is_optional { parse_quote!(Option<#ty>) } else { ty };
@@ -421,6 +436,7 @@ fn derive_method_set(
         false,
         is_polymorphic,
         is_optional,
+        is_type_copy,
         deletion_fork,
     );
     let immut_ref = parse_quote! {
@@ -450,8 +466,11 @@ fn derive_method_set(
         }
     } else {
         let type_def = &field_defn.type_def;
+        let ref_item: Option<syn::Token!(&)> =
+            if is_type_copy { None } else { Some(parse_quote!(&)) };
+        let mutability = if is_type_copy { None } else { Some(Mut::default()) };
         parse_quote! {
-            &mut #type_def
+            #ref_item #mutability #type_def
         }
     };
     let ty_mut: syn::Type = if is_optional { parse_quote!(Option<#ty_mut>) } else { ty_mut };
@@ -462,6 +481,7 @@ fn derive_method_set(
         true,
         is_polymorphic,
         is_optional,
+        is_type_copy,
         deletion_fork,
     );
     let mut_ref = parse_quote! {
@@ -473,11 +493,17 @@ fn derive_method_set(
     };
     match ref_type {
         Some(RefType::Immutable) => vec![immut_ref],
-        Some(RefType::Mutable) => vec![immut_ref, mut_ref],
-        None => vec![immut_ref, mut_ref],
+        Some(RefType::Mutable) | None => {
+            let mut result = vec![immut_ref];
+            if !is_type_copy {
+                result.push(mut_ref);
+            }
+            result
+        }
     }
 }
 
+#[allow(clippy::too_many_arguments)]
 fn derive_match_arms(
     source_fork: &Fork,
     fork_sequence: &[Fork],
@@ -485,13 +511,15 @@ fn derive_match_arms(
     is_mut: bool,
     is_polymorphic: bool,
     is_optional: bool,
+    is_copy: bool,
     deletion_fork: Option<Fork>,
 ) -> Vec<Arm> {
-    let mutability = if is_mut { Some(Mut::default()) } else { None };
+    let mutability = if is_mut && !is_copy { Some(Mut::default()) } else { None };
+    let ref_item: Option<syn::Token!(&)> = if is_copy { None } else { Some(parse_quote!(&)) };
     let accessor_expr: syn::Expr = if is_polymorphic {
-        parse_quote!(From::from(&#mutability inner.#ident))
+        parse_quote!(From::from(#ref_item #mutability inner.#ident))
     } else {
-        parse_quote!(&#mutability inner.#ident)
+        parse_quote!(#ref_item #mutability inner.#ident)
     };
     fork_sequence
         .iter()

@@ -163,60 +163,32 @@ impl<const BYTES_PER_LOGS_BLOOM: usize, const MAX_EXTRA_DATA_BYTES: usize>
             Self::Deneb(inner) => &mut inner.prev_randao,
         }
     }
-    pub fn block_number(&self) -> &u64 {
+    pub fn block_number(&self) -> u64 {
         match self {
-            Self::Bellatrix(inner) => &inner.block_number,
-            Self::Capella(inner) => &inner.block_number,
-            Self::Deneb(inner) => &inner.block_number,
+            Self::Bellatrix(inner) => inner.block_number,
+            Self::Capella(inner) => inner.block_number,
+            Self::Deneb(inner) => inner.block_number,
         }
     }
-    pub fn block_number_mut(&mut self) -> &mut u64 {
+    pub fn gas_limit(&self) -> u64 {
         match self {
-            Self::Bellatrix(inner) => &mut inner.block_number,
-            Self::Capella(inner) => &mut inner.block_number,
-            Self::Deneb(inner) => &mut inner.block_number,
+            Self::Bellatrix(inner) => inner.gas_limit,
+            Self::Capella(inner) => inner.gas_limit,
+            Self::Deneb(inner) => inner.gas_limit,
         }
     }
-    pub fn gas_limit(&self) -> &u64 {
+    pub fn gas_used(&self) -> u64 {
         match self {
-            Self::Bellatrix(inner) => &inner.gas_limit,
-            Self::Capella(inner) => &inner.gas_limit,
-            Self::Deneb(inner) => &inner.gas_limit,
+            Self::Bellatrix(inner) => inner.gas_used,
+            Self::Capella(inner) => inner.gas_used,
+            Self::Deneb(inner) => inner.gas_used,
         }
     }
-    pub fn gas_limit_mut(&mut self) -> &mut u64 {
+    pub fn timestamp(&self) -> u64 {
         match self {
-            Self::Bellatrix(inner) => &mut inner.gas_limit,
-            Self::Capella(inner) => &mut inner.gas_limit,
-            Self::Deneb(inner) => &mut inner.gas_limit,
-        }
-    }
-    pub fn gas_used(&self) -> &u64 {
-        match self {
-            Self::Bellatrix(inner) => &inner.gas_used,
-            Self::Capella(inner) => &inner.gas_used,
-            Self::Deneb(inner) => &inner.gas_used,
-        }
-    }
-    pub fn gas_used_mut(&mut self) -> &mut u64 {
-        match self {
-            Self::Bellatrix(inner) => &mut inner.gas_used,
-            Self::Capella(inner) => &mut inner.gas_used,
-            Self::Deneb(inner) => &mut inner.gas_used,
-        }
-    }
-    pub fn timestamp(&self) -> &u64 {
-        match self {
-            Self::Bellatrix(inner) => &inner.timestamp,
-            Self::Capella(inner) => &inner.timestamp,
-            Self::Deneb(inner) => &inner.timestamp,
-        }
-    }
-    pub fn timestamp_mut(&mut self) -> &mut u64 {
-        match self {
-            Self::Bellatrix(inner) => &mut inner.timestamp,
-            Self::Capella(inner) => &mut inner.timestamp,
-            Self::Deneb(inner) => &mut inner.timestamp,
+            Self::Bellatrix(inner) => inner.timestamp,
+            Self::Capella(inner) => inner.timestamp,
+            Self::Deneb(inner) => inner.timestamp,
         }
     }
     pub fn extra_data(&self) -> &ByteList<MAX_EXTRA_DATA_BYTES> {
@@ -261,60 +233,32 @@ impl<const BYTES_PER_LOGS_BLOOM: usize, const MAX_EXTRA_DATA_BYTES: usize>
             Self::Deneb(inner) => &mut inner.block_hash,
         }
     }
-    pub fn transactions_root(&self) -> &Root {
+    pub fn transactions_root(&self) -> Root {
         match self {
-            Self::Bellatrix(inner) => &inner.transactions_root,
-            Self::Capella(inner) => &inner.transactions_root,
-            Self::Deneb(inner) => &inner.transactions_root,
+            Self::Bellatrix(inner) => inner.transactions_root,
+            Self::Capella(inner) => inner.transactions_root,
+            Self::Deneb(inner) => inner.transactions_root,
         }
     }
-    pub fn transactions_root_mut(&mut self) -> &mut Root {
-        match self {
-            Self::Bellatrix(inner) => &mut inner.transactions_root,
-            Self::Capella(inner) => &mut inner.transactions_root,
-            Self::Deneb(inner) => &mut inner.transactions_root,
-        }
-    }
-    pub fn withdrawals_root(&self) -> Option<&Root> {
+    pub fn withdrawals_root(&self) -> Option<Root> {
         match self {
             Self::Bellatrix(_) => None,
-            Self::Capella(inner) => Some(&inner.withdrawals_root),
-            Self::Deneb(inner) => Some(&inner.withdrawals_root),
+            Self::Capella(inner) => Some(inner.withdrawals_root),
+            Self::Deneb(inner) => Some(inner.withdrawals_root),
         }
     }
-    pub fn withdrawals_root_mut(&mut self) -> Option<&mut Root> {
-        match self {
-            Self::Bellatrix(_) => None,
-            Self::Capella(inner) => Some(&mut inner.withdrawals_root),
-            Self::Deneb(inner) => Some(&mut inner.withdrawals_root),
-        }
-    }
-    pub fn blob_gas_used(&self) -> Option<&u64> {
+    pub fn blob_gas_used(&self) -> Option<u64> {
         match self {
             Self::Bellatrix(_) => None,
             Self::Capella(_) => None,
-            Self::Deneb(inner) => Some(&inner.blob_gas_used),
+            Self::Deneb(inner) => Some(inner.blob_gas_used),
         }
     }
-    pub fn blob_gas_used_mut(&mut self) -> Option<&mut u64> {
+    pub fn excess_blob_gas(&self) -> Option<u64> {
         match self {
             Self::Bellatrix(_) => None,
             Self::Capella(_) => None,
-            Self::Deneb(inner) => Some(&mut inner.blob_gas_used),
-        }
-    }
-    pub fn excess_blob_gas(&self) -> Option<&u64> {
-        match self {
-            Self::Bellatrix(_) => None,
-            Self::Capella(_) => None,
-            Self::Deneb(inner) => Some(&inner.excess_blob_gas),
-        }
-    }
-    pub fn excess_blob_gas_mut(&mut self) -> Option<&mut u64> {
-        match self {
-            Self::Bellatrix(_) => None,
-            Self::Capella(_) => None,
-            Self::Deneb(inner) => Some(&mut inner.excess_blob_gas),
+            Self::Deneb(inner) => Some(inner.excess_blob_gas),
         }
     }
 }
@@ -425,32 +369,32 @@ impl<'a, const BYTES_PER_LOGS_BLOOM: usize, const MAX_EXTRA_DATA_BYTES: usize>
             Self::Deneb(inner) => &inner.prev_randao,
         }
     }
-    pub fn block_number(&self) -> &u64 {
+    pub fn block_number(&self) -> u64 {
         match self {
-            Self::Bellatrix(inner) => &inner.block_number,
-            Self::Capella(inner) => &inner.block_number,
-            Self::Deneb(inner) => &inner.block_number,
+            Self::Bellatrix(inner) => inner.block_number,
+            Self::Capella(inner) => inner.block_number,
+            Self::Deneb(inner) => inner.block_number,
         }
     }
-    pub fn gas_limit(&self) -> &u64 {
+    pub fn gas_limit(&self) -> u64 {
         match self {
-            Self::Bellatrix(inner) => &inner.gas_limit,
-            Self::Capella(inner) => &inner.gas_limit,
-            Self::Deneb(inner) => &inner.gas_limit,
+            Self::Bellatrix(inner) => inner.gas_limit,
+            Self::Capella(inner) => inner.gas_limit,
+            Self::Deneb(inner) => inner.gas_limit,
         }
     }
-    pub fn gas_used(&self) -> &u64 {
+    pub fn gas_used(&self) -> u64 {
         match self {
-            Self::Bellatrix(inner) => &inner.gas_used,
-            Self::Capella(inner) => &inner.gas_used,
-            Self::Deneb(inner) => &inner.gas_used,
+            Self::Bellatrix(inner) => inner.gas_used,
+            Self::Capella(inner) => inner.gas_used,
+            Self::Deneb(inner) => inner.gas_used,
         }
     }
-    pub fn timestamp(&self) -> &u64 {
+    pub fn timestamp(&self) -> u64 {
         match self {
-            Self::Bellatrix(inner) => &inner.timestamp,
-            Self::Capella(inner) => &inner.timestamp,
-            Self::Deneb(inner) => &inner.timestamp,
+            Self::Bellatrix(inner) => inner.timestamp,
+            Self::Capella(inner) => inner.timestamp,
+            Self::Deneb(inner) => inner.timestamp,
         }
     }
     pub fn extra_data(&self) -> &ByteList<MAX_EXTRA_DATA_BYTES> {
@@ -474,32 +418,32 @@ impl<'a, const BYTES_PER_LOGS_BLOOM: usize, const MAX_EXTRA_DATA_BYTES: usize>
             Self::Deneb(inner) => &inner.block_hash,
         }
     }
-    pub fn transactions_root(&self) -> &Root {
+    pub fn transactions_root(&self) -> Root {
         match self {
-            Self::Bellatrix(inner) => &inner.transactions_root,
-            Self::Capella(inner) => &inner.transactions_root,
-            Self::Deneb(inner) => &inner.transactions_root,
+            Self::Bellatrix(inner) => inner.transactions_root,
+            Self::Capella(inner) => inner.transactions_root,
+            Self::Deneb(inner) => inner.transactions_root,
         }
     }
-    pub fn withdrawals_root(&self) -> Option<&Root> {
-        match self {
-            Self::Bellatrix(_) => None,
-            Self::Capella(inner) => Some(&inner.withdrawals_root),
-            Self::Deneb(inner) => Some(&inner.withdrawals_root),
-        }
-    }
-    pub fn blob_gas_used(&self) -> Option<&u64> {
+    pub fn withdrawals_root(&self) -> Option<Root> {
         match self {
             Self::Bellatrix(_) => None,
-            Self::Capella(_) => None,
-            Self::Deneb(inner) => Some(&inner.blob_gas_used),
+            Self::Capella(inner) => Some(inner.withdrawals_root),
+            Self::Deneb(inner) => Some(inner.withdrawals_root),
         }
     }
-    pub fn excess_blob_gas(&self) -> Option<&u64> {
+    pub fn blob_gas_used(&self) -> Option<u64> {
         match self {
             Self::Bellatrix(_) => None,
             Self::Capella(_) => None,
-            Self::Deneb(inner) => Some(&inner.excess_blob_gas),
+            Self::Deneb(inner) => Some(inner.blob_gas_used),
+        }
+    }
+    pub fn excess_blob_gas(&self) -> Option<u64> {
+        match self {
+            Self::Bellatrix(_) => None,
+            Self::Capella(_) => None,
+            Self::Deneb(inner) => Some(inner.excess_blob_gas),
         }
     }
 }
@@ -692,60 +636,32 @@ impl<'a, const BYTES_PER_LOGS_BLOOM: usize, const MAX_EXTRA_DATA_BYTES: usize>
             Self::Deneb(inner) => &mut inner.prev_randao,
         }
     }
-    pub fn block_number(&self) -> &u64 {
+    pub fn block_number(&self) -> u64 {
         match self {
-            Self::Bellatrix(inner) => &inner.block_number,
-            Self::Capella(inner) => &inner.block_number,
-            Self::Deneb(inner) => &inner.block_number,
+            Self::Bellatrix(inner) => inner.block_number,
+            Self::Capella(inner) => inner.block_number,
+            Self::Deneb(inner) => inner.block_number,
         }
     }
-    pub fn block_number_mut(&mut self) -> &mut u64 {
+    pub fn gas_limit(&self) -> u64 {
         match self {
-            Self::Bellatrix(inner) => &mut inner.block_number,
-            Self::Capella(inner) => &mut inner.block_number,
-            Self::Deneb(inner) => &mut inner.block_number,
+            Self::Bellatrix(inner) => inner.gas_limit,
+            Self::Capella(inner) => inner.gas_limit,
+            Self::Deneb(inner) => inner.gas_limit,
         }
     }
-    pub fn gas_limit(&self) -> &u64 {
+    pub fn gas_used(&self) -> u64 {
         match self {
-            Self::Bellatrix(inner) => &inner.gas_limit,
-            Self::Capella(inner) => &inner.gas_limit,
-            Self::Deneb(inner) => &inner.gas_limit,
+            Self::Bellatrix(inner) => inner.gas_used,
+            Self::Capella(inner) => inner.gas_used,
+            Self::Deneb(inner) => inner.gas_used,
         }
     }
-    pub fn gas_limit_mut(&mut self) -> &mut u64 {
+    pub fn timestamp(&self) -> u64 {
         match self {
-            Self::Bellatrix(inner) => &mut inner.gas_limit,
-            Self::Capella(inner) => &mut inner.gas_limit,
-            Self::Deneb(inner) => &mut inner.gas_limit,
-        }
-    }
-    pub fn gas_used(&self) -> &u64 {
-        match self {
-            Self::Bellatrix(inner) => &inner.gas_used,
-            Self::Capella(inner) => &inner.gas_used,
-            Self::Deneb(inner) => &inner.gas_used,
-        }
-    }
-    pub fn gas_used_mut(&mut self) -> &mut u64 {
-        match self {
-            Self::Bellatrix(inner) => &mut inner.gas_used,
-            Self::Capella(inner) => &mut inner.gas_used,
-            Self::Deneb(inner) => &mut inner.gas_used,
-        }
-    }
-    pub fn timestamp(&self) -> &u64 {
-        match self {
-            Self::Bellatrix(inner) => &inner.timestamp,
-            Self::Capella(inner) => &inner.timestamp,
-            Self::Deneb(inner) => &inner.timestamp,
-        }
-    }
-    pub fn timestamp_mut(&mut self) -> &mut u64 {
-        match self {
-            Self::Bellatrix(inner) => &mut inner.timestamp,
-            Self::Capella(inner) => &mut inner.timestamp,
-            Self::Deneb(inner) => &mut inner.timestamp,
+            Self::Bellatrix(inner) => inner.timestamp,
+            Self::Capella(inner) => inner.timestamp,
+            Self::Deneb(inner) => inner.timestamp,
         }
     }
     pub fn extra_data(&self) -> &ByteList<MAX_EXTRA_DATA_BYTES> {
@@ -790,60 +706,32 @@ impl<'a, const BYTES_PER_LOGS_BLOOM: usize, const MAX_EXTRA_DATA_BYTES: usize>
             Self::Deneb(inner) => &mut inner.block_hash,
         }
     }
-    pub fn transactions_root(&self) -> &Root {
+    pub fn transactions_root(&self) -> Root {
         match self {
-            Self::Bellatrix(inner) => &inner.transactions_root,
-            Self::Capella(inner) => &inner.transactions_root,
-            Self::Deneb(inner) => &inner.transactions_root,
+            Self::Bellatrix(inner) => inner.transactions_root,
+            Self::Capella(inner) => inner.transactions_root,
+            Self::Deneb(inner) => inner.transactions_root,
         }
     }
-    pub fn transactions_root_mut(&mut self) -> &mut Root {
-        match self {
-            Self::Bellatrix(inner) => &mut inner.transactions_root,
-            Self::Capella(inner) => &mut inner.transactions_root,
-            Self::Deneb(inner) => &mut inner.transactions_root,
-        }
-    }
-    pub fn withdrawals_root(&self) -> Option<&Root> {
+    pub fn withdrawals_root(&self) -> Option<Root> {
         match self {
             Self::Bellatrix(_) => None,
-            Self::Capella(inner) => Some(&inner.withdrawals_root),
-            Self::Deneb(inner) => Some(&inner.withdrawals_root),
+            Self::Capella(inner) => Some(inner.withdrawals_root),
+            Self::Deneb(inner) => Some(inner.withdrawals_root),
         }
     }
-    pub fn withdrawals_root_mut(&mut self) -> Option<&mut Root> {
-        match self {
-            Self::Bellatrix(_) => None,
-            Self::Capella(inner) => Some(&mut inner.withdrawals_root),
-            Self::Deneb(inner) => Some(&mut inner.withdrawals_root),
-        }
-    }
-    pub fn blob_gas_used(&self) -> Option<&u64> {
+    pub fn blob_gas_used(&self) -> Option<u64> {
         match self {
             Self::Bellatrix(_) => None,
             Self::Capella(_) => None,
-            Self::Deneb(inner) => Some(&inner.blob_gas_used),
+            Self::Deneb(inner) => Some(inner.blob_gas_used),
         }
     }
-    pub fn blob_gas_used_mut(&mut self) -> Option<&mut u64> {
+    pub fn excess_blob_gas(&self) -> Option<u64> {
         match self {
             Self::Bellatrix(_) => None,
             Self::Capella(_) => None,
-            Self::Deneb(inner) => Some(&mut inner.blob_gas_used),
-        }
-    }
-    pub fn excess_blob_gas(&self) -> Option<&u64> {
-        match self {
-            Self::Bellatrix(_) => None,
-            Self::Capella(_) => None,
-            Self::Deneb(inner) => Some(&inner.excess_blob_gas),
-        }
-    }
-    pub fn excess_blob_gas_mut(&mut self) -> Option<&mut u64> {
-        match self {
-            Self::Bellatrix(_) => None,
-            Self::Capella(_) => None,
-            Self::Deneb(inner) => Some(&mut inner.excess_blob_gas),
+            Self::Deneb(inner) => Some(inner.excess_blob_gas),
         }
     }
 }
