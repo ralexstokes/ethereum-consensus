@@ -556,11 +556,9 @@ mod tests {
         let sig = sk.sign(msg);
 
         let serialized_key = serde_json::to_string(&pk).unwrap();
-        println!("{serialized_key}");
         let recovered_key: PublicKey = serde_json::from_str(&serialized_key).unwrap();
         assert_eq!(pk, recovered_key);
         let serialized_signature = serde_json::to_string(&sig).unwrap();
-        println!("{serialized_signature}");
         let recovered_signature: Signature = serde_json::from_str(&serialized_signature).unwrap();
         assert_eq!(sig, recovered_signature);
     }
