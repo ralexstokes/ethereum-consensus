@@ -76,6 +76,7 @@ unicode-normalization = { version = "0.1.22", optional = true }
 [dev-dependencies]
 serde_with = "1.13.0"
 snap = "1"
+toml = "0.8.2"
 
 [[bin]]
 name = "ec"

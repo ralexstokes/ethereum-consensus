@@ -2441,7 +2441,7 @@ pub fn compute_fork_digest(
     genesis_validators_root: Root,
 ) -> Result<ForkDigest> {
     let fork_data_root = compute_fork_data_root(current_version, genesis_validators_root)?;
-    let digest = &fork_data_root.as_ref()[..4];
+    let digest = &fork_data_root[..4];
     Ok(digest.try_into().expect("should not fail"))
 }
 pub fn compute_domain(
@@ -2455,7 +2455,7 @@ pub fn compute_domain(
     let fork_data_root = compute_fork_data_root(fork_version, genesis_validators_root)?;
     let mut domain = Domain::default();
     domain[..4].copy_from_slice(&domain_type.as_bytes());
-    domain[4..].copy_from_slice(&fork_data_root.as_ref()[..28]);
+    domain[4..].copy_from_slice(&fork_data_root[..28]);
     Ok(domain)
 }
 pub fn compute_fork_data_root(
