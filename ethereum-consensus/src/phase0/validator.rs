@@ -11,17 +11,17 @@ pub struct Validator {
     #[serde(rename = "pubkey")]
     pub public_key: BlsPublicKey,
     pub withdrawal_credentials: Bytes32,
-    #[serde(with = "crate::serde::as_string")]
+    #[serde(with = "crate::serde::as_str")]
     pub effective_balance: Gwei,
     pub slashed: bool,
     // Status epochs
-    #[serde(with = "crate::serde::as_string")]
+    #[serde(with = "crate::serde::as_str")]
     pub activation_eligibility_epoch: Epoch,
-    #[serde(with = "crate::serde::as_string")]
+    #[serde(with = "crate::serde::as_str")]
     pub activation_epoch: Epoch,
-    #[serde(with = "crate::serde::as_string")]
+    #[serde(with = "crate::serde::as_str")]
     pub exit_epoch: Epoch,
-    #[serde(with = "crate::serde::as_string")]
+    #[serde(with = "crate::serde::as_str")]
     pub withdrawable_epoch: Epoch,
 }
 
@@ -34,7 +34,7 @@ pub struct Eth1Block {
 
 #[derive(Default, Debug, SimpleSerialize, Clone, serde::Serialize, serde::Deserialize)]
 pub struct AggregateAndProof<const MAX_VALIDATORS_PER_COMMITTEE: usize> {
-    #[serde(with = "crate::serde::as_string")]
+    #[serde(with = "crate::serde::as_str")]
     pub aggregator_index: ValidatorIndex,
     pub aggregate: Attestation<MAX_VALIDATORS_PER_COMMITTEE>,
     pub selection_proof: BlsSignature,

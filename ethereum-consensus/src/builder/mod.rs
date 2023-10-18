@@ -9,9 +9,9 @@ use crate::{
 #[derive(Debug, Clone, Default, SimpleSerialize, serde::Serialize, serde::Deserialize)]
 pub struct ValidatorRegistration {
     pub fee_recipient: ExecutionAddress,
-    #[serde(with = "crate::serde::as_string")]
+    #[serde(with = "crate::serde::as_str")]
     pub gas_limit: u64,
-    #[serde(with = "crate::serde::as_string")]
+    #[serde(with = "crate::serde::as_str")]
     pub timestamp: u64,
     #[serde(rename = "pubkey")]
     pub public_key: BlsPublicKey,

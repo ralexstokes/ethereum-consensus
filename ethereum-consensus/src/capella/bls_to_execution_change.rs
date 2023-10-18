@@ -7,7 +7,7 @@ use crate::{
     Default, Debug, Clone, SimpleSerialize, PartialEq, Eq, serde::Serialize, serde::Deserialize,
 )]
 pub struct BlsToExecutionChange {
-    #[serde(with = "crate::serde::as_string")]
+    #[serde(with = "crate::serde::as_str")]
     pub validator_index: ValidatorIndex,
     #[serde(rename = "from_bls_pubkey")]
     pub from_bls_public_key: BlsPublicKey,

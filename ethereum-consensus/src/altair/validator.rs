@@ -5,20 +5,20 @@ use crate::{
 
 #[derive(Debug, Default, Clone, SimpleSerialize, serde::Serialize, serde::Deserialize)]
 pub struct SyncCommitteeMessage {
-    #[serde(with = "crate::serde::as_string")]
+    #[serde(with = "crate::serde::as_str")]
     pub slot: Slot,
     pub beacon_block_root: Root,
-    #[serde(with = "crate::serde::as_string")]
+    #[serde(with = "crate::serde::as_str")]
     pub validator_index: ValidatorIndex,
     pub signature: BlsSignature,
 }
 
 #[derive(Debug, Default, Clone, SimpleSerialize, serde::Serialize, serde::Deserialize)]
 pub struct SyncCommitteeContribution<const SYNC_SUBCOMMITTEE_SIZE: usize> {
-    #[serde(with = "crate::serde::as_string")]
+    #[serde(with = "crate::serde::as_str")]
     pub slot: Slot,
     pub beacon_block_root: Root,
-    #[serde(with = "crate::serde::as_string")]
+    #[serde(with = "crate::serde::as_str")]
     pub subcommittee_index: u64,
     pub aggregation_bits: Bitvector<SYNC_SUBCOMMITTEE_SIZE>,
     pub signature: BlsSignature,
@@ -26,7 +26,7 @@ pub struct SyncCommitteeContribution<const SYNC_SUBCOMMITTEE_SIZE: usize> {
 
 #[derive(Debug, Default, Clone, SimpleSerialize, serde::Serialize, serde::Deserialize)]
 pub struct ContributionAndProof<const SYNC_SUBCOMMITTEE_SIZE: usize> {
-    #[serde(with = "crate::serde::as_string")]
+    #[serde(with = "crate::serde::as_str")]
     pub aggregator_index: ValidatorIndex,
     pub contribution: SyncCommitteeContribution<SYNC_SUBCOMMITTEE_SIZE>,
     pub selection_proof: BlsSignature,

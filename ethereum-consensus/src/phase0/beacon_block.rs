@@ -39,9 +39,9 @@ pub struct BeaconBlock<
     const MAX_DEPOSITS: usize,
     const MAX_VOLUNTARY_EXITS: usize,
 > {
-    #[serde(with = "crate::serde::as_string")]
+    #[serde(with = "crate::serde::as_str")]
     pub slot: Slot,
-    #[serde(with = "crate::serde::as_string")]
+    #[serde(with = "crate::serde::as_str")]
     pub proposer_index: ValidatorIndex,
     pub parent_root: Root,
     pub state_root: Root,
@@ -81,9 +81,9 @@ pub struct SignedBeaconBlock<
     Default, Debug, SimpleSerialize, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize,
 )]
 pub struct BeaconBlockHeader {
-    #[serde(with = "crate::serde::as_string")]
+    #[serde(with = "crate::serde::as_str")]
     pub slot: Slot,
-    #[serde(with = "crate::serde::as_string")]
+    #[serde(with = "crate::serde::as_str")]
     pub proposer_index: ValidatorIndex,
     pub parent_root: Root,
     pub state_root: Root,

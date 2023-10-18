@@ -14,12 +14,12 @@ pub type Blob<const BYTES_PER_BLOB: usize> = ByteVector<BYTES_PER_BLOB>;
 )]
 pub struct BlobSidecar<const BYTES_PER_BLOB: usize> {
     pub block_root: Root,
-    #[serde(with = "crate::serde::as_string")]
+    #[serde(with = "crate::serde::as_str")]
     pub index: BlobIndex,
-    #[serde(with = "crate::serde::as_string")]
+    #[serde(with = "crate::serde::as_str")]
     pub slot: Slot,
     pub block_parent_root: Root,
-    #[serde(with = "crate::serde::as_string")]
+    #[serde(with = "crate::serde::as_str")]
     pub proposer_index: ValidatorIndex,
     pub blob: Blob<BYTES_PER_BLOB>,
     pub kzg_commitment: KzgCommitment,
@@ -39,6 +39,6 @@ pub struct SignedBlobSidecar<const BYTES_PER_BLOB: usize> {
 )]
 pub struct BlobIdentifier {
     pub block_root: Root,
-    #[serde(with = "crate::serde::as_string")]
+    #[serde(with = "crate::serde::as_str")]
     pub index: BlobIndex,
 }

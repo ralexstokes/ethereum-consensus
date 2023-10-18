@@ -22,22 +22,22 @@ pub struct ExecutionPayload<
     pub receipts_root: Bytes32,
     pub logs_bloom: ByteVector<BYTES_PER_LOGS_BLOOM>,
     pub prev_randao: Bytes32,
-    #[serde(with = "crate::serde::as_string")]
+    #[serde(with = "crate::serde::as_str")]
     pub block_number: u64,
-    #[serde(with = "crate::serde::as_string")]
+    #[serde(with = "crate::serde::as_str")]
     pub gas_limit: u64,
-    #[serde(with = "crate::serde::as_string")]
+    #[serde(with = "crate::serde::as_str")]
     pub gas_used: u64,
-    #[serde(with = "crate::serde::as_string")]
+    #[serde(with = "crate::serde::as_str")]
     pub timestamp: u64,
     pub extra_data: ByteList<MAX_EXTRA_DATA_BYTES>,
     pub base_fee_per_gas: U256,
     pub block_hash: Hash32,
     pub transactions: List<Transaction<MAX_BYTES_PER_TRANSACTION>, MAX_TRANSACTIONS_PER_PAYLOAD>,
     pub withdrawals: List<Withdrawal, MAX_WITHDRAWALS_PER_PAYLOAD>,
-    #[serde(with = "crate::serde::as_string")]
+    #[serde(with = "crate::serde::as_str")]
     pub blob_gas_used: u64,
-    #[serde(with = "crate::serde::as_string")]
+    #[serde(with = "crate::serde::as_str")]
     pub excess_blob_gas: u64,
 }
 
@@ -54,22 +54,22 @@ pub struct ExecutionPayloadHeader<
     pub receipts_root: Bytes32,
     pub logs_bloom: ByteVector<BYTES_PER_LOGS_BLOOM>,
     pub prev_randao: Bytes32,
-    #[serde(with = "crate::serde::as_string")]
+    #[serde(with = "crate::serde::as_str")]
     pub block_number: u64,
-    #[serde(with = "crate::serde::as_string")]
+    #[serde(with = "crate::serde::as_str")]
     pub gas_limit: u64,
-    #[serde(with = "crate::serde::as_string")]
+    #[serde(with = "crate::serde::as_str")]
     pub gas_used: u64,
-    #[serde(with = "crate::serde::as_string")]
+    #[serde(with = "crate::serde::as_str")]
     pub timestamp: u64,
     pub extra_data: ByteList<MAX_EXTRA_DATA_BYTES>,
     pub base_fee_per_gas: U256,
     pub block_hash: Hash32,
     pub transactions_root: Root,
     pub withdrawals_root: Root,
-    #[serde(with = "crate::serde::as_string")]
+    #[serde(with = "crate::serde::as_str")]
     pub blob_gas_used: u64,
-    #[serde(with = "crate::serde::as_string")]
+    #[serde(with = "crate::serde::as_str")]
     pub excess_blob_gas: u64,
 }
 

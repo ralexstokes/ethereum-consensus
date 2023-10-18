@@ -11,7 +11,7 @@ use crate::{
     Default, Clone, Debug, SimpleSerialize, PartialEq, Eq, serde::Serialize, serde::Deserialize,
 )]
 pub struct Checkpoint {
-    #[serde(with = "crate::serde::as_string")]
+    #[serde(with = "crate::serde::as_str")]
     pub epoch: Epoch,
     pub root: Root,
 }
@@ -20,9 +20,9 @@ pub struct Checkpoint {
     Default, Clone, Debug, SimpleSerialize, PartialEq, Eq, serde::Serialize, serde::Deserialize,
 )]
 pub struct AttestationData {
-    #[serde(with = "crate::serde::as_string")]
+    #[serde(with = "crate::serde::as_str")]
     pub slot: Slot,
-    #[serde(with = "crate::serde::as_string")]
+    #[serde(with = "crate::serde::as_str")]
     pub index: CommitteeIndex,
     pub beacon_block_root: Root,
     pub source: Checkpoint,
@@ -33,7 +33,7 @@ pub struct AttestationData {
     Default, Debug, SimpleSerialize, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize,
 )]
 pub struct IndexedAttestation<const MAX_VALIDATORS_PER_COMMITTEE: usize> {
-    #[serde(with = "crate::serde::collection_over_string")]
+    #[serde(with = "crate::serde::seq_of_str")]
     pub attesting_indices: List<ValidatorIndex, MAX_VALIDATORS_PER_COMMITTEE>,
     pub data: AttestationData,
     pub signature: BlsSignature,
@@ -45,9 +45,9 @@ pub struct IndexedAttestation<const MAX_VALIDATORS_PER_COMMITTEE: usize> {
 pub struct PendingAttestation<const MAX_VALIDATORS_PER_COMMITTEE: usize> {
     pub aggregation_bits: Bitlist<MAX_VALIDATORS_PER_COMMITTEE>,
     pub data: AttestationData,
-    #[serde(with = "crate::serde::as_string")]
+    #[serde(with = "crate::serde::as_str")]
     pub inclusion_delay: Slot,
-    #[serde(with = "crate::serde::as_string")]
+    #[serde(with = "crate::serde::as_str")]
     pub proposer_index: ValidatorIndex,
 }
 
@@ -65,7 +65,7 @@ pub struct Attestation<const MAX_VALIDATORS_PER_COMMITTEE: usize> {
 )]
 pub struct Eth1Data {
     pub deposit_root: Root,
-    #[serde(with = "crate::serde::as_string")]
+    #[serde(with = "crate::serde::as_str")]
     pub deposit_count: u64,
     pub block_hash: Hash32,
 }
@@ -75,7 +75,7 @@ pub struct DepositMessage {
     #[serde(rename = "pubkey")]
     pub public_key: BlsPublicKey,
     pub withdrawal_credentials: Bytes32,
-    #[serde(with = "crate::serde::as_string")]
+    #[serde(with = "crate::serde::as_str")]
     pub amount: Gwei,
 }
 
@@ -86,7 +86,7 @@ pub struct DepositData {
     #[serde(rename = "pubkey")]
     pub public_key: BlsPublicKey,
     pub withdrawal_credentials: Bytes32,
-    #[serde(with = "crate::serde::as_string")]
+    #[serde(with = "crate::serde::as_str")]
     pub amount: Gwei,
     pub signature: BlsSignature,
 }
@@ -125,9 +125,9 @@ pub struct Deposit {
     Default, Debug, SimpleSerialize, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize,
 )]
 pub struct VoluntaryExit {
-    #[serde(with = "crate::serde::as_string")]
+    #[serde(with = "crate::serde::as_str")]
     pub epoch: Epoch,
-    #[serde(with = "crate::serde::as_string")]
+    #[serde(with = "crate::serde::as_str")]
     pub validator_index: ValidatorIndex,
 }
 
