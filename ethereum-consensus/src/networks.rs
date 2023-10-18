@@ -5,8 +5,8 @@ use crate::Error;
 /// `Network` describes one of the established networks this repository supports
 /// or otherwise a `Custom` variant that wraps a path to a local configuration file
 /// for the custom network (useful for devnets).
-#[derive(Default, Debug, Clone, serde::Deserialize)]
-#[serde(rename_all = "lowercase")]
+#[derive(Default, Debug, Clone, PartialEq, Eq, serde::Deserialize, serde::Serialize)]
+#[serde(rename_all = "lowercase", into = "String", from = "String")]
 pub enum Network {
     #[default]
     Mainnet,
@@ -23,7 +23,25 @@ impl std::fmt::Display for Network {
             Self::Sepolia => write!(f, "sepolia"),
             Self::Goerli => write!(f, "goerli"),
             Self::Holesky => write!(f, "holesky"),
-            Self::Custom(config_file) => write!(f, "custom network with config at `{config_file}`"),
+            Self::Custom(config_file) => write!(f, "{config_file}"),
+        }
+    }
+}
+
+impl From<Network> for String {
+    fn from(value: Network) -> Self {
+        format!("{value}")
+    }
+}
+
+impl From<String> for Network {
+    fn from(value: String) -> Self {
+        match value.as_str() {
+            "mainnet" => Self::Mainnet,
+            "sepolia" => Self::Sepolia,
+            "goerli" => Self::Goerli,
+            "holesky" => Self::Holesky,
+            _ => Self::Custom(value),
         }
     }
 }
@@ -46,4 +64,22 @@ impl TryFrom<&Network> for Context {
 // where we have control over the genesis details
 pub fn typical_genesis_time(context: &Context) -> u64 {
     context.min_genesis_time + context.genesis_delay
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[derive(Debug, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
+    struct File {
+        network: Network,
+    }
+
+    #[test]
+    fn test_serde() {
+        let file = File { network: Network::Custom("/path/to/foo.yaml".to_string()) };
+        let str = toml::to_string(&file).unwrap();
+        let recovered_file: File = toml::from_str(&str).unwrap();
+        assert_eq!(file, recovered_file);
+    }
 }
