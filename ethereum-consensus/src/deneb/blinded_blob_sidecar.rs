@@ -9,12 +9,12 @@ use crate::{
 )]
 pub struct BlindedBlobSidecar {
     pub block_root: Root,
-    #[serde(with = "crate::serde::as_string")]
+    #[serde(with = "crate::serde::as_str")]
     pub index: BlobIndex,
-    #[serde(with = "crate::serde::as_string")]
+    #[serde(with = "crate::serde::as_str")]
     pub slot: Slot,
     pub block_parent_root: Root,
-    #[serde(with = "crate::serde::as_string")]
+    #[serde(with = "crate::serde::as_str")]
     pub proposer_index: ValidatorIndex,
     pub blob_root: Root,
     pub kzg_commitment: KzgCommitment,

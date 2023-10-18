@@ -1,5 +1,5 @@
-use super::write_bytes_to_lower_hex;
 use crate::ssz::prelude::*;
+use ssz_rs::utils::{write_bytes_to_lower_hex, write_bytes_to_lower_hex_display};
 use std::{
     fmt,
     hash::{Hash, Hasher},
@@ -23,27 +23,15 @@ impl<const N: usize> Hash for ByteVector<N> {
     }
 }
 
-impl<const N: usize> fmt::LowerHex for ByteVector<N> {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write_bytes_to_lower_hex(f, self)
-    }
-}
-
 impl<const N: usize> fmt::Debug for ByteVector<N> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "ByteVector<{N}>({self:#x})")
+        write_bytes_to_lower_hex(f, &self.0)
     }
 }
 
 impl<const N: usize> fmt::Display for ByteVector<N> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{self:#x}")
-    }
-}
-
-impl<const N: usize> AsRef<[u8]> for ByteVector<N> {
-    fn as_ref(&self) -> &[u8] {
-        &self.0
+        write_bytes_to_lower_hex_display(f, self.0.iter())
     }
 }
 

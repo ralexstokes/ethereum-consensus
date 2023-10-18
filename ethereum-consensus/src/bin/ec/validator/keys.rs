@@ -83,7 +83,7 @@ fn hkdf_mod_r(input: &[u8]) -> Key {
         let inner = U384::from_be_bytes(okm);
         key = inner % R;
 
-        salt = hash(&salt);
+        salt = hash(salt.as_ref());
     }
 
     // ensure we are in the field

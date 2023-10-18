@@ -225,7 +225,7 @@ pub struct PublicKey(ByteVector<BLS_PUBLIC_KEY_BYTES_LEN>);
 impl fmt::Debug for PublicKey {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let inner = &self.0;
-        write!(f, "PublicKey({inner})")
+        write!(f, "{inner:?}")
     }
 }
 
@@ -276,7 +276,7 @@ pub struct Signature(ByteVector<BLS_SIGNATURE_BYTES_LEN>);
 impl fmt::Debug for Signature {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let inner = &self.0;
-        write!(f, "Signature({inner})")
+        write!(f, "{inner:?}")
     }
 }
 
@@ -556,11 +556,9 @@ mod tests {
         let sig = sk.sign(msg);
 
         let serialized_key = serde_json::to_string(&pk).unwrap();
-        println!("{serialized_key}");
         let recovered_key: PublicKey = serde_json::from_str(&serialized_key).unwrap();
         assert_eq!(pk, recovered_key);
         let serialized_signature = serde_json::to_string(&sig).unwrap();
-        println!("{serialized_signature}");
         let recovered_signature: Signature = serde_json::from_str(&serialized_signature).unwrap();
         assert_eq!(sig, recovered_signature);
     }

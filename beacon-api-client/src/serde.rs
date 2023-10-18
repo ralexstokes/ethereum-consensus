@@ -1,4 +1,4 @@
-pub(crate) use ethereum_consensus::serde::{as_hex, as_string, collection_over_string};
+pub(crate) use ethereum_consensus::serde::{as_hex, as_str, seq_of_str};
 
 pub(crate) mod as_u16 {
     use http::StatusCode;

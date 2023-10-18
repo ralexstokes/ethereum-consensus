@@ -28,7 +28,7 @@ pub struct CoordinateWithMetadata {
 
 #[derive(Serialize, Deserialize)]
 pub struct DepositContract {
-    #[serde(with = "crate::serde::as_string")]
+    #[serde(with = "crate::serde::as_str")]
     pub chain_id: ChainId,
     pub address: ExecutionAddress,
 }
@@ -37,16 +37,16 @@ pub struct DepositContract {
 pub struct DepositSnapshot {
     pub finalized: Vec<Hash32>,
     pub deposit_root: Hash32,
-    #[serde(with = "crate::serde::as_string")]
+    #[serde(with = "crate::serde::as_str")]
     pub deposit_count: u64,
     pub execution_block_hash: Hash32,
-    #[serde(with = "crate::serde::as_string")]
+    #[serde(with = "crate::serde::as_str")]
     pub execution_block_height: u64,
 }
 
 #[derive(Serialize, Deserialize, Debug, Default)]
 pub struct GenesisDetails {
-    #[serde(with = "crate::serde::as_string")]
+    #[serde(with = "crate::serde::as_str")]
     pub genesis_time: u64,
     pub genesis_validators_root: Root,
     #[serde(with = "crate::serde::as_hex")]
@@ -212,9 +212,9 @@ impl From<BlsPublicKey> for PublicKeyOrIndex {
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ValidatorSummary {
-    #[serde(with = "crate::serde::as_string")]
+    #[serde(with = "crate::serde::as_str")]
     pub index: ValidatorIndex,
-    #[serde(with = "crate::serde::as_string")]
+    #[serde(with = "crate::serde::as_str")]
     pub balance: Gwei,
     pub status: ValidatorStatus,
     pub validator: Validator,
@@ -222,9 +222,9 @@ pub struct ValidatorSummary {
 
 #[derive(Serialize, Deserialize)]
 pub struct BalanceSummary {
-    #[serde(with = "crate::serde::as_string")]
+    #[serde(with = "crate::serde::as_str")]
     pub index: ValidatorIndex,
-    #[serde(with = "crate::serde::as_string")]
+    #[serde(with = "crate::serde::as_str")]
     pub balance: Gwei,
 }
 
@@ -236,22 +236,20 @@ pub struct CommitteeFilter {
 }
 
 #[derive(Serialize, Deserialize, Debug)]
-pub struct Committee(
-    #[serde(with = "crate::serde::collection_over_string")] pub Vec<ValidatorIndex>,
-);
+pub struct Committee(#[serde(with = "crate::serde::seq_of_str")] pub Vec<ValidatorIndex>);
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct CommitteeSummary {
-    #[serde(with = "crate::serde::as_string")]
+    #[serde(with = "crate::serde::as_str")]
     pub index: CommitteeIndex,
-    #[serde(with = "crate::serde::as_string")]
+    #[serde(with = "crate::serde::as_str")]
     pub slot: Slot,
     pub validators: Committee,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct SyncCommitteeSummary {
-    #[serde(with = "crate::serde::collection_over_string")]
+    #[serde(with = "crate::serde::seq_of_str")]
     pub validators: Vec<ValidatorIndex>,
     pub validator_aggregates: Vec<Committee>,
 }
@@ -355,21 +353,21 @@ pub struct PeerDescription {
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct PeerSummary {
-    #[serde(with = "crate::serde::as_string")]
+    #[serde(with = "crate::serde::as_str")]
     pub disconnected: usize,
-    #[serde(with = "crate::serde::as_string")]
+    #[serde(with = "crate::serde::as_str")]
     pub connecting: usize,
-    #[serde(with = "crate::serde::as_string")]
+    #[serde(with = "crate::serde::as_str")]
     pub connected: usize,
-    #[serde(with = "crate::serde::as_string")]
+    #[serde(with = "crate::serde::as_str")]
     pub disconnecting: usize,
 }
 
 #[derive(Serialize, Deserialize)]
 pub struct SyncStatus {
-    #[serde(with = "crate::serde::as_string")]
+    #[serde(with = "crate::serde::as_str")]
     pub head_slot: Slot,
-    #[serde(with = "crate::serde::as_string")]
+    #[serde(with = "crate::serde::as_str")]
     pub sync_distance: usize,
     pub is_syncing: bool,
 }
@@ -386,17 +384,17 @@ pub enum HealthStatus {
 pub struct AttestationDuty {
     #[serde(rename = "pubkey")]
     pub public_key: BlsPublicKey,
-    #[serde(with = "crate::serde::as_string")]
+    #[serde(with = "crate::serde::as_str")]
     pub validator_index: ValidatorIndex,
-    #[serde(with = "crate::serde::as_string")]
+    #[serde(with = "crate::serde::as_str")]
     pub committee_index: CommitteeIndex,
-    #[serde(with = "crate::serde::as_string")]
+    #[serde(with = "crate::serde::as_str")]
     pub committee_length: usize,
-    #[serde(with = "crate::serde::as_string")]
+    #[serde(with = "crate::serde::as_str")]
     pub committees_at_slot: usize,
-    #[serde(with = "crate::serde::as_string")]
+    #[serde(with = "crate::serde::as_str")]
     pub validator_committee_index: usize,
-    #[serde(with = "crate::serde::as_string")]
+    #[serde(with = "crate::serde::as_str")]
     pub slot: Slot,
 }
 
@@ -404,9 +402,9 @@ pub struct AttestationDuty {
 pub struct ProposerDuty {
     #[serde(rename = "pubkey")]
     pub public_key: BlsPublicKey,
-    #[serde(with = "crate::serde::as_string")]
+    #[serde(with = "crate::serde::as_str")]
     pub validator_index: ValidatorIndex,
-    #[serde(with = "crate::serde::as_string")]
+    #[serde(with = "crate::serde::as_str")]
     pub slot: Slot,
 }
 
@@ -414,45 +412,45 @@ pub struct ProposerDuty {
 pub struct SyncCommitteeDuty {
     #[serde(rename = "pubkey")]
     pub public_key: BlsPublicKey,
-    #[serde(with = "crate::serde::as_string")]
+    #[serde(with = "crate::serde::as_str")]
     pub validator_index: ValidatorIndex,
-    #[serde(with = "crate::serde::collection_over_string")]
+    #[serde(with = "crate::serde::seq_of_str")]
     pub validator_sync_committee_indices: Vec<usize>,
 }
 
 #[derive(Serialize, Deserialize)]
 pub struct CommitteeDescriptor {
-    #[serde(with = "crate::serde::as_string")]
+    #[serde(with = "crate::serde::as_str")]
     pub validator_index: ValidatorIndex,
-    #[serde(with = "crate::serde::as_string")]
+    #[serde(with = "crate::serde::as_str")]
     pub committee_index: CommitteeIndex,
-    #[serde(with = "crate::serde::as_string")]
+    #[serde(with = "crate::serde::as_str")]
     pub committees_at_slot: usize,
-    #[serde(with = "crate::serde::as_string")]
+    #[serde(with = "crate::serde::as_str")]
     pub slot: Slot,
     pub is_aggregator: bool,
 }
 
 #[derive(Serialize, Deserialize)]
 pub struct SyncCommitteeDescriptor {
-    #[serde(with = "crate::serde::as_string")]
+    #[serde(with = "crate::serde::as_str")]
     pub validator_index: ValidatorIndex,
-    #[serde(with = "crate::serde::collection_over_string")]
+    #[serde(with = "crate::serde::seq_of_str")]
     pub sync_committee_indices: Vec<usize>,
-    #[serde(with = "crate::serde::as_string")]
+    #[serde(with = "crate::serde::as_str")]
     pub until_epoch: Epoch,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct BeaconProposerRegistration {
-    #[serde(with = "crate::serde::as_string")]
+    #[serde(with = "crate::serde::as_str")]
     pub validator_index: ValidatorIndex,
     pub fee_recipient: ExecutionAddress,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ValidatorLiveness {
-    #[serde(with = "crate::serde::as_string")]
+    #[serde(with = "crate::serde::as_str")]
     index: ValidatorIndex,
     is_live: bool,
 }

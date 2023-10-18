@@ -43,9 +43,9 @@ pub struct BeaconBlock<
     const MAX_VOLUNTARY_EXITS: usize,
     const SYNC_COMMITTEE_SIZE: usize,
 > {
-    #[serde(with = "crate::serde::as_string")]
+    #[serde(with = "crate::serde::as_str")]
     pub slot: Slot,
-    #[serde(with = "crate::serde::as_string")]
+    #[serde(with = "crate::serde::as_str")]
     pub proposer_index: ValidatorIndex,
     pub parent_root: Root,
     pub state_root: Root,

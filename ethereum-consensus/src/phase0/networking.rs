@@ -13,7 +13,7 @@ pub const MAXIMUM_GOSSIP_CLOCK_DISPARITY: Duration = Duration::from_millis(500);
 
 #[derive(serde::Serialize, serde::Deserialize)]
 pub struct MetaData {
-    #[serde(with = "crate::serde::as_string")]
+    #[serde(with = "crate::serde::as_str")]
     pub seq_number: u64,
     pub attnets: Bitvector<ATTESTATION_SUBNET_COUNT>,
 }

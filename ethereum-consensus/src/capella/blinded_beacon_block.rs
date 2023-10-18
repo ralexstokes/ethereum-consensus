@@ -53,9 +53,9 @@ pub struct BlindedBeaconBlock<
     const MAX_EXTRA_DATA_BYTES: usize,
     const MAX_BLS_TO_EXECUTION_CHANGES: usize,
 > {
-    #[serde(with = "crate::serde::as_string")]
+    #[serde(with = "crate::serde::as_str")]
     pub slot: Slot,
-    #[serde(with = "crate::serde::as_string")]
+    #[serde(with = "crate::serde::as_str")]
     pub proposer_index: ValidatorIndex,
     pub parent_root: Root,
     pub state_root: Root,
