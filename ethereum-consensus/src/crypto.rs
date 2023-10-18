@@ -225,7 +225,7 @@ pub struct PublicKey(ByteVector<BLS_PUBLIC_KEY_BYTES_LEN>);
 impl fmt::Debug for PublicKey {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let inner = &self.0;
-        write!(f, "PublicKey({inner})")
+        write!(f, "{inner:?}")
     }
 }
 
@@ -276,7 +276,7 @@ pub struct Signature(ByteVector<BLS_SIGNATURE_BYTES_LEN>);
 impl fmt::Debug for Signature {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let inner = &self.0;
-        write!(f, "Signature({inner})")
+        write!(f, "{inner:?}")
     }
 }
 
