@@ -8,6 +8,7 @@ use crate::{
     Fork as Version,
 };
 #[derive(Debug, Clone, PartialEq, Eq, Merkleized, serde::Serialize)]
+#[ssz(transparent)]
 #[serde(untagged)]
 pub enum ExecutionPayload<
     const BYTES_PER_LOGS_BLOOM: usize,
