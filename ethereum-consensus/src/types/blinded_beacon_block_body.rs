@@ -13,6 +13,7 @@ use crate::{
     Fork as Version,
 };
 #[derive(Debug, Clone, PartialEq, Eq, Merkleized, serde::Serialize)]
+#[ssz(transparent)]
 #[serde(untagged)]
 pub enum BlindedBeaconBlockBody<
     const MAX_PROPOSER_SLASHINGS: usize,

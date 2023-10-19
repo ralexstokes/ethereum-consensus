@@ -17,6 +17,7 @@ use crate::{
     Fork as Version,
 };
 #[derive(Debug, Clone, PartialEq, Eq, Merkleized, serde::Serialize)]
+#[ssz(transparent)]
 #[serde(untagged)]
 pub enum BeaconState<
     const SLOTS_PER_HISTORICAL_ROOT: usize,

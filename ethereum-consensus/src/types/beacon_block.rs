@@ -11,6 +11,7 @@ use crate::{
     Fork as Version,
 };
 #[derive(Debug, Clone, PartialEq, Eq, Merkleized, serde::Serialize)]
+#[ssz(transparent)]
 #[serde(untagged)]
 pub enum BeaconBlock<
     const MAX_PROPOSER_SLASHINGS: usize,
