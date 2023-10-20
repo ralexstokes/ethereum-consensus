@@ -395,4 +395,8 @@ impl Context {
     pub fn clock_at(&self, genesis_time: u64) -> Clock<SystemTimeProvider> {
         clock::from_system_time(genesis_time, self.seconds_per_slot, self.slots_per_epoch)
     }
+
+    pub fn network(&self) -> &Network {
+        &self.name
+    }
 }

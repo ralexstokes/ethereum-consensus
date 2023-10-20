@@ -46,10 +46,10 @@ impl From<String> for Network {
     }
 }
 
-impl TryFrom<&Network> for Context {
+impl TryFrom<Network> for Context {
     type Error = Error;
 
-    fn try_from(network: &Network) -> Result<Self, Self::Error> {
+    fn try_from(network: Network) -> Result<Self, Self::Error> {
         match network {
             Network::Mainnet => Ok(Context::for_mainnet()),
             Network::Sepolia => Ok(Context::for_sepolia()),
