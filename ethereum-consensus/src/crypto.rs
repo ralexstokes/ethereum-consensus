@@ -160,14 +160,21 @@ pub fn eth_fast_aggregate_verify(
 }
 
 #[derive(Clone, Default, serde::Deserialize)]
-#[cfg_attr(feature = "spec-tests", derive(Debug))]
 #[serde(try_from = "String")]
 pub struct SecretKey(bls_impl::SecretKey);
 
-#[cfg(not(feature = "spec-tests"))]
+#[cfg(not(feature = "secret-key-debug"))]
 impl fmt::Debug for SecretKey {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_tuple("SecretKey").finish()
+    }
+}
+
+#[cfg(feature = "secret-key-debug")]
+impl fmt::Debug for SecretKey {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let inner = Bytes32::try_from(self.0.to_bytes().as_ref()).unwrap();
+        write!(f, "{inner:?}")
     }
 }
 
