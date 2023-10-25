@@ -2,3 +2,4 @@
 resolver = "2"
 
 members = ["beacon-api-client", "ethereum-consensus", "test-gen", "spec-gen"]
+default-members = ["ethereum-consensus"]
