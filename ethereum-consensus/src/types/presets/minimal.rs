@@ -119,6 +119,9 @@ pub type ExecutionPayload = types::ExecutionPayload<
 pub type ExecutionPayloadHeader =
     types::ExecutionPayloadHeader<BYTES_PER_LOGS_BLOOM, MAX_EXTRA_DATA_BYTES>;
 
+pub type ExecutionPayloadHeaderRef<'a> =
+    types::ExecutionPayloadHeaderRef<'a, BYTES_PER_LOGS_BLOOM, MAX_EXTRA_DATA_BYTES>;
+
 pub type BeaconState = types::BeaconState<
     SLOTS_PER_HISTORICAL_ROOT,
     HISTORICAL_ROOTS_LIMIT,
