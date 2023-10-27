@@ -15,10 +15,11 @@ native-tls = ["reqwest/default-tls"]
 [dependencies]
 tokio = { version = "1.0", features = ["full"] }
 tracing = "0.1"
-tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 reqwest = { version = "0.11.10", default-features = false, features = ["json"] }
 url = "2.2.2"
 http = "0.2.7"
+
+mev-share-sse = { git = "https://github.com/paradigmxyz/mev-share-rs", rev = "93c8ef00c8c840b69e2dc8107f1e4212d7eb6dfa" }
 
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0.81"
@@ -29,3 +30,5 @@ ethereum-consensus = { path = "../ethereum-consensus" }
 
 [dev-dependencies]
 dotenv = "0.15.0"
+futures-util = "0.3.29"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
