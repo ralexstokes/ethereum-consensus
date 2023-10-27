@@ -3,11 +3,11 @@ use crate::{
         ApiResult, AttestationDuty, BalanceSummary, BeaconHeaderSummary,
         BeaconProposerRegistration, BlockId, BroadcastValidation, CommitteeDescriptor,
         CommitteeFilter, CommitteeSummary, ConnectionOrientation, CoordinateWithMetadata,
-        DepositContract, DepositSnapshot, EventTopic, FinalityCheckpoints, GenesisDetails,
-        HealthStatus, NetworkIdentity, PeerDescription, PeerState, PeerSummary, ProposerDuty,
-        PublicKeyOrIndex, RootData, StateId, SyncCommitteeDescriptor, SyncCommitteeDuty,
-        SyncCommitteeSummary, SyncStatus, ValidatorLiveness, ValidatorStatus, ValidatorSummary,
-        Value, VersionData, VersionedValue,
+        DepositContract, DepositSnapshot, FinalityCheckpoints, GenesisDetails, HealthStatus,
+        NetworkIdentity, PeerDescription, PeerState, PeerSummary, ProposerDuty, PublicKeyOrIndex,
+        RootData, StateId, SyncCommitteeDescriptor, SyncCommitteeDuty, SyncCommitteeSummary,
+        SyncStatus, Topic, ValidatorLiveness, ValidatorStatus, ValidatorSummary, Value,
+        VersionData, VersionedValue,
     },
     ApiError, Error,
 };
@@ -23,6 +23,7 @@ use ethereum_consensus::{
 };
 use http::StatusCode;
 use itertools::Itertools;
+use mev_share_sse::{client::EventStream, EventClient};
 use std::collections::HashMap;
 use url::Url;
 
@@ -590,8 +591,13 @@ impl<C: ClientTypes> Client<C> {
     }
 
     /* events namespace */
-    pub async fn get_events<T>(_topics: &[EventTopic]) -> Result<T, Error> {
-        unimplemented!("")
+    pub async fn get_events<T: Topic>(&self) -> Result<EventStream<T::Data>, Error> {
+        let name = T::NAME;
+        let path = format!("/eth/v1/events?topics={name}");
+        let target = self.endpoint.join(&path)?.to_string();
+
+        let client = EventClient::default();
+        Ok(client.subscribe(&target).await?)
     }
 
     /* node namespace */

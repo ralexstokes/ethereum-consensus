@@ -1,6 +1,7 @@
 use crate::ApiError;
 use ethereum_consensus::{
     altair::networking::MetaData,
+    capella::Withdrawal,
     networking::{Enr, Multiaddr, PeerId},
     phase0::{Checkpoint, SignedBeaconBlockHeader, Validator},
     primitives::{
@@ -279,14 +280,45 @@ impl fmt::Display for BroadcastValidation {
     }
 }
 
-pub enum EventTopic {
-    Head,
-    Block,
-    Attestation,
-    VoluntaryExit,
-    FinalizedCheckpoint,
-    ChainReorg,
-    ContributionAndProof,
+pub trait Topic {
+    const NAME: &'static str;
+
+    type Data: serde::de::DeserializeOwned;
+}
+
+pub struct PayloadAttributesTopic;
+
+impl Topic for PayloadAttributesTopic {
+    const NAME: &'static str = "payload_attributes";
+
+    type Data = VersionedValue<PayloadAttributesEvent>;
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct PayloadAttributesEvent {
+    #[serde(with = "crate::serde::as_str")]
+    pub proposer_index: ValidatorIndex,
+    #[serde(with = "crate::serde::as_str")]
+    pub proposal_slot: Slot,
+    #[serde(with = "crate::serde::as_str")]
+    pub parent_block_number: u64,
+    pub parent_block_root: Root,
+    pub parent_block_hash: Hash32,
+    pub payload_attributes: PayloadAttributes,
+}
+
+// NOTE: this merges all versions with "optional" fields for
+// data defined in subsequent forks
+#[derive(Debug, Serialize, Deserialize)]
+pub struct PayloadAttributes {
+    #[serde(with = "crate::serde::as_str")]
+    timestamp: u64,
+    prev_randao: Root,
+    suggested_fee_recipient: ExecutionAddress,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    withdrawals: Option<Vec<Withdrawal>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    parent_beacon_block_root: Option<Root>,
 }
 
 #[derive(Serialize, Deserialize)]
