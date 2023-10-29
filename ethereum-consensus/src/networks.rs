@@ -1,9 +1,11 @@
+use std::path::PathBuf;
+
 /// This module contains support for various Ethereum netowrks.
 use crate::state_transition::Context;
 use crate::Error;
 
 /// `Network` describes one of the established networks this repository supports
-/// or otherwise a `Custom` variant that wraps a path to a local configuration file
+/// or otherwise a `Custom` variant that wraps a path to a local configuration directory
 /// for the custom network (useful for devnets).
 #[derive(Default, Debug, Clone, PartialEq, Eq, serde::Deserialize, serde::Serialize)]
 #[serde(rename_all = "lowercase", into = "String", from = "String")]
@@ -23,7 +25,7 @@ impl std::fmt::Display for Network {
             Self::Sepolia => write!(f, "sepolia"),
             Self::Goerli => write!(f, "goerli"),
             Self::Holesky => write!(f, "holesky"),
-            Self::Custom(config_file) => write!(f, "{config_file}"),
+            Self::Custom(config_dir) => write!(f, "{config_dir}"),
         }
     }
 }
@@ -55,7 +57,10 @@ impl TryFrom<Network> for Context {
             Network::Sepolia => Ok(Context::for_sepolia()),
             Network::Goerli => Ok(Context::for_goerli()),
             Network::Holesky => Ok(Context::for_holesky()),
-            Network::Custom(config) => Context::try_from_file(config),
+            Network::Custom(config) => {
+                let config_file = PathBuf::from(config).join("config.yaml");
+                Context::try_from_file(config_file)
+            }
         }
     }
 }
