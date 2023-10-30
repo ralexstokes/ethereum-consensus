@@ -111,7 +111,7 @@ pub type BeaconBlockBody = spec::BeaconBlockBody<
     MAX_TRANSACTIONS_PER_PAYLOAD,
     MAX_WITHDRAWALS_PER_PAYLOAD,
     MAX_BLS_TO_EXECUTION_CHANGES,
-    MAX_BLOBS_PER_BLOCK,
+    MAX_BLOB_COMMITMENTS_PER_BLOCK,
 >;
 
 pub type BeaconBlock = spec::BeaconBlock<
@@ -128,7 +128,7 @@ pub type BeaconBlock = spec::BeaconBlock<
     MAX_TRANSACTIONS_PER_PAYLOAD,
     MAX_WITHDRAWALS_PER_PAYLOAD,
     MAX_BLS_TO_EXECUTION_CHANGES,
-    MAX_BLOBS_PER_BLOCK,
+    MAX_BLOB_COMMITMENTS_PER_BLOCK,
 >;
 
 pub type SignedBeaconBlock = spec::SignedBeaconBlock<
@@ -145,7 +145,7 @@ pub type SignedBeaconBlock = spec::SignedBeaconBlock<
     MAX_TRANSACTIONS_PER_PAYLOAD,
     MAX_WITHDRAWALS_PER_PAYLOAD,
     MAX_BLS_TO_EXECUTION_CHANGES,
-    MAX_BLOBS_PER_BLOCK,
+    MAX_BLOB_COMMITMENTS_PER_BLOCK,
 >;
 
 pub type Blob = spec::Blob<BYTES_PER_BLOB>;
