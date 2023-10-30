@@ -20,12 +20,15 @@ use ethereum_consensus::{
     primitives::{
         BlobIndex, Bytes32, CommitteeIndex, Epoch, RandaoReveal, Root, Slot, ValidatorIndex,
     },
+    Fork as Version,
 };
 use http::StatusCode;
 use itertools::Itertools;
 use mev_share_sse::{client::EventStream, EventClient};
 use std::collections::HashMap;
 use url::Url;
+
+pub const CONSENSUS_VERSION_HEADER: &str = "eth-consensus-version";
 
 pub async fn api_error_or_ok(response: reqwest::Response) -> Result<(), Error> {
     match response.status() {
@@ -323,10 +326,15 @@ impl<C: ClientTypes> Client<C> {
     pub async fn post_signed_blinded_beacon_block_v2(
         &self,
         block: &C::SignedBlindedBeaconBlock,
+        version: Version,
         broadcast_validation: Option<BroadcastValidation>,
     ) -> Result<(), Error> {
         let target = self.endpoint.join("eth/v2/beacon/blinded_blocks")?;
-        let mut request = self.http.post(target).json(block);
+        let mut request = self
+            .http
+            .post(target)
+            .json(block)
+            .header(CONSENSUS_VERSION_HEADER, version.to_string());
         if let Some(validation) = broadcast_validation {
             request = request.query(&[("broadcast_validation", validation)]);
         }
@@ -344,10 +352,15 @@ impl<C: ClientTypes> Client<C> {
     pub async fn post_signed_beacon_block_v2(
         &self,
         block: &C::SignedBeaconBlock,
+        version: Version,
         broadcast_validation: Option<BroadcastValidation>,
     ) -> Result<(), Error> {
         let target = self.endpoint.join("eth/v2/beacon/blocks")?;
-        let mut request = self.http.post(target).json(block);
+        let mut request = self
+            .http
+            .post(target)
+            .json(block)
+            .header(CONSENSUS_VERSION_HEADER, version.to_string());
         if let Some(validation) = broadcast_validation {
             request = request.query(&[("broadcast_validation", validation)]);
         }
