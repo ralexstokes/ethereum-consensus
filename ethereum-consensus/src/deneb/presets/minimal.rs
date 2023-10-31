@@ -16,7 +16,7 @@ pub use crate::{
 
 pub use spec::*;
 
-pub const FIELD_ELEMENTS_PER_BLOB: usize = 4;
+pub const FIELD_ELEMENTS_PER_BLOB: usize = 4096;
 pub const MAX_BLOB_COMMITMENTS_PER_BLOCK: usize = 16;
 pub const MAX_BLOBS_PER_BLOCK: usize = 6;
 
