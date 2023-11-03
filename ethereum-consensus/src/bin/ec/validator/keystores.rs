@@ -1,6 +1,10 @@
 use crate::validator::keys::{KeyPair, Path};
 use aes::cipher::{KeyIvInit, StreamCipher};
-use ethereum_consensus::crypto::{hash, PublicKey as BlsPublicKey, SecretKey as BlsSecretKey};
+use ethereum_consensus::{
+    crypto::{hash, PublicKey as BlsPublicKey, SecretKey as BlsSecretKey},
+    serde::as_hex,
+};
+use indicatif::{ParallelProgressIterator, ProgressStyle};
 use rayon::prelude::*;
 use scrypt::{
     password_hash::{
@@ -9,17 +13,9 @@ use scrypt::{
     },
     Params as ScryptParams, Scrypt,
 };
-use serde::{Deserialize, Serialize, Serializer};
+use serde::{de::DeserializeOwned, Deserialize, Deserializer, Serialize, Serializer};
 use unicode_normalization::UnicodeNormalization;
 use uuid::Uuid;
-
-fn as_hex<S, D: AsRef<[u8]>>(data: D, s: S) -> Result<S::Ok, S::Error>
-where
-    S: Serializer,
-{
-    let encoding = hex::encode(data);
-    s.collect_str(&encoding)
-}
 
 fn empty_string<S, D: AsRef<[u8]>>(_data: D, s: S) -> Result<S::Ok, S::Error>
 where
@@ -28,12 +24,25 @@ where
     s.collect_str(&"")
 }
 
-fn as_json_str<S, D: Serialize>(data: D, s: S) -> Result<S::Ok, S::Error>
-where
-    S: Serializer,
-{
-    let encoding = serde_json::to_string(&data).unwrap();
-    s.collect_str(&encoding)
+mod as_json_str {
+    use super::*;
+
+    pub fn serialize<S, D: Serialize>(data: D, s: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        let encoding = serde_json::to_string(&data).unwrap();
+        s.collect_str(&encoding)
+    }
+
+    pub fn deserialize<'de, D, T>(deserializer: D) -> Result<T, D::Error>
+    where
+        T: DeserializeOwned,
+        D: Deserializer<'de>,
+    {
+        let serialization = String::deserialize(deserializer)?;
+        serde_json::from_str(&serialization).map_err(serde::de::Error::custom)
+    }
 }
 
 pub type Passphrase = String;
@@ -56,7 +65,7 @@ struct KdfParams {
     r: u32,
     p: u32,
     dklen: usize,
-    #[serde(serialize_with = "as_hex")]
+    #[serde(with = "as_hex")]
     salt: Vec<u8>,
 }
 
@@ -65,6 +74,7 @@ struct Kdf {
     function: String,
     params: KdfParams,
     #[serde(serialize_with = "empty_string")]
+    #[serde(skip_deserializing)]
     message: Vec<u8>,
 }
 
@@ -93,7 +103,8 @@ impl Kdf {
     fn from(passphrase: &Passphrase) -> Self {
         let salt = SaltString::generate(OsRng);
         // NOTE: `SCRYPT_DKLEN` used in `new_with_salt_and_params` matches the `recommended` params
-        let params = ScryptParams::recommended();
+        // let params = ScryptParams::recommended();
+        let params = ScryptParams::new(14, 8, 1, SCRYPT_DKLEN).unwrap();
 
         Self::new_with_salt_and_params(passphrase, salt, params)
     }
@@ -109,7 +120,7 @@ impl Kdf {
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct CipherParams {
-    #[serde(serialize_with = "as_hex")]
+    #[serde(with = "as_hex")]
     iv: Vec<u8>,
 }
 
@@ -117,7 +128,7 @@ pub struct CipherParams {
 pub struct Cipher {
     function: String,
     params: CipherParams,
-    #[serde(serialize_with = "as_hex")]
+    #[serde(with = "as_hex")]
     message: Vec<u8>,
 }
 
@@ -142,14 +153,14 @@ impl Cipher {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, PartialEq, Eq)]
 struct Empty {}
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct Checksum {
     function: String,
     params: Empty,
-    #[serde(serialize_with = "as_hex")]
+    #[serde(with = "as_hex")]
     message: Vec<u8>,
 }
 
@@ -175,6 +186,17 @@ impl Crypto {
         let cipher = Cipher::new(key, kdf.encryption_key());
         let checksum = Checksum::new(cipher.cipher_text(), kdf.checksum_salt());
         Crypto { kdf, checksum, cipher }
+    }
+
+    fn decrypt(&self, passphrase: &Passphrase) -> BlsSecretKey {
+        let kdf = Kdf::from(passphrase);
+        let checksum = Checksum::new(self.cipher.cipher_text(), kdf.checksum_salt());
+        assert_eq!(checksum, self.checksum);
+        Default::default()
+        // verify checksum
+        // let key = self.kdf.derive(passphrase);
+        // let private_key = self.cipher.decrypt(key);
+        // TODO: ensure checksum
     }
 }
 
@@ -205,13 +227,17 @@ impl Keystore {
             version: VERSION,
         }
     }
+
+    fn open(&self, passphrase: &Passphrase) -> BlsSecretKey {
+        self.crypto.decrypt(passphrase)
+    }
 }
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct KeystoreWithPassphrase {
     // NOTE: this JSON name is lighthouse specific
     #[serde(rename = "voting_keystore")]
-    #[serde(serialize_with = "as_json_str")]
+    #[serde(with = "as_json_str")]
     keystore: Keystore,
     // NOTE: this JSON name is lighthouse specific
     #[serde(rename = "voting_keystore_password")]
@@ -219,12 +245,21 @@ pub struct KeystoreWithPassphrase {
 }
 
 pub fn generate(keys: Vec<KeyPair>) -> Vec<KeystoreWithPassphrase> {
+    let style = ProgressStyle::default_bar();
     keys.into_par_iter()
+        .progress_with_style(style)
         .map(|key_pair| {
             let (keystore, passphrase) = Keystore::new_with_generated_passphrase(key_pair);
             KeystoreWithPassphrase { keystore, passphrase }
         })
         .collect()
+}
+
+pub fn from_json(json: &str) -> KeystoreWithPassphrase {
+    let keystore_with_passphrase: KeystoreWithPassphrase = serde_json::from_str(json).unwrap();
+    let secret_key = keystore_with_passphrase.keystore.open(&keystore_with_passphrase.passphrase);
+    assert_eq!(secret_key.public_key(), keystore_with_passphrase.keystore.public_key);
+    keystore_with_passphrase
 }
 
 #[cfg(test)]

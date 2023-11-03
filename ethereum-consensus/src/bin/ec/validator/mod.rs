@@ -18,6 +18,9 @@ pub enum Commands {
         #[clap(help = "EIP-2334 index to stop key generation (exclusive)")]
         end: u32,
     },
+    OpenKeystore {
+        keystore_json: String,
+    },
 }
 
 #[derive(Debug, Args)]
@@ -41,6 +44,11 @@ impl Command {
                 let (signing_keys, _withdrawal_keys) = keys::generate(&seed, start, end);
                 let keystores_with_passphrases = keystores::generate(signing_keys);
                 println!("{}", serde_json::to_string_pretty(&keystores_with_passphrases).unwrap());
+                Ok(())
+            }
+            Commands::OpenKeystore { keystore_json } => {
+                let keystore_with_passphrase = keystores::from_json(&keystore_json);
+                dbg!(keystore_with_passphrase);
                 Ok(())
             }
         }

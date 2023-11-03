@@ -28,6 +28,7 @@ ec = [
     "ctr",
     "base64",
     "unicode-normalization",
+    "indicatif",
 ]
 
 [dependencies]
@@ -75,6 +76,7 @@ aes = { version = "0.8.3", optional = true }
 ctr = { version = "0.9.2", optional = true }
 base64 = { version = "0.21.4", optional = true }
 unicode-normalization = { version = "0.1.22", optional = true }
+indicatif = { version = "0.17.7", optional = true, features = ["rayon"] }
 
 [dev-dependencies]
 serde_with = "1.13.0"
