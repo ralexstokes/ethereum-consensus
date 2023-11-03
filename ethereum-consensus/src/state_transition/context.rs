@@ -229,7 +229,7 @@ impl Context {
             max_blobs_per_block: deneb_preset.max_blobs_per_block,
             // config
             name: config.name.clone(),
-            terminal_total_difficulty: config.terminal_total_difficulty.clone(),
+            terminal_total_difficulty: config.terminal_total_difficulty,
             terminal_block_hash: config.terminal_block_hash.clone(),
             terminal_block_hash_activation_epoch: config.terminal_block_hash_activation_epoch,
             min_genesis_active_validator_count: config.min_genesis_active_validator_count,

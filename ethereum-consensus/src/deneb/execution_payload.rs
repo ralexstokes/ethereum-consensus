@@ -31,6 +31,7 @@ pub struct ExecutionPayload<
     #[serde(with = "crate::serde::as_str")]
     pub timestamp: u64,
     pub extra_data: ByteList<MAX_EXTRA_DATA_BYTES>,
+    #[serde(with = "crate::serde::as_str")]
     pub base_fee_per_gas: U256,
     pub block_hash: Hash32,
     pub transactions: List<Transaction<MAX_BYTES_PER_TRANSACTION>, MAX_TRANSACTIONS_PER_PAYLOAD>,
@@ -63,6 +64,7 @@ pub struct ExecutionPayloadHeader<
     #[serde(with = "crate::serde::as_str")]
     pub timestamp: u64,
     pub extra_data: ByteList<MAX_EXTRA_DATA_BYTES>,
+    #[serde(with = "crate::serde::as_str")]
     pub base_fee_per_gas: U256,
     pub block_hash: Hash32,
     pub transactions_root: Root,
@@ -118,7 +120,7 @@ impl<
             gas_used: payload.gas_used,
             timestamp: payload.timestamp,
             extra_data: payload.extra_data.clone(),
-            base_fee_per_gas: payload.base_fee_per_gas.clone(),
+            base_fee_per_gas: payload.base_fee_per_gas,
             block_hash: payload.block_hash.clone(),
             transactions_root,
             withdrawals_root,

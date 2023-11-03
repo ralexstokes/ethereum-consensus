@@ -55,7 +55,7 @@ pub fn upgrade_to_deneb<
         gas_used: latest_execution_payload_header.gas_used,
         timestamp: latest_execution_payload_header.timestamp,
         extra_data: latest_execution_payload_header.extra_data.clone(),
-        base_fee_per_gas: latest_execution_payload_header.base_fee_per_gas.clone(),
+        base_fee_per_gas: latest_execution_payload_header.base_fee_per_gas,
         block_hash: latest_execution_payload_header.block_hash.clone(),
         transactions_root: latest_execution_payload_header.transactions_root,
         withdrawals_root: latest_execution_payload_header.withdrawals_root,
