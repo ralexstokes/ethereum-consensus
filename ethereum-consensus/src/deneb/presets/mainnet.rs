@@ -151,5 +151,3 @@ pub type SignedBeaconBlock = spec::SignedBeaconBlock<
 
 pub type Blob = spec::Blob<BYTES_PER_BLOB>;
 pub type BlobSidecar = spec::BlobSidecar<BYTES_PER_BLOB, KZG_COMMITMENT_INCLUSION_PROOF_DEPTH>;
-pub type SignedBlobSidecar =
-    spec::SignedBlobSidecar<BYTES_PER_BLOB, KZG_COMMITMENT_INCLUSION_PROOF_DEPTH>;

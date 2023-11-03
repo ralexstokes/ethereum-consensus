@@ -31,17 +31,6 @@ pub struct BlobSidecar<
 #[derive(
     Default, Debug, Clone, SimpleSerialize, PartialEq, Eq, serde::Serialize, serde::Deserialize,
 )]
-pub struct SignedBlobSidecar<
-    const BYTES_PER_BLOB: usize,
-    const KZG_COMMITMENT_INCLUSION_PROOF_DEPTH: usize,
-> {
-    pub message: BlobSidecar<BYTES_PER_BLOB, KZG_COMMITMENT_INCLUSION_PROOF_DEPTH>,
-    pub signature: BlsSignature,
-}
-
-#[derive(
-    Default, Debug, Clone, SimpleSerialize, PartialEq, Eq, serde::Serialize, serde::Deserialize,
-)]
 pub struct BlobIdentifier {
     pub block_root: Root,
     #[serde(with = "crate::serde::as_str")]
