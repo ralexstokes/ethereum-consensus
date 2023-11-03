@@ -72,7 +72,7 @@ impl fmt::Display for StateId {
             StateId::Head => "head",
             StateId::Genesis => "genesis",
             StateId::Slot(slot) => return write!(f, "{slot}"),
-            StateId::Root(root) => return write!(f, "{root}"),
+            StateId::Root(root) => return write!(f, "{root:?}"),
         };
         write!(f, "{printable}")
     }
@@ -125,7 +125,7 @@ impl fmt::Display for BlockId {
             BlockId::Head => "head",
             BlockId::Genesis => "genesis",
             BlockId::Slot(slot) => return write!(f, "{slot}"),
-            BlockId::Root(root) => return write!(f, "{root}"),
+            BlockId::Root(root) => return write!(f, "{root:?}"),
         };
         write!(f, "{printable}")
     }
@@ -191,11 +191,10 @@ pub enum PublicKeyOrIndex {
 
 impl fmt::Display for PublicKeyOrIndex {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        let printable = match *self {
-            Self::PublicKey(ref pk) => pk.to_string(),
-            Self::Index(i) => i.to_string(),
-        };
-        write!(f, "{printable}")
+        match *self {
+            Self::PublicKey(ref pk) => write!(f, "{pk:?}"),
+            Self::Index(i) => write!(f, "{i}"),
+        }
     }
 }
 
