@@ -263,7 +263,7 @@ pub fn process_execution_payload<
         gas_used: payload.gas_used,
         timestamp: payload.timestamp,
         extra_data: payload.extra_data.clone(),
-        base_fee_per_gas: payload.base_fee_per_gas.clone(),
+        base_fee_per_gas: payload.base_fee_per_gas,
         block_hash: payload.block_hash.clone(),
         transactions_root: payload.transactions.hash_tree_root()?,
         withdrawals_root: payload.withdrawals.hash_tree_root()?,

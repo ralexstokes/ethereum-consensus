@@ -34,7 +34,7 @@ pub const DEPOSIT_CHAIN_ID: usize = 17000;
 pub const DEPOSIT_NETWORK_ID: usize = 17000;
 
 pub fn config() -> Config {
-    let terminal_total_difficulty = U256::zero();
+    let terminal_total_difficulty = U256::ZERO;
     let terminal_block_hash = Default::default();
     let deposit_contract_address = ExecutionAddress::try_from(
         [

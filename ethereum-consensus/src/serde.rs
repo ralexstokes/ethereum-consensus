@@ -1,4 +1,4 @@
-pub use ssz_rs::serde::{as_hex, as_str, try_bytes_from_hex_str, HexError};
+pub use ssz_rs::serde::{as_hex, as_str, try_bytes_from_hex_str};
 
 pub mod seq_of_str {
     use serde::{

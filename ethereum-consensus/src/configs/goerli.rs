@@ -34,7 +34,7 @@ pub const DEPOSIT_NETWORK_ID: usize = 5;
 
 pub fn config() -> Config {
     // 10790000
-    let terminal_total_difficulty = U256::from_bytes_le([
+    let terminal_total_difficulty = U256::from_le_bytes([
         112, 164, 164, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
         0, 0, 0, 0,
     ]);
