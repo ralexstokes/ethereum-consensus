@@ -3,7 +3,7 @@ use crate::{
         polynomial_commitments::{KzgCommitment, KzgProof},
         SignedBeaconBlockHeader,
     },
-    primitives::{BlobIndex, BlsSignature, Bytes32, Root},
+    primitives::{BlobIndex, Bytes32, Root},
     ssz::prelude::*,
 };
 
