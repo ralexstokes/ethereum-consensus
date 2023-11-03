@@ -19,6 +19,7 @@ pub use spec::*;
 pub const FIELD_ELEMENTS_PER_BLOB: usize = 4096;
 pub const MAX_BLOB_COMMITMENTS_PER_BLOCK: usize = 16;
 pub const MAX_BLOBS_PER_BLOCK: usize = 6;
+pub const KZG_COMMITMENT_INCLUSION_PROOF_DEPTH: usize = 9;
 
 pub const BYTES_PER_BLOB: usize =
     crate::deneb::polynomial_commitments::BYTES_PER_FIELD_ELEMENT * FIELD_ELEMENTS_PER_BLOB;
@@ -149,5 +150,6 @@ pub type SignedBeaconBlock = spec::SignedBeaconBlock<
 >;
 
 pub type Blob = spec::Blob<BYTES_PER_BLOB>;
-pub type BlobSidecar = spec::BlobSidecar<BYTES_PER_BLOB>;
-pub type SignedBlobSidecar = spec::SignedBlobSidecar<BYTES_PER_BLOB>;
+pub type BlobSidecar = spec::BlobSidecar<BYTES_PER_BLOB, KZG_COMMITMENT_INCLUSION_PROOF_DEPTH>;
+pub type SignedBlobSidecar =
+    spec::SignedBlobSidecar<BYTES_PER_BLOB, KZG_COMMITMENT_INCLUSION_PROOF_DEPTH>;
