@@ -301,7 +301,7 @@ impl<C: ClientTypes> Client<C> {
     ) -> Result<BeaconHeaderSummary, Error> {
         let target = self.endpoint.join("eth/v1/beacon/headers")?;
         let mut request = self.http.get(target);
-        request = request.query(&[("parent_root", parent_root)]);
+        request = request.query(&[("parent_root", format!("{parent_root:?}"))]);
         let response = request.send().await?;
         let result: ApiResult<Value<BeaconHeaderSummary>> = response.json().await?;
         match result {
@@ -427,7 +427,7 @@ impl<C: ClientTypes> Client<C> {
         block: Root,
     ) -> Result<C::LightClientBootstrap, Error> {
         let result: Value<_> =
-            self.get(&format!("eth/v1/beacon/light_client/bootstrap/{block}")).await?;
+            self.get(&format!("eth/v1/beacon/light_client/bootstrap/{block:?}")).await?;
         Ok(result.data)
     }
 
@@ -729,9 +729,9 @@ impl<C: ClientTypes> Client<C> {
         let path = format!("eth/v2/validator/blocks/{slot}");
         let target = self.endpoint.join(&path)?;
         let mut request = self.http.get(target);
-        request = request.query(&[("randao_reveal", randao_reveal)]);
+        request = request.query(&[("randao_reveal", format!("{randao_reveal:?}"))]);
         if let Some(graffiti) = graffiti {
-            request = request.query(&[("graffiti", graffiti)]);
+            request = request.query(&[("graffiti", format!("{graffiti:?}"))]);
         }
         let response = request.send().await?;
         let result: ApiResult<VersionedValue<C::BeaconBlock>> = response.json().await?;
@@ -750,9 +750,9 @@ impl<C: ClientTypes> Client<C> {
         let path = format!("eth/v1/validator/blinded_blocks/{slot}");
         let target = self.endpoint.join(&path)?;
         let mut request = self.http.get(target);
-        request = request.query(&[("randao_reveal", randao_reveal)]);
+        request = request.query(&[("randao_reveal", format!("{randao_reveal:?}"))]);
         if let Some(graffiti) = graffiti {
-            request = request.query(&[("graffiti", graffiti)]);
+            request = request.query(&[("graffiti", format!("{graffiti:?}"))]);
         }
         let response = request.send().await?;
         let result: ApiResult<VersionedValue<C::BlindedBeaconBlock>> = response.json().await?;
@@ -786,7 +786,7 @@ impl<C: ClientTypes> Client<C> {
     ) -> Result<C::Attestation, Error> {
         let target = self.endpoint.join("eth/v1/validator/aggregate_attestation")?;
         let mut request = self.http.get(target);
-        request = request.query(&[("attestation_data_root", attestation_data_root)]);
+        request = request.query(&[("attestation_data_root", format!("{attestation_data_root:?}"))]);
         request = request.query(&[("slot", slot)]);
         let response = request.send().await?;
         let result: ApiResult<Value<C::Attestation>> = response.json().await?;
@@ -827,7 +827,7 @@ impl<C: ClientTypes> Client<C> {
         let mut request = self.http.get(target);
         request = request.query(&[("slot", slot)]);
         request = request.query(&[("subcommittee_index", subcommittee_index)]);
-        request = request.query(&[("beacon_block_root", beacon_block_root)]);
+        request = request.query(&[("beacon_block_root", format!("{beacon_block_root:?}"))]);
         let response = request.send().await?;
         let result: ApiResult<Value<C::SyncCommitteeContribution>> = response.json().await?;
         match result {

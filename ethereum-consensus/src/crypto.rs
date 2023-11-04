@@ -1,5 +1,5 @@
 #[cfg(feature = "serde")]
-use crate::serde::{try_bytes_from_hex_str, HexError};
+use crate::serde::try_bytes_from_hex_str;
 use crate::{primitives::Bytes32, ssz::prelude::*};
 use blst::{min_pk as bls_impl, BLST_ERROR};
 use sha2::{Digest, Sha256};
@@ -28,7 +28,7 @@ const BLS_SIGNATURE_BYTES_LEN: usize = 96;
 pub enum Error {
     #[cfg(feature = "serde")]
     #[error("error deserializing hex-encoded input: {0}")]
-    Hex(#[from] HexError),
+    Hex(#[from] hex::FromHexError),
     #[error("inputs required for aggregation but none were provided")]
     EmptyAggregate,
     #[error("{0}")]

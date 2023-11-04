@@ -33,7 +33,7 @@ pub const DEPOSIT_CHAIN_ID: usize = 1;
 pub const DEPOSIT_NETWORK_ID: usize = 1;
 
 pub fn config() -> Config {
-    let terminal_total_difficulty = U256::from_bytes_le([
+    let terminal_total_difficulty = U256::from_le_bytes([
         0, 0, 56, 215, 40, 161, 8, 216, 112, 12, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
         0, 0, 0, 0, 0,
     ]);
