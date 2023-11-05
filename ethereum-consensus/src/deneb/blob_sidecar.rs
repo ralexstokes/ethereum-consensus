@@ -7,7 +7,6 @@ use crate::{
     ssz::prelude::*,
 };
 
-pub const BLOB_TX_TYPE: u8 = 3;
 pub const VERSIONED_HASH_VERSION_KZG: u8 = 1;
 
 pub type Blob<const BYTES_PER_BLOB: usize> = ByteVector<BYTES_PER_BLOB>;
