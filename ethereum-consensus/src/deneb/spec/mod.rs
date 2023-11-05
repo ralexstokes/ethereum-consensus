@@ -33,8 +33,7 @@ pub use crate::{
         },
         blinded_blob_sidecar::{BlindedBlobSidecar, SignedBlindedBlobSidecar},
         blob_sidecar::{
-            Blob, BlobIdentifier, BlobSidecar, SignedBlobSidecar, BLOB_TX_TYPE,
-            VERSIONED_HASH_VERSION_KZG,
+            Blob, BlobIdentifier, BlobSidecar, BLOB_TX_TYPE, VERSIONED_HASH_VERSION_KZG,
         },
         block_processing::{
             process_attestation, process_block, process_execution_payload, process_voluntary_exit,
