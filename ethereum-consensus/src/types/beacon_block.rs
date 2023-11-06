@@ -10,7 +10,7 @@ use crate::{
     types::beacon_block_body::{BeaconBlockBodyRef, BeaconBlockBodyRefMut},
     Fork as Version,
 };
-#[derive(Debug, Clone, PartialEq, Eq, Merkleized, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, SimpleSerialize, serde::Serialize)]
 #[ssz(transparent)]
 #[serde(untagged)]
 pub enum BeaconBlock<

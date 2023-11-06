@@ -13,7 +13,7 @@ use crate::{
     types::execution_payload::{ExecutionPayloadRef, ExecutionPayloadRefMut},
     Fork as Version,
 };
-#[derive(Debug, Clone, PartialEq, Eq, Merkleized, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, SimpleSerialize, serde::Serialize)]
 #[ssz(transparent)]
 #[serde(untagged)]
 pub enum BeaconBlockBody<
