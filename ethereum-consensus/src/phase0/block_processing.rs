@@ -309,6 +309,8 @@ pub fn get_validator_from_deposit(deposit: &Deposit, context: &Context) -> Valid
     }
 }
 
+pub(crate) const DEPOSIT_MERKLE_DEPTH: usize = DEPOSIT_CONTRACT_TREE_DEPTH + 1;
+
 pub fn process_deposit<
     const SLOTS_PER_HISTORICAL_ROOT: usize,
     const HISTORICAL_ROOTS_LIMIT: usize,
@@ -332,18 +334,22 @@ pub fn process_deposit<
     deposit: &mut Deposit,
     context: &Context,
 ) -> Result<()> {
-    let branch = deposit
-        .proof
-        .iter()
-        .map(|node| Node::try_from(node.as_ref()).expect("is valid instance"))
-        .collect::<Vec<_>>();
     let leaf = deposit.data.hash_tree_root()?;
-    let depth = DEPOSIT_CONTRACT_TREE_DEPTH + 1;
+    let branch = &deposit.proof;
     let index = state.eth1_deposit_index as usize;
-    let root = &state.eth1_data.deposit_root;
-    if !is_valid_merkle_branch(&leaf, branch.iter(), depth, index, root) {
+    let root = state.eth1_data.deposit_root;
+    if is_valid_merkle_branch(leaf, branch, DEPOSIT_MERKLE_DEPTH, index, root).is_err() {
         return Err(invalid_operation_error(InvalidOperation::Deposit(
-            InvalidDeposit::InvalidProof { leaf, branch, depth, index, root: *root },
+            InvalidDeposit::InvalidProof {
+                leaf,
+                branch: branch
+                    .iter()
+                    .map(|node| Node::try_from(node.as_ref()).expect("correct size"))
+                    .collect(),
+                depth: DEPOSIT_MERKLE_DEPTH,
+                index,
+                root,
+            },
         )))
     }
 
