@@ -35,6 +35,12 @@ impl<const N: usize> fmt::Display for ByteList<N> {
     }
 }
 
+impl<const N: usize> AsRef<[u8]> for ByteList<N> {
+    fn as_ref(&self) -> &[u8] {
+        self.0.as_ref()
+    }
+}
+
 impl<const N: usize> Deref for ByteList<N> {
     type Target = List<u8, N>;
 

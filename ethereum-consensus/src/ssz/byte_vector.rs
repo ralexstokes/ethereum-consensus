@@ -35,6 +35,12 @@ impl<const N: usize> fmt::Display for ByteVector<N> {
     }
 }
 
+impl<const N: usize> AsRef<[u8]> for ByteVector<N> {
+    fn as_ref(&self) -> &[u8] {
+        self.0.as_ref()
+    }
+}
+
 impl<const N: usize> Deref for ByteVector<N> {
     type Target = Vector<u8, N>;
 
