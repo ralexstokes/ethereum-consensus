@@ -11,6 +11,8 @@ pub use error::*;
 pub use presets::*;
 pub use types::*;
 
+pub const ETH_CONSENSUS_VERSION_HEADER: &str = "Eth-Consensus-Version";
+
 mod error {
     use crate::ApiError;
     use thiserror::Error;
