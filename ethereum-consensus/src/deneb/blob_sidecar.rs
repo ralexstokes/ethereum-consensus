@@ -5,6 +5,7 @@ use crate::{
     },
     primitives::{BlobIndex, Bytes32, Root},
     ssz::prelude::*,
+    Error,
 };
 
 pub const VERSIONED_HASH_VERSION_KZG: u8 = 1;
@@ -30,22 +31,15 @@ pub struct BlobSidecar<
 impl<const BYTES_PER_BLOB: usize, const KZG_COMMITMENT_INCLUSION_PROOF_DEPTH: usize>
     BlobSidecar<BYTES_PER_BLOB, KZG_COMMITMENT_INCLUSION_PROOF_DEPTH>
 {
-    pub fn verify_blob_sidecar_inclusion_proof(&mut self) -> bool {
+    pub fn verify_blob_sidecar_inclusion_proof(&mut self) -> Result<(), Error> {
         // TODO: Calculate real gindex
-        let gindex = 4;
-
-        // TODO: Handle hash_tree_root() error
-        let leaf = &self.kzg_commitment.hash_tree_root().unwrap();
-        let branch: Vec<_> = self
-            .kzg_commitment_inclusion_proof
-            .iter()
-            .map(|bytes| Node::try_from(bytes.as_slice()).unwrap())
-            .collect();
+        let index = 4;
+        let leaf = self.kzg_commitment.hash_tree_root()?;
+        let branch = self.kzg_commitment_inclusion_proof.as_ref();
         let depth = KZG_COMMITMENT_INCLUSION_PROOF_DEPTH;
-        let index = gindex;
-        let root = &self.signed_block_header.message.body_root;
+        let root = self.signed_block_header.message.body_root;
 
-        is_valid_merkle_branch(leaf, branch.iter(), depth, index, root)
+        Ok(is_valid_merkle_branch(leaf, branch, depth, index, root)?)
     }
 }
 
