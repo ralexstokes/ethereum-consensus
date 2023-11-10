@@ -12,7 +12,7 @@ use std::{
 pub const MAINNET_GENESIS_TIME: u64 = 1606824023;
 pub const SEPOLIA_GENESIS_TIME: u64 = 1655733600;
 pub const GOERLI_GENESIS_TIME: u64 = 1616508000;
-pub const HOLESKY_GENESIS_TIME: u64 = 1694786400;
+pub const HOLESKY_GENESIS_TIME: u64 = 1695902400;
 
 fn slot_to_nanos(slot: Slot, seconds_per_slot: u128, genesis_time: u128) -> u128 {
     u128::from(slot) * seconds_per_slot + genesis_time
