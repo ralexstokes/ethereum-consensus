@@ -210,7 +210,7 @@ impl From<BlsPublicKey> for PublicKeyOrIndex {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct ValidatorSummary {
     #[serde(with = "crate::serde::as_str")]
     pub index: ValidatorIndex,
