@@ -144,7 +144,7 @@ pub struct FinalityCheckpoints {
     pub finalized: Checkpoint,
 }
 
-#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "snake_case")]
 pub enum ValidatorStatus {
     PendingInitialized,
@@ -210,7 +210,7 @@ impl From<BlsPublicKey> for PublicKeyOrIndex {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct ValidatorSummary {
     #[serde(with = "crate::serde::as_str")]
     pub index: ValidatorIndex,
