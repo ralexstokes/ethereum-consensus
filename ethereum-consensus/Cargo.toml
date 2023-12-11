@@ -31,7 +31,7 @@ ec = [
 ]
 
 [dependencies]
-ssz_rs = { git = "https://github.com/ralexstokes/ssz-rs", rev = "db3bca54b23522df224b1d7d4ac3c3b805a49e84" }
+ssz_rs = { git = "https://github.com/ralexstokes/ssz-rs", rev = "1f94d5dfc70c86dab672e91ac46af04a5f96c342" }
 blst = "0.3.11"
 rand = "0.8.4"
 thiserror = "1.0.30"
@@ -64,7 +64,7 @@ bip39 = { version = "2.0.0", optional = true }
 rand_core = { version = "0.6", optional = true, features = ["std"] }
 rayon = { version = "1.8.0", optional = true }
 hkdf = { version = "0.12.3", optional = true }
-ruint = { version = "1.10.1", optional = true }
+ruint = { version = "1.11.1", optional = true }
 uuid = { version = "1.4.1", optional = true, features = [
     "v4",
     "fast-rng",
