@@ -109,7 +109,7 @@ pub struct RootData {
     pub root: Root,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Clone, Debug)]
 pub enum BlockId {
     Head,
     Genesis,
