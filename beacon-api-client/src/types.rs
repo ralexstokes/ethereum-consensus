@@ -258,7 +258,7 @@ pub struct SyncCommitteeSummary {
 pub struct BeaconHeaderSummary {
     pub root: Root,
     pub canonical: bool,
-    pub signed_header: SignedBeaconBlockHeader,
+    pub header: SignedBeaconBlockHeader,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
