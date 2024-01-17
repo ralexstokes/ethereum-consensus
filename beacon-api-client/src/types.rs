@@ -109,7 +109,7 @@ pub struct RootData {
     pub root: Root,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Clone, Debug)]
 pub enum BlockId {
     Head,
     Genesis,
@@ -258,7 +258,7 @@ pub struct SyncCommitteeSummary {
 pub struct BeaconHeaderSummary {
     pub root: Root,
     pub canonical: bool,
-    pub signed_header: SignedBeaconBlockHeader,
+    pub header: SignedBeaconBlockHeader,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
