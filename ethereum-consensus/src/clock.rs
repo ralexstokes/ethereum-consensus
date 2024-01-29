@@ -301,7 +301,7 @@ mod tests {
         let mut slots = vec![];
         while let Some(slot) = slot_stream.next().await {
             if slot >= target_slot {
-                break
+                break;
             }
             slots.push(slot);
             time_provider.tick_slot();
@@ -325,7 +325,7 @@ mod tests {
         let mut slots = vec![];
         while let Some(slot) = slot_stream.next().await {
             if slot >= target_slot {
-                break
+                break;
             }
             slots.push(slot);
         }

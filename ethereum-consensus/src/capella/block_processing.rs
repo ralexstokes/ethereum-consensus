@@ -52,7 +52,7 @@ pub fn process_bls_to_execution_change<
     if address_change.validator_index >= state.validators.len() {
         return Err(invalid_operation_error(InvalidOperation::BlsToExecutionChange(
             InvalidBlsToExecutionChange::ValidatorIndexOutOfBounds(address_change.validator_index),
-        )))
+        )));
     }
 
     let withdrawal_credentials =
@@ -60,7 +60,7 @@ pub fn process_bls_to_execution_change<
     if withdrawal_credentials[0] != BLS_WITHDRAWAL_PREFIX {
         return Err(invalid_operation_error(InvalidOperation::BlsToExecutionChange(
             InvalidBlsToExecutionChange::WithdrawalCredentialsPrefix(withdrawal_credentials[0]),
-        )))
+        )));
     }
 
     // NOTE: compute `signing_root` ahead of the public key check to satisfy borrow check
@@ -76,7 +76,7 @@ pub fn process_bls_to_execution_change<
     if withdrawal_credentials[1..] != hash(public_key.as_ref())[1..] {
         return Err(invalid_operation_error(InvalidOperation::BlsToExecutionChange(
             InvalidBlsToExecutionChange::PublicKeyMismatch(public_key.clone()),
-        )))
+        )));
     }
 
     verify_signature(public_key, signing_root.as_ref(), signature)?;
@@ -148,7 +148,7 @@ pub fn process_operations<
                 expected: expected_deposit_count,
                 count: body.deposits.len(),
             },
-        )))
+        )));
     }
     body.proposer_slashings
         .iter_mut()
@@ -220,7 +220,7 @@ pub fn process_execution_payload<
                 expected: state.latest_execution_payload_header.block_hash.clone(),
             }
             .into(),
-        ))
+        ));
     }
 
     let current_epoch = get_current_epoch(state, context);
@@ -232,7 +232,7 @@ pub fn process_execution_payload<
                 expected: randao_mix.clone(),
             }
             .into(),
-        ))
+        ));
     }
 
     let timestamp = compute_timestamp_at_slot(state, state.slot, context)?;
@@ -243,7 +243,7 @@ pub fn process_execution_payload<
                 expected: timestamp,
             }
             .into(),
-        ))
+        ));
     }
 
     let new_payload_request = NewPayloadRequest(payload);
@@ -314,7 +314,7 @@ pub fn process_withdrawals<
                 provided: execution_payload.withdrawals.to_vec(),
                 expected: expected_withdrawals,
             },
-        )))
+        )));
     }
 
     for withdrawal in &expected_withdrawals {
@@ -399,7 +399,7 @@ pub fn get_expected_withdrawals<
             withdrawal_index += 1;
         }
         if withdrawals.len() == context.max_withdrawals_per_payload {
-            break
+            break;
         }
         validator_index = (validator_index + 1) % state.validators.len();
     }

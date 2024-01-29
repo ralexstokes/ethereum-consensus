@@ -98,8 +98,8 @@ pub fn slash_validator<
     decrease_balance(
         state,
         slashed_index,
-        state.validators[slashed_index].effective_balance /
-            context.min_slashing_penalty_quotient_bellatrix,
+        state.validators[slashed_index].effective_balance
+            / context.min_slashing_penalty_quotient_bellatrix,
     );
     let proposer_index = get_beacon_proposer_index(state, context)?;
     let whistleblower_index = whistleblower_index.unwrap_or(proposer_index);

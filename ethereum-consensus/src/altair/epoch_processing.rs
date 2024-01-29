@@ -74,7 +74,7 @@ pub fn process_justification_and_finalization<
     // this stub.
     let current_epoch = get_current_epoch(state, context);
     if current_epoch <= GENESIS_EPOCH + 1 {
-        return Ok(())
+        return Ok(());
     }
 
     let previous_indices = get_unslashed_participating_indices(
@@ -126,7 +126,7 @@ pub fn process_inactivity_updates<
     // Skip the genesis epoch as score updates are based on the previous epoch participation
     let current_epoch = get_current_epoch(state, context);
     if current_epoch == GENESIS_EPOCH {
-        return Ok(())
+        return Ok(());
     }
 
     let eligible_validator_indices =
@@ -180,7 +180,7 @@ pub fn process_rewards_and_penalties<
     // previous epoch
     let current_epoch = get_current_epoch(state, context);
     if current_epoch == GENESIS_EPOCH {
-        return Ok(())
+        return Ok(());
     }
 
     let mut deltas = Vec::new();
@@ -257,8 +257,8 @@ pub fn process_slashings<
     );
     for i in 0..state.validators.len() {
         let validator = &state.validators[i];
-        if validator.slashed &&
-            (epoch + context.epochs_per_slashings_vector / 2) == validator.withdrawable_epoch
+        if validator.slashed
+            && (epoch + context.epochs_per_slashings_vector / 2) == validator.withdrawable_epoch
         {
             let increment = context.effective_balance_increment;
             let penalty_numerator =

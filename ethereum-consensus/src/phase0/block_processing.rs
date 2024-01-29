@@ -58,7 +58,7 @@ pub fn process_proposer_slashing<
     if header_1.slot != header_2.slot {
         return Err(invalid_operation_error(InvalidOperation::ProposerSlashing(
             InvalidProposerSlashing::SlotMismatch(header_1.slot, header_2.slot),
-        )))
+        )));
     }
 
     if header_1.proposer_index != header_2.proposer_index {
@@ -67,13 +67,13 @@ pub fn process_proposer_slashing<
                 header_1.proposer_index,
                 header_2.proposer_index,
             ),
-        )))
+        )));
     }
 
     if header_1 == header_2 {
         return Err(invalid_operation_error(InvalidOperation::ProposerSlashing(
             InvalidProposerSlashing::HeadersAreEqual(header_1.clone()),
-        )))
+        )));
     }
 
     let proposer_index = header_1.proposer_index;
@@ -85,7 +85,7 @@ pub fn process_proposer_slashing<
     if !is_slashable_validator(proposer, get_current_epoch(state, context)) {
         return Err(invalid_operation_error(InvalidOperation::ProposerSlashing(
             InvalidProposerSlashing::ProposerIsNotSlashable(header_1.proposer_index),
-        )))
+        )));
     }
 
     let epoch = compute_epoch_at_slot(header_1.slot, context);
@@ -98,7 +98,7 @@ pub fn process_proposer_slashing<
         if verify_signature(public_key, signing_root.as_ref(), &signed_header.signature).is_err() {
             return Err(invalid_operation_error(InvalidOperation::ProposerSlashing(
                 InvalidProposerSlashing::InvalidSignature(signed_header.signature.clone()),
-            )))
+            )));
         }
     }
 
@@ -137,7 +137,7 @@ pub fn process_attester_slashing<
                 Box::new(attestation_1.data.clone()),
                 Box::new(attestation_2.data.clone()),
             ),
-        )))
+        )));
     }
 
     is_valid_indexed_attestation(state, attestation_1, context)?;
@@ -203,7 +203,7 @@ pub fn process_attestation<
                 target: data.target.epoch,
                 current: current_epoch,
             },
-        )))
+        )));
     }
 
     let attestation_epoch = compute_epoch_at_slot(data.slot, context);
@@ -214,7 +214,7 @@ pub fn process_attestation<
                 epoch: attestation_epoch,
                 target: data.target.epoch,
             },
-        )))
+        )));
     }
 
     let attestation_has_delay = data.slot + context.min_attestation_inclusion_delay <= state.slot;
@@ -228,14 +228,14 @@ pub fn process_attestation<
                 lower_bound: data.slot + context.slots_per_epoch,
                 upper_bound: data.slot + context.min_attestation_inclusion_delay,
             },
-        )))
+        )));
     }
 
     let committee_count = get_committee_count_per_slot(state, data.target.epoch, context);
     if data.index >= committee_count {
         return Err(invalid_operation_error(InvalidOperation::Attestation(
             InvalidAttestation::InvalidIndex { index: data.index, upper_bound: committee_count },
-        )))
+        )));
     }
 
     let committee = get_beacon_committee(state, data.slot, data.index, context)?;
@@ -246,7 +246,7 @@ pub fn process_attestation<
                 expected_length: committee.len(),
                 length: attestation.aggregation_bits.len(),
             },
-        )))
+        )));
     }
 
     // NOTE: swap order of these wrt the spec to avoid mutation
@@ -271,7 +271,7 @@ pub fn process_attestation<
                     source_checkpoint: data.source.clone(),
                     current: current_epoch,
                 },
-            )))
+            )));
         }
         state.current_epoch_attestations.push(pending_attestation);
     } else {
@@ -282,7 +282,7 @@ pub fn process_attestation<
                     source_checkpoint: data.source.clone(),
                     current: current_epoch,
                 },
-            )))
+            )));
         }
         state.previous_epoch_attestations.push(pending_attestation);
     }
@@ -350,7 +350,7 @@ pub fn process_deposit<
                 index,
                 root,
             },
-        )))
+        )));
     }
 
     state.eth1_deposit_index += 1;
@@ -370,7 +370,7 @@ pub fn process_deposit<
 
         if verify_signature(public_key, signing_root.as_ref(), &deposit.data.signature).is_err() {
             // NOTE: explicitly return with no error and also no further mutations to `state`
-            return Ok(())
+            return Ok(());
         }
 
         state.validators.push(get_validator_from_deposit(deposit, context));
@@ -418,7 +418,7 @@ pub fn process_voluntary_exit<
     if !is_active_validator(validator, current_epoch) {
         return Err(invalid_operation_error(InvalidOperation::VoluntaryExit(
             InvalidVoluntaryExit::InactiveValidator(current_epoch),
-        )))
+        )));
     }
 
     if validator.exit_epoch != FAR_FUTURE_EPOCH {
@@ -427,13 +427,13 @@ pub fn process_voluntary_exit<
                 index: voluntary_exit.validator_index,
                 epoch: validator.exit_epoch,
             },
-        )))
+        )));
     }
 
     if current_epoch < voluntary_exit.epoch {
         return Err(invalid_operation_error(InvalidOperation::VoluntaryExit(
             InvalidVoluntaryExit::EarlyExit { current_epoch, exit_epoch: voluntary_exit.epoch },
-        )))
+        )));
     }
 
     let minimum_time_active =
@@ -444,7 +444,7 @@ pub fn process_voluntary_exit<
                 current_epoch,
                 minimum_time_active,
             },
-        )))
+        )));
     }
 
     let domain = get_domain(state, DomainType::VoluntaryExit, Some(voluntary_exit.epoch), context)?;
@@ -498,14 +498,14 @@ pub fn process_block_header<
         return Err(invalid_header_error(InvalidBeaconBlockHeader::StateSlotMismatch {
             state_slot: state.slot,
             block_slot: block.slot,
-        }))
+        }));
     }
 
     if block.slot <= state.latest_block_header.slot {
         return Err(invalid_header_error(InvalidBeaconBlockHeader::OlderThanLatestBlockHeader {
             block_slot: block.slot,
             latest_block_header_slot: state.latest_block_header.slot,
-        }))
+        }));
     }
 
     let proposer_index = get_beacon_proposer_index(state, context)?;
@@ -513,7 +513,7 @@ pub fn process_block_header<
         return Err(invalid_header_error(InvalidBeaconBlockHeader::ProposerIndexMismatch {
             block_proposer_index: block.proposer_index,
             proposer_index,
-        }))
+        }));
     }
 
     let expected_parent_root = state.latest_block_header.hash_tree_root()?;
@@ -521,7 +521,7 @@ pub fn process_block_header<
         return Err(invalid_header_error(InvalidBeaconBlockHeader::ParentBlockRootMismatch {
             expected: expected_parent_root,
             provided: block.parent_root,
-        }))
+        }));
     }
 
     state.latest_block_header = BeaconBlockHeader {
@@ -534,7 +534,9 @@ pub fn process_block_header<
 
     let proposer = &state.validators[block.proposer_index];
     if proposer.slashed {
-        return Err(invalid_header_error(InvalidBeaconBlockHeader::ProposerSlashed(proposer_index)))
+        return Err(invalid_header_error(InvalidBeaconBlockHeader::ProposerSlashed(
+            proposer_index,
+        )));
     }
 
     Ok(())
@@ -589,7 +591,7 @@ pub fn process_randao<
     let signing_root = compute_signing_root(&mut epoch, domain)?;
 
     if verify_signature(&proposer.public_key, signing_root.as_ref(), &body.randao_reveal).is_err() {
-        return Err(invalid_operation_error(InvalidOperation::Randao(body.randao_reveal.clone())))
+        return Err(invalid_operation_error(InvalidOperation::Randao(body.randao_reveal.clone())));
     }
 
     let mix = xor(get_randao_mix(state, epoch), &hash(body.randao_reveal.as_ref()));
@@ -689,7 +691,7 @@ pub fn process_operations<
                 expected: expected_deposit_count,
                 count: body.deposits.len(),
             },
-        )))
+        )));
     }
 
     body.proposer_slashings

@@ -60,7 +60,7 @@ pub fn process_attestation<
                 target: data.target.epoch,
                 current: current_epoch,
             },
-        )))
+        )));
     }
     let attestation_epoch = compute_epoch_at_slot(data.slot, context);
     if data.target.epoch != attestation_epoch {
@@ -70,7 +70,7 @@ pub fn process_attestation<
                 epoch: attestation_epoch,
                 target: data.target.epoch,
             },
-        )))
+        )));
     }
     let attestation_is_timely = data.slot + context.min_attestation_inclusion_delay <= state.slot;
     if !attestation_is_timely {
@@ -80,13 +80,13 @@ pub fn process_attestation<
                 state_slot: state.slot,
                 required_delay: context.min_attestation_inclusion_delay,
             },
-        )))
+        )));
     }
     let committee_count = get_committee_count_per_slot(state, data.target.epoch, context);
     if data.index >= committee_count {
         return Err(invalid_operation_error(InvalidOperation::Attestation(
             InvalidAttestation::InvalidIndex { index: data.index, upper_bound: committee_count },
-        )))
+        )));
     }
     let committee = get_beacon_committee(state, data.slot, data.index, context)?;
     if attestation.aggregation_bits.len() != committee.len() {
@@ -95,7 +95,7 @@ pub fn process_attestation<
                 expected_length: committee.len(),
                 length: attestation.aggregation_bits.len(),
             },
-        )))
+        )));
     }
     let inclusion_delay = state.slot - data.slot;
     let participation_flag_indices =
@@ -111,15 +111,15 @@ pub fn process_attestation<
     for index in attesting_indices {
         for (flag_index, weight) in PARTICIPATION_FLAG_WEIGHTS.iter().enumerate() {
             if is_current {
-                if participation_flag_indices.contains(&flag_index) &&
-                    !has_flag(state.current_epoch_participation[index], flag_index)
+                if participation_flag_indices.contains(&flag_index)
+                    && !has_flag(state.current_epoch_participation[index], flag_index)
                 {
                     state.current_epoch_participation[index] =
                         add_flag(state.current_epoch_participation[index], flag_index);
                     proposer_reward_numerator += get_base_reward(state, index, context)? * weight;
                 }
-            } else if participation_flag_indices.contains(&flag_index) &&
-                !has_flag(state.previous_epoch_participation[index], flag_index)
+            } else if participation_flag_indices.contains(&flag_index)
+                && !has_flag(state.previous_epoch_participation[index], flag_index)
             {
                 state.previous_epoch_participation[index] =
                     add_flag(state.previous_epoch_participation[index], flag_index);
@@ -205,7 +205,7 @@ pub fn process_execution_payload<
                 expected: state.latest_execution_payload_header.block_hash.clone(),
             }
             .into(),
-        ))
+        ));
     }
 
     let current_epoch = get_current_epoch(state, context);
@@ -217,7 +217,7 @@ pub fn process_execution_payload<
                 expected: randao_mix.clone(),
             }
             .into(),
-        ))
+        ));
     }
 
     let timestamp = compute_timestamp_at_slot(state, state.slot, context)?;
@@ -228,7 +228,7 @@ pub fn process_execution_payload<
                 expected: timestamp,
             }
             .into(),
-        ))
+        ));
     }
 
     if body.blob_kzg_commitments.len() > context.max_blobs_per_block {
@@ -238,7 +238,7 @@ pub fn process_execution_payload<
                 limit: context.max_blobs_per_block,
             }
             .into(),
-        ))
+        ));
     }
 
     let versioned_hashes =
@@ -311,7 +311,7 @@ pub fn process_voluntary_exit<
     if !is_active_validator(validator, current_epoch) {
         return Err(invalid_operation_error(InvalidOperation::VoluntaryExit(
             InvalidVoluntaryExit::InactiveValidator(current_epoch),
-        )))
+        )));
     }
     if validator.exit_epoch != FAR_FUTURE_EPOCH {
         return Err(invalid_operation_error(InvalidOperation::VoluntaryExit(
@@ -319,12 +319,12 @@ pub fn process_voluntary_exit<
                 index: voluntary_exit.validator_index,
                 epoch: validator.exit_epoch,
             },
-        )))
+        )));
     }
     if current_epoch < voluntary_exit.epoch {
         return Err(invalid_operation_error(InvalidOperation::VoluntaryExit(
             InvalidVoluntaryExit::EarlyExit { current_epoch, exit_epoch: voluntary_exit.epoch },
-        )))
+        )));
     }
     let minimum_time_active =
         validator.activation_eligibility_epoch + context.shard_committee_period;
@@ -334,7 +334,7 @@ pub fn process_voluntary_exit<
                 current_epoch,
                 minimum_time_active,
             },
-        )))
+        )));
     }
     let domain = compute_domain(
         DomainType::VoluntaryExit,

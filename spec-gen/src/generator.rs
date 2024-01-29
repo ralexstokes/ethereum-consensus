@@ -101,19 +101,19 @@ impl Fork {
             Fork::Altair => {
                 matches!(
                     name,
-                    "get_unslashed_attesting_indices" |
-                        "get_matching_source_attestations" |
-                        "get_matching_target_attestations" |
-                        "get_matching_head_attestations" |
-                        "get_source_deltas" |
-                        "get_target_deltas" |
-                        "get_head_deltas" |
-                        "get_inclusion_delay_deltas" |
-                        "get_inactivity_penalty_deltas" |
-                        "get_attestation_deltas" |
-                        "get_attestation_component_deltas" |
-                        "get_attesting_balance" |
-                        "process_participation_record_updates"
+                    "get_unslashed_attesting_indices"
+                        | "get_matching_source_attestations"
+                        | "get_matching_target_attestations"
+                        | "get_matching_head_attestations"
+                        | "get_source_deltas"
+                        | "get_target_deltas"
+                        | "get_head_deltas"
+                        | "get_inclusion_delay_deltas"
+                        | "get_inactivity_penalty_deltas"
+                        | "get_attestation_deltas"
+                        | "get_attestation_component_deltas"
+                        | "get_attesting_balance"
+                        | "process_participation_record_updates"
                 )
             }
             _ => false,
@@ -359,7 +359,7 @@ impl Spec {
                 let name = ident.to_string();
                 if index.contains_key(&name) {
                     println!("skipping item: found duplicate definition for `{name}` in next spec `{fork}`");
-                    continue
+                    continue;
                 }
                 module.constants.push(c.clone());
                 index.insert(name, module_name.to_string());
@@ -369,7 +369,7 @@ impl Spec {
                 let name = container.name.to_string();
                 if index.contains_key(&name) {
                     println!("skipping item: found duplicate definition for `{name}` in next spec `{fork}`");
-                    continue
+                    continue;
                 }
                 module.containers.push(container.clone());
                 index.insert(name, module_name.to_string());
@@ -379,7 +379,7 @@ impl Spec {
                 let name = type_def.name.to_string();
                 if index.contains_key(&name) {
                     println!("skipping item: found duplicate definition for `{name}` in next spec `{fork}`");
-                    continue
+                    continue;
                 }
                 module.type_defs.push(type_def.clone());
                 index.insert(name, module_name.to_string());
@@ -389,11 +389,11 @@ impl Spec {
                 let mut f = f.clone();
                 let fn_name = f.name.to_string();
                 if self.fork.should_filter_fn_by_name(&fn_name) {
-                    continue
+                    continue;
                 }
                 if index.contains_key(&fn_name) {
                     println!("skipping item: found duplicate definition for `{fn_name}` in next spec `{fork}`");
-                    continue
+                    continue;
                 }
                 let item = &f.item;
                 let mut fragment: syn::ItemFn = parse_quote!(
@@ -454,7 +454,7 @@ impl Spec {
                 let name = trait_def.name.to_string();
                 if index.contains_key(&name) {
                     println!("skipping item: found duplicate definition for `{name}` in next spec `{fork}`");
-                    continue
+                    continue;
                 }
                 module.trait_defs.push(trait_def.clone());
                 index.insert(name, module_name.to_string());

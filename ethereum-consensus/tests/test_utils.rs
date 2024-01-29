@@ -47,7 +47,7 @@ pub fn load_snappy_ssz_bytes(path: &Path) -> Vec<u8> {
 pub fn load_snappy_ssz<T: ssz_rs::Deserialize>(path: &str) -> Option<T> {
     let path = Path::new(path);
     if !path.exists() {
-        return None
+        return None;
     }
     let buffer = load_snappy_ssz_bytes(path);
 

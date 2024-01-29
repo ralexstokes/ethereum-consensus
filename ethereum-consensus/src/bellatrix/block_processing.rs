@@ -60,7 +60,7 @@ pub fn process_execution_payload<
                 expected: state.latest_execution_payload_header.block_hash.clone(),
             }
             .into(),
-        ))
+        ));
     }
 
     let current_epoch = get_current_epoch(state, context);
@@ -72,7 +72,7 @@ pub fn process_execution_payload<
                 expected: randao_mix.clone(),
             }
             .into(),
-        ))
+        ));
     }
 
     let timestamp = compute_timestamp_at_slot(state, state.slot, context)?;
@@ -83,7 +83,7 @@ pub fn process_execution_payload<
                 expected: timestamp,
             }
             .into(),
-        ))
+        ));
     }
 
     let new_payload_request = NewPayloadRequest(payload);

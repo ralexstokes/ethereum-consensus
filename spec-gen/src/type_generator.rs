@@ -60,13 +60,13 @@ impl Type {
     fn needs_ref_types(&self) -> bool {
         matches!(
             self,
-            Self::BeaconBlockBody |
-                Self::BlindedBeaconBlockBody |
-                Self::BeaconBlock |
-                Self::BlindedBeaconBlock |
-                Self::ExecutionPayload |
-                Self::ExecutionPayloadHeader |
-                Self::BeaconState
+            Self::BeaconBlockBody
+                | Self::BlindedBeaconBlockBody
+                | Self::BeaconBlock
+                | Self::BlindedBeaconBlock
+                | Self::ExecutionPayload
+                | Self::ExecutionPayloadHeader
+                | Self::BeaconState
         )
     }
 

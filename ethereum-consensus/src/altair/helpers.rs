@@ -144,8 +144,8 @@ pub fn get_base_reward_per_increment<
     >,
     context: &Context,
 ) -> Result<Gwei> {
-    Ok(context.effective_balance_increment * context.base_reward_factor /
-        get_total_active_balance(state, context)?.integer_sqrt())
+    Ok(context.effective_balance_increment * context.base_reward_factor
+        / get_total_active_balance(state, context)?.integer_sqrt())
 }
 
 // Return the set of validator indices that are both active and unslashed for the given
@@ -182,7 +182,7 @@ pub fn get_unslashed_participating_indices<
             requested: epoch,
             previous: previous_epoch,
             current: current_epoch,
-        })
+        });
     }
 
     let epoch_participation = if is_current {
@@ -240,12 +240,12 @@ pub fn get_attestation_participation_flag_indices<
                 source_checkpoint: data.source.clone(),
                 current: get_current_epoch(state, context),
             },
-        )))
+        )));
     }
-    let is_matching_target = is_matching_source &&
-        (data.target.root == *get_block_root(state, data.target.epoch, context)?);
-    let is_matching_head = is_matching_target &&
-        (data.beacon_block_root == *get_block_root_at_slot(state, data.slot)?);
+    let is_matching_target = is_matching_source
+        && (data.target.root == *get_block_root(state, data.target.epoch, context)?);
+    let is_matching_head = is_matching_target
+        && (data.beacon_block_root == *get_block_root_at_slot(state, data.slot)?);
 
     let mut participation_flag_indices = Vec::new();
     if is_matching_source && inclusion_delay <= context.slots_per_epoch.integer_sqrt() {
@@ -393,8 +393,8 @@ pub fn slash_validator<
     decrease_balance(
         state,
         slashed_index,
-        state.validators[slashed_index].effective_balance /
-            context.min_slashing_penalty_quotient_altair,
+        state.validators[slashed_index].effective_balance
+            / context.min_slashing_penalty_quotient_altair,
     );
 
     let proposer_index = get_beacon_proposer_index(state, context)?;

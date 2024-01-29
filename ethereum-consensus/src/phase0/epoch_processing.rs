@@ -52,7 +52,7 @@ pub fn get_matching_source_attestations<
             requested: epoch,
             previous: previous_epoch,
             current: current_epoch,
-        })
+        });
     }
 
     if epoch == current_epoch {
@@ -89,7 +89,7 @@ pub fn get_matching_target_attestations<
     let source_attestations = get_matching_source_attestations(state, epoch, context)?;
     let mut result = vec![];
     if source_attestations.is_empty() {
-        return Ok(result)
+        return Ok(result);
     }
 
     let block_root = get_block_root(state, epoch, context)?;
@@ -196,7 +196,7 @@ pub fn process_justification_and_finalization<
     // Skip FFG updates in the first two epochs to avoid corner cases that might result in modifying
     // this stub.
     if get_current_epoch(state, context) <= GENESIS_EPOCH + 1 {
-        return Ok(())
+        return Ok(());
     }
     let previous_attestations =
         get_matching_target_attestations(state, get_previous_epoch(state, context), context)?;
@@ -281,8 +281,8 @@ pub fn process_registry_updates<
             validator.activation_eligibility_epoch = current_epoch + 1;
         }
 
-        if is_active_validator(validator, current_epoch) &&
-            validator.effective_balance <= context.ejection_balance
+        if is_active_validator(validator, current_epoch)
+            && validator.effective_balance <= context.ejection_balance
         {
             initiate_validator_exit(state, i, context);
         }
@@ -348,8 +348,8 @@ pub fn process_slashings<
 
     for i in 0..state.validators.len() {
         let validator = &state.validators[i];
-        if validator.slashed &&
-            (epoch + context.epochs_per_slashings_vector / 2) == validator.withdrawable_epoch
+        if validator.slashed
+            && (epoch + context.epochs_per_slashings_vector / 2) == validator.withdrawable_epoch
         {
             let increment = context.effective_balance_increment;
             let penalty_numerator =
@@ -420,8 +420,8 @@ pub fn process_effective_balance_updates<
     for i in 0..state.validators.len() {
         let validator = &mut state.validators[i];
         let balance = state.balances[i];
-        if balance + downward_threshold < validator.effective_balance ||
-            validator.effective_balance + upward_threshold < balance
+        if balance + downward_threshold < validator.effective_balance
+            || validator.effective_balance + upward_threshold < balance
         {
             validator.effective_balance = Gwei::min(
                 balance - balance % context.effective_balance_increment,
@@ -677,9 +677,9 @@ pub fn get_base_reward<
 ) -> Result<Gwei> {
     let total_balance = get_total_active_balance(state, context)?;
     let effective_balance = state.validators[index].effective_balance;
-    Ok(effective_balance * context.base_reward_factor /
-        total_balance.integer_sqrt() /
-        BASE_REWARDS_PER_EPOCH)
+    Ok(effective_balance * context.base_reward_factor
+        / total_balance.integer_sqrt()
+        / BASE_REWARDS_PER_EPOCH)
 }
 
 pub fn get_proposer_reward<
@@ -981,8 +981,8 @@ pub fn get_inactivity_penalty_deltas<
                 BASE_REWARDS_PER_EPOCH * base_reward - get_proposer_reward(state, i, context)?;
             if !matching_target_attesting_indices.contains(&i) {
                 let effective_balance = state.validators[i].effective_balance;
-                penalties[i] += effective_balance * get_finality_delay(state, context) /
-                    context.inactivity_penalty_quotient;
+                penalties[i] += effective_balance * get_finality_delay(state, context)
+                    / context.inactivity_penalty_quotient;
             }
         }
     }

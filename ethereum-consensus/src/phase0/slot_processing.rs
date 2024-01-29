@@ -30,7 +30,7 @@ pub fn process_slots<
     context: &Context,
 ) -> Result<()> {
     if state.slot >= slot {
-        return Err(Error::TransitionToPreviousSlot { requested: slot, current: state.slot })
+        return Err(Error::TransitionToPreviousSlot { requested: slot, current: state.slot });
     }
     while state.slot < slot {
         process_slot(state, context)?;

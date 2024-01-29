@@ -78,7 +78,7 @@ pub fn verify_signature(
 
 pub fn aggregate(signatures: &[Signature]) -> Result<Signature, Error> {
     if signatures.is_empty() {
-        return Err(Error::EmptyAggregate)
+        return Err(Error::EmptyAggregate);
     }
 
     let signatures = signatures
@@ -134,7 +134,7 @@ pub fn fast_aggregate_verify(
 // Return the aggregate public key for the public keys in `pks`
 pub fn eth_aggregate_public_keys(public_keys: &[PublicKey]) -> Result<PublicKey, Error> {
     if public_keys.is_empty() {
-        return Err(Error::EmptyAggregate)
+        return Err(Error::EmptyAggregate);
     }
     let public_keys = public_keys
         .iter()

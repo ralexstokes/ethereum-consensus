@@ -30,7 +30,7 @@ fn insert_test(tests: &mut TestIndex, path: &Path) -> bool {
 
     // NOTE: these tests are handled elsewhere outside this repo.
     if runner == "ssz_generic" {
-        return false
+        return false;
     }
 
     let tests = tests.entry(runner).or_default();
