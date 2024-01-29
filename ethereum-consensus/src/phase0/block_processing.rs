@@ -534,9 +534,7 @@ pub fn process_block_header<
 
     let proposer = &state.validators[block.proposer_index];
     if proposer.slashed {
-        return Err(invalid_header_error(InvalidBeaconBlockHeader::ProposerSlashed(
-            proposer_index,
-        )));
+        return Err(invalid_header_error(InvalidBeaconBlockHeader::ProposerSlashed(proposer_index)));
     }
 
     Ok(())

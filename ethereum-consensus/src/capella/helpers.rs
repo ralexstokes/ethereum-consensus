@@ -9,9 +9,9 @@ pub fn has_eth1_withdrawal_credential(validator: &Validator) -> bool {
 }
 
 pub fn is_fully_withdrawable_validator(validator: &Validator, balance: Gwei, epoch: Epoch) -> bool {
-    has_eth1_withdrawal_credential(validator)
-        && validator.withdrawable_epoch <= epoch
-        && balance > 0
+    has_eth1_withdrawal_credential(validator) &&
+        validator.withdrawable_epoch <= epoch &&
+        balance > 0
 }
 
 pub fn is_partially_withdrawable_validator(

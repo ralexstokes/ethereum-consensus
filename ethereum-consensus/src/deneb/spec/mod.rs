@@ -7,6 +7,13 @@ pub use crate::{
             TIMELY_SOURCE_FLAG_INDEX, TIMELY_SOURCE_WEIGHT, TIMELY_TARGET_FLAG_INDEX,
             TIMELY_TARGET_WEIGHT, WEIGHT_DENOMINATOR,
         },
+        light_client::{
+            LightClientBootstrap, LightClientFinalityUpdate, LightClientHeader,
+            LightClientOptimisticUpdate, LightClientStore, LightClientUpdate,
+            CURRENT_SYNC_COMMITTEE_INDEX, CURRENT_SYNC_COMMITTEE_INDEX_FLOOR_LOG_2,
+            FINALIZED_ROOT_INDEX, FINALIZED_ROOT_INDEX_FLOOR_LOG_2, NEXT_SYNC_COMMITTEE_INDEX,
+            NEXT_SYNC_COMMITTEE_INDEX_FLOOR_LOG_2,
+        },
         sync::{SyncAggregate, SyncCommittee},
         validator::{
             ContributionAndProof, SignedContributionAndProof, SyncAggregatorSelectionData,
@@ -16,14 +23,6 @@ pub use crate::{
     bellatrix::{execution_payload::Transaction, fork_choice::PowBlock},
     capella::{
         bls_to_execution_change::{BlsToExecutionChange, SignedBlsToExecutionChange},
-        light_client::{
-            LightClientBootstrap, LightClientFinalityUpdate, LightClientHeader,
-            LightClientOptimisticUpdate, LightClientStore, LightClientUpdate,
-            CURRENT_SYNC_COMMITTEE_INDEX, CURRENT_SYNC_COMMITTEE_INDEX_FLOOR_LOG_2,
-            EXECUTION_PAYLOAD_INDEX, EXECUTION_PAYLOAD_INDEX_FLOOR_LOG_2, FINALIZED_ROOT_INDEX,
-            FINALIZED_ROOT_INDEX_FLOOR_LOG_2, NEXT_SYNC_COMMITTEE_INDEX,
-            NEXT_SYNC_COMMITTEE_INDEX_FLOOR_LOG_2,
-        },
         withdrawal::Withdrawal,
     },
     deneb::{
@@ -740,9 +739,7 @@ pub fn process_block_header<
     };
     let proposer = &state.validators[block.proposer_index];
     if proposer.slashed {
-        return Err(invalid_header_error(InvalidBeaconBlockHeader::ProposerSlashed(
-            proposer_index,
-        )));
+        return Err(invalid_header_error(InvalidBeaconBlockHeader::ProposerSlashed(proposer_index)));
     }
     Ok(())
 }
@@ -984,8 +981,8 @@ pub fn process_slashings<
     );
     for i in 0..state.validators.len() {
         let validator = &state.validators[i];
-        if validator.slashed
-            && (epoch + context.epochs_per_slashings_vector / 2) == validator.withdrawable_epoch
+        if validator.slashed &&
+            (epoch + context.epochs_per_slashings_vector / 2) == validator.withdrawable_epoch
         {
             let increment = context.effective_balance_increment;
             let penalty_numerator =
@@ -1306,8 +1303,8 @@ pub fn process_effective_balance_updates<
     for i in 0..state.validators.len() {
         let validator = &mut state.validators[i];
         let balance = state.balances[i];
-        if balance + downward_threshold < validator.effective_balance
-            || validator.effective_balance + upward_threshold < balance
+        if balance + downward_threshold < validator.effective_balance ||
+            validator.effective_balance + upward_threshold < balance
         {
             validator.effective_balance = Gwei::min(
                 balance - balance % context.effective_balance_increment,
@@ -1593,8 +1590,8 @@ pub fn is_valid_genesis_state<
     if state.genesis_time < context.min_genesis_time {
         return false;
     }
-    get_active_validator_indices(state, GENESIS_EPOCH).len()
-        >= context.min_genesis_active_validator_count
+    get_active_validator_indices(state, GENESIS_EPOCH).len() >=
+        context.min_genesis_active_validator_count
 }
 pub fn get_genesis_block<
     const SLOTS_PER_HISTORICAL_ROOT: usize,
@@ -1654,9 +1651,9 @@ pub fn has_eth1_withdrawal_credential(validator: &Validator) -> bool {
     validator.withdrawal_credentials[0] == ETH1_ADDRESS_WITHDRAWAL_PREFIX
 }
 pub fn is_fully_withdrawable_validator(validator: &Validator, balance: Gwei, epoch: Epoch) -> bool {
-    has_eth1_withdrawal_credential(validator)
-        && validator.withdrawable_epoch <= epoch
-        && balance > 0
+    has_eth1_withdrawal_credential(validator) &&
+        validator.withdrawable_epoch <= epoch &&
+        balance > 0
 }
 pub fn is_partially_withdrawable_validator(
     validator: &Validator,
@@ -1754,8 +1751,8 @@ pub fn slash_validator<
     decrease_balance(
         state,
         slashed_index,
-        state.validators[slashed_index].effective_balance
-            / context.min_slashing_penalty_quotient_bellatrix,
+        state.validators[slashed_index].effective_balance /
+            context.min_slashing_penalty_quotient_bellatrix,
     );
     let proposer_index = get_beacon_proposer_index(state, context)?;
     let whistleblower_index = whistleblower_index.unwrap_or(proposer_index);
@@ -2057,8 +2054,8 @@ pub fn get_base_reward_per_increment<
     >,
     context: &Context,
 ) -> Result<Gwei> {
-    Ok(context.effective_balance_increment * context.base_reward_factor
-        / get_total_active_balance(state, context)?.integer_sqrt())
+    Ok(context.effective_balance_increment * context.base_reward_factor /
+        get_total_active_balance(state, context)?.integer_sqrt())
 }
 pub fn get_unslashed_participating_indices<
     const SLOTS_PER_HISTORICAL_ROOT: usize,
@@ -2170,8 +2167,8 @@ pub fn is_active_validator(validator: &Validator, epoch: Epoch) -> bool {
     validator.activation_epoch <= epoch && epoch < validator.exit_epoch
 }
 pub fn is_eligible_for_activation_queue(validator: &Validator, context: &Context) -> bool {
-    validator.activation_eligibility_epoch == FAR_FUTURE_EPOCH
-        && validator.effective_balance == context.max_effective_balance
+    validator.activation_eligibility_epoch == FAR_FUTURE_EPOCH &&
+        validator.effective_balance == context.max_effective_balance
 }
 pub fn is_eligible_for_activation<
     const SLOTS_PER_HISTORICAL_ROOT: usize,
@@ -2199,13 +2196,13 @@ pub fn is_eligible_for_activation<
     >,
     validator: &Validator,
 ) -> bool {
-    validator.activation_eligibility_epoch <= state.finalized_checkpoint.epoch
-        && validator.activation_epoch == FAR_FUTURE_EPOCH
+    validator.activation_eligibility_epoch <= state.finalized_checkpoint.epoch &&
+        validator.activation_epoch == FAR_FUTURE_EPOCH
 }
 pub fn is_slashable_validator(validator: &Validator, epoch: Epoch) -> bool {
-    !validator.slashed
-        && validator.activation_epoch <= epoch
-        && epoch < validator.withdrawable_epoch
+    !validator.slashed &&
+        validator.activation_epoch <= epoch &&
+        epoch < validator.withdrawable_epoch
 }
 pub fn is_slashable_attestation_data(data_1: &AttestationData, data_2: &AttestationData) -> bool {
     let double_vote = data_1 != data_2 && data_1.target.epoch == data_2.target.epoch;
@@ -2803,9 +2800,9 @@ pub fn get_committee_count_per_slot<
         1,
         u64::min(
             context.max_committees_per_slot,
-            get_active_validator_indices(state, epoch).len() as u64
-                / context.slots_per_epoch
-                / context.target_committee_size,
+            get_active_validator_indices(state, epoch).len() as u64 /
+                context.slots_per_epoch /
+                context.target_committee_size,
         ),
     ) as usize
 }
@@ -3161,8 +3158,8 @@ pub fn get_eligible_validator_indices<
 ) -> impl Iterator<Item = ValidatorIndex> + 'a {
     let previous_epoch = get_previous_epoch(state, context);
     state.validators.iter().enumerate().filter_map(move |(i, validator)| {
-        if is_active_validator(validator, previous_epoch)
-            || (validator.slashed && previous_epoch + 1 < validator.withdrawable_epoch)
+        if is_active_validator(validator, previous_epoch) ||
+            (validator.slashed && previous_epoch + 1 < validator.withdrawable_epoch)
         {
             Some(i)
         } else {

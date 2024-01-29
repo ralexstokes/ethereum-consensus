@@ -65,10 +65,10 @@ pub fn get_attestation_participation_flag_indices<
             },
         )));
     }
-    let is_matching_target = is_matching_source
-        && (data.target.root == *get_block_root(state, data.target.epoch, context)?);
-    let is_matching_head = is_matching_target
-        && (data.beacon_block_root == *get_block_root_at_slot(state, data.slot)?);
+    let is_matching_target = is_matching_source &&
+        (data.target.root == *get_block_root(state, data.target.epoch, context)?);
+    let is_matching_head = is_matching_target &&
+        (data.beacon_block_root == *get_block_root_at_slot(state, data.slot)?);
 
     let mut participation_flag_indices = Vec::new();
     if is_matching_source && inclusion_delay <= context.slots_per_epoch.integer_sqrt() {

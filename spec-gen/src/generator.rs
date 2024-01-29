@@ -101,19 +101,19 @@ impl Fork {
             Fork::Altair => {
                 matches!(
                     name,
-                    "get_unslashed_attesting_indices"
-                        | "get_matching_source_attestations"
-                        | "get_matching_target_attestations"
-                        | "get_matching_head_attestations"
-                        | "get_source_deltas"
-                        | "get_target_deltas"
-                        | "get_head_deltas"
-                        | "get_inclusion_delay_deltas"
-                        | "get_inactivity_penalty_deltas"
-                        | "get_attestation_deltas"
-                        | "get_attestation_component_deltas"
-                        | "get_attesting_balance"
-                        | "process_participation_record_updates"
+                    "get_unslashed_attesting_indices" |
+                        "get_matching_source_attestations" |
+                        "get_matching_target_attestations" |
+                        "get_matching_head_attestations" |
+                        "get_source_deltas" |
+                        "get_target_deltas" |
+                        "get_head_deltas" |
+                        "get_inclusion_delay_deltas" |
+                        "get_inactivity_penalty_deltas" |
+                        "get_attestation_deltas" |
+                        "get_attestation_component_deltas" |
+                        "get_attesting_balance" |
+                        "process_participation_record_updates"
                 )
             }
             _ => false,

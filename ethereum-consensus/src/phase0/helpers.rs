@@ -25,8 +25,8 @@ pub fn is_active_validator(validator: &Validator, epoch: Epoch) -> bool {
 }
 
 pub fn is_eligible_for_activation_queue(validator: &Validator, context: &Context) -> bool {
-    validator.activation_eligibility_epoch == FAR_FUTURE_EPOCH
-        && validator.effective_balance == context.max_effective_balance
+    validator.activation_eligibility_epoch == FAR_FUTURE_EPOCH &&
+        validator.effective_balance == context.max_effective_balance
 }
 
 pub fn is_eligible_for_activation<
@@ -51,14 +51,14 @@ pub fn is_eligible_for_activation<
     >,
     validator: &Validator,
 ) -> bool {
-    validator.activation_eligibility_epoch <= state.finalized_checkpoint.epoch
-        && validator.activation_epoch == FAR_FUTURE_EPOCH
+    validator.activation_eligibility_epoch <= state.finalized_checkpoint.epoch &&
+        validator.activation_epoch == FAR_FUTURE_EPOCH
 }
 
 pub fn is_slashable_validator(validator: &Validator, epoch: Epoch) -> bool {
-    !validator.slashed
-        && validator.activation_epoch <= epoch
-        && epoch < validator.withdrawable_epoch
+    !validator.slashed &&
+        validator.activation_epoch <= epoch &&
+        epoch < validator.withdrawable_epoch
 }
 
 pub fn is_slashable_attestation_data(data_1: &AttestationData, data_2: &AttestationData) -> bool {
@@ -632,9 +632,9 @@ pub fn get_committee_count_per_slot<
         1,
         u64::min(
             context.max_committees_per_slot,
-            get_active_validator_indices(state, epoch).len() as u64
-                / context.slots_per_epoch
-                / context.target_committee_size,
+            get_active_validator_indices(state, epoch).len() as u64 /
+                context.slots_per_epoch /
+                context.target_committee_size,
         ),
     ) as usize
 }
@@ -1025,8 +1025,8 @@ pub fn get_eligible_validator_indices<
 ) -> impl Iterator<Item = ValidatorIndex> + 'a {
     let previous_epoch = get_previous_epoch(state, context);
     state.validators.iter().enumerate().filter_map(move |(i, validator)| {
-        if is_active_validator(validator, previous_epoch)
-            || (validator.slashed && previous_epoch + 1 < validator.withdrawable_epoch)
+        if is_active_validator(validator, previous_epoch) ||
+            (validator.slashed && previous_epoch + 1 < validator.withdrawable_epoch)
         {
             Some(i)
         } else {

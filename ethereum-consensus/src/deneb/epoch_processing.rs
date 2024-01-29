@@ -40,8 +40,8 @@ pub fn process_registry_updates<
         if is_eligible_for_activation_queue(validator, context) {
             validator.activation_eligibility_epoch = current_epoch + 1;
         }
-        if is_active_validator(validator, current_epoch)
-            && validator.effective_balance <= context.ejection_balance
+        if is_active_validator(validator, current_epoch) &&
+            validator.effective_balance <= context.ejection_balance
         {
             initiate_validator_exit(state, i, context);
         }

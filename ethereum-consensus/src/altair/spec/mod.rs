@@ -344,9 +344,7 @@ pub fn process_block_header<
     };
     let proposer = &state.validators[block.proposer_index];
     if proposer.slashed {
-        return Err(invalid_header_error(InvalidBeaconBlockHeader::ProposerSlashed(
-            proposer_index,
-        )));
+        return Err(invalid_header_error(InvalidBeaconBlockHeader::ProposerSlashed(proposer_index)));
     }
     Ok(())
 }
@@ -535,8 +533,8 @@ pub fn process_registry_updates<
         if is_eligible_for_activation_queue(validator, context) {
             validator.activation_eligibility_epoch = current_epoch + 1;
         }
-        if is_active_validator(validator, current_epoch)
-            && validator.effective_balance <= context.ejection_balance
+        if is_active_validator(validator, current_epoch) &&
+            validator.effective_balance <= context.ejection_balance
         {
             initiate_validator_exit(state, i, context);
         }
@@ -620,8 +618,8 @@ pub fn process_effective_balance_updates<
     for i in 0..state.validators.len() {
         let validator = &mut state.validators[i];
         let balance = state.balances[i];
-        if balance + downward_threshold < validator.effective_balance
-            || validator.effective_balance + upward_threshold < balance
+        if balance + downward_threshold < validator.effective_balance ||
+            validator.effective_balance + upward_threshold < balance
         {
             validator.effective_balance = Gwei::min(
                 balance - balance % context.effective_balance_increment,
@@ -875,8 +873,8 @@ pub fn is_valid_genesis_state<
     if state.genesis_time < context.min_genesis_time {
         return false;
     }
-    get_active_validator_indices(state, GENESIS_EPOCH).len()
-        >= context.min_genesis_active_validator_count
+    get_active_validator_indices(state, GENESIS_EPOCH).len() >=
+        context.min_genesis_active_validator_count
 }
 pub fn get_genesis_block<
     const SLOTS_PER_HISTORICAL_ROOT: usize,
@@ -920,8 +918,8 @@ pub fn is_active_validator(validator: &Validator, epoch: Epoch) -> bool {
     validator.activation_epoch <= epoch && epoch < validator.exit_epoch
 }
 pub fn is_eligible_for_activation_queue(validator: &Validator, context: &Context) -> bool {
-    validator.activation_eligibility_epoch == FAR_FUTURE_EPOCH
-        && validator.effective_balance == context.max_effective_balance
+    validator.activation_eligibility_epoch == FAR_FUTURE_EPOCH &&
+        validator.effective_balance == context.max_effective_balance
 }
 pub fn is_eligible_for_activation<
     const SLOTS_PER_HISTORICAL_ROOT: usize,
@@ -945,13 +943,13 @@ pub fn is_eligible_for_activation<
     >,
     validator: &Validator,
 ) -> bool {
-    validator.activation_eligibility_epoch <= state.finalized_checkpoint.epoch
-        && validator.activation_epoch == FAR_FUTURE_EPOCH
+    validator.activation_eligibility_epoch <= state.finalized_checkpoint.epoch &&
+        validator.activation_epoch == FAR_FUTURE_EPOCH
 }
 pub fn is_slashable_validator(validator: &Validator, epoch: Epoch) -> bool {
-    !validator.slashed
-        && validator.activation_epoch <= epoch
-        && epoch < validator.withdrawable_epoch
+    !validator.slashed &&
+        validator.activation_epoch <= epoch &&
+        epoch < validator.withdrawable_epoch
 }
 pub fn is_slashable_attestation_data(data_1: &AttestationData, data_2: &AttestationData) -> bool {
     let double_vote = data_1 != data_2 && data_1.target.epoch == data_2.target.epoch;
@@ -1485,9 +1483,9 @@ pub fn get_committee_count_per_slot<
         1,
         u64::min(
             context.max_committees_per_slot,
-            get_active_validator_indices(state, epoch).len() as u64
-                / context.slots_per_epoch
-                / context.target_committee_size,
+            get_active_validator_indices(state, epoch).len() as u64 /
+                context.slots_per_epoch /
+                context.target_committee_size,
         ),
     ) as usize
 }
@@ -1803,8 +1801,8 @@ pub fn get_eligible_validator_indices<
 ) -> impl Iterator<Item = ValidatorIndex> + 'a {
     let previous_epoch = get_previous_epoch(state, context);
     state.validators.iter().enumerate().filter_map(move |(i, validator)| {
-        if is_active_validator(validator, previous_epoch)
-            || (validator.slashed && previous_epoch + 1 < validator.withdrawable_epoch)
+        if is_active_validator(validator, previous_epoch) ||
+            (validator.slashed && previous_epoch + 1 < validator.withdrawable_epoch)
         {
             Some(i)
         } else {

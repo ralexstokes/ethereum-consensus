@@ -130,8 +130,8 @@ pub fn is_valid_genesis_state<
         return false;
     }
 
-    get_active_validator_indices(state, GENESIS_EPOCH).len()
-        >= context.min_genesis_active_validator_count
+    get_active_validator_indices(state, GENESIS_EPOCH).len() >=
+        context.min_genesis_active_validator_count
 }
 
 pub fn get_genesis_block<

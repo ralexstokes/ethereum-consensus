@@ -111,15 +111,15 @@ pub fn process_attestation<
     for index in attesting_indices {
         for (flag_index, weight) in PARTICIPATION_FLAG_WEIGHTS.iter().enumerate() {
             if is_current {
-                if participation_flag_indices.contains(&flag_index)
-                    && !has_flag(state.current_epoch_participation[index], flag_index)
+                if participation_flag_indices.contains(&flag_index) &&
+                    !has_flag(state.current_epoch_participation[index], flag_index)
                 {
                     state.current_epoch_participation[index] =
                         add_flag(state.current_epoch_participation[index], flag_index);
                     proposer_reward_numerator += get_base_reward(state, index, context)? * weight;
                 }
-            } else if participation_flag_indices.contains(&flag_index)
-                && !has_flag(state.previous_epoch_participation[index], flag_index)
+            } else if participation_flag_indices.contains(&flag_index) &&
+                !has_flag(state.previous_epoch_participation[index], flag_index)
             {
                 state.previous_epoch_participation[index] =
                     add_flag(state.previous_epoch_participation[index], flag_index);

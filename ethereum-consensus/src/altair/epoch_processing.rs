@@ -257,8 +257,8 @@ pub fn process_slashings<
     );
     for i in 0..state.validators.len() {
         let validator = &state.validators[i];
-        if validator.slashed
-            && (epoch + context.epochs_per_slashings_vector / 2) == validator.withdrawable_epoch
+        if validator.slashed &&
+            (epoch + context.epochs_per_slashings_vector / 2) == validator.withdrawable_epoch
         {
             let increment = context.effective_balance_increment;
             let penalty_numerator =
