@@ -4,7 +4,15 @@ use crate::{
 };
 
 #[derive(
-    Default, Debug, Clone, SimpleSerialize, PartialEq, Eq, serde::Serialize, serde::Deserialize,
+    Default,
+    Debug,
+    Clone,
+    SimpleSerialize,
+    Indexed,
+    PartialEq,
+    Eq,
+    serde::Serialize,
+    serde::Deserialize,
 )]
 pub struct BlsToExecutionChange {
     #[serde(with = "crate::serde::as_str")]
@@ -15,7 +23,15 @@ pub struct BlsToExecutionChange {
 }
 
 #[derive(
-    Default, Debug, Clone, SimpleSerialize, PartialEq, Eq, serde::Serialize, serde::Deserialize,
+    Default,
+    Debug,
+    Clone,
+    SimpleSerialize,
+    Indexed,
+    PartialEq,
+    Eq,
+    serde::Serialize,
+    serde::Deserialize,
 )]
 pub struct SignedBlsToExecutionChange {
     pub message: BlsToExecutionChange,

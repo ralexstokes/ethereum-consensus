@@ -225,7 +225,15 @@ impl SecretKey {
 }
 
 #[derive(
-    Clone, Default, Hash, PartialEq, Eq, SimpleSerialize, serde::Serialize, serde::Deserialize,
+    Clone,
+    Default,
+    Hash,
+    PartialEq,
+    Eq,
+    SimpleSerialize,
+    Indexed,
+    serde::Serialize,
+    serde::Deserialize,
 )]
 pub struct PublicKey(ByteVector<BLS_PUBLIC_KEY_BYTES_LEN>);
 
@@ -276,7 +284,15 @@ impl TryFrom<&PublicKey> for bls_impl::PublicKey {
 }
 
 #[derive(
-    Clone, Default, Hash, PartialEq, Eq, SimpleSerialize, serde::Serialize, serde::Deserialize,
+    Clone,
+    Default,
+    Hash,
+    PartialEq,
+    Eq,
+    SimpleSerialize,
+    Indexed,
+    serde::Serialize,
+    serde::Deserialize,
 )]
 pub struct Signature(ByteVector<BLS_SIGNATURE_BYTES_LEN>);
 
