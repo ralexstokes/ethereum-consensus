@@ -43,6 +43,10 @@ impl<const BYTES_PER_BLOB: usize, const KZG_COMMITMENT_INCLUSION_PROOF_DEPTH: us
     }
 }
 
+fn generalized_index_for_blob_index(index: usize) -> usize {
+    57
+}
+
 #[derive(
     Default, Debug, Clone, SimpleSerialize, PartialEq, Eq, serde::Serialize, serde::Deserialize,
 )]
