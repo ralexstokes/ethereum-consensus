@@ -8,7 +8,15 @@ use crate::{
 };
 
 #[derive(
-    Default, Clone, Debug, SimpleSerialize, PartialEq, Eq, serde::Serialize, serde::Deserialize,
+    Default,
+    Clone,
+    Debug,
+    SimpleSerialize,
+    Indexed,
+    PartialEq,
+    Eq,
+    serde::Serialize,
+    serde::Deserialize,
 )]
 pub struct Checkpoint {
     #[serde(with = "crate::serde::as_str")]
@@ -17,7 +25,15 @@ pub struct Checkpoint {
 }
 
 #[derive(
-    Default, Clone, Debug, SimpleSerialize, PartialEq, Eq, serde::Serialize, serde::Deserialize,
+    Default,
+    Clone,
+    Debug,
+    SimpleSerialize,
+    Indexed,
+    PartialEq,
+    Eq,
+    serde::Serialize,
+    serde::Deserialize,
 )]
 pub struct AttestationData {
     #[serde(with = "crate::serde::as_str")]
@@ -30,7 +46,15 @@ pub struct AttestationData {
 }
 
 #[derive(
-    Default, Debug, SimpleSerialize, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize,
+    Default,
+    Debug,
+    SimpleSerialize,
+    Indexed,
+    Clone,
+    PartialEq,
+    Eq,
+    serde::Serialize,
+    serde::Deserialize,
 )]
 pub struct IndexedAttestation<const MAX_VALIDATORS_PER_COMMITTEE: usize> {
     #[serde(with = "crate::serde::seq_of_str")]
@@ -52,7 +76,15 @@ pub struct PendingAttestation<const MAX_VALIDATORS_PER_COMMITTEE: usize> {
 }
 
 #[derive(
-    Default, Debug, SimpleSerialize, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize,
+    Default,
+    Debug,
+    SimpleSerialize,
+    Indexed,
+    Clone,
+    PartialEq,
+    Eq,
+    serde::Serialize,
+    serde::Deserialize,
 )]
 pub struct Attestation<const MAX_VALIDATORS_PER_COMMITTEE: usize> {
     pub aggregation_bits: Bitlist<MAX_VALIDATORS_PER_COMMITTEE>,
@@ -61,7 +93,15 @@ pub struct Attestation<const MAX_VALIDATORS_PER_COMMITTEE: usize> {
 }
 
 #[derive(
-    Default, Debug, SimpleSerialize, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize,
+    Default,
+    Debug,
+    SimpleSerialize,
+    Indexed,
+    Clone,
+    PartialEq,
+    Eq,
+    serde::Serialize,
+    serde::Deserialize,
 )]
 pub struct Eth1Data {
     pub deposit_root: Root,
@@ -80,7 +120,15 @@ pub struct DepositMessage {
 }
 
 #[derive(
-    Default, Debug, Clone, SimpleSerialize, PartialEq, Eq, serde::Serialize, serde::Deserialize,
+    Default,
+    Debug,
+    Clone,
+    SimpleSerialize,
+    Indexed,
+    PartialEq,
+    Eq,
+    serde::Serialize,
+    serde::Deserialize,
 )]
 pub struct DepositData {
     #[serde(rename = "pubkey")]
@@ -92,7 +140,15 @@ pub struct DepositData {
 }
 
 #[derive(
-    Default, Debug, SimpleSerialize, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize,
+    Default,
+    Debug,
+    SimpleSerialize,
+    Indexed,
+    Clone,
+    PartialEq,
+    Eq,
+    serde::Serialize,
+    serde::Deserialize,
 )]
 pub struct ProposerSlashing {
     pub signed_header_1: SignedBeaconBlockHeader,
@@ -100,7 +156,15 @@ pub struct ProposerSlashing {
 }
 
 #[derive(
-    Default, Debug, SimpleSerialize, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize,
+    Default,
+    Debug,
+    SimpleSerialize,
+    Indexed,
+    Clone,
+    PartialEq,
+    Eq,
+    serde::Serialize,
+    serde::Deserialize,
 )]
 pub struct AttesterSlashing<const MAX_VALIDATORS_PER_COMMITTEE: usize> {
     pub attestation_1: IndexedAttestation<MAX_VALIDATORS_PER_COMMITTEE>,
@@ -114,7 +178,15 @@ const fn get_deposit_proof_length() -> usize {
 const DEPOSIT_PROOF_LENGTH: usize = get_deposit_proof_length();
 
 #[derive(
-    Default, Debug, SimpleSerialize, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize,
+    Default,
+    Debug,
+    SimpleSerialize,
+    Indexed,
+    Clone,
+    PartialEq,
+    Eq,
+    serde::Serialize,
+    serde::Deserialize,
 )]
 pub struct Deposit {
     pub proof: Vector<Bytes32, DEPOSIT_PROOF_LENGTH>,
@@ -122,7 +194,15 @@ pub struct Deposit {
 }
 
 #[derive(
-    Default, Debug, SimpleSerialize, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize,
+    Default,
+    Debug,
+    SimpleSerialize,
+    Indexed,
+    Clone,
+    PartialEq,
+    Eq,
+    serde::Serialize,
+    serde::Deserialize,
 )]
 pub struct VoluntaryExit {
     #[serde(with = "crate::serde::as_str")]
@@ -132,7 +212,15 @@ pub struct VoluntaryExit {
 }
 
 #[derive(
-    Default, Debug, SimpleSerialize, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize,
+    Default,
+    Debug,
+    SimpleSerialize,
+    Indexed,
+    Clone,
+    PartialEq,
+    Eq,
+    serde::Serialize,
+    serde::Deserialize,
 )]
 pub struct SignedVoluntaryExit {
     pub message: VoluntaryExit,
