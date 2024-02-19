@@ -358,7 +358,6 @@ impl Signature {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::crypto::{aggregate, aggregate_verify, fast_aggregate_verify};
     use rand::prelude::*;
 
     const INFINITY_COMPRESSED_PUBLIC_KEY: [u8; BLS_PUBLIC_KEY_BYTES_LEN] = [

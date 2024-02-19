@@ -1,5 +1,5 @@
 use crate::{
-    primitives::{Bytes32, ExecutionAddress, Hash32, Root, U256},
+    primitives::{Bytes32, ExecutionAddress, Hash32, Root},
     ssz::prelude::*,
     Error,
 };

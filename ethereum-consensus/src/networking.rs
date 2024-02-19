@@ -1,9 +1,8 @@
-use enr;
 pub use multiaddr::Multiaddr;
 use multihash::{Code, Error, Multihash};
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
-use std::{convert::TryFrom, fmt, str::FromStr};
+use std::{fmt, str::FromStr};
 use thiserror::Error;
 
 pub const MAX_INLINE_KEY_LENGTH: usize = 42;
