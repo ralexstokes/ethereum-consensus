@@ -1,13 +1,21 @@
 use crate::{
     bellatrix::Transaction,
     capella::Withdrawal,
-    primitives::{Bytes32, ExecutionAddress, Hash32, Root, U256},
+    primitives::{Bytes32, ExecutionAddress, Hash32, Root},
     ssz::prelude::*,
     Error,
 };
 
 #[derive(
-    Default, Debug, Clone, SimpleSerialize, PartialEq, Eq, serde::Serialize, serde::Deserialize,
+    Default,
+    Debug,
+    Clone,
+    SimpleSerialize,
+    Indexed,
+    PartialEq,
+    Eq,
+    serde::Serialize,
+    serde::Deserialize,
 )]
 pub struct ExecutionPayload<
     const BYTES_PER_LOGS_BLOOM: usize,

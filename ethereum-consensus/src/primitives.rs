@@ -50,8 +50,6 @@ pub const ETH1_ADDRESS_WITHDRAWAL_PREFIX: u8 = 0x01;
 mod tests {
     use super::*;
 
-    use serde_json;
-
     #[test]
     fn test_serde() {
         let bytes = Bytes32::default();

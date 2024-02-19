@@ -215,7 +215,7 @@ impl<T: TimeProvider + Send + Sync> Clock<T> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::sync::{Arc, Mutex};
+    use std::sync::Mutex;
 
     struct Ticker {
         tick: Mutex<u128>,

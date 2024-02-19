@@ -10,7 +10,15 @@ use crate::{
 };
 
 #[derive(
-    Default, Debug, Clone, SimpleSerialize, PartialEq, Eq, serde::Serialize, serde::Deserialize,
+    Default,
+    Debug,
+    Clone,
+    SimpleSerialize,
+    Indexed,
+    PartialEq,
+    Eq,
+    serde::Serialize,
+    serde::Deserialize,
 )]
 pub struct BeaconBlockBody<
     const MAX_PROPOSER_SLASHINGS: usize,
@@ -128,4 +136,27 @@ pub struct SignedBeaconBlock<
         MAX_BLOB_COMMITMENTS_PER_BLOCK,
     >,
     pub signature: BlsSignature,
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::deneb::mainnet::BeaconBlockBody;
+    use ssz_rs::prelude::*;
+
+    #[test]
+    fn test_generalized_index() {
+        let mut indices = vec![];
+
+        let path = &["blob_kzg_commitments".into()];
+        let index = BeaconBlockBody::generalized_index(path).unwrap();
+        indices.push(index);
+
+        for i in 0..6 {
+            let path = &["blob_kzg_commitments".into(), i.into()];
+            let index = BeaconBlockBody::generalized_index(path).unwrap();
+            indices.push(index);
+        }
+
+        assert_eq!(indices, [27, 221184, 221185, 221186, 221187, 221188, 221189,]);
+    }
 }
