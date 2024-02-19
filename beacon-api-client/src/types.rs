@@ -109,7 +109,7 @@ pub struct RootData {
     pub root: Root,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Clone, Debug)]
 pub enum BlockId {
     Head,
     Genesis,
@@ -144,7 +144,7 @@ pub struct FinalityCheckpoints {
     pub finalized: Checkpoint,
 }
 
-#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "snake_case")]
 pub enum ValidatorStatus {
     PendingInitialized,
@@ -210,7 +210,7 @@ impl From<BlsPublicKey> for PublicKeyOrIndex {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct ValidatorSummary {
     #[serde(with = "crate::serde::as_str")]
     pub index: ValidatorIndex,
@@ -258,7 +258,7 @@ pub struct SyncCommitteeSummary {
 pub struct BeaconHeaderSummary {
     pub root: Root,
     pub canonical: bool,
-    pub signed_header: SignedBeaconBlockHeader,
+    pub header: SignedBeaconBlockHeader,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
