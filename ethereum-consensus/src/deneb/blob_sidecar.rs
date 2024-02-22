@@ -51,10 +51,9 @@ fn generalized_index_for_blob_index(i: usize) -> Result<GeneralizedIndex, Merkle
     BeaconBlockBody::generalized_index(path)
 }
 
-// TODO: Overflow bugs? Refactor to be more concise?
-fn get_subtree_index(i: usize) -> usize {
-    let floorlog2 = (i as f64).log2().floor();
-    ((i as i32) % 2_i32.pow(floorlog2 as u32)) as usize
+fn get_subtree_index(i: GeneralizedIndex) -> usize {
+    let floorlog2 = i.checked_ilog2().expect("gindex isn't zero");
+    i % 2usize.pow(floorlog2)
 }
 
 #[derive(
