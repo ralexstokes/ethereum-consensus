@@ -1,5 +1,6 @@
 use crate::{
     deneb::{
+        mainnet::BeaconBlockBody,
         polynomial_commitments::{KzgCommitment, KzgProof},
         SignedBeaconBlockHeader,
     },
@@ -28,23 +29,32 @@ pub struct BlobSidecar<
     pub kzg_commitment_inclusion_proof: Vector<Bytes32, KZG_COMMITMENT_INCLUSION_PROOF_DEPTH>,
 }
 
+// TODO: Convert method to free-standing function
 impl<const BYTES_PER_BLOB: usize, const KZG_COMMITMENT_INCLUSION_PROOF_DEPTH: usize>
     BlobSidecar<BYTES_PER_BLOB, KZG_COMMITMENT_INCLUSION_PROOF_DEPTH>
 {
     pub fn verify_blob_sidecar_inclusion_proof(&mut self) -> Result<(), Error> {
-        // TODO: Calculate real gindex
-        let index = 4;
+        let blob_index = generalized_index_for_blob_index(self.index)?;
+        let subtree_index = get_subtree_index(blob_index);
+
         let leaf = self.kzg_commitment.hash_tree_root()?;
         let branch = self.kzg_commitment_inclusion_proof.as_ref();
         let depth = KZG_COMMITMENT_INCLUSION_PROOF_DEPTH;
         let root = self.signed_block_header.message.body_root;
 
-        Ok(is_valid_merkle_branch(leaf, branch, depth, index, root)?)
+        Ok(is_valid_merkle_branch(leaf, branch, depth, subtree_index, root)?)
     }
 }
 
-fn generalized_index_for_blob_index(index: usize) -> usize {
-    57
+fn generalized_index_for_blob_index(i: usize) -> Result<GeneralizedIndex, MerkleizationError> {
+    let path = &["blob_kzg_commitments".into(), i.into()];
+    BeaconBlockBody::generalized_index(path)
+}
+
+// TODO: Overflow bugs? Refactor to be more concise?
+fn get_subtree_index(i: usize) -> usize {
+    let floorlog2 = (i as f64).log2().floor();
+    ((i as i32) % 2_i32.pow(floorlog2 as u32)) as usize
 }
 
 #[derive(
