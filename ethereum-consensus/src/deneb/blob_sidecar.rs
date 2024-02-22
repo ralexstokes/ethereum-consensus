@@ -29,21 +29,21 @@ pub struct BlobSidecar<
     pub kzg_commitment_inclusion_proof: Vector<Bytes32, KZG_COMMITMENT_INCLUSION_PROOF_DEPTH>,
 }
 
-// TODO: Convert method to free-standing function
-impl<const BYTES_PER_BLOB: usize, const KZG_COMMITMENT_INCLUSION_PROOF_DEPTH: usize>
-    BlobSidecar<BYTES_PER_BLOB, KZG_COMMITMENT_INCLUSION_PROOF_DEPTH>
-{
-    pub fn verify_blob_sidecar_inclusion_proof(&mut self) -> Result<(), Error> {
-        let blob_index = generalized_index_for_blob_index(self.index)?;
-        let subtree_index = get_subtree_index(blob_index);
+pub fn verify_blob_sidecar_inclusion_proof<const KZG_COMMITMENT_INCLUSION_PROOF_DEPTH: usize>(
+    index: BlobIndex,
+    mut kzg_commitment: KzgCommitment,
+    signed_block_header: SignedBeaconBlockHeader,
+    kzg_commitment_inclusion_proof: Vector<Bytes32, KZG_COMMITMENT_INCLUSION_PROOF_DEPTH>,
+) -> Result<(), Error> {
+    let blob_index = generalized_index_for_blob_index(index)?;
+    let subtree_index = get_subtree_index(blob_index);
 
-        let leaf = self.kzg_commitment.hash_tree_root()?;
-        let branch = self.kzg_commitment_inclusion_proof.as_ref();
-        let depth = KZG_COMMITMENT_INCLUSION_PROOF_DEPTH;
-        let root = self.signed_block_header.message.body_root;
+    let leaf = kzg_commitment.hash_tree_root()?;
+    let branch = kzg_commitment_inclusion_proof.as_ref();
+    let depth = KZG_COMMITMENT_INCLUSION_PROOF_DEPTH;
+    let root = signed_block_header.message.body_root;
 
-        Ok(is_valid_merkle_branch(leaf, branch, depth, subtree_index, root)?)
-    }
+    Ok(is_valid_merkle_branch(leaf, branch, depth, subtree_index, root)?)
 }
 
 fn generalized_index_for_blob_index(i: usize) -> Result<GeneralizedIndex, MerkleizationError> {
