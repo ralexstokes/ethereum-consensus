@@ -113,7 +113,6 @@ fn generalized_index_for_blob_index<
     >::generalized_index(path)
 }
 
-// TODO: Return an error if checked_ilog2 returns "None"
 fn get_subtree_index(i: GeneralizedIndex) -> Result<u32, MerkleizationError> {
     match i.checked_ilog2() {
         Some(floorlog2) => Ok(floorlog2),
