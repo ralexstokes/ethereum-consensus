@@ -66,14 +66,14 @@ pub fn verify_blob_sidecar_inclusion_proof<
         MAX_BLS_TO_EXECUTION_CHANGES,
         MAX_BLOB_COMMITMENTS_PER_BLOCK,
     >(index)?;
-    let subtree_index = get_subtree_index(g_index);
+    let subtree_index = get_subtree_index(g_index)?;
 
     let leaf = kzg_commitment.hash_tree_root()?;
     let branch = kzg_commitment_inclusion_proof.as_ref();
     let depth = KZG_COMMITMENT_INCLUSION_PROOF_DEPTH;
     let root = signed_block_header.message.body_root;
 
-    Ok(is_valid_merkle_branch(leaf, branch, depth, subtree_index, root)?)
+    Ok(is_valid_merkle_branch(leaf, branch, depth, subtree_index as usize, root)?)
 }
 
 fn generalized_index_for_blob_index<
@@ -113,9 +113,12 @@ fn generalized_index_for_blob_index<
     >::generalized_index(path)
 }
 
-fn get_subtree_index(i: GeneralizedIndex) -> usize {
-    let floorlog2 = i.checked_ilog2().expect("gindex isn't zero");
-    i % 2usize.pow(floorlog2)
+// TODO: Return an error if checked_ilog2 returns "None"
+fn get_subtree_index(i: GeneralizedIndex) -> Result<u32, MerkleizationError> {
+    match i.checked_ilog2() {
+        Some(floorlog2) => Ok(floorlog2),
+        None => Err(MerkleizationError::InvalidGeneralizedIndex),
+    }
 }
 
 #[derive(
