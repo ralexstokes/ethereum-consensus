@@ -29,7 +29,6 @@ pub struct BlobSidecar<
     pub kzg_commitment_inclusion_proof: Vector<Bytes32, KZG_COMMITMENT_INCLUSION_PROOF_DEPTH>,
 }
 pub fn verify_blob_sidecar_inclusion_proof<
-    const KZG_COMMITMENT_INCLUSION_PROOF_DEPTH: usize,
     const MAX_PROPOSER_SLASHINGS: usize,
     const MAX_VALIDATORS_PER_COMMITTEE: usize,
     const MAX_ATTESTER_SLASHINGS: usize,
@@ -44,11 +43,12 @@ pub fn verify_blob_sidecar_inclusion_proof<
     const MAX_WITHDRAWALS_PER_PAYLOAD: usize,
     const MAX_BLS_TO_EXECUTION_CHANGES: usize,
     const MAX_BLOB_COMMITMENTS_PER_BLOCK: usize,
+    const KZG_COMMITMENT_INCLUSION_PROOF_DEPTH: usize,
 >(
     index: BlobIndex,
-    mut kzg_commitment: KzgCommitment,
-    signed_block_header: SignedBeaconBlockHeader,
-    kzg_commitment_inclusion_proof: Vector<Bytes32, KZG_COMMITMENT_INCLUSION_PROOF_DEPTH>,
+    kzg_commitment: &mut KzgCommitment,
+    signed_block_header: &SignedBeaconBlockHeader,
+    kzg_commitment_inclusion_proof: &Vector<Bytes32, KZG_COMMITMENT_INCLUSION_PROOF_DEPTH>,
 ) -> Result<(), Error> {
     let g_index = generalized_index_for_blob_index::<
         MAX_PROPOSER_SLASHINGS,
