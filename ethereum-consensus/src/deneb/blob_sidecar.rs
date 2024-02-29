@@ -73,7 +73,7 @@ pub fn verify_blob_sidecar_inclusion_proof<
     let depth = KZG_COMMITMENT_INCLUSION_PROOF_DEPTH;
     let root = signed_block_header.message.body_root;
 
-    Ok(is_valid_merkle_branch(leaf, branch, depth, subtree_index as usize, root)?)
+    Ok(is_valid_merkle_branch(leaf, branch, depth, subtree_index, root)?)
 }
 
 fn generalized_index_for_blob_index<
@@ -113,11 +113,8 @@ fn generalized_index_for_blob_index<
     >::generalized_index(path)
 }
 
-fn get_subtree_index(i: GeneralizedIndex) -> Result<u32, MerkleizationError> {
-    match i.checked_ilog2() {
-        Some(floorlog2) => Ok(floorlog2),
-        None => Err(MerkleizationError::InvalidGeneralizedIndex),
-    }
+fn get_subtree_index(i: GeneralizedIndex) -> Result<usize, MerkleizationError> {
+    i.checked_ilog2().map(|index| index as usize).ok_or(MerkleizationError::InvalidGeneralizedIndex)
 }
 
 #[derive(
