@@ -28,6 +28,7 @@ pub struct BlobSidecar<
     pub signed_block_header: SignedBeaconBlockHeader,
     pub kzg_commitment_inclusion_proof: Vector<Bytes32, KZG_COMMITMENT_INCLUSION_PROOF_DEPTH>,
 }
+
 pub fn verify_blob_sidecar_inclusion_proof<
     const MAX_PROPOSER_SLASHINGS: usize,
     const MAX_VALIDATORS_PER_COMMITTEE: usize,
@@ -114,7 +115,7 @@ fn generalized_index_for_blob_index<
 }
 
 fn get_subtree_index(i: GeneralizedIndex) -> Result<usize, MerkleizationError> {
-    i.checked_ilog2().map(|index| index as usize).ok_or(MerkleizationError::InvalidGeneralizedIndex)
+    log_2(i).ok_or(MerkleizationError::InvalidGeneralizedIndex)
 }
 
 #[derive(
