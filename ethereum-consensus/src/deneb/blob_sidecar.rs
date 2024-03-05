@@ -1,10 +1,12 @@
 use crate::{
     deneb::{
+        beacon_block::BeaconBlockBody,
         polynomial_commitments::{KzgCommitment, KzgProof},
         SignedBeaconBlockHeader,
     },
     primitives::{BlobIndex, Bytes32, Root},
     ssz::prelude::*,
+    Error,
 };
 
 pub const VERSIONED_HASH_VERSION_KZG: u8 = 1;
@@ -25,6 +27,93 @@ pub struct BlobSidecar<
     pub kzg_proof: KzgProof,
     pub signed_block_header: SignedBeaconBlockHeader,
     pub kzg_commitment_inclusion_proof: Vector<Bytes32, KZG_COMMITMENT_INCLUSION_PROOF_DEPTH>,
+}
+
+pub fn verify_blob_sidecar_inclusion_proof<
+    const MAX_PROPOSER_SLASHINGS: usize,
+    const MAX_VALIDATORS_PER_COMMITTEE: usize,
+    const MAX_ATTESTER_SLASHINGS: usize,
+    const MAX_ATTESTATIONS: usize,
+    const MAX_DEPOSITS: usize,
+    const MAX_VOLUNTARY_EXITS: usize,
+    const SYNC_COMMITTEE_SIZE: usize,
+    const BYTES_PER_LOGS_BLOOM: usize,
+    const MAX_EXTRA_DATA_BYTES: usize,
+    const MAX_BYTES_PER_TRANSACTION: usize,
+    const MAX_TRANSACTIONS_PER_PAYLOAD: usize,
+    const MAX_WITHDRAWALS_PER_PAYLOAD: usize,
+    const MAX_BLS_TO_EXECUTION_CHANGES: usize,
+    const MAX_BLOB_COMMITMENTS_PER_BLOCK: usize,
+    const KZG_COMMITMENT_INCLUSION_PROOF_DEPTH: usize,
+    const BYTES_PER_BLOB: usize,
+>(
+    blob_sidecar: &mut BlobSidecar<BYTES_PER_BLOB, KZG_COMMITMENT_INCLUSION_PROOF_DEPTH>,
+) -> Result<(), Error> {
+    let g_index = generalized_index_for_blob_index::<
+        MAX_PROPOSER_SLASHINGS,
+        MAX_VALIDATORS_PER_COMMITTEE,
+        MAX_ATTESTER_SLASHINGS,
+        MAX_ATTESTATIONS,
+        MAX_DEPOSITS,
+        MAX_VOLUNTARY_EXITS,
+        SYNC_COMMITTEE_SIZE,
+        BYTES_PER_LOGS_BLOOM,
+        MAX_EXTRA_DATA_BYTES,
+        MAX_BYTES_PER_TRANSACTION,
+        MAX_TRANSACTIONS_PER_PAYLOAD,
+        MAX_WITHDRAWALS_PER_PAYLOAD,
+        MAX_BLS_TO_EXECUTION_CHANGES,
+        MAX_BLOB_COMMITMENTS_PER_BLOCK,
+    >(blob_sidecar.index)?;
+    let subtree_index = get_subtree_index(g_index)?;
+
+    let leaf = blob_sidecar.kzg_commitment.hash_tree_root()?;
+    let branch = blob_sidecar.kzg_commitment_inclusion_proof.as_ref();
+    let depth = KZG_COMMITMENT_INCLUSION_PROOF_DEPTH;
+    let root = blob_sidecar.signed_block_header.message.body_root;
+
+    is_valid_merkle_branch(leaf, branch, depth, subtree_index, root).map_err(Into::into)
+}
+
+fn generalized_index_for_blob_index<
+    const MAX_PROPOSER_SLASHINGS: usize,
+    const MAX_VALIDATORS_PER_COMMITTEE: usize,
+    const MAX_ATTESTER_SLASHINGS: usize,
+    const MAX_ATTESTATIONS: usize,
+    const MAX_DEPOSITS: usize,
+    const MAX_VOLUNTARY_EXITS: usize,
+    const SYNC_COMMITTEE_SIZE: usize,
+    const BYTES_PER_LOGS_BLOOM: usize,
+    const MAX_EXTRA_DATA_BYTES: usize,
+    const MAX_BYTES_PER_TRANSACTION: usize,
+    const MAX_TRANSACTIONS_PER_PAYLOAD: usize,
+    const MAX_WITHDRAWALS_PER_PAYLOAD: usize,
+    const MAX_BLS_TO_EXECUTION_CHANGES: usize,
+    const MAX_BLOB_COMMITMENTS_PER_BLOCK: usize,
+>(
+    i: BlobIndex,
+) -> Result<GeneralizedIndex, MerkleizationError> {
+    let path = &["blob_kzg_commitments".into(), i.into()];
+    BeaconBlockBody::<
+        MAX_PROPOSER_SLASHINGS,
+        MAX_VALIDATORS_PER_COMMITTEE,
+        MAX_ATTESTER_SLASHINGS,
+        MAX_ATTESTATIONS,
+        MAX_DEPOSITS,
+        MAX_VOLUNTARY_EXITS,
+        SYNC_COMMITTEE_SIZE,
+        BYTES_PER_LOGS_BLOOM,
+        MAX_EXTRA_DATA_BYTES,
+        MAX_BYTES_PER_TRANSACTION,
+        MAX_TRANSACTIONS_PER_PAYLOAD,
+        MAX_WITHDRAWALS_PER_PAYLOAD,
+        MAX_BLS_TO_EXECUTION_CHANGES,
+        MAX_BLOB_COMMITMENTS_PER_BLOCK,
+    >::generalized_index(path)
+}
+
+fn get_subtree_index(i: GeneralizedIndex) -> Result<usize, MerkleizationError> {
+    log_2(i).ok_or(MerkleizationError::InvalidGeneralizedIndex)
 }
 
 #[derive(
