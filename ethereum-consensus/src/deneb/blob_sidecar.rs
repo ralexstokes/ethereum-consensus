@@ -45,11 +45,9 @@ pub fn verify_blob_sidecar_inclusion_proof<
     const MAX_BLS_TO_EXECUTION_CHANGES: usize,
     const MAX_BLOB_COMMITMENTS_PER_BLOCK: usize,
     const KZG_COMMITMENT_INCLUSION_PROOF_DEPTH: usize,
+    const BYTES_PER_BLOB: usize,
 >(
-    index: BlobIndex,
-    kzg_commitment: &mut KzgCommitment,
-    signed_block_header: &SignedBeaconBlockHeader,
-    kzg_commitment_inclusion_proof: &Vector<Bytes32, KZG_COMMITMENT_INCLUSION_PROOF_DEPTH>,
+    blob_sidecar: &mut BlobSidecar<BYTES_PER_BLOB, KZG_COMMITMENT_INCLUSION_PROOF_DEPTH>,
 ) -> Result<(), Error> {
     let g_index = generalized_index_for_blob_index::<
         MAX_PROPOSER_SLASHINGS,
@@ -66,15 +64,15 @@ pub fn verify_blob_sidecar_inclusion_proof<
         MAX_WITHDRAWALS_PER_PAYLOAD,
         MAX_BLS_TO_EXECUTION_CHANGES,
         MAX_BLOB_COMMITMENTS_PER_BLOCK,
-    >(index)?;
+    >(blob_sidecar.index)?;
     let subtree_index = get_subtree_index(g_index)?;
 
-    let leaf = kzg_commitment.hash_tree_root()?;
-    let branch = kzg_commitment_inclusion_proof.as_ref();
+    let leaf = blob_sidecar.kzg_commitment.hash_tree_root()?;
+    let branch = blob_sidecar.kzg_commitment_inclusion_proof.as_ref();
     let depth = KZG_COMMITMENT_INCLUSION_PROOF_DEPTH;
-    let root = signed_block_header.message.body_root;
+    let root = blob_sidecar.signed_block_header.message.body_root;
 
-    Ok(is_valid_merkle_branch(leaf, branch, depth, subtree_index, root)?)
+    is_valid_merkle_branch(leaf, branch, depth, subtree_index, root).map_err(Into::into)
 }
 
 fn generalized_index_for_blob_index<
@@ -93,7 +91,7 @@ fn generalized_index_for_blob_index<
     const MAX_BLS_TO_EXECUTION_CHANGES: usize,
     const MAX_BLOB_COMMITMENTS_PER_BLOCK: usize,
 >(
-    i: usize,
+    i: BlobIndex,
 ) -> Result<GeneralizedIndex, MerkleizationError> {
     let path = &["blob_kzg_commitments".into(), i.into()];
     BeaconBlockBody::<
