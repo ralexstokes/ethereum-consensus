@@ -31,23 +31,18 @@ ec = [
 ]
 
 [dependencies]
-ssz_rs = { git = "https://github.com/ralexstokes/ssz-rs", rev = "ec96b6c989e3b9e13148f3022815a69781d53230" }
-blst = "0.3.11"
-rand = "0.8.4"
-thiserror = "1.0.30"
-sha2 = "0.10.8"
-integer-sqrt = "0.1.5"
-enr = "0.6.2"
-multihash = { version = "0.16", default-features = false, features = [
-    "std",
-    "multihash-impl",
-    "identity",
-    "sha2",
-] }
-multiaddr = "0.14.0"
-c-kzg = "0.4.0"
+ssz_rs = { workspace = true }
+blst = { workspace = true }
+rand = { workspace = true }
+thiserror = { workspace = true }
+sha2 = { workspace = true }
+integer-sqrt = { workspace = true }
+enr = { workspace = true }
+multihash = { workspace = true }
+multiaddr = { workspace = true }
+c-kzg = { workspace = true }
 
-serde = { version = "1.0", features = ["derive"] }
+serde = { workspace = true }
 serde_json = { version = "1.0.81", optional = true }
 serde_yaml = { version = "0.8", optional = true }
 hex = { version = "0.4.3", optional = true }
@@ -56,7 +51,7 @@ tokio = { version = "1.18.2", features = ["full"], optional = true }
 tokio-stream = { version = "0.1.8", optional = true }
 async-stream = { version = "0.3.3", optional = true }
 
-bs58 = "0.4.0"
+bs58 = { workspace = true }
 
 clap = { version = "4.4.4", optional = true, features = ["derive"] }
 eyre = { version = "0.6.8", optional = true }
