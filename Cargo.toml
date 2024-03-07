@@ -3,3 +3,44 @@ resolver = "2"
 
 members = ["beacon-api-client", "ethereum-consensus", "test-gen", "spec-gen"]
 default-members = ["ethereum-consensus"]
+
+[workspace.dependencies]
+tokio = { version = "1.0", features = ["full"] }
+tracing = "0.1"
+reqwest = { version = "0.11.10", default-features = false, features = ["json"] }
+url = "2.2.2"
+http = "0.2.7"
+
+mev-share-sse = { git = "https://github.com/paradigmxyz/mev-share-rs", rev = "9eb2b0138ab3202b9eb3af4b19c7b3bf40b0faa8", default-features = false }
+
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0.81"
+itertools = "0.10.3"
+thiserror = "1.0.30"
+
+ssz_rs = { git = "https://github.com/ralexstokes/ssz-rs", rev = "ec96b6c989e3b9e13148f3022815a69781d53230" }
+blst = "0.3.11"
+rand = "0.8.4"
+sha2 = "0.10.8"
+integer-sqrt = "0.1.5"
+enr = "0.6.2"
+multihash = { version = "0.16", default-features = false, features = [
+    "std",
+    "multihash-impl",
+    "identity",
+    "sha2",
+] }
+multiaddr = "0.14.0"
+c-kzg = "0.4.0"
+bs58 = "0.4.0"
+syn = { version = "1.0.98", features = [
+    "full",
+    "visit",
+    "visit-mut",
+    "extra-traits",
+] }
+prettyplease = { version = "0.1.10" }
+quote = { version = "1.0.18" }
+clap = { version = "4.4.6", features = ["derive"] }
+convert_case = "0.6.0"
+walkdir = "2.3.3"

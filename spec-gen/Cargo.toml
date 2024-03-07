@@ -8,13 +8,8 @@ readme = "./README.md"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-syn = { version = "1.0.98", features = [
-    "full",
-    "visit",
-    "visit-mut",
-    "extra-traits",
-] }
-prettyplease = { version = "0.1.10" }
-quote = { version = "1.0.18" }
-clap = { version = "4.4.6", features = ["derive"] }
-convert_case = "0.6.0"
+syn = { workspace = true }
+prettyplease = { workspace = true } 
+quote = { workspace = true }
+clap = { workspace = true }
+convert_case = { workspace = true }

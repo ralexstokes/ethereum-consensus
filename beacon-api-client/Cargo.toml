@@ -13,19 +13,19 @@ rustls = ["reqwest/rustls-tls", "mev-share-sse/rustls"]
 native-tls = ["reqwest/default-tls", "mev-share-sse/native-tls"]
 
 [dependencies]
-tokio = { version = "1.0", features = ["full"] }
-tracing = "0.1"
-reqwest = { version = "0.11.10", default-features = false, features = ["json"] }
-url = "2.2.2"
-http = "0.2.7"
+tokio = { workspace = true }
+tracing = { workspace = true }
+reqwest =  { workspace = true }
+url = { workspace = true }
+http = { workspace = true }
 
-mev-share-sse = { git = "https://github.com/paradigmxyz/mev-share-rs", rev = "9eb2b0138ab3202b9eb3af4b19c7b3bf40b0faa8", default-features = false }
+mev-share-sse = { workspace = true }
 
-serde = { version = "1.0", features = ["derive"] }
-serde_json = "1.0.81"
-itertools = "0.10.3"
+serde = { workspace = true }
+serde_json = { workspace = true }
+itertools = { workspace = true }
 clap = { version = "4.3.11", features = ["derive"], optional = true }
-thiserror = "1.0.30"
+thiserror = { workspace = true }
 ethereum-consensus = { path = "../ethereum-consensus" }
 
 [dev-dependencies]
