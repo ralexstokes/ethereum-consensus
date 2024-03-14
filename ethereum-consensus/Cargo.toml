@@ -75,6 +75,8 @@ unicode-normalization = { version = "0.1.22", optional = true }
 serde_with = "1.13.0"
 snap = "1"
 toml = "0.8.2"
+reth-primitives = { git = "https://github.com/paradigmxyz/reth", rev = "28f3a2e2d9525bf2f6373e755e2d6dc0c2f97821" }
+alloy-rlp = "0.3.4"
 
 [[bin]]
 name = "ec"
