@@ -7,16 +7,17 @@ use std::io::{Read, Write};
 
 pub fn unpack_from_blobs(blobs: &[Blob]) -> Result<Vec<u8>, Error> {
     let mut stream = vec![0u8; blobs.len() * BYTES_PER_BLOB];
-    let stream_bits = stream.view_bits_mut::<Lsb0>();
+    let stream_bits = stream.view_bits_mut::<Msb0>();
 
     let mut i = 0;
     for blob in blobs {
-        let blob_bits = blob.as_ref().view_bits::<Lsb0>();
+        let blob_bits = blob.as_ref().view_bits::<Msb0>();
         // chunks of serialized field element bits
         let mut chunks = blob_bits.chunks_exact(8 * BYTES_PER_FIELD_ELEMENT);
         for chunk in chunks.by_ref() {
-            // only grab the first bits for a field element
-            let src = &chunk[..BITS_PER_FIELD_ELEMENT];
+            // first two-bits are unusable via the big-endian field element encoding
+            let src = &chunk[2..];
+            assert_eq!(src.len(), BITS_PER_FIELD_ELEMENT);
             stream_bits[i * BITS_PER_FIELD_ELEMENT..(i + 1) * BITS_PER_FIELD_ELEMENT]
                 .copy_from_bitslice(src);
             i += 1;

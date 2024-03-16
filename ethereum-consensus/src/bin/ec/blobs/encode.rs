@@ -1,18 +1,28 @@
-use crate::blobs::{
-    framing::{sized_header, Mode as Framing},
-    verify_field_element_bytes, BitSlice, Blob, Error, BITS_PER_FIELD_ELEMENT, BYTES_PER_BLOB,
-    BYTES_PER_FIELD_ELEMENT,
+use crate::{
+    blobs::{
+        framing::{sized_header, Mode as Framing},
+        Blob, Error, BITS_PER_FIELD_ELEMENT, BYTES_PER_BLOB, BYTES_PER_FIELD_ELEMENT,
+    },
+    bls::MODULUS,
 };
 use bitvec::prelude::*;
+use ruint::aliases::U256;
 use std::io::Read;
+
+type BitSlice = bitvec::slice::BitSlice<u8, bitvec::prelude::Msb0>;
 
 fn field_element_from_bits(src: &BitSlice) -> Result<Vec<u8>, Error> {
     let mut field_element = vec![0u8; BYTES_PER_FIELD_ELEMENT];
-    let dst = &mut field_element.view_bits_mut()[..src.len()];
+    // first two-bits are unusable via the big-endian field element encoding
+    let dst = &mut field_element.view_bits_mut()[2..2 + src.len()];
     dst.copy_from_bitslice(src);
 
-    verify_field_element_bytes(&field_element)?;
-    Ok(field_element)
+    let x = U256::from_be_slice(&field_element);
+    if x >= MODULUS {
+        Err(Error::ExceedsField)
+    } else {
+        Ok(field_element)
+    }
 }
 
 // Pack a buffer of an arbitrary number of bytes into a series of `Blob`s.
