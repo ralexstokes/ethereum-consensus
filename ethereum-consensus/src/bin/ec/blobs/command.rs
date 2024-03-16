@@ -1,4 +1,4 @@
-use crate::blobs::{decode, encode};
+use crate::blobs::{bundler, decode, encode};
 use clap::{Args, Subcommand};
 use std::io;
 
@@ -6,6 +6,7 @@ use std::io;
 enum Commands {
     Encode { framing: String },
     Decode { framing: String },
+    Bundle,
 }
 
 #[derive(Debug, Args)]
@@ -29,6 +30,13 @@ impl Command {
                 let stdin = io::stdin().lock();
                 let stdout = io::stdout().lock();
                 decode::to_writer_from_json(stdin, stdout, framing.try_into()?)?;
+                Ok(())
+            }
+            Commands::Bundle => {
+                let stdin = io::stdin().lock();
+                let blobs_bundle = bundler::from_reader(stdin)?;
+                let result = serde_json::to_string_pretty(&blobs_bundle)?;
+                println!("{}", result);
                 Ok(())
             }
         }
