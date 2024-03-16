@@ -124,3 +124,10 @@ pub struct BlobIdentifier {
     #[serde(with = "crate::serde::as_str")]
     pub index: BlobIndex,
 }
+
+#[derive(Default, Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
+pub struct BlobsBundle<const BYTES_PER_BLOB: usize> {
+    pub commitments: Vec<KzgCommitment>,
+    pub proofs: Vec<KzgProof>,
+    pub blobs: Vec<Blob<BYTES_PER_BLOB>>,
+}

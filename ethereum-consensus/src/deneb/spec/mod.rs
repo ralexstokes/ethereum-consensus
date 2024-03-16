@@ -32,7 +32,7 @@ pub use crate::{
             BlindedBeaconBlock, BlindedBeaconBlockBody, SignedBlindedBeaconBlock,
         },
         blob_sidecar::{
-            verify_blob_sidecar_inclusion_proof, Blob, BlobIdentifier, BlobSidecar,
+            verify_blob_sidecar_inclusion_proof, Blob, BlobIdentifier, BlobSidecar, BlobsBundle,
             VERSIONED_HASH_VERSION_KZG,
         },
         block_processing::{
