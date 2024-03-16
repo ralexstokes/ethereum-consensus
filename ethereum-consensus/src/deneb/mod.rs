@@ -4,7 +4,6 @@
 pub mod beacon_block;
 pub mod beacon_state;
 pub mod blinded_beacon_block;
-pub mod blinded_blob_sidecar;
 pub mod blob_sidecar;
 pub mod block_processing;
 pub mod epoch_processing;

@@ -31,8 +31,10 @@ pub use crate::{
         blinded_beacon_block::{
             BlindedBeaconBlock, BlindedBeaconBlockBody, SignedBlindedBeaconBlock,
         },
-        blinded_blob_sidecar::{BlindedBlobSidecar, SignedBlindedBlobSidecar},
-        blob_sidecar::{Blob, BlobIdentifier, BlobSidecar, VERSIONED_HASH_VERSION_KZG},
+        blob_sidecar::{
+            verify_blob_sidecar_inclusion_proof, Blob, BlobIdentifier, BlobSidecar,
+            VERSIONED_HASH_VERSION_KZG,
+        },
         block_processing::{
             process_attestation, process_block, process_execution_payload, process_voluntary_exit,
         },
