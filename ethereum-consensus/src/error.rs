@@ -23,6 +23,9 @@ pub enum Error {
     #[cfg(feature = "serde")]
     #[error("{0}")]
     Yaml(#[from] serde_yaml::Error),
+    #[cfg(feature = "serde")]
+    #[error("{0}")]
+    Json(#[from] serde_json::Error),
     #[error("requested element {requested} but collection only has {bound} elements")]
     OutOfBounds { requested: usize, bound: usize },
     #[error("collection cannot be empty")]
