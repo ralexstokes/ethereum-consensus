@@ -41,6 +41,6 @@ syn = { version = "1.0.98", features = [
 ] }
 prettyplease = { version = "0.1.10" }
 quote = { version = "1.0.18" }
-clap = { version = "4.4.6", features = ["derive"] }
+clap = { version = "4.5.3", features = ["derive"] }
 convert_case = "0.6.0"
 walkdir = "2.3.3"
