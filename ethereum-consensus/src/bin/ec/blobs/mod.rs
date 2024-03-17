@@ -19,15 +19,17 @@ pub(crate) type Blob = spec::mainnet::Blob;
 #[derive(Debug, Error)]
 pub enum Error {
     #[error("data is not a field element")]
-    ExceedsField,
+    InvalidFieldElement,
+    #[error("sized framing was requested but decoded stream is not large enough for frame header")]
+    ExpectedHeaderForSizedFraming,
+    #[error("sized framing was requested but the encoded version is not supported")]
+    UnsupportedSizedFramingVersion,
+    #[error("sized framing was requested but the encoded size exceeds the maximum possible size")]
+    InvalidPayloadSize,
     #[error(transparent)]
     Json(#[from] serde_json::Error),
     #[error(transparent)]
     Io(#[from] std::io::Error),
-    #[error("requested framing mode `{0}` is not supported")]
-    InvalidFrameMode(String),
-    #[error("requested framing for `{0}` bytes but only up to 2^32 bytes is supported")]
-    ExceedsMaxFrameSize(usize),
     #[error(transparent)]
     Consensus(#[from] ConsensusError),
 }

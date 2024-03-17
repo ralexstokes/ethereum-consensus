@@ -1,37 +1,45 @@
 use crate::blobs::Error;
 
-pub const FRAMING_VERSION: u8 = 0;
+pub const SIZED_FRAMING_VERSION: u8 = 0;
+pub const HEADER_SIZE: usize = 5;
 
+/// A `Mode` to indicate how the target data should be packed into blob data.
 pub enum Mode {
+    /// No framing, data is written/read directly from the blob data
     Raw,
+    /// The size of a "payload" is written in-band to the blob data.
+    /// Supports "lossless" {de,}serialization if the payload data is not
+    /// a multiple of the blob size.
     Sized,
 }
 
-impl TryFrom<String> for Mode {
-    type Error = Error;
-
-    fn try_from(value: String) -> Result<Self, Self::Error> {
-        match value.as_str() {
-            "raw" => Ok(Self::Raw),
-            "sized" => Ok(Self::Sized),
-            other => Err(Error::InvalidFrameMode(other.into())),
-        }
-    }
-}
-
-pub fn sized_header(data_byte_length: usize) -> Result<Vec<u8>, Error> {
-    let mut header = vec![0u8; 5];
-    header[0] = FRAMING_VERSION;
-    let size = u32::try_from(data_byte_length)
-        .map_err(|_| Error::ExceedsMaxFrameSize(data_byte_length))?;
+// Returns the header bytes that should prepend the target data in `Sized` framing mode.
+// The header consists of one version byte, then a `u32` integer in big-endian encoding containing
+// the size of the trailing data.
+pub fn sized_header(data_byte_length: usize) -> Result<[u8; HEADER_SIZE], Error> {
+    let mut header = [0u8; HEADER_SIZE];
+    header[0] = SIZED_FRAMING_VERSION;
+    let size = u32::try_from(data_byte_length).map_err(|_| Error::InvalidPayloadSize)?;
     header[1..].copy_from_slice(&size.to_be_bytes());
     Ok(header)
 }
 
-pub fn payload_from_sized(stream: Vec<u8>) -> Vec<u8> {
-    assert!(stream.len() >= 5);
-    let (header, payload) = stream.split_at(5);
-    assert!(header[0] == FRAMING_VERSION);
+// Attempts to parse a `stream` of bytes assuming they were written to blobs with the `Sized`
+// framing mode.
+pub fn payload_from_sized(stream: &[u8]) -> Result<&[u8], Error> {
+    if stream.len() < HEADER_SIZE {
+        return Err(Error::ExpectedHeaderForSizedFraming)
+    }
+
+    let (header, payload) = stream.split_at(HEADER_SIZE);
+
+    if header[0] != SIZED_FRAMING_VERSION {
+        return Err(Error::UnsupportedSizedFramingVersion)
+    }
     let size = u32::from_be_bytes(header[1..5].try_into().expect("correct size bytes")) as usize;
-    payload[..size].to_vec()
+    if size >= stream.len() {
+        return Err(Error::InvalidPayloadSize)
+    }
+
+    Ok(&payload[..size])
 }
