@@ -15,16 +15,14 @@ native-tls = ["reqwest/default-tls", "mev-share-sse/native-tls"]
 [dependencies]
 tokio = { workspace = true }
 tracing = { workspace = true }
-reqwest =  { workspace = true }
+reqwest = { workspace = true }
 url = { workspace = true }
 http = { workspace = true }
-
 mev-share-sse = { workspace = true }
-
 serde = { workspace = true }
 serde_json = { workspace = true }
 itertools = { workspace = true }
-clap = { version = "4.3.11", features = ["derive"], optional = true }
+clap = { workspace = true, optional = true }
 thiserror = { workspace = true }
 ethereum-consensus = { path = "../ethereum-consensus" }
 
@@ -32,4 +30,4 @@ ethereum-consensus = { path = "../ethereum-consensus" }
 dotenv = "0.15.0"
 futures-util = "0.3.29"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
-hex = "0.4.3"
+hex = { workspace = true }

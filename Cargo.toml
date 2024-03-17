@@ -5,19 +5,20 @@ members = ["beacon-api-client", "ethereum-consensus", "test-gen", "spec-gen"]
 default-members = ["ethereum-consensus"]
 
 [workspace.dependencies]
-tokio = { version = "1.0", features = ["full"] }
+tokio = { version = "1.18.2", features = ["full"] }
+tokio-stream = "0.1.8"
+async-stream = "0.3.3"
 tracing = "0.1"
 reqwest = { version = "0.11.10", default-features = false, features = ["json"] }
 url = "2.2.2"
 http = "0.2.7"
-
 mev-share-sse = { git = "https://github.com/paradigmxyz/mev-share-rs", rev = "9eb2b0138ab3202b9eb3af4b19c7b3bf40b0faa8", default-features = false }
-
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0.81"
+serde_yaml = "0.8"
 itertools = "0.10.3"
 thiserror = "1.0.30"
-
+hex = "0.4.3"
 ssz_rs = { git = "https://github.com/ralexstokes/ssz-rs", rev = "ec96b6c989e3b9e13148f3022815a69781d53230" }
 blst = "0.3.11"
 rand = "0.8.4"
@@ -33,14 +34,27 @@ multihash = { version = "0.16", default-features = false, features = [
 multiaddr = "0.14.0"
 c-kzg = "0.4.0"
 bs58 = "0.4.0"
+eyre = "0.6.8"
+bip39 = "2.0.0"
+rand_core = { version = "0.6", features = ["std"] }
+rayon = "1.8.0"
+hkdf = "0.12.3"
+ruint = "1.11.1"
+uuid = { version = "1.4.1", features = ["v4", "fast-rng", "serde"] }
+scrypt = "0.11.0"
+aes = "0.8.3"
+ctr = "0.9.2"
+base64 = "0.21.4"
+unicode-normalization = "0.1.22"
+bitvec = "1.0.1"
 syn = { version = "1.0.98", features = [
     "full",
     "visit",
     "visit-mut",
     "extra-traits",
 ] }
-prettyplease = { version = "0.1.10" }
-quote = { version = "1.0.18" }
+prettyplease = "0.1.10"
+quote = "1.0.18"
 clap = { version = "4.5.3", features = ["derive"] }
 convert_case = "0.6.0"
 walkdir = "2.3.3"

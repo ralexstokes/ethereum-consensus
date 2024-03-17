@@ -42,36 +42,28 @@ enr = { workspace = true }
 multihash = { workspace = true }
 multiaddr = { workspace = true }
 c-kzg = { workspace = true }
-
 serde = { workspace = true }
-serde_json = { version = "1.0.81", optional = true }
-serde_yaml = { version = "0.8", optional = true }
-hex = { version = "0.4.3", optional = true }
-
-tokio = { version = "1.18.2", features = ["full"], optional = true }
-tokio-stream = { version = "0.1.8", optional = true }
-async-stream = { version = "0.3.3", optional = true }
-
+serde_json = { workspace = true, optional = true }
+serde_yaml = { workspace = true, optional = true }
+hex = { workspace = true, optional = true }
+tokio = { workspace = true, optional = true }
+tokio-stream = { workspace = true, optional = true }
+async-stream = { workspace = true, optional = true }
 bs58 = { workspace = true }
-
-clap = { version = "4.4.4", optional = true, features = ["derive"] }
-eyre = { version = "0.6.8", optional = true }
-bip39 = { version = "2.0.0", optional = true }
-rand_core = { version = "0.6", optional = true, features = ["std"] }
-rayon = { version = "1.8.0", optional = true }
-hkdf = { version = "0.12.3", optional = true }
-ruint = { version = "1.11.1", optional = true }
-uuid = { version = "1.4.1", optional = true, features = [
-    "v4",
-    "fast-rng",
-    "serde",
-] }
-scrypt = { version = "0.11.0", optional = true }
-aes = { version = "0.8.3", optional = true }
-ctr = { version = "0.9.2", optional = true }
-base64 = { version = "0.21.4", optional = true }
-unicode-normalization = { version = "0.1.22", optional = true }
-bitvec = { version = "1.0.1", optional = true }
+clap = { workspace = true, optional = true }
+eyre = { workspace = true, optional = true }
+bip39 = { workspace = true, optional = true }
+rand_core = { workspace = true, optional = true }
+rayon = { workspace = true, optional = true }
+hkdf = { workspace = true, optional = true }
+ruint = { workspace = true, optional = true }
+uuid = { workspace = true, optional = true }
+scrypt = { workspace = true, optional = true }
+aes = { workspace = true, optional = true }
+ctr = { workspace = true, optional = true }
+base64 = { workspace = true, optional = true }
+unicode-normalization = { workspace = true, optional = true }
+bitvec = { workspace = true, optional = true }
 
 [dev-dependencies]
 serde_with = "1.13.0"
