@@ -1,21 +1,18 @@
-use crate::validator::mnemonic::Seed;
+use crate::{bls::MODULUS, validator::mnemonic::Seed};
 use ethereum_consensus::crypto::{hash, PublicKey as BlsPublicKey, SecretKey as BlsSecretKey};
 use hkdf::Hkdf;
 use rayon::prelude::*;
-use ruint::{aliases::U256, uint, Uint};
+use ruint::{aliases::U256, Uint};
 use sha2::Sha256;
-
-type U384 = Uint<384, 6>;
 
 const SALT: &[u8; 20] = b"BLS-SIG-KEYGEN-SALT-";
 const L: usize = 48;
-const R: U384 =
-    uint!(52435875175126190479447740508185965837690552500527637822603658699938581184513_U384);
 const K: usize = 32;
 const LAMPORT_COUNT: usize = 255;
 const LAMPORT_L: usize = K * LAMPORT_COUNT;
 
 pub type Path = String;
+type U384 = Uint<384, 6>;
 
 #[derive(Debug)]
 pub struct KeyPair {
@@ -76,18 +73,19 @@ fn hkdf_mod_r(input: &[u8]) -> Key {
     let mut ikm = input.to_vec();
     ikm.push(0);
 
+    let r = U384::from(MODULUS);
     while key == U384::ZERO {
         let hk = Hkdf::<Sha256>::new(Some(salt.as_ref()), &ikm);
         let mut okm = [0u8; L];
         hk.expand(&key_info, &mut okm).expect("length L is valid");
         let inner = U384::from_be_bytes(okm);
-        key = inner % R;
+        key = inner % r;
 
         salt = hash(salt.as_ref());
     }
 
     // ensure we are in the field
-    debug_assert_eq!(key % R, key);
+    debug_assert_eq!(key % r, key);
 
     let key_bytes: [u8; L] = key.to_be_bytes();
     let inner: [u8; 32] = key_bytes[16..].try_into().unwrap();
@@ -135,6 +133,7 @@ pub fn generate(seed: &Seed, start: u32, end: u32) -> (Vec<KeyPair>, Vec<KeyPair
 mod tests {
     use super::*;
     use crate::validator::mnemonic;
+    use ruint::uint;
 
     #[test]
     fn test_simple_key_derive() {

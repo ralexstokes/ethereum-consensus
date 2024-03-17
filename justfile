@@ -37,3 +37,5 @@ lint: fmt
 build:
     cargo build --all-targets --all-features
 run-ci: lint build test
+ec +command:
+    cargo run -p ethereum-consensus --features ec {{command}}

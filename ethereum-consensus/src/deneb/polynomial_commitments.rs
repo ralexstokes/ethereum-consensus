@@ -1,15 +1,50 @@
-use crate::{deneb::blob_sidecar::Blob, primitives::Bytes32, ssz::prelude::*};
+use crate::{
+    deneb::blob_sidecar::Blob, primitives::Bytes32, ssz::prelude::*, Error as ConsensusError,
+};
 pub use c_kzg::KzgSettings;
 use thiserror::Error;
 
 pub const BYTES_PER_FIELD_ELEMENT: usize = 32;
 pub const BYTES_PER_COMMITMENT: usize = 48;
 pub const BYTES_PER_PROOF: usize = 48;
+pub const BYTES_PER_G1_POINT: usize = 48;
+pub const BYTES_PER_G2_POINT: usize = 96;
 
 pub type VersionedHash = Bytes32;
 pub type FieldElement = Bytes32;
 pub type KzgCommitment = ByteVector<BYTES_PER_COMMITMENT>;
 pub type KzgProof = ByteVector<BYTES_PER_PROOF>;
+pub type G1Point = KzgCommitment;
+pub type G2Point = ByteVector<BYTES_PER_G2_POINT>;
+
+#[derive(Debug, serde::Serialize, serde::Deserialize)]
+struct TrustedSetup {
+    g1_lagrange: Vec<G1Point>,
+    g2_monomial: Vec<G2Point>,
+}
+
+impl TrustedSetup {
+    pub fn to_g1_bytes(&self) -> Vec<[u8; BYTES_PER_G1_POINT]> {
+        self.g1_lagrange
+            .iter()
+            .map(|point| point.as_ref().try_into().expect("right size"))
+            .collect()
+    }
+
+    pub fn to_g2_bytes(&self) -> Vec<[u8; BYTES_PER_G2_POINT]> {
+        self.g2_monomial
+            .iter()
+            .map(|point| point.as_ref().try_into().expect("right size"))
+            .collect()
+    }
+}
+
+pub fn kzg_settings_from_json(trusted_setup_json: &str) -> Result<KzgSettings, ConsensusError> {
+    let trusted_setup: TrustedSetup = serde_json::from_str(trusted_setup_json)?;
+
+    KzgSettings::load_trusted_setup(&trusted_setup.to_g1_bytes(), &trusted_setup.to_g2_bytes())
+        .map_err(|err| ConsensusError::from(Error::from(err)))
+}
 
 #[derive(Debug, Error)]
 pub enum Error {

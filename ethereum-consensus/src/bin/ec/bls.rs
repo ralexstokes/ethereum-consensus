@@ -1,6 +1,10 @@
 use clap::Args;
 use ethereum_consensus::crypto::SecretKey;
 use rand::prelude::*;
+use ruint::{aliases::U256, uint};
+
+pub(crate) const MODULUS: U256 =
+    uint!(52435875175126190479447740508185965837690552500527637822603658699938581184513_U256);
 
 #[derive(Debug, Args)]
 #[clap(about = "generate a random BLS12-381 keypair")]

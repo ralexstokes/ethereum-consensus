@@ -1,3 +1,4 @@
+mod blobs;
 mod bls;
 mod validator;
 
@@ -7,6 +8,7 @@ use clap::{Parser, Subcommand};
 pub enum Commands {
     Validator(validator::Command),
     Bls(bls::Command),
+    Blobs(blobs::Command),
 }
 
 #[derive(Debug, Parser)]
@@ -22,5 +24,6 @@ fn main() -> eyre::Result<()> {
     match cli.command {
         Commands::Validator(cmd) => cmd.execute(),
         Commands::Bls(cmd) => cmd.execute(),
+        Commands::Blobs(cmd) => cmd.execute(),
     }
 }
