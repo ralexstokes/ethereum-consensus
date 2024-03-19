@@ -1,0 +1,26 @@
+[package]
+name = "spec-tests"
+version = "0.0.1"
+edition = "2021"
+license = "MIT OR Apache-2.0"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+[dependencies]
+ssz_rs = { workspace = true }
+ethereum-consensus = { path = "../ethereum-consensus", features = [
+    "serde",
+    "secret-key-debug",
+] }
+libtest-mimic = "0.7.0"
+heck = "0.5.0"
+serde = { workspace = true }
+serde_with = "3.7.0"
+snap = "1"
+serde_yaml = { workspace = true }
+thiserror = { workspace = true }
+paste = "1.0.14"
+
+[[test]]
+name = "spec-tests"
+path = "main.rs"
+harness = false
