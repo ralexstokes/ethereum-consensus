@@ -1,9 +1,9 @@
 use crate::{
-    runners::{gen_dispatch, gen_exec},
+    runners::{gen_exec, gen_match_for, gen_match_for_all},
     test_case::TestCase,
-    test_meta::{Config, Fork},
     test_utils::{load_snappy_ssz, load_yaml, Error},
 };
+use ethereum_consensus::{state_transition::Context, Error as SpecError};
 use paste::paste;
 use serde::Deserialize;
 
@@ -59,217 +59,119 @@ fn load_execution_payload_test<S: ssz_rs::Deserialize, O: ssz_rs::Deserialize>(
     (pre, post, operation, execution_validity.execution_valid)
 }
 
-macro_rules! run_test {
-    ($context:expr, $pre:ident, $post:ident, $operation:ident, $exec_fn:ident) => {
-        let mut pre = $pre;
-        let result = spec::$exec_fn(&mut pre, $operation, $context);
-        if let Some(post) = $post {
-            assert_eq!(result.unwrap(), ());
-            if pre == post {
-                Ok(())
-            } else {
-                Err(Error::InvalidState)
-            }
+fn run_test<S: Eq, O, F>(
+    mut pre: S,
+    post: Option<S>,
+    mut operation: O,
+    context: &Context,
+    exec_fn: F,
+) -> Result<(), Error>
+where
+    F: FnOnce(&mut S, &mut O, &Context) -> Result<(), SpecError>,
+{
+    let operation = &mut operation;
+    let result = exec_fn(&mut pre, operation, context);
+    if let Some(post) = post {
+        assert_eq!(result.unwrap(), ());
+        if pre != post {
+            Err(Error::InvalidState)
         } else {
-            if result.is_err() {
-                Ok(())
-            } else {
-                Err(Error::ExpectedError)
-            }
+            Ok(())
         }
-    };
+    } else {
+        if result.is_ok() {
+            Err(Error::ExpectedError)
+        } else {
+            Ok(())
+        }
+    }
 }
 
 pub fn dispatch(test: &TestCase) -> Result<(), Error> {
-    let meta = &test.meta;
-    let path = &test.data_path;
-    match meta.handler.0.as_str() {
+    match test.meta.handler.0.as_str() {
         "attestation" => {
-            gen_dispatch! {
-                path,
-                meta.config,
-                meta.fork,
-                |path| { load_attestation_test::<spec::BeaconState, spec::Attestation>(path) },
+            gen_match_for_all! {
+                test,
+                load_attestation_test,
                 |(pre, post, operation): (spec::BeaconState, Option<spec::BeaconState>, spec::Attestation), context| {
-                    let operation = &operation;
-                    run_test! { context, pre, post, operation, process_attestation }
+                    run_test(pre, post, operation, context, |state, operation, context| { spec::process_attestation(state, &*operation, context)} )
                 }
             }
         }
         "attester_slashing" => {
-            gen_dispatch! {
-                path,
-                meta.config,
-                meta.fork,
-                |path| { load_attester_slashing_test::<spec::BeaconState, spec::AttesterSlashing>(path) },
-                |(pre, post, mut operation): (spec::BeaconState, Option<spec::BeaconState>, spec::AttesterSlashing), context| {
-                    let operation = &mut operation;
-                    run_test! { context, pre, post, operation, process_attester_slashing }
+            gen_match_for_all! {
+                test,
+                load_attester_slashing_test,
+                |(pre, post, operation): (spec::BeaconState, Option<spec::BeaconState>, spec::AttesterSlashing), context| {
+                    run_test(pre, post, operation, context, spec::process_attester_slashing)
                 }
             }
         }
         "block_header" => {
-            gen_dispatch! {
-                path,
-                meta.config,
-                meta.fork,
-                |path| { load_block_test::<spec::BeaconState, spec::BeaconBlock>(path) },
-                |(pre, post, mut operation): (spec::BeaconState, Option<spec::BeaconState>, spec::BeaconBlock), context| {
-                    let operation = &mut operation;
-                    run_test! { context, pre, post, operation, process_block_header }
+            gen_match_for_all! {
+                test,
+                load_block_test,
+                |(pre, post, operation): (spec::BeaconState, Option<spec::BeaconState>, spec::BeaconBlock), context| {
+                    run_test(pre, post, operation, context, spec::process_block_header)
                 }
             }
         }
         "deposit" => {
-            gen_dispatch! {
-                path,
-                meta.config,
-                meta.fork,
-                |path| { load_deposit_test::<spec::BeaconState, spec::Deposit>(path) },
-                |(pre, post, mut operation): (spec::BeaconState, Option<spec::BeaconState>, spec::Deposit), context| {
-                    let operation = &mut operation;
-                    run_test! { context, pre, post, operation, process_deposit }
+            gen_match_for_all! {
+                test,
+                load_deposit_test,
+                |(pre, post, operation): (spec::BeaconState, Option<spec::BeaconState>, spec::Deposit), context| {
+                    run_test(pre, post, operation, context, spec::process_deposit)
                 }
             }
         }
         "proposer_slashing" => {
-            gen_dispatch! {
-                path,
-                meta.config,
-                meta.fork,
-                |path| { load_proposer_slashing_test::<spec::BeaconState, spec::ProposerSlashing>(path) },
-                |(pre, post, mut operation): (spec::BeaconState, Option<spec::BeaconState>, spec::ProposerSlashing), context| {
-                    let operation = &mut operation;
-                    run_test! { context, pre, post, operation, process_proposer_slashing }
+            gen_match_for_all! {
+                test,
+                load_proposer_slashing_test,
+                |(pre, post, operation): (spec::BeaconState, Option<spec::BeaconState>, spec::ProposerSlashing), context| {
+                    run_test(pre, post, operation, context, spec::process_proposer_slashing)
                 }
             }
         }
         "voluntary_exit" => {
-            gen_dispatch! {
-                path,
-                meta.config,
-                meta.fork,
-                |path| { load_voluntary_exit_test::<spec::BeaconState, spec::SignedVoluntaryExit>(path) },
-                |(pre, post, mut operation): (spec::BeaconState, Option<spec::BeaconState>, spec::SignedVoluntaryExit), context| {
-                    let operation = &mut operation;
-                    run_test! { context, pre, post, operation, process_voluntary_exit }
+            gen_match_for_all! {
+                test,
+                load_voluntary_exit_test,
+                |(pre, post, operation): (spec::BeaconState, Option<spec::BeaconState>, spec::SignedVoluntaryExit), context| {
+                    run_test(pre, post, operation, context, spec::process_voluntary_exit)
                 }
             }
         }
-        "sync_aggregate" => match meta.config {
-            Config::Mainnet => match meta.fork {
-                Fork::Phase0 => unreachable!("tests do not exist"),
-                Fork::Altair => {
+        "sync_aggregate" => {
+            gen_match_for! {
+                test,
+                (mainnet, altair),
+                (mainnet, bellatrix),
+                (mainnet, capella),
+                (mainnet, deneb),
+                (minimal, altair),
+                (minimal, bellatrix),
+                (minimal, capella),
+                (minimal, deneb)
+                {
                     gen_exec! {
-                        use ethereum_consensus::altair::mainnet as spec;
-                        path,
-                        meta.config,
-                        |path| { load_sync_aggregate_test::<spec::BeaconState, spec::SyncAggregate>(path) },
+                        test,
+                        load_sync_aggregate_test,
                         |(pre, post, operation): (spec::BeaconState, Option<spec::BeaconState>, spec::SyncAggregate), context| {
-                            let operation = &operation;
-                            run_test! { context, pre, post, operation, process_sync_aggregate }
+                            run_test(pre, post, operation, context, |state, operation, context| { spec::process_sync_aggregate(state, &*operation, context)} )
                         }
                     }
                 }
-                Fork::Bellatrix => {
+            }
+        }
+        "execution_payload" => {
+            gen_match_for! {
+                test,
+                (mainnet, bellatrix) => {
                     gen_exec! {
-                        use ethereum_consensus::bellatrix::mainnet as spec;
-                        path,
-                        meta.config,
-                        |path| { load_sync_aggregate_test::<spec::BeaconState, spec::SyncAggregate>(path) },
-                        |(pre, post, operation): (spec::BeaconState, Option<spec::BeaconState>, spec::SyncAggregate), context| {
-                            let operation = &operation;
-                            run_test! { context, pre, post, operation, process_sync_aggregate }
-                        }
-                    }
-                }
-                Fork::Capella => {
-                    gen_exec! {
-                        use ethereum_consensus::capella::mainnet as spec;
-                        path,
-                        meta.config,
-                        |path| { load_sync_aggregate_test::<spec::BeaconState, spec::SyncAggregate>(path) },
-                        |(pre, post, operation): (spec::BeaconState, Option<spec::BeaconState>, spec::SyncAggregate), context| {
-                            let operation = &operation;
-                            run_test! { context, pre, post, operation, process_sync_aggregate }
-                        }
-                    }
-                }
-                Fork::Deneb => {
-                    gen_exec! {
-                        use ethereum_consensus::deneb::mainnet as spec;
-                        path,
-                        meta.config,
-                        |path| { load_sync_aggregate_test::<spec::BeaconState, spec::SyncAggregate>(path) },
-                        |(pre, post, operation): (spec::BeaconState, Option<spec::BeaconState>, spec::SyncAggregate), context| {
-                            let operation = &operation;
-                            run_test! { context, pre, post, operation, process_sync_aggregate }
-                        }
-                    }
-                }
-            },
-            Config::Minimal => match meta.fork {
-                Fork::Phase0 => unreachable!("tests do not exist"),
-                Fork::Altair => {
-                    gen_exec! {
-                        use ethereum_consensus::altair::minimal as spec;
-                        path,
-                        meta.config,
-                        |path| { load_sync_aggregate_test::<spec::BeaconState, spec::SyncAggregate>(path) },
-                        |(pre, post, operation): (spec::BeaconState, Option<spec::BeaconState>, spec::SyncAggregate), context| {
-                            let operation = &operation;
-                            run_test! { context, pre, post, operation, process_sync_aggregate }
-                        }
-                    }
-                }
-                Fork::Bellatrix => {
-                    gen_exec! {
-                        use ethereum_consensus::bellatrix::minimal as spec;
-                        path,
-                        meta.config,
-                        |path| { load_sync_aggregate_test::<spec::BeaconState, spec::SyncAggregate>(path) },
-                        |(pre, post, operation): (spec::BeaconState, Option<spec::BeaconState>, spec::SyncAggregate), context| {
-                            let operation = &operation;
-                            run_test! { context, pre, post, operation, process_sync_aggregate }
-                        }
-                    }
-                }
-                Fork::Capella => {
-                    gen_exec! {
-                        use ethereum_consensus::capella::minimal as spec;
-                        path,
-                        meta.config,
-                        |path| { load_sync_aggregate_test::<spec::BeaconState, spec::SyncAggregate>(path) },
-                        |(pre, post, operation): (spec::BeaconState, Option<spec::BeaconState>, spec::SyncAggregate), context| {
-                            let operation = &operation;
-                            run_test! { context, pre, post, operation, process_sync_aggregate }
-                        }
-                    }
-                }
-                Fork::Deneb => {
-                    gen_exec! {
-                        use ethereum_consensus::deneb::minimal as spec;
-                        path,
-                        meta.config,
-                        |path| { load_sync_aggregate_test::<spec::BeaconState, spec::SyncAggregate>(path) },
-                        |(pre, post, operation): (spec::BeaconState, Option<spec::BeaconState>, spec::SyncAggregate), context| {
-                            let operation = &operation;
-                            run_test! { context, pre, post, operation, process_sync_aggregate }
-                        }
-                    }
-                }
-            },
-            _ => unreachable!(),
-        },
-        "execution_payload" => match meta.config {
-            Config::Mainnet => match meta.fork {
-                Fork::Phase0 | Fork::Altair => unreachable!("tests do not exist"),
-                Fork::Bellatrix => {
-                    gen_exec! {
-                        use ethereum_consensus::bellatrix::mainnet as spec;
-                        path,
-                        meta.config,
-                        |path| { load_execution_payload_test::<spec::BeaconState, spec::ExecutionPayload>(path) },
+                        test,
+                        load_execution_payload_test,
                         |(mut pre, post, mut operation, execution_valid): (spec::BeaconState, Option<spec::BeaconState>, spec::ExecutionPayload, bool), context| {
                             let engine = spec::DefaultExecutionEngine::new(execution_valid);
                             let result = spec::process_execution_payload(&mut pre, &mut operation, &engine, context);
@@ -290,12 +192,10 @@ pub fn dispatch(test: &TestCase) -> Result<(), Error> {
                         }
                     }
                 }
-                Fork::Capella => {
+                (mainnet, capella) => {
                     gen_exec! {
-                        use ethereum_consensus::capella::mainnet as spec;
-                        path,
-                        meta.config,
-                        |path| { load_execution_payload_test::<spec::BeaconState, spec::ExecutionPayload>(path) },
+                        test,
+                        load_execution_payload_test,
                         |(mut pre, post, mut operation, execution_valid): (spec::BeaconState, Option<spec::BeaconState>, spec::ExecutionPayload, bool), context| {
                             let engine = spec::DefaultExecutionEngine::new(execution_valid);
                             let result = spec::process_execution_payload(&mut pre, &mut operation, &engine, context);
@@ -316,12 +216,10 @@ pub fn dispatch(test: &TestCase) -> Result<(), Error> {
                         }
                     }
                 }
-                Fork::Deneb => {
+                (mainnet, deneb) => {
                     gen_exec! {
-                        use ethereum_consensus::deneb::mainnet as spec;
-                        path,
-                        meta.config,
-                        |path| { load_execution_payload_test::<spec::BeaconState, spec::BeaconBlockBody>(path) },
+                        test,
+                        load_execution_payload_test,
                         |(mut pre, post, mut operation, execution_valid): (spec::BeaconState, Option<spec::BeaconState>, spec::BeaconBlockBody, bool), context| {
                             let engine = spec::DefaultExecutionEngine::new(execution_valid);
                             let result = spec::process_execution_payload(&mut pre, &mut operation, &engine, context);
@@ -342,15 +240,10 @@ pub fn dispatch(test: &TestCase) -> Result<(), Error> {
                         }
                     }
                 }
-            },
-            Config::Minimal => match meta.fork {
-                Fork::Phase0 | Fork::Altair => unreachable!("tests do not exist"),
-                Fork::Bellatrix => {
+                (minimal, bellatrix) => {
                     gen_exec! {
-                        use ethereum_consensus::bellatrix::minimal as spec;
-                        path,
-                        meta.config,
-                        |path| { load_execution_payload_test::<spec::BeaconState, spec::ExecutionPayload>(path) },
+                        test,
+                        load_execution_payload_test,
                         |(mut pre, post, mut operation, execution_valid): (spec::BeaconState, Option<spec::BeaconState>, spec::ExecutionPayload, bool), context| {
                             let engine = spec::DefaultExecutionEngine::new(execution_valid);
                             let result = spec::process_execution_payload(&mut pre, &mut operation, &engine, context);
@@ -371,12 +264,10 @@ pub fn dispatch(test: &TestCase) -> Result<(), Error> {
                         }
                     }
                 }
-                Fork::Capella => {
+                (minimal, capella) => {
                     gen_exec! {
-                        use ethereum_consensus::capella::minimal as spec;
-                        path,
-                        meta.config,
-                        |path| { load_execution_payload_test::<spec::BeaconState, spec::ExecutionPayload>(path) },
+                        test,
+                        load_execution_payload_test,
                         |(mut pre, post, mut operation, execution_valid): (spec::BeaconState, Option<spec::BeaconState>, spec::ExecutionPayload, bool), context| {
                             let engine = spec::DefaultExecutionEngine::new(execution_valid);
                             let result = spec::process_execution_payload(&mut pre, &mut operation, &engine, context);
@@ -397,12 +288,10 @@ pub fn dispatch(test: &TestCase) -> Result<(), Error> {
                         }
                     }
                 }
-                Fork::Deneb => {
+                (minimal, deneb) => {
                     gen_exec! {
-                        use ethereum_consensus::deneb::minimal as spec;
-                        path,
-                        meta.config,
-                        |path| { load_execution_payload_test::<spec::BeaconState, spec::BeaconBlockBody>(path) },
+                        test,
+                        load_execution_payload_test,
                         |(mut pre, post, mut operation, execution_valid): (spec::BeaconState, Option<spec::BeaconState>, spec::BeaconBlockBody, bool), context| {
                             let engine = spec::DefaultExecutionEngine::new(execution_valid);
                             let result = spec::process_execution_payload(&mut pre, &mut operation, &engine, context);
@@ -423,9 +312,8 @@ pub fn dispatch(test: &TestCase) -> Result<(), Error> {
                         }
                     }
                 }
-            },
-            _ => unreachable!(),
-        },
-        handler => Err(Error::UnknownHandler(handler.into(), meta.name())),
+            }
+        }
+        handler => unreachable!("no tests for {handler}"),
     }
 }

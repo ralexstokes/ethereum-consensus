@@ -1,5 +1,5 @@
 use crate::{
-    runners::{gen_dispatch, gen_exec},
+    runners::{gen_exec, gen_match_for_all},
     test_case::TestCase,
     test_utils::{load_yaml, Error},
 };
@@ -19,14 +19,10 @@ fn load_test(test_case_path: &str) -> ShufflingTestData {
 }
 
 pub fn dispatch(test: &TestCase) -> Result<(), Error> {
-    let meta = &test.meta;
-    let path = &test.data_path;
-    match meta.handler.0.as_str() {
+    match test.meta.handler.0.as_str() {
         "core" => {
-            gen_dispatch! {
-                path,
-                meta.config,
-                meta.fork,
+            gen_match_for_all! {
+                test,
                 load_test,
                 |data: ShufflingTestData, context| {
                     for index in 0..data.count {
@@ -37,6 +33,6 @@ pub fn dispatch(test: &TestCase) -> Result<(), Error> {
                 }
             }
         }
-        handler => Err(Error::UnknownHandler(handler.into(), meta.name())),
+        handler => unreachable!("no tests for {handler}"),
     }
 }

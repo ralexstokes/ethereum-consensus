@@ -12,105 +12,59 @@ pub mod ssz_static;
 pub mod transition;
 
 macro_rules! gen_exec {
-    ($path:expr, $config:expr, $loader_fn:expr, $exec_fn:expr) => {
-        use crate::test_meta::Config;
-        use ethereum_consensus::state_transition::Context;
-
-        let context = match $config {
-            Config::Minimal => Context::for_minimal(),
-            Config::Mainnet => Context::for_mainnet(),
-            _ => unreachable!(),
-        };
-        let inputs = $loader_fn($path);
-        $exec_fn(inputs, &context)
-    };
-    ($spec_import:item $path:expr, $config:expr, $loader_fn:expr, $exec_fn:expr) => {
-        $spec_import
-        use crate::test_meta::Config;
-        use ethereum_consensus::state_transition::Context;
-
-        let context = match $config {
-            Config::Minimal => Context::for_minimal(),
-            Config::Mainnet => Context::for_mainnet(),
-            _ => unreachable!(),
-        };
-        let inputs = $loader_fn($path);
+    ($test_case:expr, $loader_fn:expr, $exec_fn:expr) => {
+        let inputs = $loader_fn(&$test_case.data_path);
+        let context = $test_case.context();
         $exec_fn(inputs, &context)
     };
 }
 
-macro_rules! gen_dispatch {
-    ($path:expr, $config:expr, $fork:expr, $loader_fn:expr, $exec_fn:expr) => {
-        use crate::test_meta::{Config, Fork};
-        match $config {
-            Config::Mainnet => match $fork {
-                Fork::Phase0 => {
-                    gen_exec! {
-                        use ethereum_consensus::phase0::mainnet as spec;
-                        $path, $config, $loader_fn, $exec_fn
-                    }
+macro_rules! gen_match_for {
+    ($test_case:expr, $(($target_config:ident, $target_fork:ident)),+ $target_body:block) => {
+        match ($test_case.meta.config, $test_case.meta.fork) {
+            $(
+                paste::paste! { (crate::test_meta::Config::[<$target_config:camel>], crate::test_meta::Fork::[<$target_fork:camel>]) } => {
+                    paste::paste! { use ethereum_consensus::[<$target_fork>]::[<$target_config>] as spec; }
+                    $target_body
                 }
-                Fork::Altair => {
-                    gen_exec! {
-                        use ethereum_consensus::altair::mainnet as spec;
-                        $path, $config, $loader_fn, $exec_fn
-                    }
+            )+
+            pair => unreachable!("no tests for {pair:?}"),
+        }
+    };
+    ($test_case:expr, $(($target_config:ident, $target_fork:ident) => $target_body:block)+) => {
+        match ($test_case.meta.config, $test_case.meta.fork) {
+            $(
+                paste::paste! { (crate::test_meta::Config::[<$target_config:camel>], crate::test_meta::Fork::[<$target_fork:camel>]) } => {
+                    paste::paste! { use ethereum_consensus::[<$target_fork>]::[<$target_config>] as spec; }
+                    $target_body
                 }
-                Fork::Bellatrix => {
-                    gen_exec! {
-                        use ethereum_consensus::bellatrix::mainnet as spec;
-                        $path, $config, $loader_fn, $exec_fn
-                    }
-                }
-                Fork::Capella => {
-                    gen_exec! {
-                        use ethereum_consensus::capella::mainnet as spec;
-                        $path, $config, $loader_fn, $exec_fn
-                    }
-                }
-                Fork::Deneb => {
-                    gen_exec! {
-                        use ethereum_consensus::deneb::mainnet as spec;
-                        $path, $config, $loader_fn, $exec_fn
-                    }
-                }
-            },
-            Config::Minimal => match $fork {
-                Fork::Phase0 => {
-                    gen_exec! {
-                        use ethereum_consensus::phase0::minimal as spec;
-                        $path, $config, $loader_fn, $exec_fn
-                    }
-                }
-                Fork::Altair => {
-                    gen_exec! {
-                        use ethereum_consensus::altair::minimal as spec;
-                        $path, $config, $loader_fn, $exec_fn
-                    }
-                }
-                Fork::Bellatrix => {
-                    gen_exec! {
-                        use ethereum_consensus::bellatrix::minimal as spec;
-                        $path, $config, $loader_fn, $exec_fn
-                    }
-                }
-                Fork::Capella => {
-                    gen_exec! {
-                        use ethereum_consensus::capella::minimal as spec;
-                        $path, $config, $loader_fn, $exec_fn
-                    }
-                }
-                Fork::Deneb => {
-                    gen_exec! {
-                        use ethereum_consensus::deneb::minimal as spec;
-                        $path, $config, $loader_fn, $exec_fn
-                    }
-                }
-            },
-            _ => unreachable!(),
+            )+
+            pair => unreachable!("no tests for {pair:?}"),
         }
     };
 }
 
-pub(crate) use gen_dispatch;
+macro_rules! gen_match_for_all {
+    ($test_case:expr, $loader_fn:expr, $exec_fn:expr) => {
+        crate::runners::gen_match_for! {
+            $test_case,
+            (mainnet, phase0),
+            (mainnet, altair),
+            (mainnet, bellatrix),
+            (mainnet, capella),
+            (mainnet, deneb),
+            (minimal, phase0),
+            (minimal, altair),
+            (minimal, bellatrix),
+            (minimal, capella),
+            (minimal, deneb)
+            {
+                gen_exec! { $test_case, $loader_fn, $exec_fn }
+            }
+        }
+    };
+}
+
 pub(crate) use gen_exec;
+pub(crate) use gen_match_for;
+pub(crate) use gen_match_for_all;

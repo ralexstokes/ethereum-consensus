@@ -4,6 +4,7 @@ use crate::{
     test_meta::{Config, Fork},
     test_utils::{load_snappy_ssz, Error},
 };
+use ethereum_consensus::state_transition::Context;
 
 fn load_test<S: ssz_rs::Deserialize, T: ssz_rs::Deserialize>(test_case_path: &str) -> (S, T) {
     let path = test_case_path.to_string() + "/pre.ssz_snappy";
@@ -15,27 +16,31 @@ fn load_test<S: ssz_rs::Deserialize, T: ssz_rs::Deserialize>(test_case_path: &st
     (pre, post)
 }
 
+fn run_test<S, T: Eq, F>(pre: S, expected: T, context: &Context, exec_fn: F) -> Result<(), Error>
+where
+    F: FnOnce(&S, &Context) -> T,
+{
+    let post = exec_fn(&pre, context);
+    if expected == post {
+        Ok(())
+    } else {
+        Err(Error::InvalidState)
+    }
+}
+
 pub fn dispatch(test: &TestCase) -> Result<(), Error> {
-    let meta = &test.meta;
-    let path = &test.data_path;
-    match meta.handler.0.as_str() {
-        "fork" => match meta.config {
-            Config::Mainnet => match meta.fork {
+    match test.meta.handler.0.as_str() {
+        "fork" => match test.meta.config {
+            Config::Mainnet => match test.meta.fork {
                 Fork::Altair => {
                     use ethereum_consensus::{
                         altair::mainnet as spec, phase0::mainnet as pre_spec,
                     };
                     gen_exec! {
-                        path,
-                        meta.config,
-                        |path| { load_test::<pre_spec::BeaconState, spec::BeaconState>(path)},
+                        test,
+                        load_test,
                         |(pre, expected): (pre_spec::BeaconState, spec::BeaconState), context| {
-                            let post = spec::upgrade_to_altair(&pre, context).unwrap();
-                            if expected == post {
-                                Ok(())
-                            } else {
-                                Err(Error::InvalidState)
-                            }
+                            run_test(pre, expected, context, |state, context| spec::upgrade_to_altair(state,context).unwrap())
                         }
                     }
                 }
@@ -44,16 +49,10 @@ pub fn dispatch(test: &TestCase) -> Result<(), Error> {
                         altair::mainnet as pre_spec, bellatrix::mainnet as spec,
                     };
                     gen_exec! {
-                        path,
-                        meta.config,
-                        |path| { load_test::<pre_spec::BeaconState, spec::BeaconState>(path)},
+                        test,
+                        load_test,
                         |(pre, expected): (pre_spec::BeaconState, spec::BeaconState), context| {
-                            let post = spec::upgrade_to_bellatrix(&pre, context);
-                            if expected == post {
-                                Ok(())
-                            } else {
-                                Err(Error::InvalidState)
-                            }
+                            run_test(pre, expected, context, spec::upgrade_to_bellatrix)
                         }
                     }
                 }
@@ -62,16 +61,10 @@ pub fn dispatch(test: &TestCase) -> Result<(), Error> {
                         bellatrix::mainnet as pre_spec, capella::mainnet as spec,
                     };
                     gen_exec! {
-                        path,
-                        meta.config,
-                        |path| { load_test::<pre_spec::BeaconState, spec::BeaconState>(path)},
+                        test,
+                        load_test,
                         |(pre, expected): (pre_spec::BeaconState, spec::BeaconState), context| {
-                            let post = spec::upgrade_to_capella(&pre, context);
-                            if expected == post {
-                                Ok(())
-                            } else {
-                                Err(Error::InvalidState)
-                            }
+                            run_test(pre, expected, context, spec::upgrade_to_capella)
                         }
                     }
                 }
@@ -80,37 +73,25 @@ pub fn dispatch(test: &TestCase) -> Result<(), Error> {
                         capella::mainnet as pre_spec, deneb::mainnet as spec,
                     };
                     gen_exec! {
-                        path,
-                        meta.config,
-                        |path| { load_test::<pre_spec::BeaconState, spec::BeaconState>(path)},
+                        test,
+                        load_test,
                         |(pre, expected): (pre_spec::BeaconState, spec::BeaconState), context| {
-                            let post = spec::upgrade_to_deneb(&pre, context);
-                            if expected == post {
-                                Ok(())
-                            } else {
-                                Err(Error::InvalidState)
-                            }
+                            run_test(pre, expected, context, spec::upgrade_to_deneb)
                         }
                     }
                 }
-                _ => unreachable!(),
+                fork => unreachable!("no tests for (Mainnet, {fork:?})"),
             },
-            Config::Minimal => match meta.fork {
+            Config::Minimal => match test.meta.fork {
                 Fork::Altair => {
                     use ethereum_consensus::{
                         altair::minimal as spec, phase0::minimal as pre_spec,
                     };
                     gen_exec! {
-                        path,
-                        meta.config,
-                        |path| { load_test::<pre_spec::BeaconState, spec::BeaconState>(path)},
+                        test,
+                        load_test,
                         |(pre, expected): (pre_spec::BeaconState, spec::BeaconState), context| {
-                            let post = spec::upgrade_to_altair(&pre, context).unwrap();
-                            if expected == post {
-                                Ok(())
-                            } else {
-                                Err(Error::InvalidState)
-                            }
+                            run_test(pre, expected, context, |state, context| spec::upgrade_to_altair(state,context).unwrap())
                         }
                     }
                 }
@@ -119,16 +100,10 @@ pub fn dispatch(test: &TestCase) -> Result<(), Error> {
                         altair::minimal as pre_spec, bellatrix::minimal as spec,
                     };
                     gen_exec! {
-                        path,
-                        meta.config,
-                        |path| { load_test::<pre_spec::BeaconState, spec::BeaconState>(path)},
+                        test,
+                        load_test,
                         |(pre, expected): (pre_spec::BeaconState, spec::BeaconState), context| {
-                            let post = spec::upgrade_to_bellatrix(&pre, context);
-                            if expected == post {
-                                Ok(())
-                            } else {
-                                Err(Error::InvalidState)
-                            }
+                            run_test(pre, expected, context, spec::upgrade_to_bellatrix)
                         }
                     }
                 }
@@ -137,16 +112,10 @@ pub fn dispatch(test: &TestCase) -> Result<(), Error> {
                         bellatrix::minimal as pre_spec, capella::minimal as spec,
                     };
                     gen_exec! {
-                        path,
-                        meta.config,
-                        |path| { load_test::<pre_spec::BeaconState, spec::BeaconState>(path)},
+                        test,
+                        load_test,
                         |(pre, expected): (pre_spec::BeaconState, spec::BeaconState), context| {
-                            let post = spec::upgrade_to_capella(&pre, context);
-                            if expected == post {
-                                Ok(())
-                            } else {
-                                Err(Error::InvalidState)
-                            }
+                            run_test(pre, expected, context, spec::upgrade_to_capella)
                         }
                     }
                 }
@@ -155,23 +124,17 @@ pub fn dispatch(test: &TestCase) -> Result<(), Error> {
                         capella::minimal as pre_spec, deneb::minimal as spec,
                     };
                     gen_exec! {
-                        path,
-                        meta.config,
-                        |path| { load_test::<pre_spec::BeaconState, spec::BeaconState>(path)},
+                        test,
+                        load_test,
                         |(pre, expected): (pre_spec::BeaconState, spec::BeaconState), context| {
-                            let post = spec::upgrade_to_deneb(&pre, context);
-                            if expected == post {
-                                Ok(())
-                            } else {
-                                Err(Error::InvalidState)
-                            }
+                            run_test(pre, expected, context, spec::upgrade_to_deneb)
                         }
                     }
                 }
-                _ => unreachable!(),
+                fork => unreachable!("no tests for (Minimal, {fork:?})"),
             },
-            _ => unreachable!(),
+            config => unreachable!("no tests for {config:?}"),
         },
-        handler => Err(Error::UnknownHandler(handler.into(), meta.name())),
+        handler => unreachable!("no tests for {handler}"),
     }
 }

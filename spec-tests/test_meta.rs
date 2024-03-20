@@ -1,7 +1,7 @@
 use heck::ToSnakeCase;
 use std::fmt;
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 pub enum Config {
     General,
     Minimal,
@@ -26,7 +26,7 @@ impl fmt::Display for Config {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 pub enum Fork {
     Phase0,
     Altair,
