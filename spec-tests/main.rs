@@ -1,11 +1,13 @@
 /// Entrypoint for running the spec tests
 /// Uses a custom test harness via `libtest_mimic` to dynamically discover tests to execute
+use ethereum_consensus::state_transition;
 use libtest_mimic::{Arguments, Trial};
 use std::{
     env,
     error::Error,
     fs::{self, DirEntry},
     path::{Component, Path, PathBuf},
+    sync::Arc,
 };
 use test_case::*;
 use test_meta::*;
@@ -34,10 +36,14 @@ fn parse_test_meta(parent: &Path, path_mask: &PathBuf) -> TestMeta {
     TestMeta { config, fork, runner, handler, suite, case }
 }
 
-fn parse_test_case(test_data_paths: &[PathBuf], path_mask: &PathBuf) -> TestCase {
+fn parse_test_case(
+    test_data_paths: &[PathBuf],
+    path_mask: &PathBuf,
+    context: Arc<Context>,
+) -> TestCase {
     let parent = test_data_paths.first().expect("some test data").parent().expect("has parent");
     let test_meta = parse_test_meta(parent, path_mask);
-    TestCase::new(test_meta, parent)
+    TestCase::new(test_meta, parent, context)
 }
 
 fn has_children(dir_entries: &[DirEntry]) -> bool {
@@ -51,13 +57,14 @@ fn visit_dir(
     path: &Path,
     tests: &mut Vec<Trial>,
     path_mask: &PathBuf,
+    context: Arc<Context>,
 ) -> Result<(), Box<dyn Error>> {
     let entries = fs::read_dir(path)?.collect::<Result<Vec<DirEntry>, _>>()?;
     if has_children(&entries) {
         for entry in entries {
             assert!(entry.file_type()?.is_dir());
             let path = entry.path();
-            visit_dir(&path, tests, path_mask)?;
+            visit_dir(&path, tests, path_mask, context.clone())?;
         }
     } else {
         if entries.is_empty() {
@@ -78,7 +85,7 @@ fn visit_dir(
         });
         assert!(same_parents);
 
-        let test_case = parse_test_case(&test_case_paths, path_mask);
+        let test_case = parse_test_case(&test_case_paths, path_mask, context.clone());
         if test_case.meta.should_skip() {
             return Ok(())
         }
@@ -92,17 +99,29 @@ fn visit_dir(
     Ok(())
 }
 
-fn collect_tests<P: AsRef<Path>>(spec_tests_root: P) -> Result<Vec<Trial>, Box<dyn Error>> {
+fn collect_tests<P: AsRef<Path>>(
+    spec_tests_root: P,
+    context: Arc<Context>,
+) -> Result<Vec<Trial>, Box<dyn Error>> {
     let mut tests = Vec::new();
     let mut root_dir = env::current_dir()?;
     root_dir.push(spec_tests_root.as_ref());
     let path_mask = root_dir.to_path_buf();
-    visit_dir(&root_dir, &mut tests, &path_mask)?;
+    visit_dir(&root_dir, &mut tests, &path_mask, context)?;
     Ok(tests)
+}
+
+struct Context {
+    mainnet: state_transition::Context,
+    minimal: state_transition::Context,
 }
 
 fn main() -> Result<(), Box<dyn Error>> {
     let args = Arguments::from_args();
-    let tests = collect_tests(SPEC_TESTS_ROOT_PATH)?;
+    let context = Arc::new(Context {
+        mainnet: state_transition::Context::for_mainnet(),
+        minimal: state_transition::Context::for_minimal(),
+    });
+    let tests = collect_tests(SPEC_TESTS_ROOT_PATH, context)?;
     libtest_mimic::run(&args, tests).exit()
 }

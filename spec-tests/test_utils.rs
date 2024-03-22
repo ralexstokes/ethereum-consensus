@@ -5,8 +5,6 @@ use thiserror::Error;
 
 #[derive(Debug, Error)]
 pub enum Error {
-    #[error("unknown handler `{0}` in `{1}`")]
-    UnknownHandler(String, String),
     #[error(transparent)]
     Spec(#[from] SpecError),
     #[error("state did not match expected")]

@@ -1,8 +1,9 @@
 use crate::{
-    runners::{gen_dispatch, gen_exec},
+    runners::{gen_exec, gen_match_for_all},
     test_case::TestCase,
     test_utils::{load_snappy_ssz, load_yaml, Error},
 };
+use ethereum_consensus::state_transition::Context;
 use serde::Deserialize;
 
 #[derive(Deserialize)]
@@ -33,49 +34,46 @@ fn load_test<S: ssz_rs::Deserialize, B: ssz_rs::Deserialize>(
     (pre, post, blocks)
 }
 
-macro_rules! run_test {
-    ($context:expr, $pre:ident, $post: ident, $blocks:ident) => {
-        let mut pre = $pre;
-        let mut blocks = $blocks;
-        for block in blocks.iter_mut() {
-            todo!(/*
+pub(crate) fn run_test<S: Eq, B>(
+    pre: S,
+    post: Option<S>,
+    mut blocks: Vec<B>,
+    _context: &Context,
+) -> Result<(), Error> {
+    for _block in blocks.iter_mut() {
+        todo!(/*
                 TODO: move exec engine as member of `Context`
                 spec::state_transition(&mut pre, block, Validation::Enabled, $context).map_err(Error::from)?;
                  */);
-        }
-        let result = Ok::<_, Error>(());
-        if let Some(post) = $post {
-            assert_eq!(result.unwrap(), ());
-            if pre == post {
-                Ok(())
-            } else {
-                Err(Error::InvalidState)
-            }
+    }
+    let result = Result::<(), _>::Err(Error::ExpectedError);
+    if let Some(post) = post {
+        assert_eq!(result.unwrap(), ());
+        if pre == post {
+            Ok(())
         } else {
-            if result.is_err() {
-                Ok(())
-            } else {
-                Err(Error::ExpectedError)
-            }
+            Err(Error::InvalidState)
         }
-    };
+    } else {
+        if result.is_err() {
+            Ok(())
+        } else {
+            Err(Error::ExpectedError)
+        }
+    }
 }
 
 pub fn dispatch(test: &TestCase) -> Result<(), Error> {
-    let meta = &test.meta;
-    let path = &test.data_path;
-    match meta.handler.0.as_str() {
+    match test.meta.handler.0.as_str() {
         "sanity" => {
-            gen_dispatch! {
-                path,
-                meta.config,
-                meta.fork,
-                |path| { load_test::<spec::BeaconState, spec::SignedBeaconBlock>(path) },
-                |(pre, post, blocks): (spec::BeaconState, Option<spec::BeaconState>, Vec<spec::SignedBeaconBlock>), context| {
-                    run_test! { context, pre, post, blocks }
+            gen_match_for_all! {
+                test,
+                load_test,
+                |(pre, post, blocks): (spec::BeaconState, Option<spec::BeaconState>, Vec<spec::SignedBeaconBlock>), _context| {
+                    run_test(pre, post, blocks, _context)
                 }
             }
         }
-        handler => Err(Error::UnknownHandler(handler.into(), meta.name())),
+        handler => unreachable!("no tests for {handler}"),
     }
 }

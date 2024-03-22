@@ -1,10 +1,9 @@
 use crate::{
-    runners::{gen_dispatch, gen_exec},
+    runners::{gen_exec, gen_match_for, gen_match_for_all},
     test_case::TestCase,
-    test_meta::{Config, Fork},
     test_utils::{load_snappy_ssz_bytes, load_yaml, Error},
 };
-use ethereum_consensus::primitives::Bytes32;
+use ethereum_consensus::{primitives::Bytes32, state_transition::Context};
 use serde::Deserialize;
 use ssz_rs::prelude::*;
 use std::path::Path;
@@ -24,87 +23,36 @@ fn load_test(test_case_path: &str) -> (RootData, Vec<u8>) {
     (data, encoding)
 }
 
-macro_rules! gen_test {
-    ($handler:ident) => {
-        |(data, encoding): (RootData, Vec<u8>), _| {
-            let mut decoded_data: spec::$handler = deserialize(&encoding).unwrap();
-            let serialized = serialize(&decoded_data).unwrap();
-            let root = decoded_data.hash_tree_root().unwrap();
-            assert_eq!(serialized, encoding);
-            assert_eq!(root.as_ref(), data.root.as_ref());
-            Ok(())
-        }
-    };
-}
-
-macro_rules! gen_match {
-    ($meta:ident, $path:ident, $($handler:ident),*) => {
-        match $meta.handler.0.as_str() {
-            $(
-                stringify!($handler) => {
-                    gen_dispatch! {
-                        $path,
-                        $meta.config,
-                        $meta.fork,
-                        load_test,
-                        gen_test!($handler)
-                    }
-                }
-            )*
-            handler => Err(Error::UnknownHandler(handler.into(), $meta.name())),
-        }
-    };
+fn run_test<T: ssz_rs::SimpleSerialize>(
+    (data, encoding): (RootData, Vec<u8>),
+    _: &Context,
+) -> Result<(), Error> {
+    let mut decoded_data: T = deserialize(&encoding).unwrap();
+    let serialized = serialize(&decoded_data).unwrap();
+    let root = decoded_data.hash_tree_root().unwrap();
+    assert_eq!(serialized, encoding);
+    assert_eq!(root.as_ref(), data.root.as_ref());
+    Ok(())
 }
 
 macro_rules! gen_bellatrix_and_later {
-    ($meta:ident, $config:expr, $path:ident, $($handler:ident),*) => {
-        let result = match $meta.handler.0.as_str() {
+    ($test_case:expr, $($handler:ident),*) => {
+        let result = match $test_case.meta.handler.0.as_str() {
             $(
-                stringify!($handler) => match $config {
-                    Config::Mainnet => match $meta.fork {
-                        Fork::Bellatrix => {
-                            gen_exec! {
-                                use ethereum_consensus::bellatrix::mainnet as spec;
-                                $path, $config, load_test, gen_test! { $handler }
-                            }
+                stringify!($handler) => gen_match_for! {
+                    $test_case,
+                    (mainnet, bellatrix),
+                    (mainnet, capella),
+                    (mainnet, deneb),
+                    (minimal, bellatrix),
+                    (minimal, capella),
+                    (minimal, deneb)
+                    {
+                        gen_exec! {
+                            $test_case, load_test, run_test::<spec::$handler>
                         }
-                        Fork::Capella => {
-                            gen_exec! {
-                                use ethereum_consensus::capella::mainnet as spec;
-                                $path, $config, load_test, gen_test! { $handler }
-                            }
-                        }
-                        Fork::Deneb => {
-                            gen_exec! {
-                                use ethereum_consensus::deneb::mainnet as spec;
-                                $path, $config, load_test, gen_test! { $handler }
-                            }
-                        }
-                        _ => unreachable!(),
-                    },
-                    Config::Minimal => match $meta.fork {
-                        Fork::Bellatrix => {
-                            gen_exec! {
-                                use ethereum_consensus::bellatrix::minimal as spec;
-                                $path, $config, load_test, gen_test! { $handler }
-                            }
-                        }
-                        Fork::Capella => {
-                            gen_exec! {
-                                use ethereum_consensus::capella::minimal as spec;
-                                $path, $config, load_test, gen_test! { $handler }
-                            }
-                        }
-                        Fork::Deneb => {
-                            gen_exec! {
-                                use ethereum_consensus::deneb::minimal as spec;
-                                $path, $config, load_test, gen_test! { $handler }
-                            }
-                        }
-                        _ => unreachable!(),
-                    },
-                    _ => unreachable!(),
-                }
+                    }
+                },
             )*
             _ => Err(Error::InternalContinue),
         };
@@ -117,66 +65,25 @@ macro_rules! gen_bellatrix_and_later {
 }
 
 macro_rules! gen_altair_and_later {
-    ($meta:ident, $config:expr, $path:ident, $($handler:ident),*) => {
-        let result = match $meta.handler.0.as_str() {
+    ($test_case:expr, $($handler:ident),*) => {
+        let result = match $test_case.meta.handler.0.as_str() {
             $(
-                stringify!($handler) => match $config {
-                    Config::Mainnet => match $meta.fork {
-                        Fork::Altair => {
-                            gen_exec! {
-                                use ethereum_consensus::altair::mainnet as spec;
-                                $path, $config, load_test, gen_test! { $handler }
-                            }
+                stringify!($handler) => gen_match_for! {
+                    $test_case,
+                    (mainnet, altair),
+                    (mainnet, bellatrix),
+                    (mainnet, capella),
+                    (mainnet, deneb),
+                    (minimal, altair),
+                    (minimal, bellatrix),
+                    (minimal, capella),
+                    (minimal, deneb)
+                    {
+                        gen_exec! {
+                            $test_case, load_test, run_test::<spec::$handler>
                         }
-                        Fork::Bellatrix => {
-                            gen_exec! {
-                                use ethereum_consensus::bellatrix::mainnet as spec;
-                                $path, $config, load_test, gen_test! { $handler }
-                            }
-                        }
-                        Fork::Capella => {
-                            gen_exec! {
-                                use ethereum_consensus::capella::mainnet as spec;
-                                $path, $config, load_test, gen_test! { $handler }
-                            }
-                        }
-                        Fork::Deneb => {
-                            gen_exec! {
-                                use ethereum_consensus::deneb::mainnet as spec;
-                                $path, $config, load_test, gen_test! { $handler }
-                            }
-                        }
-                        _ => unreachable!(),
-                    },
-                    Config::Minimal => match $meta.fork {
-                        Fork::Altair => {
-                            gen_exec! {
-                                use ethereum_consensus::altair::minimal as spec;
-                                $path, $config, load_test, gen_test! { $handler }
-                            }
-                        }
-                        Fork::Bellatrix => {
-                            gen_exec! {
-                                use ethereum_consensus::bellatrix::minimal as spec;
-                                $path, $config, load_test, gen_test! { $handler }
-                            }
-                        }
-                        Fork::Capella => {
-                            gen_exec! {
-                                use ethereum_consensus::capella::minimal as spec;
-                                $path, $config, load_test, gen_test! { $handler }
-                            }
-                        }
-                        Fork::Deneb => {
-                            gen_exec! {
-                                use ethereum_consensus::deneb::minimal as spec;
-                                $path, $config, load_test, gen_test! { $handler }
-                            }
-                        }
-                        _ => unreachable!(),
-                    },
-                    _ => unreachable!(),
-                }
+                    }
+                },
             )*
             _ => Err(Error::InternalContinue),
         };
@@ -188,23 +95,33 @@ macro_rules! gen_altair_and_later {
     };
 }
 
-pub fn dispatch(test: &TestCase) -> Result<(), Error> {
-    let meta = &test.meta;
-    let path = &test.data_path;
+macro_rules! gen_match {
+    ($test_case:expr, $($handler:ident),*) => {
+        match $test_case.meta.handler.0.as_str() {
+            $(
+                stringify!($handler) => {
+                    gen_match_for_all! {
+                        $test_case,
+                        load_test,
+                        run_test::<spec::$handler>
+                    }
+                }
+            )*
+            handler => unreachable!("no tests for {handler}"),
+        }
+    };
+}
 
+pub fn dispatch(test: &TestCase) -> Result<(), Error> {
     gen_bellatrix_and_later! {
-        meta,
-        meta.config,
-        path,
+        test,
         ExecutionPayload,
         ExecutionPayloadHeader,
         PowBlock
     }
 
     gen_altair_and_later! {
-        meta,
-        meta.config,
-        path,
+        test,
         ContributionAndProof,
         LightClientUpdate,
         SignedContributionAndProof,
@@ -216,8 +133,7 @@ pub fn dispatch(test: &TestCase) -> Result<(), Error> {
     }
 
     gen_match! {
-        meta,
-        path,
+        test,
         AggregateAndProof,
         Attestation,
         AttestationData,

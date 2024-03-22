@@ -1,7 +1,6 @@
 use crate::{
-    runners::gen_exec,
+    runners::{gen_exec, gen_match_for},
     test_case::TestCase,
-    test_meta::{Config, Fork},
     test_utils::{load_snappy_ssz, load_yaml, Error},
 };
 use ethereum_consensus::primitives::Bytes32;
@@ -64,23 +63,14 @@ fn load_validity_test<S: ssz_rs::Deserialize>(test_case_path: &str) -> (S, bool)
 }
 
 pub fn dispatch(test: &TestCase) -> Result<(), Error> {
-    let meta = &test.meta;
-    let path = &test.data_path;
-    match meta.handler.0.as_str() {
-        "initialization" => match meta.config {
-            Config::Minimal => match meta.fork {
-                Fork::Phase0 => {
+    match test.meta.handler.0.as_str() {
+        "initialization" => {
+            gen_match_for! {
+                test,
+                (minimal, phase0) => {
                     gen_exec! {
-                        use ethereum_consensus::phase0::minimal as spec;
-                        path,
-                        meta.config,
-                        |path| {
-                            load_initialization_test::<
-                                spec::BeaconState,
-                                spec::Deposit,
-                                bool, // dummy type
-                            >(path)
-                        },
+                        test,
+                        load_initialization_test,
                         |(eth1, mut deposits, _, expected): (
                             Eth1,
                             Vec<spec::Deposit>,
@@ -117,18 +107,10 @@ pub fn dispatch(test: &TestCase) -> Result<(), Error> {
                         }
                     }
                 }
-                Fork::Altair => {
+                (minimal, altair) => {
                     gen_exec! {
-                        use ethereum_consensus::altair::minimal as spec;
-                        path,
-                        meta.config,
-                        |path| {
-                            load_initialization_test::<
-                                spec::BeaconState,
-                                spec::Deposit,
-                                bool, // dummy type
-                            >(path)
-                        },
+                        test,
+                        load_initialization_test,
                         |(eth1, mut deposits, _, expected): (
                             Eth1,
                             Vec<spec::Deposit>,
@@ -165,18 +147,10 @@ pub fn dispatch(test: &TestCase) -> Result<(), Error> {
                         }
                     }
                 }
-                Fork::Bellatrix => {
+                (minimal, bellatrix) => {
                     gen_exec! {
-                        use ethereum_consensus::bellatrix::minimal as spec;
-                        path,
-                        meta.config,
-                        |path| {
-                            load_initialization_test::<
-                                spec::BeaconState,
-                                spec::Deposit,
-                                spec::ExecutionPayloadHeader, // dummy type
-                            >(path)
-                        },
+                        test,
+                        load_initialization_test,
                         |(eth1, mut deposits, execution_payload_header, expected): (
                             Eth1,
                             Vec<spec::Deposit>,
@@ -218,18 +192,18 @@ pub fn dispatch(test: &TestCase) -> Result<(), Error> {
                         }
                     }
                 }
-                _ => todo!(),
-            },
-            _ => unreachable!(),
-        },
-        "validity" => match meta.config {
-            Config::Minimal => match meta.fork {
-                Fork::Phase0 => {
+            }
+        }
+        "validity" => {
+            gen_match_for! {
+                test,
+                (minimal, phase0),
+                (minimal, altair),
+                (minimal, bellatrix)
+                {
                     gen_exec! {
-                        use ethereum_consensus::phase0::minimal as spec;
-                        path,
-                        meta.config,
-                        |path| { load_validity_test::<spec::BeaconState,>(path) },
+                        test,
+                        load_validity_test,
                         |(state, expected): (spec::BeaconState, bool), context| {
                             let is_valid = spec::is_valid_genesis_state(&state, context);
                             if expected == is_valid {
@@ -240,42 +214,8 @@ pub fn dispatch(test: &TestCase) -> Result<(), Error> {
                         }
                     }
                 }
-                Fork::Altair => {
-                    gen_exec! {
-                        use ethereum_consensus::altair::minimal as spec;
-                        path,
-                        meta.config,
-                        |path| { load_validity_test::<spec::BeaconState,>(path) },
-                        |(state, expected): (spec::BeaconState, bool), context| {
-                            let is_valid = spec::is_valid_genesis_state(&state, context);
-                            if expected == is_valid {
-                                Ok(())
-                            } else {
-                                Err(Error::InvalidState)
-                            }
-                        }
-                    }
-                }
-                Fork::Bellatrix => {
-                    gen_exec! {
-                        use ethereum_consensus::bellatrix::minimal as spec;
-                        path,
-                        meta.config,
-                        |path| { load_validity_test::<spec::BeaconState,>(path) },
-                        |(state, expected): (spec::BeaconState, bool), context| {
-                            let is_valid = spec::is_valid_genesis_state(&state, context);
-                            if expected == is_valid {
-                                Ok(())
-                            } else {
-                                Err(Error::InvalidState)
-                            }
-                        }
-                    }
-                }
-                _ => todo!(),
-            },
-            _ => unreachable!(),
-        },
-        handler => Err(Error::UnknownHandler(handler.into(), meta.name())),
+            }
+        }
+        handler => unreachable!("no tests for {handler}"),
     }
 }

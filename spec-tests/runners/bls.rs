@@ -16,50 +16,44 @@ use std::fmt;
 
 pub fn dispatch(test: &TestCase) -> Result<(), Error> {
     let meta = &test.meta;
+    let path = &test.data_path;
     match meta.handler.0.as_str() {
         "eth_aggregate_pubkeys" => {
-            let path = &test.data_path;
             let test_case = EthAggregatePubkeysTestCase::from(path);
             test_case.execute();
             Ok(())
         }
         "eth_fast_aggregate_verify" => {
-            let path = &test.data_path;
             let test_case = EthFastAggregateVerifyTestCase::from(path);
             test_case.execute();
             Ok(())
         }
         "verify" => {
-            let path = &test.data_path;
             let test_case = VerifyTestCase::from(path);
             test_case.execute();
             Ok(())
         }
         "aggregate" => {
-            let path = &test.data_path;
             let test_case = AggregateTestCase::from(path);
             test_case.execute();
             Ok(())
         }
         "fast_aggregate_verify" => {
-            let path = &test.data_path;
             let test_case = FastAggregateVerifyTestCase::from(path);
             test_case.execute();
             Ok(())
         }
         "aggregate_verify" => {
-            let path = &test.data_path;
             let test_case = AggregateVerifyTestCase::from(path);
             test_case.execute();
             Ok(())
         }
         "sign" => {
-            let path = &test.data_path;
             let test_case = SignTestCase::from(path);
             test_case.execute();
             Ok(())
         }
-        handler => Err(Error::UnknownHandler(handler.into(), meta.name())),
+        handler => unreachable!("no tests for {handler}"),
     }
 }
 

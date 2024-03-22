@@ -4,10 +4,7 @@ use crate::{
     test_meta::{Config, Fork},
     test_utils::{load_snappy_ssz, load_yaml, Error},
 };
-use ethereum_consensus::{
-    primitives::Epoch,
-    state_transition::{Context, Executor},
-};
+use ethereum_consensus::{primitives::Epoch, state_transition::Context};
 use serde::Deserialize;
 
 #[derive(Deserialize)]
@@ -57,9 +54,19 @@ fn load_test<
     (pre, post, pre_blocks, post_blocks, meta)
 }
 
-macro_rules! run_test {
-    ($context:expr, $meta:ident, $pre:ident, $post: ident, $pre_blocks:ident, $post_blocks:ident) => {
-        todo!(/*
+fn run_test<S: Eq, T, B, C>(
+    _pre: S,
+    _expected: T,
+    mut _pre_blocks: Vec<B>,
+    mut _post_blocks: Vec<C>,
+    meta: &Meta,
+    _context: &Context,
+) -> Result<(), Error> {
+    todo!(
+        "read for now to silence warning... {} {}",
+        meta.post_fork,
+        meta.fork_epoch,
+        /*
         let mut context = $context.clone();
         let meta = $meta;
         match meta.post_fork.as_ref() {
@@ -117,26 +124,23 @@ macro_rules! run_test {
                 }
              */
         )
-        */)
-    };
+        */
+    )
 }
 
 pub fn dispatch(test: &TestCase) -> Result<(), Error> {
-    let meta = &test.meta;
-    let path = &test.data_path;
-    match meta.handler.0.as_str() {
-        "core" => match meta.config {
-            Config::Mainnet => match meta.fork {
+    match test.meta.handler.0.as_str() {
+        "core" => match test.meta.config {
+            Config::Mainnet => match test.meta.fork {
                 Fork::Altair => {
                     use ethereum_consensus::{
                         altair::mainnet as spec, phase0::mainnet as pre_spec,
                     };
                     gen_exec! {
-                        path,
-                        meta.config,
-                        |path| { load_test::<pre_spec::BeaconState, spec::BeaconState, pre_spec::SignedBeaconBlock, spec::SignedBeaconBlock>(path)},
-                        |(pre, expected, pre_blocks, post_blocks, meta): (pre_spec::BeaconState, spec::BeaconState, Vec<pre_spec::SignedBeaconBlock>, Vec<spec::SignedBeaconBlock>, Meta), context: &Context| {
-                            run_test! { context, meta, pre, expected, pre_blocks, post_blocks }
+                        test,
+                        load_test,
+                        | (pre, expected, pre_blocks, post_blocks, meta): (pre_spec::BeaconState, spec::BeaconState, Vec<pre_spec::SignedBeaconBlock>, Vec<spec::SignedBeaconBlock>, Meta), context: &Context| {
+                            run_test(pre, expected, pre_blocks, post_blocks, &meta, context)
                         }
                     }
                 }
@@ -145,19 +149,18 @@ pub fn dispatch(test: &TestCase) -> Result<(), Error> {
                         altair::mainnet as pre_spec, bellatrix::mainnet as spec,
                     };
                     gen_exec! {
-                        path,
-                        meta.config,
-                        |path| { load_test::<pre_spec::BeaconState, spec::BeaconState, pre_spec::SignedBeaconBlock, spec::SignedBeaconBlock>(path)},
-                        |(pre, expected, pre_blocks, post_blocks, meta): (pre_spec::BeaconState, spec::BeaconState, Vec<pre_spec::SignedBeaconBlock>, Vec<spec::SignedBeaconBlock>, Meta), context: &Context| {
-                            run_test! { context, meta, pre, expected, pre_blocks, post_blocks }
+                        test,
+                        load_test,
+                        | (pre, expected, pre_blocks, post_blocks, meta): (pre_spec::BeaconState, spec::BeaconState, Vec<pre_spec::SignedBeaconBlock>, Vec<spec::SignedBeaconBlock>, Meta), context: &Context| {
+                            run_test(pre, expected, pre_blocks, post_blocks, &meta, context)
                         }
                     }
                 }
-                _ => todo!(),
+                _ => todo!("implement after `run_test`"),
             },
-            Config::Minimal => todo!(),
-            _ => unreachable!(),
+            Config::Minimal => todo!("implement after `run_test`"),
+            config => unreachable!("no tests for {config:?}"),
         },
-        handler => Err(Error::UnknownHandler(handler.into(), meta.name())),
+        handler => unreachable!("no tests for {handler}"),
     }
 }

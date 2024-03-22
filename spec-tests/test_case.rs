@@ -4,22 +4,33 @@ use crate::{
         shuffling, ssz_static, transition,
     },
     test_meta::TestMeta,
+    Config, Context,
     Runner::*,
 };
-use std::{error::Error, path::Path};
+use ethereum_consensus::state_transition;
+use std::{error::Error, path::Path, sync::Arc};
 
 pub struct TestCase {
     pub meta: TestMeta,
     pub data_path: String,
+    pub context: Arc<Context>,
 }
 
 impl TestCase {
-    pub fn new(meta: TestMeta, data_path: &Path) -> Self {
-        Self { meta, data_path: data_path.as_os_str().to_str().unwrap().into() }
+    pub fn new(meta: TestMeta, data_path: &Path, context: Arc<Context>) -> Self {
+        Self { meta, data_path: data_path.as_os_str().to_str().unwrap().into(), context }
     }
 
     pub fn name(&self) -> String {
         self.meta.name()
+    }
+
+    pub fn context(&self) -> &state_transition::Context {
+        match self.meta.config {
+            Config::Mainnet => &self.context.mainnet,
+            Config::Minimal => &self.context.minimal,
+            _ => unreachable!(),
+        }
     }
 
     pub fn execute(&self) -> Result<(), Box<dyn Error>> {
