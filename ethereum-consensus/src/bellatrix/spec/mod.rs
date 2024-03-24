@@ -28,7 +28,7 @@ pub use crate::{
         },
         block_processing::{process_block, process_execution_payload},
         epoch_processing::{process_epoch, process_slashings},
-        execution_engine::{DefaultExecutionEngine, NewPayloadRequest},
+        execution_engine::DefaultExecutionEngine,
         execution_payload::{ExecutionPayload, ExecutionPayloadHeader, Transaction},
         fork::upgrade_to_bellatrix,
         fork_choice::PowBlock,
@@ -40,6 +40,7 @@ pub use crate::{
         state_transition::{state_transition, state_transition_block_in_slot},
     },
     error::*,
+    execution_engine::ExecutionEngine,
     phase0::{
         beacon_block::{BeaconBlockHeader, SignedBeaconBlockHeader},
         beacon_state::{Fork, ForkData, HistoricalBatch, HistoricalSummary},
@@ -2912,4 +2913,3 @@ pub fn process_slot<
     state.block_roots[root_index as usize] = previous_block_root;
     Ok(())
 }
-pub use crate::bellatrix::execution_engine::ExecutionEngine;

@@ -1,7 +1,7 @@
 use crate::{
     bellatrix::{
-        process_block, process_slots, verify_block_signature, BeaconState, ExecutionEngine,
-        SignedBeaconBlock,
+        execution_payload::ExecutionPayload, process_block, process_slots, verify_block_signature,
+        BeaconState, ExecutionEngine, SignedBeaconBlock,
     },
     ssz::prelude::Merkleized,
     state_transition::{Context, Result, Validation},
@@ -30,10 +30,12 @@ pub fn state_transition_block_in_slot<
     const MAX_BYTES_PER_TRANSACTION: usize,
     const MAX_TRANSACTIONS_PER_PAYLOAD: usize,
     E: ExecutionEngine<
-        BYTES_PER_LOGS_BLOOM,
-        MAX_EXTRA_DATA_BYTES,
-        MAX_BYTES_PER_TRANSACTION,
-        MAX_TRANSACTIONS_PER_PAYLOAD,
+        NewPayloadRequest = ExecutionPayload<
+            BYTES_PER_LOGS_BLOOM,
+            MAX_EXTRA_DATA_BYTES,
+            MAX_BYTES_PER_TRANSACTION,
+            MAX_TRANSACTIONS_PER_PAYLOAD,
+        >,
     >,
 >(
     state: &mut BeaconState<
@@ -100,10 +102,12 @@ pub fn state_transition<
     const MAX_BYTES_PER_TRANSACTION: usize,
     const MAX_TRANSACTIONS_PER_PAYLOAD: usize,
     E: ExecutionEngine<
-        BYTES_PER_LOGS_BLOOM,
-        MAX_EXTRA_DATA_BYTES,
-        MAX_BYTES_PER_TRANSACTION,
-        MAX_TRANSACTIONS_PER_PAYLOAD,
+        NewPayloadRequest = ExecutionPayload<
+            BYTES_PER_LOGS_BLOOM,
+            MAX_EXTRA_DATA_BYTES,
+            MAX_BYTES_PER_TRANSACTION,
+            MAX_TRANSACTIONS_PER_PAYLOAD,
+        >,
     >,
 >(
     state: &mut BeaconState<

@@ -49,6 +49,7 @@ pub use crate::{
         },
     },
     error::*,
+    execution_engine::ExecutionEngine,
     phase0::{
         beacon_block::{BeaconBlockHeader, SignedBeaconBlockHeader},
         beacon_state::{Fork, ForkData, HistoricalBatch, HistoricalSummary},
@@ -3267,11 +3268,13 @@ pub fn state_transition_block_in_slot<
     const MAX_BLS_TO_EXECUTION_CHANGES: usize,
     const MAX_BLOB_COMMITMENTS_PER_BLOCK: usize,
     E: ExecutionEngine<
-        BYTES_PER_LOGS_BLOOM,
-        MAX_EXTRA_DATA_BYTES,
-        MAX_BYTES_PER_TRANSACTION,
-        MAX_TRANSACTIONS_PER_PAYLOAD,
-        MAX_WITHDRAWALS_PER_PAYLOAD,
+        NewPayloadRequest = NewPayloadRequest<
+            BYTES_PER_LOGS_BLOOM,
+            MAX_EXTRA_DATA_BYTES,
+            MAX_BYTES_PER_TRANSACTION,
+            MAX_TRANSACTIONS_PER_PAYLOAD,
+            MAX_WITHDRAWALS_PER_PAYLOAD,
+        >,
     >,
 >(
     state: &mut BeaconState<
@@ -3343,11 +3346,13 @@ pub fn state_transition<
     const MAX_BLS_TO_EXECUTION_CHANGES: usize,
     const MAX_BLOB_COMMITMENTS_PER_BLOCK: usize,
     E: ExecutionEngine<
-        BYTES_PER_LOGS_BLOOM,
-        MAX_EXTRA_DATA_BYTES,
-        MAX_BYTES_PER_TRANSACTION,
-        MAX_TRANSACTIONS_PER_PAYLOAD,
-        MAX_WITHDRAWALS_PER_PAYLOAD,
+        NewPayloadRequest = NewPayloadRequest<
+            BYTES_PER_LOGS_BLOOM,
+            MAX_EXTRA_DATA_BYTES,
+            MAX_BYTES_PER_TRANSACTION,
+            MAX_TRANSACTIONS_PER_PAYLOAD,
+            MAX_WITHDRAWALS_PER_PAYLOAD,
+        >,
     >,
 >(
     state: &mut BeaconState<
@@ -3385,4 +3390,3 @@ pub fn state_transition<
     process_slots(state, signed_block.message.slot, context)?;
     state_transition_block_in_slot(state, signed_block, execution_engine, validation, context)
 }
-pub use crate::deneb::execution_engine::ExecutionEngine;

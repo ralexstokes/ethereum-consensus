@@ -1,66 +1,56 @@
 use crate::{
-    bellatrix::execution_payload::ExecutionPayload,
-    error::ExecutionEngineError,
-    state_transition::{self, Result},
+    bellatrix::execution_payload::ExecutionPayload, error::ExecutionEngineError,
+    execution_engine::ExecutionEngine, state_transition::Result,
 };
-
-pub struct NewPayloadRequest<
-    'a,
-    const BYTES_PER_LOGS_BLOOM: usize,
-    const MAX_EXTRA_DATA_BYTES: usize,
-    const MAX_BYTES_PER_TRANSACTION: usize,
-    const MAX_TRANSACTIONS_PER_PAYLOAD: usize,
->(
-    pub  &'a ExecutionPayload<
-        BYTES_PER_LOGS_BLOOM,
-        MAX_EXTRA_DATA_BYTES,
-        MAX_BYTES_PER_TRANSACTION,
-        MAX_TRANSACTIONS_PER_PAYLOAD,
-    >,
-);
-
-pub trait ExecutionEngine<
-    const BYTES_PER_LOGS_BLOOM: usize,
-    const MAX_EXTRA_DATA_BYTES: usize,
-    const MAX_BYTES_PER_TRANSACTION: usize,
-    const MAX_TRANSACTIONS_PER_PAYLOAD: usize,
->
-{
-    fn verify_and_notify_new_payload(
-        &self,
-        new_payload_request: &NewPayloadRequest<
-            BYTES_PER_LOGS_BLOOM,
-            MAX_EXTRA_DATA_BYTES,
-            MAX_BYTES_PER_TRANSACTION,
-            MAX_TRANSACTIONS_PER_PAYLOAD,
-        >,
-    ) -> Result<()>;
-}
 
 // The `DefaultExecutionEngine` performs no operations and validation
 // is determined by `execution_is_valid`.
 #[derive(Debug)]
-pub struct DefaultExecutionEngine {
+pub struct DefaultExecutionEngine<
+    const BYTES_PER_LOGS_BLOOM: usize,
+    const MAX_EXTRA_DATA_BYTES: usize,
+    const MAX_BYTES_PER_TRANSACTION: usize,
+    const MAX_TRANSACTIONS_PER_PAYLOAD: usize,
+> {
     execution_is_valid: bool,
 }
 
-impl Default for DefaultExecutionEngine {
+impl<
+        const BYTES_PER_LOGS_BLOOM: usize,
+        const MAX_EXTRA_DATA_BYTES: usize,
+        const MAX_BYTES_PER_TRANSACTION: usize,
+        const MAX_TRANSACTIONS_PER_PAYLOAD: usize,
+    > Default
+    for DefaultExecutionEngine<
+        BYTES_PER_LOGS_BLOOM,
+        MAX_EXTRA_DATA_BYTES,
+        MAX_BYTES_PER_TRANSACTION,
+        MAX_TRANSACTIONS_PER_PAYLOAD,
+    >
+{
     fn default() -> Self {
         Self { execution_is_valid: true }
     }
 }
 
-impl DefaultExecutionEngine {
-    pub fn new(execution_is_valid: bool) -> Self {
-        Self { execution_is_valid }
-    }
-
-    fn is_valid_block_hash<
+impl<
         const BYTES_PER_LOGS_BLOOM: usize,
         const MAX_EXTRA_DATA_BYTES: usize,
         const MAX_BYTES_PER_TRANSACTION: usize,
         const MAX_TRANSACTIONS_PER_PAYLOAD: usize,
-    >(
+    >
+    DefaultExecutionEngine<
+        BYTES_PER_LOGS_BLOOM,
+        MAX_EXTRA_DATA_BYTES,
+        MAX_BYTES_PER_TRANSACTION,
+        MAX_TRANSACTIONS_PER_PAYLOAD,
+    >
+{
+    pub fn new(execution_is_valid: bool) -> Self {
+        Self { execution_is_valid }
+    }
+
+    fn is_valid_block_hash(
         &self,
         _payload: &ExecutionPayload<
             BYTES_PER_LOGS_BLOOM,
@@ -76,12 +66,7 @@ impl DefaultExecutionEngine {
         }
     }
 
-    fn notify_new_payload<
-        const BYTES_PER_LOGS_BLOOM: usize,
-        const MAX_EXTRA_DATA_BYTES: usize,
-        const MAX_BYTES_PER_TRANSACTION: usize,
-        const MAX_TRANSACTIONS_PER_PAYLOAD: usize,
-    >(
+    fn notify_new_payload(
         &self,
         _payload: &ExecutionPayload<
             BYTES_PER_LOGS_BLOOM,
@@ -103,49 +88,25 @@ impl<
         const MAX_EXTRA_DATA_BYTES: usize,
         const MAX_BYTES_PER_TRANSACTION: usize,
         const MAX_TRANSACTIONS_PER_PAYLOAD: usize,
-    >
-    ExecutionEngine<
+    > ExecutionEngine
+    for DefaultExecutionEngine<
         BYTES_PER_LOGS_BLOOM,
         MAX_EXTRA_DATA_BYTES,
         MAX_BYTES_PER_TRANSACTION,
         MAX_TRANSACTIONS_PER_PAYLOAD,
-    > for DefaultExecutionEngine
+    >
 {
+    type NewPayloadRequest = ExecutionPayload<
+        BYTES_PER_LOGS_BLOOM,
+        MAX_EXTRA_DATA_BYTES,
+        MAX_BYTES_PER_TRANSACTION,
+        MAX_TRANSACTIONS_PER_PAYLOAD,
+    >;
     fn verify_and_notify_new_payload(
         &self,
-        new_payload_request: &NewPayloadRequest<
-            BYTES_PER_LOGS_BLOOM,
-            MAX_EXTRA_DATA_BYTES,
-            MAX_BYTES_PER_TRANSACTION,
-            MAX_TRANSACTIONS_PER_PAYLOAD,
-        >,
+        new_payload_request: &Self::NewPayloadRequest,
     ) -> Result<()> {
-        self.is_valid_block_hash(new_payload_request.0)?;
-        self.notify_new_payload(new_payload_request.0)
-    }
-}
-
-impl<
-        const BYTES_PER_LOGS_BLOOM: usize,
-        const MAX_EXTRA_DATA_BYTES: usize,
-        const MAX_BYTES_PER_TRANSACTION: usize,
-        const MAX_TRANSACTIONS_PER_PAYLOAD: usize,
-        B: ExecutionEngine<
-            BYTES_PER_LOGS_BLOOM,
-            MAX_EXTRA_DATA_BYTES,
-            MAX_BYTES_PER_TRANSACTION,
-            MAX_TRANSACTIONS_PER_PAYLOAD,
-        >,
-    > From<B>
-    for state_transition::ExecutionEngine<
-        BYTES_PER_LOGS_BLOOM,
-        MAX_EXTRA_DATA_BYTES,
-        MAX_BYTES_PER_TRANSACTION,
-        MAX_TRANSACTIONS_PER_PAYLOAD,
-        B,
-    >
-{
-    fn from(value: B) -> Self {
-        Self::Bellatrix(value)
+        self.is_valid_block_hash(new_payload_request)?;
+        self.notify_new_payload(new_payload_request)
     }
 }
