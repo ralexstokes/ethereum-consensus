@@ -57,13 +57,9 @@ A client for the Ethereum beacon node APIs:
 
 https://ethereum.github.io/beacon-APIs
 
-### Example
+### Examples
 
 Refer to the code in `examples` for a demonstration on how to use the API client.
-
-## `test-gen`
-
-This crate generates spec test following https://github.com/ethereum/consensus-spec-tests. It is not user-facing.
 
 ## `spec-gen`
 
