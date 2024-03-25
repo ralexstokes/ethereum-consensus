@@ -172,23 +172,10 @@ pub fn dispatch(test: &TestCase) -> Result<(), Error> {
                     gen_exec! {
                         test,
                         load_execution_payload_test,
-                        |(mut pre, post, mut operation, execution_valid): (spec::BeaconState, Option<spec::BeaconState>, spec::ExecutionPayload, bool), context| {
-                            let engine = spec::DefaultExecutionEngine::new(execution_valid);
-                            let result = spec::process_execution_payload(&mut pre, &mut operation, &engine, context);
-                            if let Some(post) = post {
-                                assert_eq!(result.unwrap(), ());
-                                if pre == post {
-                                    Ok(())
-                                } else {
-                                    Err(Error::InvalidState)
-                                }
-                            } else {
-                                if result.is_err() {
-                                    Ok(())
-                                } else {
-                                    Err(Error::ExpectedError)
-                                }
-                            }
+                        |(pre, post, operation, execution_valid): (spec::BeaconState, Option<spec::BeaconState>, spec::ExecutionPayload, bool), context: &Context| {
+                            let mut context = context.clone();
+                            context.execution_engine = execution_valid;
+                            run_test(pre, post, operation, &context, spec::process_execution_payload)
                         }
                     }
                 }
@@ -196,23 +183,10 @@ pub fn dispatch(test: &TestCase) -> Result<(), Error> {
                     gen_exec! {
                         test,
                         load_execution_payload_test,
-                        |(mut pre, post, mut operation, execution_valid): (spec::BeaconState, Option<spec::BeaconState>, spec::ExecutionPayload, bool), context| {
-                            let engine = spec::DefaultExecutionEngine::new(execution_valid);
-                            let result = spec::process_execution_payload(&mut pre, &mut operation, &engine, context);
-                            if let Some(post) = post {
-                                assert_eq!(result.unwrap(), ());
-                                if pre == post {
-                                    Ok(())
-                                } else {
-                                    Err(Error::InvalidState)
-                                }
-                            } else {
-                                if result.is_err() {
-                                    Ok(())
-                                } else {
-                                    Err(Error::ExpectedError)
-                                }
-                            }
+                        |(pre, post, operation, execution_valid): (spec::BeaconState, Option<spec::BeaconState>, spec::ExecutionPayload, bool), context: &Context| {
+                            let mut context = context.clone();
+                            context.execution_engine = execution_valid;
+                            run_test(pre, post, operation, &context, spec::process_execution_payload)
                         }
                     }
                 }
@@ -220,23 +194,10 @@ pub fn dispatch(test: &TestCase) -> Result<(), Error> {
                     gen_exec! {
                         test,
                         load_execution_payload_test,
-                        |(mut pre, post, mut operation, execution_valid): (spec::BeaconState, Option<spec::BeaconState>, spec::BeaconBlockBody, bool), context| {
-                            let engine = spec::DefaultExecutionEngine::new(execution_valid);
-                            let result = spec::process_execution_payload(&mut pre, &mut operation, &engine, context);
-                            if let Some(post) = post {
-                                assert_eq!(result.unwrap(), ());
-                                if pre == post {
-                                    Ok(())
-                                } else {
-                                    Err(Error::InvalidState)
-                                }
-                            } else {
-                                if result.is_err() {
-                                    Ok(())
-                                } else {
-                                    Err(Error::ExpectedError)
-                                }
-                            }
+                        |(pre, post, operation, execution_valid): (spec::BeaconState, Option<spec::BeaconState>, spec::BeaconBlockBody, bool), context: &Context| {
+                            let mut context = context.clone();
+                            context.execution_engine = execution_valid;
+                            run_test(pre, post, operation, &context, spec::process_execution_payload)
                         }
                     }
                 }
@@ -244,23 +205,10 @@ pub fn dispatch(test: &TestCase) -> Result<(), Error> {
                     gen_exec! {
                         test,
                         load_execution_payload_test,
-                        |(mut pre, post, mut operation, execution_valid): (spec::BeaconState, Option<spec::BeaconState>, spec::ExecutionPayload, bool), context| {
-                            let engine = spec::DefaultExecutionEngine::new(execution_valid);
-                            let result = spec::process_execution_payload(&mut pre, &mut operation, &engine, context);
-                            if let Some(post) = post {
-                                assert_eq!(result.unwrap(), ());
-                                if pre == post {
-                                    Ok(())
-                                } else {
-                                    Err(Error::InvalidState)
-                                }
-                            } else {
-                                if result.is_err() {
-                                    Ok(())
-                                } else {
-                                    Err(Error::ExpectedError)
-                                }
-                            }
+                        |(pre, post, operation, execution_valid): (spec::BeaconState, Option<spec::BeaconState>, spec::ExecutionPayload, bool), context: &Context| {
+                            let mut context = context.clone();
+                            context.execution_engine = execution_valid;
+                            run_test(pre, post, operation, &context, spec::process_execution_payload)
                         }
                     }
                 }
@@ -268,23 +216,10 @@ pub fn dispatch(test: &TestCase) -> Result<(), Error> {
                     gen_exec! {
                         test,
                         load_execution_payload_test,
-                        |(mut pre, post, mut operation, execution_valid): (spec::BeaconState, Option<spec::BeaconState>, spec::ExecutionPayload, bool), context| {
-                            let engine = spec::DefaultExecutionEngine::new(execution_valid);
-                            let result = spec::process_execution_payload(&mut pre, &mut operation, &engine, context);
-                            if let Some(post) = post {
-                                assert_eq!(result.unwrap(), ());
-                                if pre == post {
-                                    Ok(())
-                                } else {
-                                    Err(Error::InvalidState)
-                                }
-                            } else {
-                                if result.is_err() {
-                                    Ok(())
-                                } else {
-                                    Err(Error::ExpectedError)
-                                }
-                            }
+                        |(pre, post, operation, execution_valid): (spec::BeaconState, Option<spec::BeaconState>, spec::ExecutionPayload, bool), context: &Context| {
+                            let mut context = context.clone();
+                            context.execution_engine = execution_valid;
+                            run_test(pre, post, operation, &context, spec::process_execution_payload)
                         }
                     }
                 }
@@ -292,23 +227,10 @@ pub fn dispatch(test: &TestCase) -> Result<(), Error> {
                     gen_exec! {
                         test,
                         load_execution_payload_test,
-                        |(mut pre, post, mut operation, execution_valid): (spec::BeaconState, Option<spec::BeaconState>, spec::BeaconBlockBody, bool), context| {
-                            let engine = spec::DefaultExecutionEngine::new(execution_valid);
-                            let result = spec::process_execution_payload(&mut pre, &mut operation, &engine, context);
-                            if let Some(post) = post {
-                                assert_eq!(result.unwrap(), ());
-                                if pre == post {
-                                    Ok(())
-                                } else {
-                                    Err(Error::InvalidState)
-                                }
-                            } else {
-                                if result.is_err() {
-                                    Ok(())
-                                } else {
-                                    Err(Error::ExpectedError)
-                                }
-                            }
+                        |(pre, post, operation, execution_valid): (spec::BeaconState, Option<spec::BeaconState>, spec::BeaconBlockBody, bool), context: &Context| {
+                            let mut context = context.clone();
+                            context.execution_engine = execution_valid;
+                            run_test(pre, post, operation, &context, spec::process_execution_payload)
                         }
                     }
                 }

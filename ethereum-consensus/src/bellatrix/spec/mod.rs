@@ -28,7 +28,6 @@ pub use crate::{
         },
         block_processing::{process_block, process_execution_payload},
         epoch_processing::{process_epoch, process_slashings},
-        execution_engine::DefaultExecutionEngine,
         execution_payload::{ExecutionPayload, ExecutionPayloadHeader, Transaction},
         fork::upgrade_to_bellatrix,
         fork_choice::PowBlock,

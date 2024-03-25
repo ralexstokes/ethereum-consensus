@@ -10,6 +10,7 @@ pub mod sanity;
 pub mod shuffling;
 pub mod ssz_static;
 pub mod transition;
+pub mod utils;
 
 macro_rules! gen_exec {
     ($test_case:expr, $loader_fn:expr, $exec_fn:expr) => {

@@ -1,4 +1,5 @@
 use crate::{
+    execution_engine::PayloadRequest,
     primitives::{Bytes32, ExecutionAddress, Hash32, Root},
     ssz::prelude::*,
     Error,
@@ -34,6 +35,21 @@ pub struct ExecutionPayload<
     pub base_fee_per_gas: U256,
     pub block_hash: Hash32,
     pub transactions: List<Transaction<MAX_BYTES_PER_TRANSACTION>, MAX_TRANSACTIONS_PER_PAYLOAD>,
+}
+
+impl<
+        const BYTES_PER_LOGS_BLOOM: usize,
+        const MAX_EXTRA_DATA_BYTES: usize,
+        const MAX_BYTES_PER_TRANSACTION: usize,
+        const MAX_TRANSACTIONS_PER_PAYLOAD: usize,
+    > PayloadRequest
+    for ExecutionPayload<
+        BYTES_PER_LOGS_BLOOM,
+        MAX_EXTRA_DATA_BYTES,
+        MAX_BYTES_PER_TRANSACTION,
+        MAX_TRANSACTIONS_PER_PAYLOAD,
+    >
+{
 }
 
 #[derive(

@@ -3,13 +3,17 @@ use crate::{
     clock::{self, Clock, SystemTimeProvider},
     configs::{self, Config},
     deneb,
+    execution_engine::ExecutionEngine,
     networks::Network,
     phase0,
     primitives::{Epoch, ExecutionAddress, Gwei, Hash32, Slot, Version, U256},
     Error, Fork,
 };
 
-#[derive(Debug, Default, Clone, serde::Deserialize)]
+// Controls the default behavior of the execution engine via the `bool` impl of `ExecutionEngine`.
+pub const DEFAULT_EXECUTION_ENGINE_VALIDITY: bool = true;
+
+#[derive(Clone)]
 pub struct Context {
     // phase0 preset
     pub max_committees_per_slot: u64,
@@ -112,6 +116,13 @@ pub struct Context {
     pub deposit_chain_id: usize,
     pub deposit_network_id: usize,
     pub deposit_contract_address: ExecutionAddress,
+
+    // Provides an implementation of `execution_engine::ExecutionEngine`.
+    #[cfg(feature = "spec-tests")]
+    // This field is exposed so that the execution engine behavior can be mocked when testing.
+    pub execution_engine: bool,
+    #[cfg(not(feature = "spec-tests"))]
+    execution_engine: bool,
 }
 
 impl Context {
@@ -259,6 +270,7 @@ impl Context {
             deposit_chain_id: config.deposit_chain_id,
             deposit_network_id: config.deposit_network_id,
             deposit_contract_address: config.deposit_contract_address.clone(),
+            execution_engine: DEFAULT_EXECUTION_ENGINE_VALIDITY,
         }
     }
 
@@ -398,5 +410,9 @@ impl Context {
 
     pub fn network(&self) -> &Network {
         &self.name
+    }
+
+    pub fn execution_engine(&self) -> impl ExecutionEngine {
+        self.execution_engine
     }
 }

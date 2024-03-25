@@ -156,15 +156,6 @@ pub fn process_execution_payload<
     const MAX_VOLUNTARY_EXITS: usize,
     const MAX_BLS_TO_EXECUTION_CHANGES: usize,
     const MAX_BLOB_COMMITMENTS_PER_BLOCK: usize,
-    E: ExecutionEngine<
-        NewPayloadRequest = NewPayloadRequest<
-            BYTES_PER_LOGS_BLOOM,
-            MAX_EXTRA_DATA_BYTES,
-            MAX_BYTES_PER_TRANSACTION,
-            MAX_TRANSACTIONS_PER_PAYLOAD,
-            MAX_WITHDRAWALS_PER_PAYLOAD,
-        >,
-    >,
 >(
     state: &mut BeaconState<
         SLOTS_PER_HISTORICAL_ROOT,
@@ -194,7 +185,6 @@ pub fn process_execution_payload<
         MAX_BLS_TO_EXECUTION_CHANGES,
         MAX_BLOB_COMMITMENTS_PER_BLOCK,
     >,
-    execution_engine: &E,
     context: &Context,
 ) -> Result<()> {
     let payload = &mut body.execution_payload;
@@ -247,6 +237,7 @@ pub fn process_execution_payload<
     let versioned_hashes =
         body.blob_kzg_commitments.iter().map(kzg_commitment_to_versioned_hash).collect::<Vec<_>>();
 
+    let execution_engine = context.execution_engine();
     let new_payload_request = NewPayloadRequest {
         execution_payload: payload.clone(),
         versioned_hashes,
@@ -377,15 +368,6 @@ pub fn process_block<
     const MAX_VOLUNTARY_EXITS: usize,
     const MAX_BLS_TO_EXECUTION_CHANGES: usize,
     const MAX_BLOB_COMMITMENTS_PER_BLOCK: usize,
-    E: ExecutionEngine<
-        NewPayloadRequest = NewPayloadRequest<
-            BYTES_PER_LOGS_BLOOM,
-            MAX_EXTRA_DATA_BYTES,
-            MAX_BYTES_PER_TRANSACTION,
-            MAX_TRANSACTIONS_PER_PAYLOAD,
-            MAX_WITHDRAWALS_PER_PAYLOAD,
-        >,
-    >,
 >(
     state: &mut BeaconState<
         SLOTS_PER_HISTORICAL_ROOT,
@@ -415,12 +397,11 @@ pub fn process_block<
         MAX_BLS_TO_EXECUTION_CHANGES,
         MAX_BLOB_COMMITMENTS_PER_BLOCK,
     >,
-    execution_engine: &E,
     context: &Context,
 ) -> Result<()> {
     process_block_header(state, block, context)?;
     process_withdrawals(state, &block.body.execution_payload, context)?;
-    process_execution_payload(state, &mut block.body, execution_engine, context)?;
+    process_execution_payload(state, &mut block.body, context)?;
     process_randao(state, &block.body, context)?;
     process_eth1_data(state, &block.body, context);
     process_operations(state, &mut block.body, context)?;
