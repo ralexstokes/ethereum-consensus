@@ -1,6 +1,6 @@
 # ethereum-consensus
 
-A library for interacting with ethereum consensus objects.
+A library for interacting with ethereum consensus data.
 
 # 🚧 WARNING 🚧
 
@@ -27,7 +27,7 @@ The generic types are exposed but most users will want to access each fork's log
 [Examples](#examples) for further details.
 
 An important thing to note is that the `state_transition` module of each fork (after the `phase0` fork) is generated
-by a code-generation utility in this crate called `gen-spec`. This utility specializes each fork based on the prior
+by a code-generation utility in the `spec-gen` crate. This utility specializes each fork based on the prior
 Rust module as an input. See the README for that binary to learn further details about operating this utility. The
 generated files are checked in so you should not need to use this binary under
 most circumstances.
