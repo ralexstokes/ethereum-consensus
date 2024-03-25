@@ -1,23 +1,26 @@
-use crate::state_transition::Result;
+use crate::{
+    error::{Error, ExecutionEngineError},
+    state_transition::Result,
+};
+
+/// `PayloadRequest` abstracts over the data sent to the `ExecutionEngine`.
+/// NOTE: just a "marker" trait for now, until we have more substantial support for execution.
+pub trait PayloadRequest {}
 
 /// `ExecutionEngine` abstracts over the interface between consensus and execution client.
 pub trait ExecutionEngine {
-    type NewPayloadRequest;
-
-    /// Verify the new payload and associated data contained in `Self::NewPayloadRequest`.
+    /// Verify the new payload and associated data contained in `new_payload_request`.
     /// Either return `Err` describing a failure or `Ok(())` if validation succeeds.
     fn verify_and_notify_new_payload(
         &self,
-        new_payload_request: &Self::NewPayloadRequest,
+        new_payload_request: &impl PayloadRequest,
     ) -> Result<()>;
 }
 
-/// "no-op" implementation for convenience.
-/// Always succeeds validation.
-impl ExecutionEngine for () {
-    type NewPayloadRequest = ();
-
-    fn verify_and_notify_new_payload(&self, _: &Self::NewPayloadRequest) -> Result<()> {
-        Ok(())
+/// A "no-op" implementation that succeeds for `true` or fails for `false`.
+/// Useful for mocking the execution engine behavior.
+impl ExecutionEngine for bool {
+    fn verify_and_notify_new_payload(&self, _: &impl PayloadRequest) -> Result<()> {
+        self.then_some(()).ok_or(Error::ExecutionEngine(ExecutionEngineError::InvalidPayload))
     }
 }

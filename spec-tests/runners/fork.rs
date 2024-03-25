@@ -40,7 +40,7 @@ pub fn dispatch(test: &TestCase) -> Result<(), Error> {
                         test,
                         load_test,
                         |(pre, expected): (pre_spec::BeaconState, spec::BeaconState), context| {
-                            run_test(pre, expected, context, |state, context| spec::upgrade_to_altair(state,context).unwrap())
+                            run_test(pre, expected, context, |state, context| spec::upgrade_to_altair(state, context).unwrap())
                         }
                     }
                 }
@@ -91,7 +91,7 @@ pub fn dispatch(test: &TestCase) -> Result<(), Error> {
                         test,
                         load_test,
                         |(pre, expected): (pre_spec::BeaconState, spec::BeaconState), context| {
-                            run_test(pre, expected, context, |state, context| spec::upgrade_to_altair(state,context).unwrap())
+                            run_test(pre, expected, context, |state, context| spec::upgrade_to_altair(state, context).unwrap())
                         }
                     }
                 }

@@ -33,7 +33,6 @@ pub use crate::{
         },
         bls_to_execution_change::{BlsToExecutionChange, SignedBlsToExecutionChange},
         epoch_processing::{process_epoch, process_historical_summaries_update},
-        execution_engine::DefaultExecutionEngine,
         execution_payload::{ExecutionPayload, ExecutionPayloadHeader},
         fork::upgrade_to_capella,
         genesis::initialize_beacon_state_from_eth1,
@@ -3196,15 +3195,6 @@ pub fn state_transition_block_in_slot<
     const MAX_TRANSACTIONS_PER_PAYLOAD: usize,
     const MAX_WITHDRAWALS_PER_PAYLOAD: usize,
     const MAX_BLS_TO_EXECUTION_CHANGES: usize,
-    E: ExecutionEngine<
-        NewPayloadRequest = ExecutionPayload<
-            BYTES_PER_LOGS_BLOOM,
-            MAX_EXTRA_DATA_BYTES,
-            MAX_BYTES_PER_TRANSACTION,
-            MAX_TRANSACTIONS_PER_PAYLOAD,
-            MAX_WITHDRAWALS_PER_PAYLOAD,
-        >,
-    >,
 >(
     state: &mut BeaconState<
         SLOTS_PER_HISTORICAL_ROOT,
@@ -3233,7 +3223,6 @@ pub fn state_transition_block_in_slot<
         MAX_WITHDRAWALS_PER_PAYLOAD,
         MAX_BLS_TO_EXECUTION_CHANGES,
     >,
-    execution_engine: &E,
     validation: Validation,
     context: &Context,
 ) -> Result<()> {
@@ -3245,7 +3234,7 @@ pub fn state_transition_block_in_slot<
         verify_block_signature(state, signed_block, context)?;
     }
     let block = &mut signed_block.message;
-    process_block(state, block, execution_engine, context)?;
+    process_block(state, block, context)?;
     if validate_result && block.state_root != state.hash_tree_root()? {
         Err(Error::InvalidStateRoot)
     } else {
@@ -3272,15 +3261,6 @@ pub fn state_transition<
     const MAX_TRANSACTIONS_PER_PAYLOAD: usize,
     const MAX_WITHDRAWALS_PER_PAYLOAD: usize,
     const MAX_BLS_TO_EXECUTION_CHANGES: usize,
-    E: ExecutionEngine<
-        NewPayloadRequest = ExecutionPayload<
-            BYTES_PER_LOGS_BLOOM,
-            MAX_EXTRA_DATA_BYTES,
-            MAX_BYTES_PER_TRANSACTION,
-            MAX_TRANSACTIONS_PER_PAYLOAD,
-            MAX_WITHDRAWALS_PER_PAYLOAD,
-        >,
-    >,
 >(
     state: &mut BeaconState<
         SLOTS_PER_HISTORICAL_ROOT,
@@ -3309,10 +3289,9 @@ pub fn state_transition<
         MAX_WITHDRAWALS_PER_PAYLOAD,
         MAX_BLS_TO_EXECUTION_CHANGES,
     >,
-    execution_engine: &E,
     validation: Validation,
     context: &Context,
 ) -> Result<()> {
     process_slots(state, signed_block.message.slot, context)?;
-    state_transition_block_in_slot(state, signed_block, execution_engine, validation, context)
+    state_transition_block_in_slot(state, signed_block, validation, context)
 }
