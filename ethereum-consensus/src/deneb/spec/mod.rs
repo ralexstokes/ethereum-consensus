@@ -938,7 +938,7 @@ pub fn process_epoch<
     process_justification_and_finalization(state, context)?;
     process_inactivity_updates(state, context)?;
     process_rewards_and_penalties(state, context)?;
-    process_registry_updates(state, context);
+    process_registry_updates(state, context)?;
     process_slashings(state, context)?;
     process_eth1_data_reset(state, context);
     process_effective_balance_updates(state, context);
@@ -1742,7 +1742,7 @@ pub fn slash_validator<
     context: &Context,
 ) -> Result<()> {
     let epoch = get_current_epoch(state, context);
-    initiate_validator_exit(state, slashed_index, context);
+    initiate_validator_exit(state, slashed_index, context)?;
     state.validators[slashed_index].slashed = true;
     state.validators[slashed_index].withdrawable_epoch = u64::max(
         state.validators[slashed_index].withdrawable_epoch,
@@ -3110,9 +3110,9 @@ pub fn initiate_validator_exit<
     >,
     index: ValidatorIndex,
     context: &Context,
-) {
+) -> Result<()> {
     if state.validators[index].exit_epoch != FAR_FUTURE_EPOCH {
-        return;
+        return Ok(());
     }
     let mut exit_epochs: Vec<Epoch> = state
         .validators
@@ -3128,8 +3128,11 @@ pub fn initiate_validator_exit<
         exit_queue_epoch += 1;
     }
     state.validators[index].exit_epoch = exit_queue_epoch;
-    state.validators[index].withdrawable_epoch =
-        state.validators[index].exit_epoch + context.min_validator_withdrawability_delay;
+    state.validators[index].withdrawable_epoch = state.validators[index]
+        .exit_epoch
+        .checked_add(context.min_validator_withdrawability_delay)
+        .ok_or(Error::Overflow)?;
+    Ok(())
 }
 pub fn get_eligible_validator_indices<
     'a,

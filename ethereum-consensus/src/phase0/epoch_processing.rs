@@ -271,7 +271,7 @@ pub fn process_registry_updates<
         PENDING_ATTESTATIONS_BOUND,
     >,
     context: &Context,
-) {
+) -> Result<()> {
     // Process activation eligibility and ejections
     let current_epoch = get_current_epoch(state, context);
 
@@ -284,7 +284,7 @@ pub fn process_registry_updates<
         if is_active_validator(validator, current_epoch) &&
             validator.effective_balance <= context.ejection_balance
         {
-            initiate_validator_exit(state, i, context);
+            initiate_validator_exit(state, i, context)?;
         }
     }
 
@@ -315,6 +315,7 @@ pub fn process_registry_updates<
         let validator = &mut state.validators[i];
         validator.activation_epoch = activation_exit_epoch;
     }
+    Ok(())
 }
 
 pub fn process_slashings<
@@ -1059,7 +1060,7 @@ pub fn process_epoch<
 ) -> Result<()> {
     process_justification_and_finalization(state, context)?;
     process_rewards_and_penalties(state, context)?;
-    process_registry_updates(state, context);
+    process_registry_updates(state, context)?;
     process_slashings(state, context)?;
     process_eth1_data_reset(state, context);
     process_effective_balance_updates(state, context);

@@ -5,7 +5,7 @@ use crate::{
         is_eligible_for_activation_queue, BeaconState,
     },
     primitives::ValidatorIndex,
-    state_transition::Context,
+    state_transition::{Context, Result},
 };
 
 pub fn process_registry_updates<
@@ -33,7 +33,7 @@ pub fn process_registry_updates<
         MAX_EXTRA_DATA_BYTES,
     >,
     context: &Context,
-) {
+) -> Result<()> {
     let current_epoch = get_current_epoch(state, context);
     for i in 0..state.validators.len() {
         let validator = &mut state.validators[i];
@@ -43,7 +43,7 @@ pub fn process_registry_updates<
         if is_active_validator(validator, current_epoch) &&
             validator.effective_balance <= context.ejection_balance
         {
-            initiate_validator_exit(state, i, context);
+            initiate_validator_exit(state, i, context)?;
         }
     }
     let mut activation_queue =
@@ -70,4 +70,5 @@ pub fn process_registry_updates<
         let validator = &mut state.validators[i];
         validator.activation_epoch = activation_exit_epoch;
     }
+    Ok(())
 }

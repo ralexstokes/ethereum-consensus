@@ -562,8 +562,7 @@ pub fn process_voluntary_exit<
                 InvalidVoluntaryExit::InvalidSignature(signed_voluntary_exit.signature.clone()),
             ))
         })?;
-    initiate_validator_exit(state, voluntary_exit.validator_index, context);
-    Ok(())
+    initiate_validator_exit(state, voluntary_exit.validator_index, context)
 }
 pub fn process_block_header<
     const SLOTS_PER_HISTORICAL_ROOT: usize,
@@ -1109,7 +1108,7 @@ pub fn process_registry_updates<
         MAX_EXTRA_DATA_BYTES,
     >,
     context: &Context,
-) {
+) -> Result<()> {
     let current_epoch = get_current_epoch(state, context);
     for i in 0..state.validators.len() {
         let validator = &mut state.validators[i];
@@ -1119,7 +1118,7 @@ pub fn process_registry_updates<
         if is_active_validator(validator, current_epoch) &&
             validator.effective_balance <= context.ejection_balance
         {
-            initiate_validator_exit(state, i, context);
+            initiate_validator_exit(state, i, context)?;
         }
     }
     let mut activation_queue =
@@ -1145,6 +1144,7 @@ pub fn process_registry_updates<
         let validator = &mut state.validators[i];
         validator.activation_epoch = activation_exit_epoch;
     }
+    Ok(())
 }
 pub fn process_eth1_data_reset<
     const SLOTS_PER_HISTORICAL_ROOT: usize,
@@ -2776,9 +2776,9 @@ pub fn initiate_validator_exit<
     >,
     index: ValidatorIndex,
     context: &Context,
-) {
+) -> Result<()> {
     if state.validators[index].exit_epoch != FAR_FUTURE_EPOCH {
-        return;
+        return Ok(());
     }
     let mut exit_epochs: Vec<Epoch> = state
         .validators
@@ -2794,8 +2794,11 @@ pub fn initiate_validator_exit<
         exit_queue_epoch += 1;
     }
     state.validators[index].exit_epoch = exit_queue_epoch;
-    state.validators[index].withdrawable_epoch =
-        state.validators[index].exit_epoch + context.min_validator_withdrawability_delay;
+    state.validators[index].withdrawable_epoch = state.validators[index]
+        .exit_epoch
+        .checked_add(context.min_validator_withdrawability_delay)
+        .ok_or(Error::Overflow)?;
+    Ok(())
 }
 pub fn get_eligible_validator_indices<
     'a,
