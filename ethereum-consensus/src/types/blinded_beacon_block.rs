@@ -234,11 +234,25 @@ impl<
             Self::Deneb(inner) => inner.slot,
         }
     }
+    pub fn slot_mut(&mut self) -> &mut Slot {
+        match self {
+            Self::Bellatrix(inner) => &mut inner.slot,
+            Self::Capella(inner) => &mut inner.slot,
+            Self::Deneb(inner) => &mut inner.slot,
+        }
+    }
     pub fn proposer_index(&self) -> ValidatorIndex {
         match self {
             Self::Bellatrix(inner) => inner.proposer_index,
             Self::Capella(inner) => inner.proposer_index,
             Self::Deneb(inner) => inner.proposer_index,
+        }
+    }
+    pub fn proposer_index_mut(&mut self) -> &mut ValidatorIndex {
+        match self {
+            Self::Bellatrix(inner) => &mut inner.proposer_index,
+            Self::Capella(inner) => &mut inner.proposer_index,
+            Self::Deneb(inner) => &mut inner.proposer_index,
         }
     }
     pub fn parent_root(&self) -> Root {
@@ -248,11 +262,25 @@ impl<
             Self::Deneb(inner) => inner.parent_root,
         }
     }
+    pub fn parent_root_mut(&mut self) -> &mut Root {
+        match self {
+            Self::Bellatrix(inner) => &mut inner.parent_root,
+            Self::Capella(inner) => &mut inner.parent_root,
+            Self::Deneb(inner) => &mut inner.parent_root,
+        }
+    }
     pub fn state_root(&self) -> Root {
         match self {
             Self::Bellatrix(inner) => inner.state_root,
             Self::Capella(inner) => inner.state_root,
             Self::Deneb(inner) => inner.state_root,
+        }
+    }
+    pub fn state_root_mut(&mut self) -> &mut Root {
+        match self {
+            Self::Bellatrix(inner) => &mut inner.state_root,
+            Self::Capella(inner) => &mut inner.state_root,
+            Self::Deneb(inner) => &mut inner.state_root,
         }
     }
     pub fn body(
@@ -332,13 +360,13 @@ impl<
     {
         let value = serde_json::Value::deserialize(deserializer)?;
         if let Ok(inner) = <_ as serde::Deserialize>::deserialize(&value) {
-            return Ok(Self::Deneb(inner))
+            return Ok(Self::Deneb(inner));
         }
         if let Ok(inner) = <_ as serde::Deserialize>::deserialize(&value) {
-            return Ok(Self::Capella(inner))
+            return Ok(Self::Capella(inner));
         }
         if let Ok(inner) = <_ as serde::Deserialize>::deserialize(&value) {
-            return Ok(Self::Bellatrix(inner))
+            return Ok(Self::Bellatrix(inner));
         }
         Err(serde::de::Error::custom("no variant could be deserialized from input"))
     }
@@ -958,11 +986,25 @@ impl<
             Self::Deneb(inner) => inner.slot,
         }
     }
+    pub fn slot_mut(&mut self) -> &mut Slot {
+        match self {
+            Self::Bellatrix(inner) => &mut inner.slot,
+            Self::Capella(inner) => &mut inner.slot,
+            Self::Deneb(inner) => &mut inner.slot,
+        }
+    }
     pub fn proposer_index(&self) -> ValidatorIndex {
         match self {
             Self::Bellatrix(inner) => inner.proposer_index,
             Self::Capella(inner) => inner.proposer_index,
             Self::Deneb(inner) => inner.proposer_index,
+        }
+    }
+    pub fn proposer_index_mut(&mut self) -> &mut ValidatorIndex {
+        match self {
+            Self::Bellatrix(inner) => &mut inner.proposer_index,
+            Self::Capella(inner) => &mut inner.proposer_index,
+            Self::Deneb(inner) => &mut inner.proposer_index,
         }
     }
     pub fn parent_root(&self) -> Root {
@@ -972,11 +1014,25 @@ impl<
             Self::Deneb(inner) => inner.parent_root,
         }
     }
+    pub fn parent_root_mut(&mut self) -> &mut Root {
+        match self {
+            Self::Bellatrix(inner) => &mut inner.parent_root,
+            Self::Capella(inner) => &mut inner.parent_root,
+            Self::Deneb(inner) => &mut inner.parent_root,
+        }
+    }
     pub fn state_root(&self) -> Root {
         match self {
             Self::Bellatrix(inner) => inner.state_root,
             Self::Capella(inner) => inner.state_root,
             Self::Deneb(inner) => inner.state_root,
+        }
+    }
+    pub fn state_root_mut(&mut self) -> &mut Root {
+        match self {
+            Self::Bellatrix(inner) => &mut inner.state_root,
+            Self::Capella(inner) => &mut inner.state_root,
+            Self::Deneb(inner) => &mut inner.state_root,
         }
     }
     pub fn body(
