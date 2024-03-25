@@ -76,7 +76,7 @@ pub fn process_epoch<
     process_justification_and_finalization(state, context)?;
     process_inactivity_updates(state, context)?;
     process_rewards_and_penalties(state, context)?;
-    process_registry_updates(state, context);
+    process_registry_updates(state, context)?;
     process_slashings(state, context)?;
     process_eth1_data_reset(state, context);
     process_effective_balance_updates(state, context);

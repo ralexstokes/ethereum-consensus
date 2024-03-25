@@ -121,10 +121,7 @@ pub fn dispatch(test: &TestCase) -> Result<(), Error> {
                 test,
                 load_test,
                 |(pre, post): (spec::BeaconState, Option<spec::BeaconState>), context| {
-                    run_test(pre, post, context, |state, context| {
-                        spec::process_registry_updates(state, context);
-                        Ok(())
-                    })
+                    run_test(pre, post, context, spec::process_registry_updates)
                 }
             }
         }

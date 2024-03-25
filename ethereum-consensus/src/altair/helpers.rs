@@ -382,7 +382,7 @@ pub fn slash_validator<
     context: &Context,
 ) -> Result<()> {
     let epoch = get_current_epoch(state, context);
-    initiate_validator_exit(state, slashed_index, context);
+    initiate_validator_exit(state, slashed_index, context)?;
     state.validators[slashed_index].slashed = true;
     state.validators[slashed_index].withdrawable_epoch = u64::max(
         state.validators[slashed_index].withdrawable_epoch,

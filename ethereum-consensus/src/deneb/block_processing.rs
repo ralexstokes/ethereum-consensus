@@ -343,7 +343,7 @@ pub fn process_voluntary_exit<
                 InvalidVoluntaryExit::InvalidSignature(signed_voluntary_exit.signature.clone()),
             ))
         })?;
-    initiate_validator_exit(state, voluntary_exit.validator_index, context);
+    initiate_validator_exit(state, voluntary_exit.validator_index, context)?;
     Ok(())
 }
 
