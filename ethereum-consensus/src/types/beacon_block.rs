@@ -520,19 +520,19 @@ impl<
     {
         let value = serde_json::Value::deserialize(deserializer)?;
         if let Ok(inner) = <_ as serde::Deserialize>::deserialize(&value) {
-            return Ok(Self::Deneb(inner))
+            return Ok(Self::Deneb(inner));
         }
         if let Ok(inner) = <_ as serde::Deserialize>::deserialize(&value) {
-            return Ok(Self::Capella(inner))
+            return Ok(Self::Capella(inner));
         }
         if let Ok(inner) = <_ as serde::Deserialize>::deserialize(&value) {
-            return Ok(Self::Bellatrix(inner))
+            return Ok(Self::Bellatrix(inner));
         }
         if let Ok(inner) = <_ as serde::Deserialize>::deserialize(&value) {
-            return Ok(Self::Altair(inner))
+            return Ok(Self::Altair(inner));
         }
         if let Ok(inner) = <_ as serde::Deserialize>::deserialize(&value) {
-            return Ok(Self::Phase0(inner))
+            return Ok(Self::Phase0(inner));
         }
         Err(serde::de::Error::custom("no variant could be deserialized from input"))
     }
