@@ -72,6 +72,11 @@ fn set_fork_epochs(meta: &mut Meta, context: &mut Context) {
             context.altair_fork_epoch = 0;
             context.bellatrix_fork_epoch = meta.fork_epoch;
         }
+        "capella" => {
+            context.altair_fork_epoch = 0;
+            context.bellatrix_fork_epoch = 0;
+            context.capella_fork_epoch = meta.fork_epoch;
+        }
         _ => todo!(),
     }
 }
@@ -138,6 +143,35 @@ pub fn dispatch(test: &TestCase) -> Result<(), Error> {
                         }
                     }
                 }
+                Fork::Capella => {
+                    use ethereum_consensus::{
+                        bellatrix::mainnet as pre_spec, capella::mainnet as spec,
+                    };
+                    gen_exec! {
+                        test,
+                        load_test,
+                        | (pre, expected, pre_blocks, post_blocks, mut meta): (pre_spec::BeaconState, spec::BeaconState, Vec<pre_spec::SignedBeaconBlock>, Vec<spec::SignedBeaconBlock>, Meta), context: &Context| {
+                            assert_eq!(meta.post_fork, "capella");
+                            let mut context = context.clone();
+                            set_fork_epochs(&mut meta, &mut context);
+                            let mut executor = state_transition::mainnet::Executor::new(BeaconState::Bellatrix(pre), context);
+                            for block in pre_blocks.into_iter() {
+                                let mut block = SignedBeaconBlock::Bellatrix(block);
+                                executor.apply_block(&mut block)?;
+                            }
+                            for block in post_blocks.into_iter() {
+                                let mut block = SignedBeaconBlock::Capella(block);
+                                executor.apply_block(&mut block)?;
+                            }
+                            let post = executor.state.capella().unwrap();
+                            if post != &expected {
+                                Err(Error::InvalidState)
+                            } else {
+                                Ok(())
+                            }
+                        }
+                    }
+                }
                 _ => todo!(),
             },
             Config::Minimal => match test.meta.fork {
@@ -191,6 +225,35 @@ pub fn dispatch(test: &TestCase) -> Result<(), Error> {
                                 executor.apply_block(&mut block)?;
                             }
                             let post = executor.state.bellatrix().unwrap();
+                            if post != &expected {
+                                Err(Error::InvalidState)
+                            } else {
+                                Ok(())
+                            }
+                        }
+                    }
+                }
+                Fork::Capella => {
+                    use ethereum_consensus::{
+                        bellatrix::minimal as pre_spec, capella::minimal as spec,
+                    };
+                    gen_exec! {
+                        test,
+                        load_test,
+                        | (pre, expected, pre_blocks, post_blocks, mut meta): (pre_spec::BeaconState, spec::BeaconState, Vec<pre_spec::SignedBeaconBlock>, Vec<spec::SignedBeaconBlock>, Meta), context: &Context| {
+                            assert_eq!(meta.post_fork, "capella");
+                            let mut context = context.clone();
+                            set_fork_epochs(&mut meta, &mut context);
+                            let mut executor = state_transition::minimal::Executor::new(BeaconState::Bellatrix(pre), context);
+                            for block in pre_blocks.into_iter() {
+                                let mut block = SignedBeaconBlock::Bellatrix(block);
+                                executor.apply_block(&mut block)?;
+                            }
+                            for block in post_blocks.into_iter() {
+                                let mut block = SignedBeaconBlock::Capella(block);
+                                executor.apply_block(&mut block)?;
+                            }
+                            let post = executor.state.capella().unwrap();
                             if post != &expected {
                                 Err(Error::InvalidState)
                             } else {
