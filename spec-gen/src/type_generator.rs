@@ -467,9 +467,8 @@ fn derive_method_set(
         }
     } else {
         let type_def = &field_defn.type_def;
-        let ref_item: Option<syn::Token!(&)> =
-            if is_type_copy { None } else { Some(parse_quote!(&)) };
-        let mutability = if is_type_copy { None } else { Some(Mut::default()) };
+        let ref_item: syn::Token!(&) = parse_quote!(&);
+        let mutability = Mut::default();
         parse_quote! {
             #ref_item #mutability #type_def
         }
@@ -482,7 +481,8 @@ fn derive_method_set(
         true,
         is_polymorphic,
         is_optional,
-        is_type_copy,
+        // NOTE: make this false so we generate mutable refs, rather than just a copy
+        false,
         deletion_fork,
     );
     let mut_ref = parse_quote! {
@@ -496,9 +496,7 @@ fn derive_method_set(
         Some(RefType::Immutable) => vec![immut_ref],
         Some(RefType::Mutable) | None => {
             let mut result = vec![immut_ref];
-            if !is_type_copy {
-                result.push(mut_ref);
-            }
+            result.push(mut_ref);
             result
         }
     }
