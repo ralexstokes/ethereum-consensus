@@ -2,10 +2,11 @@ use crate::{
     bellatrix::{
         compute_timestamp_at_slot, get_current_epoch, get_randao_mix, is_execution_enabled,
         is_merge_transition_complete, process_block_header, process_eth1_data, process_operations,
-        process_randao, process_sync_aggregate, BeaconBlock, BeaconState, ExecutionEngine,
-        ExecutionPayload, ExecutionPayloadHeader, NewPayloadRequest,
+        process_randao, process_sync_aggregate, BeaconBlock, BeaconState, ExecutionPayload,
+        ExecutionPayloadHeader,
     },
     error::{invalid_operation_error, InvalidExecutionPayload},
+    execution_engine::ExecutionEngine,
     ssz::prelude::*,
     state_transition::{Context, Result},
 };
@@ -24,10 +25,12 @@ pub fn process_execution_payload<
     const MAX_BYTES_PER_TRANSACTION: usize,
     const MAX_TRANSACTIONS_PER_PAYLOAD: usize,
     E: ExecutionEngine<
-        BYTES_PER_LOGS_BLOOM,
-        MAX_EXTRA_DATA_BYTES,
-        MAX_BYTES_PER_TRANSACTION,
-        MAX_TRANSACTIONS_PER_PAYLOAD,
+        NewPayloadRequest = ExecutionPayload<
+            BYTES_PER_LOGS_BLOOM,
+            MAX_EXTRA_DATA_BYTES,
+            MAX_BYTES_PER_TRANSACTION,
+            MAX_TRANSACTIONS_PER_PAYLOAD,
+        >,
     >,
 >(
     state: &mut BeaconState<
@@ -86,8 +89,7 @@ pub fn process_execution_payload<
         ))
     }
 
-    let new_payload_request = NewPayloadRequest(payload);
-    execution_engine.verify_and_notify_new_payload(&new_payload_request)?;
+    execution_engine.verify_and_notify_new_payload(&payload.clone())?;
 
     state.latest_execution_payload_header = ExecutionPayloadHeader {
         parent_hash: payload.parent_hash.clone(),
@@ -128,10 +130,12 @@ pub fn process_block<
     const MAX_BYTES_PER_TRANSACTION: usize,
     const MAX_TRANSACTIONS_PER_PAYLOAD: usize,
     E: ExecutionEngine<
-        BYTES_PER_LOGS_BLOOM,
-        MAX_EXTRA_DATA_BYTES,
-        MAX_BYTES_PER_TRANSACTION,
-        MAX_TRANSACTIONS_PER_PAYLOAD,
+        NewPayloadRequest = ExecutionPayload<
+            BYTES_PER_LOGS_BLOOM,
+            MAX_EXTRA_DATA_BYTES,
+            MAX_BYTES_PER_TRANSACTION,
+            MAX_TRANSACTIONS_PER_PAYLOAD,
+        >,
     >,
 >(
     state: &mut BeaconState<

@@ -14,9 +14,9 @@ use crate::{
 };
 
 pub use crate::Error;
-pub use state_transition::{BeaconState, Context, ExecutionEngine, SignedBeaconBlock, Validation};
+pub use state_transition::{BeaconState, Context, SignedBeaconBlock, Validation};
 
-pub type Executor<B> = state_transition::Executor<
+pub type Executor = state_transition::Executor<
     SLOTS_PER_HISTORICAL_ROOT,
     HISTORICAL_ROOTS_LIMIT,
     ETH1_DATA_VOTES_BOUND,
@@ -35,5 +35,4 @@ pub type Executor<B> = state_transition::Executor<
     MAX_ATTESTATIONS,
     MAX_DEPOSITS,
     MAX_VOLUNTARY_EXITS,
-    B,
 >;

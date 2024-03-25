@@ -8,14 +8,15 @@ use crate::{
         is_valid_indexed_attestation, kzg_commitment_to_versioned_hash, process_block_header,
         process_eth1_data, process_operations, process_randao, process_sync_aggregate,
         process_withdrawals, Attestation, BeaconBlock, BeaconBlockBody, BeaconState,
-        ExecutionEngine, ExecutionPayloadHeader, NewPayloadRequest, SignedVoluntaryExit,
-        PARTICIPATION_FLAG_WEIGHTS, PROPOSER_WEIGHT, WEIGHT_DENOMINATOR,
+        ExecutionPayloadHeader, NewPayloadRequest, SignedVoluntaryExit, PARTICIPATION_FLAG_WEIGHTS,
+        PROPOSER_WEIGHT, WEIGHT_DENOMINATOR,
     },
     domains::DomainType,
     error::{
         invalid_operation_error, InvalidAttestation, InvalidExecutionPayload, InvalidOperation,
         InvalidVoluntaryExit,
     },
+    execution_engine::ExecutionEngine,
     primitives::FAR_FUTURE_EPOCH,
     signing::verify_signed_data,
     ssz::prelude::*,
@@ -156,11 +157,13 @@ pub fn process_execution_payload<
     const MAX_BLS_TO_EXECUTION_CHANGES: usize,
     const MAX_BLOB_COMMITMENTS_PER_BLOCK: usize,
     E: ExecutionEngine<
-        BYTES_PER_LOGS_BLOOM,
-        MAX_EXTRA_DATA_BYTES,
-        MAX_BYTES_PER_TRANSACTION,
-        MAX_TRANSACTIONS_PER_PAYLOAD,
-        MAX_WITHDRAWALS_PER_PAYLOAD,
+        NewPayloadRequest = NewPayloadRequest<
+            BYTES_PER_LOGS_BLOOM,
+            MAX_EXTRA_DATA_BYTES,
+            MAX_BYTES_PER_TRANSACTION,
+            MAX_TRANSACTIONS_PER_PAYLOAD,
+            MAX_WITHDRAWALS_PER_PAYLOAD,
+        >,
     >,
 >(
     state: &mut BeaconState<
@@ -245,8 +248,8 @@ pub fn process_execution_payload<
         body.blob_kzg_commitments.iter().map(kzg_commitment_to_versioned_hash).collect::<Vec<_>>();
 
     let new_payload_request = NewPayloadRequest {
-        execution_payload: &*payload,
-        versioned_hashes: &versioned_hashes,
+        execution_payload: payload.clone(),
+        versioned_hashes,
         parent_beacon_block_root: state.latest_block_header.parent_root,
     };
     execution_engine.verify_and_notify_new_payload(&new_payload_request)?;
@@ -375,11 +378,13 @@ pub fn process_block<
     const MAX_BLS_TO_EXECUTION_CHANGES: usize,
     const MAX_BLOB_COMMITMENTS_PER_BLOCK: usize,
     E: ExecutionEngine<
-        BYTES_PER_LOGS_BLOOM,
-        MAX_EXTRA_DATA_BYTES,
-        MAX_BYTES_PER_TRANSACTION,
-        MAX_TRANSACTIONS_PER_PAYLOAD,
-        MAX_WITHDRAWALS_PER_PAYLOAD,
+        NewPayloadRequest = NewPayloadRequest<
+            BYTES_PER_LOGS_BLOOM,
+            MAX_EXTRA_DATA_BYTES,
+            MAX_BYTES_PER_TRANSACTION,
+            MAX_TRANSACTIONS_PER_PAYLOAD,
+            MAX_WITHDRAWALS_PER_PAYLOAD,
+        >,
     >,
 >(
     state: &mut BeaconState<

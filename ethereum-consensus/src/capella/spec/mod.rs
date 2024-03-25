@@ -33,7 +33,7 @@ pub use crate::{
         },
         bls_to_execution_change::{BlsToExecutionChange, SignedBlsToExecutionChange},
         epoch_processing::{process_epoch, process_historical_summaries_update},
-        execution_engine::{DefaultExecutionEngine, NewPayloadRequest},
+        execution_engine::DefaultExecutionEngine,
         execution_payload::{ExecutionPayload, ExecutionPayloadHeader},
         fork::upgrade_to_capella,
         genesis::initialize_beacon_state_from_eth1,
@@ -44,6 +44,7 @@ pub use crate::{
         withdrawal::Withdrawal,
     },
     error::*,
+    execution_engine::ExecutionEngine,
     phase0::{
         beacon_block::{BeaconBlockHeader, SignedBeaconBlockHeader},
         beacon_state::{Fork, ForkData, HistoricalBatch, HistoricalSummary},
@@ -3196,11 +3197,13 @@ pub fn state_transition_block_in_slot<
     const MAX_WITHDRAWALS_PER_PAYLOAD: usize,
     const MAX_BLS_TO_EXECUTION_CHANGES: usize,
     E: ExecutionEngine<
-        BYTES_PER_LOGS_BLOOM,
-        MAX_EXTRA_DATA_BYTES,
-        MAX_BYTES_PER_TRANSACTION,
-        MAX_TRANSACTIONS_PER_PAYLOAD,
-        MAX_WITHDRAWALS_PER_PAYLOAD,
+        NewPayloadRequest = ExecutionPayload<
+            BYTES_PER_LOGS_BLOOM,
+            MAX_EXTRA_DATA_BYTES,
+            MAX_BYTES_PER_TRANSACTION,
+            MAX_TRANSACTIONS_PER_PAYLOAD,
+            MAX_WITHDRAWALS_PER_PAYLOAD,
+        >,
     >,
 >(
     state: &mut BeaconState<
@@ -3270,11 +3273,13 @@ pub fn state_transition<
     const MAX_WITHDRAWALS_PER_PAYLOAD: usize,
     const MAX_BLS_TO_EXECUTION_CHANGES: usize,
     E: ExecutionEngine<
-        BYTES_PER_LOGS_BLOOM,
-        MAX_EXTRA_DATA_BYTES,
-        MAX_BYTES_PER_TRANSACTION,
-        MAX_TRANSACTIONS_PER_PAYLOAD,
-        MAX_WITHDRAWALS_PER_PAYLOAD,
+        NewPayloadRequest = ExecutionPayload<
+            BYTES_PER_LOGS_BLOOM,
+            MAX_EXTRA_DATA_BYTES,
+            MAX_BYTES_PER_TRANSACTION,
+            MAX_TRANSACTIONS_PER_PAYLOAD,
+            MAX_WITHDRAWALS_PER_PAYLOAD,
+        >,
     >,
 >(
     state: &mut BeaconState<
@@ -3311,4 +3316,3 @@ pub fn state_transition<
     process_slots(state, signed_block.message.slot, context)?;
     state_transition_block_in_slot(state, signed_block, execution_engine, validation, context)
 }
-pub use crate::capella::execution_engine::ExecutionEngine;
