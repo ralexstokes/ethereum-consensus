@@ -129,7 +129,12 @@ pub struct Handler(pub String);
 
 impl From<&str> for Handler {
     fn from(value: &str) -> Self {
-        Self(value.to_string())
+        let inner = if value.contains("BLSToExecutionChange") {
+            value.replace("BLS", "Bls")
+        } else {
+            value.to_string()
+        };
+        Self(inner)
     }
 }
 

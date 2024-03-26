@@ -140,44 +140,12 @@ macro_rules! gen_match {
 }
 
 pub fn dispatch(test: &TestCase) -> Result<(), Error> {
-    // NOTE: special case these due to non-conforming capitalization...
-    let result = match test.meta.handler.0.as_str() {
-        "BLSToExecutionChange" => gen_match_for! {
-            test,
-            (mainnet, capella),
-            (mainnet, deneb),
-            (minimal, capella),
-            (minimal, deneb)
-            {
-                gen_exec! {
-                    test, load_test, run_test::<spec::BlsToExecutionChange>
-                }
-            }
-        },
-        "SignedBLSToExecutionChange" => gen_match_for! {
-            test,
-            (mainnet, capella),
-            (mainnet, deneb),
-            (minimal, capella),
-            (minimal, deneb)
-            {
-                gen_exec! {
-                    test, load_test, run_test::<spec::SignedBlsToExecutionChange>
-                }
-            }
-        },
-        _ => Err(Error::InternalContinue),
-    };
-    match result {
-        Ok(()) => return Ok(()),
-        Err(Error::InternalContinue) => {}
-        Err(err) => return Err(err),
-    }
-
     gen_capella_and_later! {
         test,
         Withdrawal,
-        HistoricalSummary
+        HistoricalSummary,
+        BlsToExecutionChange,
+        SignedBlsToExecutionChange
     }
 
     gen_bellatrix_and_later! {
