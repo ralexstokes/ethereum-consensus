@@ -455,8 +455,7 @@ pub fn process_voluntary_exit<
                 InvalidVoluntaryExit::InvalidSignature(signed_voluntary_exit.signature.clone()),
             ))
         })?;
-    initiate_validator_exit(state, voluntary_exit.validator_index, context);
-    Ok(())
+    initiate_validator_exit(state, voluntary_exit.validator_index, context)
 }
 
 pub fn process_block_header<

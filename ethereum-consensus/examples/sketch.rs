@@ -40,13 +40,7 @@ fn main() {
     let current_epoch = bellatrix::get_current_epoch(&state, &context);
     dbg!(current_epoch);
 
-    let execution_engine = bellatrix::DefaultExecutionEngine::default();
-    let _ = bellatrix::state_transition(
-        &mut state,
-        &mut signed_block,
-        &execution_engine,
-        Validation::Enabled,
-        &context,
-    );
+    let _ =
+        bellatrix::state_transition(&mut state, &mut signed_block, Validation::Enabled, &context);
     dbg!(state.fork);
 }

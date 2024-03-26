@@ -1,7 +1,6 @@
 use crate::{
     bellatrix::{
-        process_block, process_slots, verify_block_signature, BeaconState, ExecutionEngine,
-        SignedBeaconBlock,
+        process_block, process_slots, verify_block_signature, BeaconState, SignedBeaconBlock,
     },
     ssz::prelude::Merkleized,
     state_transition::{Context, Result, Validation},
@@ -29,12 +28,6 @@ pub fn state_transition_block_in_slot<
     const MAX_EXTRA_DATA_BYTES: usize,
     const MAX_BYTES_PER_TRANSACTION: usize,
     const MAX_TRANSACTIONS_PER_PAYLOAD: usize,
-    E: ExecutionEngine<
-        BYTES_PER_LOGS_BLOOM,
-        MAX_EXTRA_DATA_BYTES,
-        MAX_BYTES_PER_TRANSACTION,
-        MAX_TRANSACTIONS_PER_PAYLOAD,
-    >,
 >(
     state: &mut BeaconState<
         SLOTS_PER_HISTORICAL_ROOT,
@@ -61,7 +54,6 @@ pub fn state_transition_block_in_slot<
         MAX_BYTES_PER_TRANSACTION,
         MAX_TRANSACTIONS_PER_PAYLOAD,
     >,
-    execution_engine: &E,
     validation: Validation,
     context: &Context,
 ) -> Result<()> {
@@ -73,7 +65,7 @@ pub fn state_transition_block_in_slot<
         verify_block_signature(state, signed_block, context)?;
     }
     let block = &mut signed_block.message;
-    process_block(state, block, execution_engine, context)?;
+    process_block(state, block, context)?;
     if validate_result && block.state_root != state.hash_tree_root()? {
         Err(Error::InvalidStateRoot)
     } else {
@@ -99,12 +91,6 @@ pub fn state_transition<
     const MAX_EXTRA_DATA_BYTES: usize,
     const MAX_BYTES_PER_TRANSACTION: usize,
     const MAX_TRANSACTIONS_PER_PAYLOAD: usize,
-    E: ExecutionEngine<
-        BYTES_PER_LOGS_BLOOM,
-        MAX_EXTRA_DATA_BYTES,
-        MAX_BYTES_PER_TRANSACTION,
-        MAX_TRANSACTIONS_PER_PAYLOAD,
-    >,
 >(
     state: &mut BeaconState<
         SLOTS_PER_HISTORICAL_ROOT,
@@ -131,11 +117,10 @@ pub fn state_transition<
         MAX_BYTES_PER_TRANSACTION,
         MAX_TRANSACTIONS_PER_PAYLOAD,
     >,
-    execution_engine: &E,
     validation: Validation,
     context: &Context,
 ) -> Result<()> {
     process_slots(state, signed_block.message.slot, context)?;
 
-    state_transition_block_in_slot(state, signed_block, execution_engine, validation, context)
+    state_transition_block_in_slot(state, signed_block, validation, context)
 }

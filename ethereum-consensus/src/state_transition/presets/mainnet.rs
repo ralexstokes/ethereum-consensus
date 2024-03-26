@@ -4,6 +4,8 @@ use crate::{
         BYTES_PER_LOGS_BLOOM, MAX_BYTES_PER_TRANSACTION, MAX_EXTRA_DATA_BYTES,
         MAX_TRANSACTIONS_PER_PAYLOAD,
     },
+    capella::mainnet::{MAX_BLS_TO_EXECUTION_CHANGES, MAX_WITHDRAWALS_PER_PAYLOAD},
+    deneb::mainnet::MAX_BLOB_COMMITMENTS_PER_BLOCK,
     phase0::mainnet::{
         EPOCHS_PER_HISTORICAL_VECTOR, EPOCHS_PER_SLASHINGS_VECTOR, ETH1_DATA_VOTES_BOUND,
         HISTORICAL_ROOTS_LIMIT, MAX_ATTESTATIONS, MAX_ATTESTER_SLASHINGS, MAX_DEPOSITS,
@@ -14,9 +16,9 @@ use crate::{
 };
 
 pub use crate::Error;
-pub use state_transition::{BeaconState, Context, ExecutionEngine, SignedBeaconBlock, Validation};
+pub use state_transition::{Context, Validation};
 
-pub type Executor<B> = state_transition::Executor<
+pub type Executor = state_transition::Executor<
     SLOTS_PER_HISTORICAL_ROOT,
     HISTORICAL_ROOTS_LIMIT,
     ETH1_DATA_VOTES_BOUND,
@@ -35,5 +37,7 @@ pub type Executor<B> = state_transition::Executor<
     MAX_ATTESTATIONS,
     MAX_DEPOSITS,
     MAX_VOLUNTARY_EXITS,
-    B,
+    MAX_WITHDRAWALS_PER_PAYLOAD,
+    MAX_BLS_TO_EXECUTION_CHANGES,
+    MAX_BLOB_COMMITMENTS_PER_BLOCK,
 >;

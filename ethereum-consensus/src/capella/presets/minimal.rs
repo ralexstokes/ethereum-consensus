@@ -1,6 +1,6 @@
 use crate::capella::spec;
 pub use crate::{
-    bellatrix::presets::mainnet::{
+    bellatrix::presets::minimal::{
         AggregateAndProof, Attestation, AttesterSlashing, ContributionAndProof, HistoricalBatch,
         IndexedAttestation, LightClientUpdate, PendingAttestation, SignedAggregateAndProof,
         SignedContributionAndProof, SyncAggregate, SyncCommittee, SyncCommitteeContribution,

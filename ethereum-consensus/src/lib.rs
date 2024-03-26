@@ -8,6 +8,7 @@ pub mod crypto;
 pub mod deneb;
 pub mod domains;
 pub mod error;
+pub mod execution_engine;
 mod fork;
 pub mod networking;
 pub mod networks;

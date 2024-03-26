@@ -2,10 +2,11 @@ use crate::{
     bellatrix::{
         compute_timestamp_at_slot, get_current_epoch, get_randao_mix, is_execution_enabled,
         is_merge_transition_complete, process_block_header, process_eth1_data, process_operations,
-        process_randao, process_sync_aggregate, BeaconBlock, BeaconState, ExecutionEngine,
-        ExecutionPayload, ExecutionPayloadHeader, NewPayloadRequest,
+        process_randao, process_sync_aggregate, BeaconBlock, BeaconState, ExecutionPayload,
+        ExecutionPayloadHeader,
     },
     error::{invalid_operation_error, InvalidExecutionPayload},
+    execution_engine::ExecutionEngine,
     ssz::prelude::*,
     state_transition::{Context, Result},
 };
@@ -23,12 +24,6 @@ pub fn process_execution_payload<
     const MAX_EXTRA_DATA_BYTES: usize,
     const MAX_BYTES_PER_TRANSACTION: usize,
     const MAX_TRANSACTIONS_PER_PAYLOAD: usize,
-    E: ExecutionEngine<
-        BYTES_PER_LOGS_BLOOM,
-        MAX_EXTRA_DATA_BYTES,
-        MAX_BYTES_PER_TRANSACTION,
-        MAX_TRANSACTIONS_PER_PAYLOAD,
-    >,
 >(
     state: &mut BeaconState<
         SLOTS_PER_HISTORICAL_ROOT,
@@ -48,7 +43,6 @@ pub fn process_execution_payload<
         MAX_BYTES_PER_TRANSACTION,
         MAX_TRANSACTIONS_PER_PAYLOAD,
     >,
-    execution_engine: &E,
     context: &Context,
 ) -> Result<()> {
     let parent_hash_invalid =
@@ -86,8 +80,8 @@ pub fn process_execution_payload<
         ))
     }
 
-    let new_payload_request = NewPayloadRequest(payload);
-    execution_engine.verify_and_notify_new_payload(&new_payload_request)?;
+    let execution_engine = context.execution_engine();
+    execution_engine.verify_and_notify_new_payload(&payload.clone())?;
 
     state.latest_execution_payload_header = ExecutionPayloadHeader {
         parent_hash: payload.parent_hash.clone(),
@@ -127,12 +121,6 @@ pub fn process_block<
     const MAX_EXTRA_DATA_BYTES: usize,
     const MAX_BYTES_PER_TRANSACTION: usize,
     const MAX_TRANSACTIONS_PER_PAYLOAD: usize,
-    E: ExecutionEngine<
-        BYTES_PER_LOGS_BLOOM,
-        MAX_EXTRA_DATA_BYTES,
-        MAX_BYTES_PER_TRANSACTION,
-        MAX_TRANSACTIONS_PER_PAYLOAD,
-    >,
 >(
     state: &mut BeaconState<
         SLOTS_PER_HISTORICAL_ROOT,
@@ -159,17 +147,11 @@ pub fn process_block<
         MAX_BYTES_PER_TRANSACTION,
         MAX_TRANSACTIONS_PER_PAYLOAD,
     >,
-    execution_engine: &E,
     context: &Context,
 ) -> Result<()> {
     process_block_header(state, block, context)?;
     if is_execution_enabled(state, &block.body) {
-        process_execution_payload(
-            state,
-            &mut block.body.execution_payload,
-            execution_engine,
-            context,
-        )?;
+        process_execution_payload(state, &mut block.body.execution_payload, context)?;
     }
     process_randao(state, &block.body, context)?;
     process_eth1_data(state, &block.body, context);

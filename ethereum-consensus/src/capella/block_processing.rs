@@ -5,15 +5,15 @@ use crate::{
         is_partially_withdrawable_validator, process_attestation, process_attester_slashing,
         process_block_header, process_deposit, process_eth1_data, process_proposer_slashing,
         process_randao, process_sync_aggregate, process_voluntary_exit, BeaconBlock,
-        BeaconBlockBody, BeaconState, DomainType, ExecutionAddress, ExecutionEngine,
-        ExecutionPayload, ExecutionPayloadHeader, NewPayloadRequest, SignedBlsToExecutionChange,
-        Withdrawal,
+        BeaconBlockBody, BeaconState, DomainType, ExecutionAddress, ExecutionPayload,
+        ExecutionPayloadHeader, SignedBlsToExecutionChange, Withdrawal,
     },
     crypto::{hash, verify_signature},
     error::{
         invalid_operation_error, InvalidBlsToExecutionChange, InvalidDeposit,
         InvalidExecutionPayload, InvalidOperation, InvalidWithdrawals,
     },
+    execution_engine::ExecutionEngine,
     primitives::{BLS_WITHDRAWAL_PREFIX, ETH1_ADDRESS_WITHDRAWAL_PREFIX},
     ssz::prelude::*,
     state_transition::{Context, Result},
@@ -181,13 +181,6 @@ pub fn process_execution_payload<
     const MAX_BYTES_PER_TRANSACTION: usize,
     const MAX_TRANSACTIONS_PER_PAYLOAD: usize,
     const MAX_WITHDRAWALS_PER_PAYLOAD: usize,
-    E: ExecutionEngine<
-        BYTES_PER_LOGS_BLOOM,
-        MAX_EXTRA_DATA_BYTES,
-        MAX_BYTES_PER_TRANSACTION,
-        MAX_TRANSACTIONS_PER_PAYLOAD,
-        MAX_WITHDRAWALS_PER_PAYLOAD,
-    >,
 >(
     state: &mut BeaconState<
         SLOTS_PER_HISTORICAL_ROOT,
@@ -208,7 +201,6 @@ pub fn process_execution_payload<
         MAX_TRANSACTIONS_PER_PAYLOAD,
         MAX_WITHDRAWALS_PER_PAYLOAD,
     >,
-    execution_engine: &E,
     context: &Context,
 ) -> Result<()> {
     let parent_hash_invalid =
@@ -246,8 +238,8 @@ pub fn process_execution_payload<
         ))
     }
 
-    let new_payload_request = NewPayloadRequest(payload);
-    execution_engine.verify_and_notify_new_payload(&new_payload_request)?;
+    let execution_engine = context.execution_engine();
+    execution_engine.verify_and_notify_new_payload(&payload.clone())?;
 
     state.latest_execution_payload_header = ExecutionPayloadHeader {
         parent_hash: payload.parent_hash.clone(),
@@ -426,13 +418,6 @@ pub fn process_block<
     const MAX_TRANSACTIONS_PER_PAYLOAD: usize,
     const MAX_WITHDRAWALS_PER_PAYLOAD: usize,
     const MAX_BLS_TO_EXECUTION_CHANGES: usize,
-    E: ExecutionEngine<
-        BYTES_PER_LOGS_BLOOM,
-        MAX_EXTRA_DATA_BYTES,
-        MAX_BYTES_PER_TRANSACTION,
-        MAX_TRANSACTIONS_PER_PAYLOAD,
-        MAX_WITHDRAWALS_PER_PAYLOAD,
-    >,
 >(
     state: &mut BeaconState<
         SLOTS_PER_HISTORICAL_ROOT,
@@ -461,12 +446,11 @@ pub fn process_block<
         MAX_WITHDRAWALS_PER_PAYLOAD,
         MAX_BLS_TO_EXECUTION_CHANGES,
     >,
-    execution_engine: &E,
     context: &Context,
 ) -> Result<()> {
     process_block_header(state, block, context)?;
     process_withdrawals(state, &block.body.execution_payload, context)?;
-    process_execution_payload(state, &mut block.body.execution_payload, execution_engine, context)?;
+    process_execution_payload(state, &mut block.body.execution_payload, context)?;
     process_randao(state, &block.body, context)?;
     process_eth1_data(state, &block.body, context);
     process_operations(state, &mut block.body, context)?;

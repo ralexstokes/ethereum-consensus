@@ -7,7 +7,6 @@ pub mod blinded_beacon_block;
 pub mod block_processing;
 pub mod bls_to_execution_change;
 pub mod epoch_processing;
-pub mod execution_engine;
 pub mod execution_payload;
 pub mod fork;
 pub mod genesis;

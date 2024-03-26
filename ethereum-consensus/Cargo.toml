@@ -9,9 +9,9 @@ license = "MIT OR Apache-2.0"
 default = ["serde", "async"]
 serde = ["hex", "serde_json", "serde_yaml"]
 async = ["tokio", "tokio-stream", "async-stream"]
-spec-tests = ["serde", "serde_yaml", "secret-key-debug"]
-# enable if you want to be able to print `crypto::SecretKey`
-secret-key-debug = []
+secret-key-debug = [
+] # enable if you want to be able to print `crypto::SecretKey`
+spec-tests = [] # enable extra features for testing
 ec = [
     "secret-key-debug",
     "clap",
@@ -66,11 +66,8 @@ unicode-normalization = { workspace = true, optional = true }
 bitvec = { workspace = true, optional = true }
 
 [dev-dependencies]
-serde_with = "3.7.0"
-snap = "1"
 toml = "0.8.2"
 reth-primitives = { git = "https://github.com/paradigmxyz/reth", rev = "28f3a2e2d9525bf2f6373e755e2d6dc0c2f97821" }
-alloy-rlp = "0.3.4"
 
 [[bin]]
 name = "ec"
