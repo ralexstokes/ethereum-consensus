@@ -33,6 +33,8 @@ pub enum Fork {
     Bellatrix,
     Capella,
     Deneb,
+    Eip6110,
+    Whisk,
 }
 
 impl From<&str> for Fork {
@@ -43,7 +45,9 @@ impl From<&str> for Fork {
             "bellatrix" => Self::Bellatrix,
             "capella" => Self::Capella,
             "deneb" => Self::Deneb,
-            _ => panic!("unsupported fork"),
+            "eip6110" => Self::Eip6110,
+            "whisk" => Self::Whisk,
+            fork => panic!("unsupported fork: {fork:?}"),
         }
     }
 }
@@ -102,7 +106,7 @@ impl From<&str> for Runner {
             "genesis" => Self::Genesis,
             "kzg" => Self::Kzg,
             "light_client" => Self::LightClient,
-            "merkle" => Self::MerkleProof,
+            "merkle_proof" => Self::MerkleProof,
             "operations" => Self::Operations,
             "random" => Self::Random,
             "rewards" => Self::Rewards,
@@ -203,11 +207,12 @@ impl TestMeta {
         let ignored_runner = self.runner.should_ignore();
         let ignored_handler =
             matches!(self.runner, Runner::SszStatic) && self.handler.0.contains("LightClient");
-        let ignored_fork = matches!(self.fork, Fork::Deneb);
-        ignored_runner | ignored_handler | ignored_fork
+        ignored_runner | ignored_handler
     }
 
     pub fn should_skip(&self) -> bool {
-        self.runner.should_skip()
+        let skipped_runner = self.runner.should_skip();
+        let skipped_forks = matches!(self.fork, Fork::Eip6110 | Fork::Whisk);
+        skipped_runner | skipped_forks
     }
 }
