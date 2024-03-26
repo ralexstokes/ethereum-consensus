@@ -35,6 +35,33 @@ fn run_test<T: ssz_rs::SimpleSerialize>(
     Ok(())
 }
 
+macro_rules! gen_capella_and_later {
+    ($test_case:expr, $($handler:ident),*) => {
+        let result = match $test_case.meta.handler.0.as_str() {
+            $(
+                stringify!($handler) => gen_match_for! {
+                    $test_case,
+                    (mainnet, capella),
+                    (mainnet, deneb),
+                    (minimal, capella),
+                    (minimal, deneb)
+                    {
+                        gen_exec! {
+                            $test_case, load_test, run_test::<spec::$handler>
+                        }
+                    }
+                },
+            )*
+            _ => Err(Error::InternalContinue),
+        };
+        match result {
+            Ok(()) => return Ok(()),
+            Err(Error::InternalContinue) => {},
+            Err(err) => return Err(err)
+        }
+    };
+}
+
 macro_rules! gen_bellatrix_and_later {
     ($test_case:expr, $($handler:ident),*) => {
         let result = match $test_case.meta.handler.0.as_str() {
@@ -113,6 +140,46 @@ macro_rules! gen_match {
 }
 
 pub fn dispatch(test: &TestCase) -> Result<(), Error> {
+    // NOTE: special case these due to non-conforming capitalization...
+    let result = match test.meta.handler.0.as_str() {
+        "BLSToExecutionChange" => gen_match_for! {
+            test,
+            (mainnet, capella),
+            (mainnet, deneb),
+            (minimal, capella),
+            (minimal, deneb)
+            {
+                gen_exec! {
+                    test, load_test, run_test::<spec::BlsToExecutionChange>
+                }
+            }
+        },
+        "SignedBLSToExecutionChange" => gen_match_for! {
+            test,
+            (mainnet, capella),
+            (mainnet, deneb),
+            (minimal, capella),
+            (minimal, deneb)
+            {
+                gen_exec! {
+                    test, load_test, run_test::<spec::SignedBlsToExecutionChange>
+                }
+            }
+        },
+        _ => Err(Error::InternalContinue),
+    };
+    match result {
+        Ok(()) => return Ok(()),
+        Err(Error::InternalContinue) => {}
+        Err(err) => return Err(err),
+    }
+
+    gen_capella_and_later! {
+        test,
+        Withdrawal,
+        HistoricalSummary
+    }
+
     gen_bellatrix_and_later! {
         test,
         ExecutionPayload,

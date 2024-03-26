@@ -68,11 +68,22 @@ pub fn dispatch(test: &TestCase) -> Result<(), Error> {
             }
         }
         "historical_roots_update" => {
-            gen_match_for_all! {
+            gen_match_for! {
                 test,
-                load_test,
-                |(pre, post): (spec::BeaconState, Option<spec::BeaconState>), context| {
-                    run_test(pre, post, context, spec::process_historical_roots_update)
+                (mainnet, phase0),
+                (mainnet, altair),
+                (mainnet, bellatrix),
+                (minimal, phase0),
+                (minimal, altair),
+                (minimal, bellatrix)
+                {
+                    gen_exec! {
+                        test,
+                        load_test,
+                        |(pre, post): (spec::BeaconState, Option<spec::BeaconState>), context| {
+                            run_test(pre, post, context, spec::process_historical_roots_update)
+                        }
+                    }
                 }
             }
         }
@@ -218,6 +229,24 @@ pub fn dispatch(test: &TestCase) -> Result<(), Error> {
                         load_test,
                         |(pre, post): (spec::BeaconState, Option<spec::BeaconState>), context| {
                             run_test(pre, post, context, spec::process_sync_committee_updates)
+                        }
+                    }
+                }
+            }
+        }
+        "historical_summaries_update" => {
+            gen_match_for! {
+                test,
+                (mainnet, capella),
+                (mainnet, deneb),
+                (minimal, capella),
+                (minimal, deneb)
+                {
+                    gen_exec! {
+                        test,
+                        load_test,
+                        |(pre, post): (spec::BeaconState, Option<spec::BeaconState>), context| {
+                            run_test(pre, post, context, spec::process_historical_summaries_update)
                         }
                     }
                 }
