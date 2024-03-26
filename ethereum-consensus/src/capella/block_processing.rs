@@ -176,11 +176,17 @@ pub fn process_execution_payload<
     const EPOCHS_PER_SLASHINGS_VECTOR: usize,
     const MAX_VALIDATORS_PER_COMMITTEE: usize,
     const SYNC_COMMITTEE_SIZE: usize,
+    const MAX_PROPOSER_SLASHINGS: usize,
+    const MAX_ATTESTER_SLASHINGS: usize,
+    const MAX_ATTESTATIONS: usize,
+    const MAX_DEPOSITS: usize,
+    const MAX_VOLUNTARY_EXITS: usize,
     const BYTES_PER_LOGS_BLOOM: usize,
     const MAX_EXTRA_DATA_BYTES: usize,
     const MAX_BYTES_PER_TRANSACTION: usize,
     const MAX_TRANSACTIONS_PER_PAYLOAD: usize,
     const MAX_WITHDRAWALS_PER_PAYLOAD: usize,
+    const MAX_BLS_TO_EXECUTION_CHANGES: usize,
 >(
     state: &mut BeaconState<
         SLOTS_PER_HISTORICAL_ROOT,
@@ -194,15 +200,25 @@ pub fn process_execution_payload<
         BYTES_PER_LOGS_BLOOM,
         MAX_EXTRA_DATA_BYTES,
     >,
-    payload: &mut ExecutionPayload<
+    block: &mut BeaconBlockBody<
+        MAX_PROPOSER_SLASHINGS,
+        MAX_VALIDATORS_PER_COMMITTEE,
+        MAX_ATTESTER_SLASHINGS,
+        MAX_ATTESTATIONS,
+        MAX_DEPOSITS,
+        MAX_VOLUNTARY_EXITS,
+        SYNC_COMMITTEE_SIZE,
         BYTES_PER_LOGS_BLOOM,
         MAX_EXTRA_DATA_BYTES,
         MAX_BYTES_PER_TRANSACTION,
         MAX_TRANSACTIONS_PER_PAYLOAD,
         MAX_WITHDRAWALS_PER_PAYLOAD,
+        MAX_BLS_TO_EXECUTION_CHANGES,
     >,
     context: &Context,
 ) -> Result<()> {
+    let payload = &mut block.execution_payload;
+
     let parent_hash_invalid =
         payload.parent_hash != state.latest_execution_payload_header.block_hash;
     if parent_hash_invalid {
@@ -450,7 +466,7 @@ pub fn process_block<
 ) -> Result<()> {
     process_block_header(state, block, context)?;
     process_withdrawals(state, &block.body.execution_payload, context)?;
-    process_execution_payload(state, &mut block.body.execution_payload, context)?;
+    process_execution_payload(state, &mut block.body, context)?;
     process_randao(state, &block.body, context)?;
     process_eth1_data(state, &block.body, context);
     process_operations(state, &mut block.body, context)?;

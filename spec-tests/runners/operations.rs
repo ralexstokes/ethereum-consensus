@@ -70,7 +70,7 @@ fn load_execution_payload_test<S: ssz_rs::Deserialize, O: ssz_rs::Deserialize>(
     let path = test_case_path.to_string() + "/post.ssz_snappy";
     let post: Option<S> = load_snappy_ssz(&path);
 
-    let path = test_case_path.to_string() + "/execution_payload.ssz_snappy";
+    let path = test_case_path.to_string() + "/body.ssz_snappy";
     let operation: O = load_snappy_ssz(&path).unwrap();
 
     let path = test_case_path.to_string() + "/execution.yaml";
@@ -188,62 +188,13 @@ pub fn dispatch(test: &TestCase) -> Result<(), Error> {
         "execution_payload" => {
             gen_match_for! {
                 test,
-                (mainnet, bellatrix) => {
-                    gen_exec! {
-                        test,
-                        load_execution_payload_test,
-                        |(pre, post, operation, execution_valid): (spec::BeaconState, Option<spec::BeaconState>, spec::ExecutionPayload, bool), context: &Context| {
-                            let mut context = context.clone();
-                            context.execution_engine = execution_valid;
-                            run_test(pre, post, operation, &context, spec::process_execution_payload)
-                        }
-                    }
-                }
-                (mainnet, capella) => {
-                    gen_exec! {
-                        test,
-                        load_execution_payload_test,
-                        |(pre, post, operation, execution_valid): (spec::BeaconState, Option<spec::BeaconState>, spec::ExecutionPayload, bool), context: &Context| {
-                            let mut context = context.clone();
-                            context.execution_engine = execution_valid;
-                            run_test(pre, post, operation, &context, spec::process_execution_payload)
-                        }
-                    }
-                }
-                (mainnet, deneb) => {
-                    gen_exec! {
-                        test,
-                        load_execution_payload_test,
-                        |(pre, post, operation, execution_valid): (spec::BeaconState, Option<spec::BeaconState>, spec::BeaconBlockBody, bool), context: &Context| {
-                            let mut context = context.clone();
-                            context.execution_engine = execution_valid;
-                            run_test(pre, post, operation, &context, spec::process_execution_payload)
-                        }
-                    }
-                }
-                (minimal, bellatrix) => {
-                    gen_exec! {
-                        test,
-                        load_execution_payload_test,
-                        |(pre, post, operation, execution_valid): (spec::BeaconState, Option<spec::BeaconState>, spec::ExecutionPayload, bool), context: &Context| {
-                            let mut context = context.clone();
-                            context.execution_engine = execution_valid;
-                            run_test(pre, post, operation, &context, spec::process_execution_payload)
-                        }
-                    }
-                }
-                (minimal, capella) => {
-                    gen_exec! {
-                        test,
-                        load_execution_payload_test,
-                        |(pre, post, operation, execution_valid): (spec::BeaconState, Option<spec::BeaconState>, spec::ExecutionPayload, bool), context: &Context| {
-                            let mut context = context.clone();
-                            context.execution_engine = execution_valid;
-                            run_test(pre, post, operation, &context, spec::process_execution_payload)
-                        }
-                    }
-                }
-                (minimal, deneb) => {
+                (mainnet, bellatrix),
+                (mainnet, capella),
+                (mainnet, deneb),
+                (minimal, bellatrix),
+                (minimal, capella),
+                (minimal, deneb)
+                {
                     gen_exec! {
                         test,
                         load_execution_payload_test,

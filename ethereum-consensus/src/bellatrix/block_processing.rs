@@ -2,7 +2,7 @@ use crate::{
     bellatrix::{
         compute_timestamp_at_slot, get_current_epoch, get_randao_mix, is_execution_enabled,
         is_merge_transition_complete, process_block_header, process_eth1_data, process_operations,
-        process_randao, process_sync_aggregate, BeaconBlock, BeaconState, ExecutionPayload,
+        process_randao, process_sync_aggregate, BeaconBlock, BeaconBlockBody, BeaconState,
         ExecutionPayloadHeader,
     },
     error::{invalid_operation_error, InvalidExecutionPayload},
@@ -20,6 +20,11 @@ pub fn process_execution_payload<
     const EPOCHS_PER_SLASHINGS_VECTOR: usize,
     const MAX_VALIDATORS_PER_COMMITTEE: usize,
     const SYNC_COMMITTEE_SIZE: usize,
+    const MAX_PROPOSER_SLASHINGS: usize,
+    const MAX_ATTESTER_SLASHINGS: usize,
+    const MAX_ATTESTATIONS: usize,
+    const MAX_DEPOSITS: usize,
+    const MAX_VOLUNTARY_EXITS: usize,
     const BYTES_PER_LOGS_BLOOM: usize,
     const MAX_EXTRA_DATA_BYTES: usize,
     const MAX_BYTES_PER_TRANSACTION: usize,
@@ -37,7 +42,14 @@ pub fn process_execution_payload<
         BYTES_PER_LOGS_BLOOM,
         MAX_EXTRA_DATA_BYTES,
     >,
-    payload: &mut ExecutionPayload<
+    block: &mut BeaconBlockBody<
+        MAX_PROPOSER_SLASHINGS,
+        MAX_VALIDATORS_PER_COMMITTEE,
+        MAX_ATTESTER_SLASHINGS,
+        MAX_ATTESTATIONS,
+        MAX_DEPOSITS,
+        MAX_VOLUNTARY_EXITS,
+        SYNC_COMMITTEE_SIZE,
         BYTES_PER_LOGS_BLOOM,
         MAX_EXTRA_DATA_BYTES,
         MAX_BYTES_PER_TRANSACTION,
@@ -45,6 +57,8 @@ pub fn process_execution_payload<
     >,
     context: &Context,
 ) -> Result<()> {
+    let payload = &mut block.execution_payload;
+
     let parent_hash_invalid =
         payload.parent_hash != state.latest_execution_payload_header.block_hash;
     if is_merge_transition_complete(state) && parent_hash_invalid {
@@ -151,7 +165,7 @@ pub fn process_block<
 ) -> Result<()> {
     process_block_header(state, block, context)?;
     if is_execution_enabled(state, &block.body) {
-        process_execution_payload(state, &mut block.body.execution_payload, context)?;
+        process_execution_payload(state, &mut block.body, context)?;
     }
     process_randao(state, &block.body, context)?;
     process_eth1_data(state, &block.body, context);
