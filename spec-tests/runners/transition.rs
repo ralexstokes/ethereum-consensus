@@ -77,6 +77,12 @@ fn set_fork_epochs(meta: &mut Meta, context: &mut Context) {
             context.bellatrix_fork_epoch = 0;
             context.capella_fork_epoch = meta.fork_epoch;
         }
+        "deneb" => {
+            context.altair_fork_epoch = 0;
+            context.bellatrix_fork_epoch = 0;
+            context.capella_fork_epoch = 0;
+            context.deneb_fork_epoch = meta.fork_epoch;
+        }
         _ => todo!(),
     }
 }
@@ -172,6 +178,35 @@ pub fn dispatch(test: &TestCase) -> Result<(), Error> {
                         }
                     }
                 }
+                Fork::Deneb => {
+                    use ethereum_consensus::{
+                        capella::mainnet as pre_spec, deneb::mainnet as spec,
+                    };
+                    gen_exec! {
+                        test,
+                        load_test,
+                        | (pre, expected, pre_blocks, post_blocks, mut meta): (pre_spec::BeaconState, spec::BeaconState, Vec<pre_spec::SignedBeaconBlock>, Vec<spec::SignedBeaconBlock>, Meta), context: &Context| {
+                            assert_eq!(meta.post_fork, "deneb");
+                            let mut context = context.clone();
+                            set_fork_epochs(&mut meta, &mut context);
+                            let mut executor = state_transition::mainnet::Executor::new(BeaconState::Capella(pre), context);
+                            for block in pre_blocks.into_iter() {
+                                let mut block = SignedBeaconBlock::Capella(block);
+                                executor.apply_block(&mut block)?;
+                            }
+                            for block in post_blocks.into_iter() {
+                                let mut block = SignedBeaconBlock::Deneb(block);
+                                executor.apply_block(&mut block)?;
+                            }
+                            let post = executor.state.deneb().unwrap();
+                            if post != &expected {
+                                Err(Error::InvalidState)
+                            } else {
+                                Ok(())
+                            }
+                        }
+                    }
+                }
                 _ => todo!(),
             },
             Config::Minimal => match test.meta.fork {
@@ -254,6 +289,35 @@ pub fn dispatch(test: &TestCase) -> Result<(), Error> {
                                 executor.apply_block(&mut block)?;
                             }
                             let post = executor.state.capella().unwrap();
+                            if post != &expected {
+                                Err(Error::InvalidState)
+                            } else {
+                                Ok(())
+                            }
+                        }
+                    }
+                }
+                Fork::Deneb => {
+                    use ethereum_consensus::{
+                        capella::minimal as pre_spec, deneb::minimal as spec,
+                    };
+                    gen_exec! {
+                        test,
+                        load_test,
+                        | (pre, expected, pre_blocks, post_blocks, mut meta): (pre_spec::BeaconState, spec::BeaconState, Vec<pre_spec::SignedBeaconBlock>, Vec<spec::SignedBeaconBlock>, Meta), context: &Context| {
+                            assert_eq!(meta.post_fork, "deneb");
+                            let mut context = context.clone();
+                            set_fork_epochs(&mut meta, &mut context);
+                            let mut executor = state_transition::minimal::Executor::new(BeaconState::Capella(pre), context);
+                            for block in pre_blocks.into_iter() {
+                                let mut block = SignedBeaconBlock::Capella(block);
+                                executor.apply_block(&mut block)?;
+                            }
+                            for block in post_blocks.into_iter() {
+                                let mut block = SignedBeaconBlock::Deneb(block);
+                                executor.apply_block(&mut block)?;
+                            }
+                            let post = executor.state.deneb().unwrap();
                             if post != &expected {
                                 Err(Error::InvalidState)
                             } else {
