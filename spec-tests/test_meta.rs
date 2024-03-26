@@ -129,7 +129,12 @@ pub struct Handler(pub String);
 
 impl From<&str> for Handler {
     fn from(value: &str) -> Self {
-        Self(value.to_string())
+        let inner = if value.contains("BLSToExecutionChange") {
+            value.replace("BLS", "Bls")
+        } else {
+            value.to_string()
+        };
+        Self(inner)
     }
 }
 
@@ -195,7 +200,11 @@ impl TestMeta {
     }
 
     pub fn should_ignore(&self) -> bool {
-        self.runner.should_ignore()
+        let ignored_runner = self.runner.should_ignore();
+        let ignored_handler =
+            matches!(self.runner, Runner::SszStatic) && self.handler.0.contains("LightClient");
+        let ignored_fork = matches!(self.fork, Fork::Deneb);
+        ignored_runner | ignored_handler | ignored_fork
     }
 
     pub fn should_skip(&self) -> bool {

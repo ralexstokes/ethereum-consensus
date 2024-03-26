@@ -49,9 +49,9 @@ pub enum Error {
     )]
     InvalidEpoch { requested: Epoch, previous: Epoch, current: Epoch },
     #[error(
-        "transition requested from a later fork {destination_fork:?} to an earlier fork {source_fork:?}"
+        "transition requested from a later fork {source_fork:?} to an earlier fork {destination_fork:?}"
     )]
-    IncompatibleFork { source_fork: Fork, destination_fork: Fork },
+    InvalidForkTransition { source_fork: Fork, destination_fork: Fork },
     #[error("genesis time unknown for network {0}")]
     UnknownGenesisTime(String),
     #[cfg(feature = "serde")]

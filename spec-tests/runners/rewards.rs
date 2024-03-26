@@ -168,6 +168,42 @@ pub fn dispatch(test: &TestCase) -> Result<(), Error> {
                         }
                     }
                 }
+                (mainnet, capella) => {
+                    gen_exec! {
+                        test,
+                        load_test,
+                        |(state, expected): (spec::BeaconState, RewardsDeltas<{spec::VALIDATOR_REGISTRY_LIMIT}>), context| {
+                            run_test(&state, context, expected, |state, context| {
+                                let flag_index = spec::TIMELY_SOURCE_FLAG_INDEX;
+                                let source_deltas = spec::get_flag_index_deltas(&state, flag_index, context).unwrap();
+                                let flag_index = spec::TIMELY_TARGET_FLAG_INDEX;
+                                let target_deltas = spec::get_flag_index_deltas(&state, flag_index, context).unwrap();
+                                let flag_index = spec::TIMELY_HEAD_FLAG_INDEX;
+                                let head_deltas = spec::get_flag_index_deltas(&state, flag_index, context).unwrap();
+                                let inactivity_penalty_deltas = spec::get_inactivity_penalty_deltas(&state, context).unwrap();
+                                (source_deltas, target_deltas, head_deltas, None, inactivity_penalty_deltas)
+                            })
+                        }
+                    }
+                }
+                (mainnet, deneb) => {
+                    gen_exec! {
+                        test,
+                        load_test,
+                        |(state, expected): (spec::BeaconState, RewardsDeltas<{spec::VALIDATOR_REGISTRY_LIMIT}>), context| {
+                            run_test(&state, context, expected, |state, context| {
+                                let flag_index = spec::TIMELY_SOURCE_FLAG_INDEX;
+                                let source_deltas = spec::get_flag_index_deltas(&state, flag_index, context).unwrap();
+                                let flag_index = spec::TIMELY_TARGET_FLAG_INDEX;
+                                let target_deltas = spec::get_flag_index_deltas(&state, flag_index, context).unwrap();
+                                let flag_index = spec::TIMELY_HEAD_FLAG_INDEX;
+                                let head_deltas = spec::get_flag_index_deltas(&state, flag_index, context).unwrap();
+                                let inactivity_penalty_deltas = spec::get_inactivity_penalty_deltas(&state, context).unwrap();
+                                (source_deltas, target_deltas, head_deltas, None, inactivity_penalty_deltas)
+                            })
+                        }
+                    }
+                }
                 (minimal, altair) => {
                     gen_exec! {
                         test,
@@ -187,6 +223,42 @@ pub fn dispatch(test: &TestCase) -> Result<(), Error> {
                     }
                 }
                 (minimal, bellatrix) => {
+                    gen_exec! {
+                        test,
+                        load_test,
+                        |(state, expected): (spec::BeaconState, RewardsDeltas<{spec::VALIDATOR_REGISTRY_LIMIT}>), context| {
+                            run_test(&state, context, expected, |state, context| {
+                                let flag_index = spec::TIMELY_SOURCE_FLAG_INDEX;
+                                let source_deltas = spec::get_flag_index_deltas(&state, flag_index, context).unwrap();
+                                let flag_index = spec::TIMELY_TARGET_FLAG_INDEX;
+                                let target_deltas = spec::get_flag_index_deltas(&state, flag_index, context).unwrap();
+                                let flag_index = spec::TIMELY_HEAD_FLAG_INDEX;
+                                let head_deltas = spec::get_flag_index_deltas(&state, flag_index, context).unwrap();
+                                let inactivity_penalty_deltas = spec::get_inactivity_penalty_deltas(&state, context).unwrap();
+                                (source_deltas, target_deltas, head_deltas, None, inactivity_penalty_deltas)
+                            })
+                        }
+                    }
+                }
+                (minimal, capella) => {
+                    gen_exec! {
+                        test,
+                        load_test,
+                        |(state, expected): (spec::BeaconState, RewardsDeltas<{spec::VALIDATOR_REGISTRY_LIMIT}>), context| {
+                            run_test(&state, context, expected, |state, context| {
+                                let flag_index = spec::TIMELY_SOURCE_FLAG_INDEX;
+                                let source_deltas = spec::get_flag_index_deltas(&state, flag_index, context).unwrap();
+                                let flag_index = spec::TIMELY_TARGET_FLAG_INDEX;
+                                let target_deltas = spec::get_flag_index_deltas(&state, flag_index, context).unwrap();
+                                let flag_index = spec::TIMELY_HEAD_FLAG_INDEX;
+                                let head_deltas = spec::get_flag_index_deltas(&state, flag_index, context).unwrap();
+                                let inactivity_penalty_deltas = spec::get_inactivity_penalty_deltas(&state, context).unwrap();
+                                (source_deltas, target_deltas, head_deltas, None, inactivity_penalty_deltas)
+                            })
+                        }
+                    }
+                }
+                (minimal, deneb) => {
                     gen_exec! {
                         test,
                         load_test,

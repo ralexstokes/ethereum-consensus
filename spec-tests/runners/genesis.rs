@@ -192,6 +192,101 @@ pub fn dispatch(test: &TestCase) -> Result<(), Error> {
                         }
                     }
                 }
+                (minimal, capella) => {
+                    gen_exec! {
+                        test,
+                        load_initialization_test,
+                        |(eth1, mut deposits, execution_payload_header, expected): (
+                            Eth1,
+                            Vec<spec::Deposit>,
+                            Option<spec::ExecutionPayloadHeader>,
+                            spec::BeaconState
+                        ),
+                         context| {
+                            let state = spec::initialize_beacon_state_from_eth1::<
+                                { spec::SLOTS_PER_HISTORICAL_ROOT },
+                                { spec::HISTORICAL_ROOTS_LIMIT },
+                                { spec::ETH1_DATA_VOTES_BOUND },
+                                { spec::VALIDATOR_REGISTRY_LIMIT },
+                                { spec::EPOCHS_PER_HISTORICAL_VECTOR },
+                                { spec::EPOCHS_PER_SLASHINGS_VECTOR },
+                                { spec::MAX_VALIDATORS_PER_COMMITTEE },
+                                { spec::SYNC_COMMITTEE_SIZE },
+                                { spec::MAX_PROPOSER_SLASHINGS },
+                                { spec::MAX_ATTESTER_SLASHINGS },
+                                { spec::MAX_ATTESTATIONS },
+                                { spec::MAX_DEPOSITS },
+                                { spec::MAX_VOLUNTARY_EXITS },
+                                { spec::BYTES_PER_LOGS_BLOOM },
+                                { spec::MAX_EXTRA_DATA_BYTES },
+                                { spec::MAX_BYTES_PER_TRANSACTION },
+                                { spec::MAX_TRANSACTIONS_PER_PAYLOAD },
+                                { spec::MAX_WITHDRAWALS_PER_PAYLOAD },
+                                { spec::MAX_BLS_TO_EXECUTION_CHANGES },
+                            >(
+                                eth1.eth1_block_hash,
+                                eth1.eth1_timestamp,
+                                &mut deposits,
+                                execution_payload_header.as_ref(),
+                                context,
+                            )
+                            .unwrap();
+                            if expected == state {
+                                Ok(())
+                            } else {
+                                Err(Error::InvalidState)
+                            }
+                        }
+                    }
+                }
+                (minimal, deneb) => {
+                    gen_exec! {
+                        test,
+                        load_initialization_test,
+                        |(eth1, mut deposits, execution_payload_header, expected): (
+                            Eth1,
+                            Vec<spec::Deposit>,
+                            Option<spec::ExecutionPayloadHeader>,
+                            spec::BeaconState
+                        ),
+                         context| {
+                            let state = spec::initialize_beacon_state_from_eth1::<
+                                { spec::SLOTS_PER_HISTORICAL_ROOT },
+                                { spec::HISTORICAL_ROOTS_LIMIT },
+                                { spec::ETH1_DATA_VOTES_BOUND },
+                                { spec::VALIDATOR_REGISTRY_LIMIT },
+                                { spec::EPOCHS_PER_HISTORICAL_VECTOR },
+                                { spec::EPOCHS_PER_SLASHINGS_VECTOR },
+                                { spec::MAX_VALIDATORS_PER_COMMITTEE },
+                                { spec::SYNC_COMMITTEE_SIZE },
+                                { spec::MAX_PROPOSER_SLASHINGS },
+                                { spec::MAX_ATTESTER_SLASHINGS },
+                                { spec::MAX_ATTESTATIONS },
+                                { spec::MAX_DEPOSITS },
+                                { spec::MAX_VOLUNTARY_EXITS },
+                                { spec::BYTES_PER_LOGS_BLOOM },
+                                { spec::MAX_EXTRA_DATA_BYTES },
+                                { spec::MAX_BYTES_PER_TRANSACTION },
+                                { spec::MAX_TRANSACTIONS_PER_PAYLOAD },
+                                { spec::MAX_WITHDRAWALS_PER_PAYLOAD },
+                                { spec::MAX_BLS_TO_EXECUTION_CHANGES },
+                                { spec::MAX_BLOB_COMMITMENTS_PER_BLOCK },
+                            >(
+                                eth1.eth1_block_hash,
+                                eth1.eth1_timestamp,
+                                &mut deposits,
+                                execution_payload_header.as_ref(),
+                                context,
+                            )
+                            .unwrap();
+                            if expected == state {
+                                Ok(())
+                            } else {
+                                Err(Error::InvalidState)
+                            }
+                        }
+                    }
+                }
             }
         }
         "validity" => {
@@ -199,7 +294,9 @@ pub fn dispatch(test: &TestCase) -> Result<(), Error> {
                 test,
                 (minimal, phase0),
                 (minimal, altair),
-                (minimal, bellatrix)
+                (minimal, bellatrix),
+                (minimal, capella),
+                (minimal, deneb)
                 {
                     gen_exec! {
                         test,

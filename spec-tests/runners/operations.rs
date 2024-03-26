@@ -26,6 +26,24 @@ macro_rules! make_load_test {
             }
         }
     };
+    ($name: ident, $operation: ident) => {
+        paste! {
+            fn [<load_ $name _test>] <S: ssz_rs::Deserialize, O: ssz_rs::Deserialize>(
+                test_case_path: &str,
+            ) -> (S, Option<S>, O) {
+                let path = test_case_path.to_string() + "/pre.ssz_snappy";
+                let pre: S = load_snappy_ssz(&path).unwrap();
+
+                let path = test_case_path.to_string() + "/post.ssz_snappy";
+                let post: Option<S> = load_snappy_ssz(&path);
+
+                let path = test_case_path.to_string() + "/" + stringify!($operation) + ".ssz_snappy";
+                let operation: O = load_snappy_ssz(&path).unwrap();
+
+                (pre, post, operation)
+            }
+        }
+    };
 }
 
 make_load_test!(attestation);
@@ -35,6 +53,8 @@ make_load_test!(deposit);
 make_load_test!(proposer_slashing);
 make_load_test!(voluntary_exit);
 make_load_test!(sync_aggregate);
+make_load_test!(withdrawals, execution_payload);
+make_load_test!(bls_to_execution_change, address_change);
 
 #[derive(Deserialize)]
 struct ExecutionValidity {
@@ -231,6 +251,42 @@ pub fn dispatch(test: &TestCase) -> Result<(), Error> {
                             let mut context = context.clone();
                             context.execution_engine = execution_valid;
                             run_test(pre, post, operation, &context, spec::process_execution_payload)
+                        }
+                    }
+                }
+            }
+        }
+        "withdrawals" => {
+            gen_match_for! {
+                test,
+                (mainnet, capella),
+                (mainnet, deneb),
+                (minimal, capella),
+                (minimal, deneb)
+                {
+                    gen_exec! {
+                        test,
+                        load_withdrawals_test,
+                        |(pre, post, operation): (spec::BeaconState, Option<spec::BeaconState>, spec::ExecutionPayload), context| {
+                            run_test(pre, post, operation, context, |state, operation, context| { spec::process_withdrawals(state, &*operation, context)} )
+                        }
+                    }
+                }
+            }
+        }
+        "bls_to_execution_change" => {
+            gen_match_for! {
+                test,
+                (mainnet, capella),
+                (mainnet, deneb),
+                (minimal, capella),
+                (minimal, deneb)
+                {
+                    gen_exec! {
+                        test,
+                        load_bls_to_execution_change_test,
+                        |(pre, post, operation): (spec::BeaconState, Option<spec::BeaconState>, spec::SignedBlsToExecutionChange), context| {
+                            run_test(pre, post, operation, context, spec::process_bls_to_execution_change)
                         }
                     }
                 }

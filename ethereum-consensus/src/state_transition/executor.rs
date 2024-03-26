@@ -1,5 +1,5 @@
 use crate::{
-    altair, bellatrix, phase0,
+    altair, bellatrix, capella, deneb, phase0,
     state_transition::{Context, Result, Validation},
     types::{BeaconState, SignedBeaconBlock},
     Error, Fork,
@@ -162,11 +162,11 @@ impl<
             SignedBeaconBlock::Bellatrix(signed_block) => {
                 self.apply_bellatrix_block_with_validation(signed_block, validation)
             }
-            SignedBeaconBlock::Capella(_) => {
-                todo!()
+            SignedBeaconBlock::Capella(signed_block) => {
+                self.apply_capella_block_with_validation(signed_block, validation)
             }
-            SignedBeaconBlock::Deneb(_) => {
-                todo!()
+            SignedBeaconBlock::Deneb(signed_block) => {
+                self.apply_deneb_block_with_validation(signed_block, validation)
             }
         }
     }
@@ -187,20 +187,8 @@ impl<
             BeaconState::Phase0(state) => {
                 phase0::state_transition(state, signed_block, validation, &self.context)
             }
-            BeaconState::Altair(_) => Err(Error::IncompatibleFork {
-                source_fork: Fork::Altair,
-                destination_fork: Fork::Phase0,
-            }),
-            BeaconState::Bellatrix(_) => Err(Error::IncompatibleFork {
-                source_fork: Fork::Bellatrix,
-                destination_fork: Fork::Phase0,
-            }),
-            BeaconState::Capella(_) => Err(Error::IncompatibleFork {
-                source_fork: Fork::Capella,
-                destination_fork: Fork::Phase0,
-            }),
-            BeaconState::Deneb(_) => Err(Error::IncompatibleFork {
-                source_fork: Fork::Deneb,
+            state => Err(Error::InvalidForkTransition {
+                source_fork: state.version(),
                 destination_fork: Fork::Phase0,
             }),
         }
@@ -240,16 +228,8 @@ impl<
             BeaconState::Altair(state) => {
                 altair::state_transition(state, signed_block, validation, &self.context)
             }
-            BeaconState::Bellatrix(_) => Err(Error::IncompatibleFork {
-                source_fork: Fork::Bellatrix,
-                destination_fork: Fork::Altair,
-            }),
-            BeaconState::Capella(_) => Err(Error::IncompatibleFork {
-                source_fork: Fork::Capella,
-                destination_fork: Fork::Altair,
-            }),
-            BeaconState::Deneb(_) => Err(Error::IncompatibleFork {
-                source_fork: Fork::Deneb,
+            state => Err(Error::InvalidForkTransition {
+                source_fork: state.version(),
                 destination_fork: Fork::Altair,
             }),
         }
@@ -324,14 +304,229 @@ impl<
             BeaconState::Bellatrix(state) => {
                 bellatrix::state_transition(state, signed_block, validation, &self.context)
             }
-            BeaconState::Capella(_) => Err(Error::IncompatibleFork {
-                source_fork: Fork::Capella,
+            state => Err(Error::InvalidForkTransition {
+                source_fork: state.version(),
                 destination_fork: Fork::Bellatrix,
             }),
-            BeaconState::Deneb(_) => Err(Error::IncompatibleFork {
-                source_fork: Fork::Deneb,
-                destination_fork: Fork::Bellatrix,
+        }
+    }
+
+    pub fn apply_capella_block_with_validation(
+        &mut self,
+        signed_block: &mut capella::SignedBeaconBlock<
+            MAX_PROPOSER_SLASHINGS,
+            MAX_VALIDATORS_PER_COMMITTEE,
+            MAX_ATTESTER_SLASHINGS,
+            MAX_ATTESTATIONS,
+            MAX_DEPOSITS,
+            MAX_VOLUNTARY_EXITS,
+            SYNC_COMMITTEE_SIZE,
+            BYTES_PER_LOGS_BLOOM,
+            MAX_EXTRA_DATA_BYTES,
+            MAX_BYTES_PER_TRANSACTION,
+            MAX_TRANSACTIONS_PER_PAYLOAD,
+            MAX_WITHDRAWALS_PER_PAYLOAD,
+            MAX_BLS_TO_EXECUTION_CHANGES,
+        >,
+        validation: Validation,
+    ) -> Result<()> {
+        match &mut self.state {
+            BeaconState::Phase0(state) => {
+                let fork_slot = self.context.altair_fork_epoch * self.context.slots_per_epoch;
+                phase0::process_slots(state, fork_slot, &self.context)?;
+                let mut state = altair::upgrade_to_altair(state, &self.context)?;
+
+                let fork_slot = self.context.bellatrix_fork_epoch * self.context.slots_per_epoch;
+                altair::process_slots(&mut state, fork_slot, &self.context)?;
+                let mut state = bellatrix::upgrade_to_bellatrix(&state, &self.context);
+
+                let fork_slot = self.context.capella_fork_epoch * self.context.slots_per_epoch;
+                bellatrix::process_slots(&mut state, fork_slot, &self.context)?;
+                let mut state = capella::upgrade_to_capella(&state, &self.context);
+
+                if signed_block.message.slot == state.slot {
+                    capella::state_transition_block_in_slot(
+                        &mut state,
+                        signed_block,
+                        validation,
+                        &self.context,
+                    )?;
+                } else {
+                    capella::state_transition(&mut state, signed_block, validation, &self.context)?;
+                }
+                self.state = BeaconState::Capella(state);
+                Ok(())
+            }
+            BeaconState::Altair(state) => {
+                let fork_slot = self.context.bellatrix_fork_epoch * self.context.slots_per_epoch;
+                altair::process_slots(state, fork_slot, &self.context)?;
+                let mut state = bellatrix::upgrade_to_bellatrix(state, &self.context);
+
+                let fork_slot = self.context.capella_fork_epoch * self.context.slots_per_epoch;
+                bellatrix::process_slots(&mut state, fork_slot, &self.context)?;
+                let mut state = capella::upgrade_to_capella(&state, &self.context);
+
+                if signed_block.message.slot == state.slot {
+                    capella::state_transition_block_in_slot(
+                        &mut state,
+                        signed_block,
+                        validation,
+                        &self.context,
+                    )?;
+                } else {
+                    capella::state_transition(&mut state, signed_block, validation, &self.context)?;
+                }
+                self.state = BeaconState::Capella(state);
+                Ok(())
+            }
+            BeaconState::Bellatrix(state) => {
+                let fork_slot = self.context.capella_fork_epoch * self.context.slots_per_epoch;
+                bellatrix::process_slots(state, fork_slot, &self.context)?;
+                let mut state = capella::upgrade_to_capella(state, &self.context);
+
+                if signed_block.message.slot == state.slot {
+                    capella::state_transition_block_in_slot(
+                        &mut state,
+                        signed_block,
+                        validation,
+                        &self.context,
+                    )?;
+                } else {
+                    capella::state_transition(&mut state, signed_block, validation, &self.context)?;
+                }
+                self.state = BeaconState::Capella(state);
+                Ok(())
+            }
+            BeaconState::Capella(state) => {
+                capella::state_transition(state, signed_block, validation, &self.context)
+            }
+            state => Err(Error::InvalidForkTransition {
+                source_fork: state.version(),
+                destination_fork: Fork::Capella,
             }),
+        }
+    }
+
+    pub fn apply_deneb_block_with_validation(
+        &mut self,
+        signed_block: &mut deneb::SignedBeaconBlock<
+            MAX_PROPOSER_SLASHINGS,
+            MAX_VALIDATORS_PER_COMMITTEE,
+            MAX_ATTESTER_SLASHINGS,
+            MAX_ATTESTATIONS,
+            MAX_DEPOSITS,
+            MAX_VOLUNTARY_EXITS,
+            SYNC_COMMITTEE_SIZE,
+            BYTES_PER_LOGS_BLOOM,
+            MAX_EXTRA_DATA_BYTES,
+            MAX_BYTES_PER_TRANSACTION,
+            MAX_TRANSACTIONS_PER_PAYLOAD,
+            MAX_WITHDRAWALS_PER_PAYLOAD,
+            MAX_BLS_TO_EXECUTION_CHANGES,
+            MAX_BLOB_COMMITMENTS_PER_BLOCK,
+        >,
+        validation: Validation,
+    ) -> Result<()> {
+        match &mut self.state {
+            BeaconState::Phase0(state) => {
+                let fork_slot = self.context.altair_fork_epoch * self.context.slots_per_epoch;
+                phase0::process_slots(state, fork_slot, &self.context)?;
+                let mut state = altair::upgrade_to_altair(state, &self.context)?;
+
+                let fork_slot = self.context.bellatrix_fork_epoch * self.context.slots_per_epoch;
+                altair::process_slots(&mut state, fork_slot, &self.context)?;
+                let mut state = bellatrix::upgrade_to_bellatrix(&state, &self.context);
+
+                let fork_slot = self.context.capella_fork_epoch * self.context.slots_per_epoch;
+                bellatrix::process_slots(&mut state, fork_slot, &self.context)?;
+                let mut state = capella::upgrade_to_capella(&state, &self.context);
+
+                let fork_slot = self.context.deneb_fork_epoch * self.context.slots_per_epoch;
+                capella::process_slots(&mut state, fork_slot, &self.context)?;
+                let mut state = deneb::upgrade_to_deneb(&state, &self.context);
+
+                if signed_block.message.slot == state.slot {
+                    deneb::state_transition_block_in_slot(
+                        &mut state,
+                        signed_block,
+                        validation,
+                        &self.context,
+                    )?;
+                } else {
+                    deneb::state_transition(&mut state, signed_block, validation, &self.context)?;
+                }
+                self.state = BeaconState::Deneb(state);
+                Ok(())
+            }
+            BeaconState::Altair(state) => {
+                let fork_slot = self.context.bellatrix_fork_epoch * self.context.slots_per_epoch;
+                altair::process_slots(state, fork_slot, &self.context)?;
+                let mut state = bellatrix::upgrade_to_bellatrix(state, &self.context);
+
+                let fork_slot = self.context.capella_fork_epoch * self.context.slots_per_epoch;
+                bellatrix::process_slots(&mut state, fork_slot, &self.context)?;
+                let mut state = capella::upgrade_to_capella(&state, &self.context);
+
+                let fork_slot = self.context.deneb_fork_epoch * self.context.slots_per_epoch;
+                capella::process_slots(&mut state, fork_slot, &self.context)?;
+                let mut state = deneb::upgrade_to_deneb(&state, &self.context);
+
+                if signed_block.message.slot == state.slot {
+                    deneb::state_transition_block_in_slot(
+                        &mut state,
+                        signed_block,
+                        validation,
+                        &self.context,
+                    )?;
+                } else {
+                    deneb::state_transition(&mut state, signed_block, validation, &self.context)?;
+                }
+                self.state = BeaconState::Deneb(state);
+                Ok(())
+            }
+            BeaconState::Bellatrix(state) => {
+                let fork_slot = self.context.capella_fork_epoch * self.context.slots_per_epoch;
+                bellatrix::process_slots(state, fork_slot, &self.context)?;
+                let mut state = capella::upgrade_to_capella(state, &self.context);
+
+                let fork_slot = self.context.deneb_fork_epoch * self.context.slots_per_epoch;
+                capella::process_slots(&mut state, fork_slot, &self.context)?;
+                let mut state = deneb::upgrade_to_deneb(&state, &self.context);
+
+                if signed_block.message.slot == state.slot {
+                    deneb::state_transition_block_in_slot(
+                        &mut state,
+                        signed_block,
+                        validation,
+                        &self.context,
+                    )?;
+                } else {
+                    deneb::state_transition(&mut state, signed_block, validation, &self.context)?;
+                }
+                self.state = BeaconState::Deneb(state);
+                Ok(())
+            }
+            BeaconState::Capella(state) => {
+                let fork_slot = self.context.deneb_fork_epoch * self.context.slots_per_epoch;
+                capella::process_slots(state, fork_slot, &self.context)?;
+                let mut state = deneb::upgrade_to_deneb(state, &self.context);
+
+                if signed_block.message.slot == state.slot {
+                    deneb::state_transition_block_in_slot(
+                        &mut state,
+                        signed_block,
+                        validation,
+                        &self.context,
+                    )?;
+                } else {
+                    deneb::state_transition(&mut state, signed_block, validation, &self.context)?;
+                }
+                self.state = BeaconState::Deneb(state);
+                Ok(())
+            }
+            BeaconState::Deneb(state) => {
+                deneb::state_transition(state, signed_block, validation, &self.context)
+            }
         }
     }
 }
