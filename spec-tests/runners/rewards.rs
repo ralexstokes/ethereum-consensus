@@ -104,12 +104,12 @@ pub fn dispatch(test: &TestCase) -> Result<(), Error> {
                         load_test,
                         |(state, expected): (spec::BeaconState, RewardsDeltas<{spec::VALIDATOR_REGISTRY_LIMIT}>), context| {
                             run_test(&state, context, expected, |state, context| {
-                                let source_deltas = spec::get_source_deltas(&state, context).unwrap();
-                                let target_deltas = spec::get_target_deltas(&state, context).unwrap();
-                                let head_deltas = spec::get_head_deltas(&state, context).unwrap();
-                                let inclusion_delay_deltas = spec::get_inclusion_delay_deltas(&state, context).unwrap();
+                                let source_deltas = spec::get_source_deltas(state, context).unwrap();
+                                let target_deltas = spec::get_target_deltas(state, context).unwrap();
+                                let head_deltas = spec::get_head_deltas(state, context).unwrap();
+                                let inclusion_delay_deltas = spec::get_inclusion_delay_deltas(state, context).unwrap();
                                 let inactivity_penalty_deltas =
-                                    spec::get_inactivity_penalty_deltas(&state, context).unwrap();
+                                    spec::get_inactivity_penalty_deltas(state, context).unwrap();
                                 (source_deltas, target_deltas, head_deltas, Some(inclusion_delay_deltas), inactivity_penalty_deltas)
                             })
                         }
@@ -121,12 +121,12 @@ pub fn dispatch(test: &TestCase) -> Result<(), Error> {
                         load_test,
                         |(state, expected): (spec::BeaconState, RewardsDeltas<{spec::VALIDATOR_REGISTRY_LIMIT}>), context| {
                             run_test(&state, context, expected, |state, context| {
-                                let source_deltas = spec::get_source_deltas(&state, context).unwrap();
-                                let target_deltas = spec::get_target_deltas(&state, context).unwrap();
-                                let head_deltas = spec::get_head_deltas(&state, context).unwrap();
-                                let inclusion_delay_deltas = spec::get_inclusion_delay_deltas(&state, context).unwrap();
+                                let source_deltas = spec::get_source_deltas(state, context).unwrap();
+                                let target_deltas = spec::get_target_deltas(state, context).unwrap();
+                                let head_deltas = spec::get_head_deltas(state, context).unwrap();
+                                let inclusion_delay_deltas = spec::get_inclusion_delay_deltas(state, context).unwrap();
                                 let inactivity_penalty_deltas =
-                                    spec::get_inactivity_penalty_deltas(&state, context).unwrap();
+                                    spec::get_inactivity_penalty_deltas(state, context).unwrap();
                                 (source_deltas, target_deltas, head_deltas, Some(inclusion_delay_deltas), inactivity_penalty_deltas)
                             })
                         }
@@ -139,12 +139,12 @@ pub fn dispatch(test: &TestCase) -> Result<(), Error> {
                         |(state, expected): (spec::BeaconState, RewardsDeltas<{spec::VALIDATOR_REGISTRY_LIMIT}>), context| {
                             run_test(&state, context, expected, |state, context| {
                                 let flag_index = spec::TIMELY_SOURCE_FLAG_INDEX;
-                                let source_deltas = spec::get_flag_index_deltas(&state, flag_index, context).unwrap();
+                                let source_deltas = spec::get_flag_index_deltas(state, flag_index, context).unwrap();
                                 let flag_index = spec::TIMELY_TARGET_FLAG_INDEX;
-                                let target_deltas = spec::get_flag_index_deltas(&state, flag_index, context).unwrap();
+                                let target_deltas = spec::get_flag_index_deltas(state, flag_index, context).unwrap();
                                 let flag_index = spec::TIMELY_HEAD_FLAG_INDEX;
-                                let head_deltas = spec::get_flag_index_deltas(&state, flag_index, context).unwrap();
-                                let inactivity_penalty_deltas = spec::get_inactivity_penalty_deltas(&state, context).unwrap();
+                                let head_deltas = spec::get_flag_index_deltas(state, flag_index, context).unwrap();
+                                let inactivity_penalty_deltas = spec::get_inactivity_penalty_deltas(state, context).unwrap();
                                 (source_deltas, target_deltas, head_deltas, None, inactivity_penalty_deltas)
                             })
                         }
@@ -157,12 +157,12 @@ pub fn dispatch(test: &TestCase) -> Result<(), Error> {
                         |(state, expected): (spec::BeaconState, RewardsDeltas<{spec::VALIDATOR_REGISTRY_LIMIT}>), context| {
                             run_test(&state, context, expected, |state, context| {
                                 let flag_index = spec::TIMELY_SOURCE_FLAG_INDEX;
-                                let source_deltas = spec::get_flag_index_deltas(&state, flag_index, context).unwrap();
+                                let source_deltas = spec::get_flag_index_deltas(state, flag_index, context).unwrap();
                                 let flag_index = spec::TIMELY_TARGET_FLAG_INDEX;
-                                let target_deltas = spec::get_flag_index_deltas(&state, flag_index, context).unwrap();
+                                let target_deltas = spec::get_flag_index_deltas(state, flag_index, context).unwrap();
                                 let flag_index = spec::TIMELY_HEAD_FLAG_INDEX;
-                                let head_deltas = spec::get_flag_index_deltas(&state, flag_index, context).unwrap();
-                                let inactivity_penalty_deltas = spec::get_inactivity_penalty_deltas(&state, context).unwrap();
+                                let head_deltas = spec::get_flag_index_deltas(state, flag_index, context).unwrap();
+                                let inactivity_penalty_deltas = spec::get_inactivity_penalty_deltas(state, context).unwrap();
                                 (source_deltas, target_deltas, head_deltas, None, inactivity_penalty_deltas)
                             })
                         }
@@ -175,12 +175,12 @@ pub fn dispatch(test: &TestCase) -> Result<(), Error> {
                         |(state, expected): (spec::BeaconState, RewardsDeltas<{spec::VALIDATOR_REGISTRY_LIMIT}>), context| {
                             run_test(&state, context, expected, |state, context| {
                                 let flag_index = spec::TIMELY_SOURCE_FLAG_INDEX;
-                                let source_deltas = spec::get_flag_index_deltas(&state, flag_index, context).unwrap();
+                                let source_deltas = spec::get_flag_index_deltas(state, flag_index, context).unwrap();
                                 let flag_index = spec::TIMELY_TARGET_FLAG_INDEX;
-                                let target_deltas = spec::get_flag_index_deltas(&state, flag_index, context).unwrap();
+                                let target_deltas = spec::get_flag_index_deltas(state, flag_index, context).unwrap();
                                 let flag_index = spec::TIMELY_HEAD_FLAG_INDEX;
-                                let head_deltas = spec::get_flag_index_deltas(&state, flag_index, context).unwrap();
-                                let inactivity_penalty_deltas = spec::get_inactivity_penalty_deltas(&state, context).unwrap();
+                                let head_deltas = spec::get_flag_index_deltas(state, flag_index, context).unwrap();
+                                let inactivity_penalty_deltas = spec::get_inactivity_penalty_deltas(state, context).unwrap();
                                 (source_deltas, target_deltas, head_deltas, None, inactivity_penalty_deltas)
                             })
                         }
@@ -193,12 +193,12 @@ pub fn dispatch(test: &TestCase) -> Result<(), Error> {
                         |(state, expected): (spec::BeaconState, RewardsDeltas<{spec::VALIDATOR_REGISTRY_LIMIT}>), context| {
                             run_test(&state, context, expected, |state, context| {
                                 let flag_index = spec::TIMELY_SOURCE_FLAG_INDEX;
-                                let source_deltas = spec::get_flag_index_deltas(&state, flag_index, context).unwrap();
+                                let source_deltas = spec::get_flag_index_deltas(state, flag_index, context).unwrap();
                                 let flag_index = spec::TIMELY_TARGET_FLAG_INDEX;
-                                let target_deltas = spec::get_flag_index_deltas(&state, flag_index, context).unwrap();
+                                let target_deltas = spec::get_flag_index_deltas(state, flag_index, context).unwrap();
                                 let flag_index = spec::TIMELY_HEAD_FLAG_INDEX;
-                                let head_deltas = spec::get_flag_index_deltas(&state, flag_index, context).unwrap();
-                                let inactivity_penalty_deltas = spec::get_inactivity_penalty_deltas(&state, context).unwrap();
+                                let head_deltas = spec::get_flag_index_deltas(state, flag_index, context).unwrap();
+                                let inactivity_penalty_deltas = spec::get_inactivity_penalty_deltas(state, context).unwrap();
                                 (source_deltas, target_deltas, head_deltas, None, inactivity_penalty_deltas)
                             })
                         }
@@ -211,12 +211,12 @@ pub fn dispatch(test: &TestCase) -> Result<(), Error> {
                         |(state, expected): (spec::BeaconState, RewardsDeltas<{spec::VALIDATOR_REGISTRY_LIMIT}>), context| {
                             run_test(&state, context, expected, |state, context| {
                                 let flag_index = spec::TIMELY_SOURCE_FLAG_INDEX;
-                                let source_deltas = spec::get_flag_index_deltas(&state, flag_index, context).unwrap();
+                                let source_deltas = spec::get_flag_index_deltas(state, flag_index, context).unwrap();
                                 let flag_index = spec::TIMELY_TARGET_FLAG_INDEX;
-                                let target_deltas = spec::get_flag_index_deltas(&state, flag_index, context).unwrap();
+                                let target_deltas = spec::get_flag_index_deltas(state, flag_index, context).unwrap();
                                 let flag_index = spec::TIMELY_HEAD_FLAG_INDEX;
-                                let head_deltas = spec::get_flag_index_deltas(&state, flag_index, context).unwrap();
-                                let inactivity_penalty_deltas = spec::get_inactivity_penalty_deltas(&state, context).unwrap();
+                                let head_deltas = spec::get_flag_index_deltas(state, flag_index, context).unwrap();
+                                let inactivity_penalty_deltas = spec::get_inactivity_penalty_deltas(state, context).unwrap();
                                 (source_deltas, target_deltas, head_deltas, None, inactivity_penalty_deltas)
                             })
                         }
@@ -229,12 +229,12 @@ pub fn dispatch(test: &TestCase) -> Result<(), Error> {
                         |(state, expected): (spec::BeaconState, RewardsDeltas<{spec::VALIDATOR_REGISTRY_LIMIT}>), context| {
                             run_test(&state, context, expected, |state, context| {
                                 let flag_index = spec::TIMELY_SOURCE_FLAG_INDEX;
-                                let source_deltas = spec::get_flag_index_deltas(&state, flag_index, context).unwrap();
+                                let source_deltas = spec::get_flag_index_deltas(state, flag_index, context).unwrap();
                                 let flag_index = spec::TIMELY_TARGET_FLAG_INDEX;
-                                let target_deltas = spec::get_flag_index_deltas(&state, flag_index, context).unwrap();
+                                let target_deltas = spec::get_flag_index_deltas(state, flag_index, context).unwrap();
                                 let flag_index = spec::TIMELY_HEAD_FLAG_INDEX;
-                                let head_deltas = spec::get_flag_index_deltas(&state, flag_index, context).unwrap();
-                                let inactivity_penalty_deltas = spec::get_inactivity_penalty_deltas(&state, context).unwrap();
+                                let head_deltas = spec::get_flag_index_deltas(state, flag_index, context).unwrap();
+                                let inactivity_penalty_deltas = spec::get_inactivity_penalty_deltas(state, context).unwrap();
                                 (source_deltas, target_deltas, head_deltas, None, inactivity_penalty_deltas)
                             })
                         }
@@ -247,12 +247,12 @@ pub fn dispatch(test: &TestCase) -> Result<(), Error> {
                         |(state, expected): (spec::BeaconState, RewardsDeltas<{spec::VALIDATOR_REGISTRY_LIMIT}>), context| {
                             run_test(&state, context, expected, |state, context| {
                                 let flag_index = spec::TIMELY_SOURCE_FLAG_INDEX;
-                                let source_deltas = spec::get_flag_index_deltas(&state, flag_index, context).unwrap();
+                                let source_deltas = spec::get_flag_index_deltas(state, flag_index, context).unwrap();
                                 let flag_index = spec::TIMELY_TARGET_FLAG_INDEX;
-                                let target_deltas = spec::get_flag_index_deltas(&state, flag_index, context).unwrap();
+                                let target_deltas = spec::get_flag_index_deltas(state, flag_index, context).unwrap();
                                 let flag_index = spec::TIMELY_HEAD_FLAG_INDEX;
-                                let head_deltas = spec::get_flag_index_deltas(&state, flag_index, context).unwrap();
-                                let inactivity_penalty_deltas = spec::get_inactivity_penalty_deltas(&state, context).unwrap();
+                                let head_deltas = spec::get_flag_index_deltas(state, flag_index, context).unwrap();
+                                let inactivity_penalty_deltas = spec::get_inactivity_penalty_deltas(state, context).unwrap();
                                 (source_deltas, target_deltas, head_deltas, None, inactivity_penalty_deltas)
                             })
                         }
@@ -265,12 +265,12 @@ pub fn dispatch(test: &TestCase) -> Result<(), Error> {
                         |(state, expected): (spec::BeaconState, RewardsDeltas<{spec::VALIDATOR_REGISTRY_LIMIT}>), context| {
                             run_test(&state, context, expected, |state, context| {
                                 let flag_index = spec::TIMELY_SOURCE_FLAG_INDEX;
-                                let source_deltas = spec::get_flag_index_deltas(&state, flag_index, context).unwrap();
+                                let source_deltas = spec::get_flag_index_deltas(state, flag_index, context).unwrap();
                                 let flag_index = spec::TIMELY_TARGET_FLAG_INDEX;
-                                let target_deltas = spec::get_flag_index_deltas(&state, flag_index, context).unwrap();
+                                let target_deltas = spec::get_flag_index_deltas(state, flag_index, context).unwrap();
                                 let flag_index = spec::TIMELY_HEAD_FLAG_INDEX;
-                                let head_deltas = spec::get_flag_index_deltas(&state, flag_index, context).unwrap();
-                                let inactivity_penalty_deltas = spec::get_inactivity_penalty_deltas(&state, context).unwrap();
+                                let head_deltas = spec::get_flag_index_deltas(state, flag_index, context).unwrap();
+                                let inactivity_penalty_deltas = spec::get_inactivity_penalty_deltas(state, context).unwrap();
                                 (source_deltas, target_deltas, head_deltas, None, inactivity_penalty_deltas)
                             })
                         }

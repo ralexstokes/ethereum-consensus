@@ -10,7 +10,7 @@ pub enum Error {
     #[error("state did not match expected")]
     InvalidState,
     #[error("test was expected to error but did not")]
-    ExpectedError,
+    Expected,
     #[error("internal error; you should not see this")]
     InternalContinue,
 }

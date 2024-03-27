@@ -26,18 +26,16 @@ where
 {
     let result = exec_fn(&mut pre, context);
     if let Some(post) = post {
-        assert_eq!(result.unwrap(), ());
+        assert!(result.is_ok());
         if pre != post {
             Err(Error::InvalidState)
         } else {
             Ok(())
         }
+    } else if result.is_ok() {
+        Err(Error::Expected)
     } else {
-        if result.is_ok() {
-            Err(Error::ExpectedError)
-        } else {
-            Ok(())
-        }
+        Ok(())
     }
 }
 

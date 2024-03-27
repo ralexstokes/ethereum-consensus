@@ -51,11 +51,9 @@ where
         } else {
             Err(Error::InvalidState)
         }
+    } else if result.is_err() {
+        Ok(())
     } else {
-        if result.is_err() {
-            Ok(())
-        } else {
-            Err(Error::ExpectedError)
-        }
+        Err(Error::Expected)
     }
 }
