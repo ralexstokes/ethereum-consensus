@@ -552,8 +552,8 @@ fn parse_fork_diff_with_symbol_index(fork: &Fork) -> (ForkDiff, HashMap<String, 
     let mut index = HashMap::default();
     for module_name in fork.modules_in_diff() {
         let source_path = format!("{SOURCE_ROOT}/{fork_name}/{module_name}.rs");
-        let module_source =
-            fs::read_to_string(&source_path).expect(&format!("{source_path} exists"));
+        let module_source = fs::read_to_string(&source_path)
+            .unwrap_or_else(|_| panic!("expected {source_path} exists"));
         let file = syn::parse_file(&module_source).unwrap();
         let module =
             fork_diff.modules.entry(module_name.to_string()).or_insert_with(Default::default);
