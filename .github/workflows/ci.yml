@@ -34,7 +34,7 @@ jobs:
         run: cargo build --all-targets --all-features --verbose
 
       - name: Run tests
-        run: cargo test --features ec --verbose
+        run: cargo test --all-features --all-targets --workspace --exclude spec-tests --verbose
 
   lint:
     runs-on: ubuntu-latest

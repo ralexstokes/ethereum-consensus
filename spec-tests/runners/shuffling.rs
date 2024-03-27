@@ -31,7 +31,7 @@ pub fn dispatch(test: &TestCase) -> Result<(), Error> {
                         load_test,
                         |data: ShufflingTestData, context| {
                             // test `compute_shuffled_index`, following the spec which goes index by index
-                            let result = (0..data.count).into_iter().map(|index| {
+                            let result = (0..data.count).map(|index| {
                                 spec::compute_shuffled_index(index, data.count, &data.seed, context).unwrap()
                             }).collect::<Vec<_>>();
                             assert_eq!(result, data.mapping);
