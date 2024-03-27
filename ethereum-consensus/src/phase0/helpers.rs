@@ -360,6 +360,44 @@ pub fn compute_shuffled_indices(
     input
 }
 
+pub fn sample_proposer_index<
+    const SLOTS_PER_HISTORICAL_ROOT: usize,
+    const HISTORICAL_ROOTS_LIMIT: usize,
+    const ETH1_DATA_VOTES_BOUND: usize,
+    const VALIDATOR_REGISTRY_LIMIT: usize,
+    const EPOCHS_PER_HISTORICAL_VECTOR: usize,
+    const EPOCHS_PER_SLASHINGS_VECTOR: usize,
+    const MAX_VALIDATORS_PER_COMMITTEE: usize,
+    const PENDING_ATTESTATIONS_BOUND: usize,
+>(
+    state: &BeaconState<
+        SLOTS_PER_HISTORICAL_ROOT,
+        HISTORICAL_ROOTS_LIMIT,
+        ETH1_DATA_VOTES_BOUND,
+        VALIDATOR_REGISTRY_LIMIT,
+        EPOCHS_PER_HISTORICAL_VECTOR,
+        EPOCHS_PER_SLASHINGS_VECTOR,
+        MAX_VALIDATORS_PER_COMMITTEE,
+        PENDING_ATTESTATIONS_BOUND,
+    >,
+    candidate_index: ValidatorIndex,
+    round: usize,
+    hash_input: &mut [u8],
+    context: &Context,
+) -> Option<ValidatorIndex> {
+    let max_byte = u8::MAX as u64;
+    let round_bytes: [u8; 8] = (round / 32).to_le_bytes();
+    hash_input[32..].copy_from_slice(&round_bytes);
+    let random_byte = hash(hash_input).as_ref()[round % 32] as u64;
+
+    let effective_balance = state.validators[candidate_index].effective_balance;
+    if effective_balance * max_byte >= context.max_effective_balance * random_byte {
+        Some(candidate_index)
+    } else {
+        None
+    }
+}
+
 pub fn compute_proposer_index<
     const SLOTS_PER_HISTORICAL_ROOT: usize,
     const HISTORICAL_ROOTS_LIMIT: usize,
@@ -387,25 +425,35 @@ pub fn compute_proposer_index<
     if indices.is_empty() {
         return Err(Error::CollectionCannotBeEmpty)
     }
-    let max_byte = u8::MAX as u64;
-    let mut i = 0;
+    let mut round = 0;
     let total = indices.len();
 
     let mut hash_input = [0u8; 40];
     hash_input[..32].copy_from_slice(seed.as_ref());
-    loop {
-        let shuffled_index = compute_shuffled_index(i % total, total, seed, context)?;
-        let candidate_index = indices[shuffled_index];
+    if cfg!(feature = "shuffling") {
+        let shuffled_indices = compute_shuffled_indices(indices, seed, context);
+        loop {
+            let candidate_index = shuffled_indices[round % total];
 
-        let i_bytes: [u8; 8] = (i / 32).to_le_bytes();
-        hash_input[32..].copy_from_slice(&i_bytes);
-        let random_byte = hash(hash_input).as_ref()[i % 32] as u64;
-
-        let effective_balance = state.validators[candidate_index].effective_balance;
-        if effective_balance * max_byte >= context.max_effective_balance * random_byte {
-            return Ok(candidate_index)
+            if let Some(candidate_index) =
+                sample_proposer_index(state, candidate_index, round, &mut hash_input, context)
+            {
+                return Ok(candidate_index)
+            }
+            round += 1
         }
-        i += 1
+    } else {
+        loop {
+            let shuffled_index = compute_shuffled_index(round % total, total, seed, context)?;
+            let candidate_index = indices[shuffled_index];
+
+            if let Some(candidate_index) =
+                sample_proposer_index(state, candidate_index, round, &mut hash_input, context)
+            {
+                return Ok(candidate_index)
+            }
+            round += 1
+        }
     }
 }
 
