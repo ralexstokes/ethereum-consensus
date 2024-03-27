@@ -34,9 +34,9 @@ pub use crate::{
         helpers::{
             compute_activation_exit_epoch, compute_committee, compute_domain,
             compute_epoch_at_slot, compute_fork_data_root, compute_fork_digest,
-            compute_proposer_index, compute_shuffled_index, compute_start_slot_at_epoch,
-            decrease_balance, get_active_validator_indices, get_attesting_indices,
-            get_beacon_committee, get_beacon_proposer_index, get_block_root,
+            compute_proposer_index, compute_shuffled_index, compute_shuffled_indices,
+            compute_start_slot_at_epoch, decrease_balance, get_active_validator_indices,
+            get_attesting_indices, get_beacon_committee, get_beacon_proposer_index, get_block_root,
             get_block_root_at_slot, get_committee_count_per_slot, get_current_epoch, get_domain,
             get_eligible_validator_indices, get_indexed_attestation, get_previous_epoch,
             get_randao_mix, get_seed, get_total_active_balance, get_total_balance,

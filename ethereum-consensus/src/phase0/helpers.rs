@@ -10,8 +10,8 @@ use crate::{
         validator::Validator,
     },
     primitives::{
-        Bytes32, CommitteeIndex, Domain, DomainType, Epoch, ForkDigest, Gwei, Root, Slot,
-        ValidatorIndex, Version, FAR_FUTURE_EPOCH, GENESIS_EPOCH,
+        Bytes32, CommitteeIndex, Domain, DomainType, Epoch, ForkDigest, Gwei, Root,
+        ShuffledIndices, Slot, ValidatorIndex, Version, FAR_FUTURE_EPOCH, GENESIS_EPOCH,
     },
     signing::compute_signing_root,
     ssz::prelude::*,
@@ -281,6 +281,83 @@ pub fn compute_shuffled_index(
     }
 
     Ok(index)
+}
+
+// Compute the consensus shuffling across an entire list of `indices`.
+// NOTE: cribbed from `lighthouse` implementation
+pub fn compute_shuffled_indices(
+    indices: &[ValidatorIndex],
+    seed: &Bytes32,
+    context: &Context,
+) -> ShuffledIndices {
+    let mut input = indices.to_vec();
+    if input.is_empty() {
+        return input
+    }
+
+    let index_count = input.len();
+
+    let mut pivot_input = [0u8; 33];
+    pivot_input[..32].copy_from_slice(seed.as_ref());
+
+    let mut source_input = [0u8; 37];
+    source_input[..32].copy_from_slice(seed.as_ref());
+
+    for current_round in (0..=context.shuffle_round_count - 1).rev() {
+        pivot_input[32] = current_round as u8;
+        let pivot_bytes: [u8; 8] = hash(pivot_input).as_ref()[..8].try_into().unwrap();
+        let pivot = u64::from_le_bytes(pivot_bytes) as usize % index_count;
+        source_input[32] = current_round as u8;
+
+        let position = (pivot >> 8) as u32;
+        source_input[33..].copy_from_slice(&position.to_le_bytes());
+        let mut source = hash(source_input);
+
+        let mut byte_source = source[(pivot & 0xff) >> 3];
+
+        let mirror = (pivot + 1) >> 1;
+        for i in 0..mirror {
+            let j = pivot - i;
+            if j & 0xff == 0xff {
+                let position = (j >> 8) as u32;
+                source_input[33..].copy_from_slice(&position.to_le_bytes());
+                source = hash(source_input);
+            }
+            if j & 0x07 == 0x07 {
+                byte_source = source[(j & 0xff) >> 3];
+            }
+            let bit_source = (byte_source >> (j & 0x07)) & 0x01;
+
+            if bit_source == 1 {
+                input.swap(i, j);
+            }
+        }
+
+        let end = index_count - 1;
+        let position = (end >> 8) as u32;
+        source_input[33..].copy_from_slice(&position.to_le_bytes());
+        source = hash(source_input);
+        byte_source = source[(end & 0xff) >> 3];
+
+        let mirror = (pivot + index_count + 1) >> 1;
+        for (k, i) in ((pivot + 1)..mirror).enumerate() {
+            let j = end - k;
+            if j & 0xff == 0xff {
+                let position = (j >> 8) as u32;
+                source_input[33..].copy_from_slice(&position.to_le_bytes());
+                source = hash(source_input);
+            }
+            if j & 0x07 == 0x07 {
+                byte_source = source[(j & 0xff) >> 3];
+            }
+            let bit_source = (byte_source >> (j & 0x07)) & 0x01;
+
+            if bit_source == 1 {
+                input.swap(i, j);
+            }
+        }
+    }
+    input
 }
 
 pub fn compute_proposer_index<
