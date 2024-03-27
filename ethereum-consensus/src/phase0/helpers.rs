@@ -416,14 +416,23 @@ pub fn compute_committee(
     count: usize,
     context: &Context,
 ) -> Result<Vec<ValidatorIndex>> {
-    let start = (indices.len() * index) / count;
-    let end = (indices.len()) * (index + 1) / count;
-    let mut committee = vec![0usize; end - start];
-    for i in start..end {
-        let index = compute_shuffled_index(i, indices.len(), seed, context)?;
-        committee[i - start] = indices[index];
+    if cfg!(feature = "shuffling") {
+        let shuffled_indices = compute_shuffled_indices(indices, seed, context);
+        let index_count = indices.len();
+        let start = index_count * index / count;
+        let end = index_count * (index + 1) / count;
+        let committee = shuffled_indices[start..end].to_vec();
+        Ok(committee)
+    } else {
+        let start = indices.len() * index / count;
+        let end = indices.len() * (index + 1) / count;
+        let mut committee = vec![0usize; end - start];
+        for i in start..end {
+            let index = compute_shuffled_index(i, indices.len(), seed, context)?;
+            committee[i - start] = indices[index];
+        }
+        Ok(committee)
     }
-    Ok(committee)
 }
 
 pub fn compute_epoch_at_slot(slot: Slot, context: &Context) -> Epoch {

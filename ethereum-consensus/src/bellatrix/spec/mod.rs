@@ -2223,8 +2223,8 @@ pub fn compute_committee(
     context: &Context,
 ) -> Result<Vec<ValidatorIndex>> {
     if cfg!(feature = "shuffling") {
-        let index_count = indices.len();
         let shuffled_indices = compute_shuffled_indices(indices, seed, context);
+        let index_count = indices.len();
         let start = index_count * index / count;
         let end = index_count * (index + 1) / count;
         let committee = shuffled_indices[start..end].to_vec();
