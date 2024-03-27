@@ -204,10 +204,7 @@ impl TestMeta {
     }
 
     pub fn should_ignore(&self) -> bool {
-        let ignored_runner = self.runner.should_ignore();
-        let ignored_handler =
-            matches!(self.runner, Runner::SszStatic) && self.handler.0.contains("LightClient");
-        ignored_runner | ignored_handler
+        self.runner.should_ignore()
     }
 
     pub fn should_skip(&self) -> bool {
