@@ -30,6 +30,8 @@ pub type Bytes32 = ByteVector<32>;
 
 pub type ParticipationFlags = u8;
 
+pub type ShuffledIndices = Vec<usize>;
+
 // Coordinate refers to a unique location in the block tree
 #[derive(serde::Serialize, serde::Deserialize)]
 pub struct Coordinate {

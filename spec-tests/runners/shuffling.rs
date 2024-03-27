@@ -30,10 +30,16 @@ pub fn dispatch(test: &TestCase) -> Result<(), Error> {
                         test,
                         load_test,
                         |data: ShufflingTestData, context| {
-                            for index in 0..data.count {
-                                let result = spec::compute_shuffled_index(index, data.count, &data.seed, context).unwrap();
-                                assert_eq!(result, data.mapping[index]);
-                            }
+                            // test `compute_shuffled_index`, following the spec which goes index by index
+                            let result = (0..data.count).into_iter().map(|index| {
+                                spec::compute_shuffled_index(index, data.count, &data.seed, context).unwrap()
+                            }).collect::<Vec<_>>();
+                            assert_eq!(result, data.mapping);
+
+                            // test `compute_shuffled_indices`, an optimization that shuffles the entire list at once
+                            let indices = (0..data.count).collect::<Vec<_>>();
+                            let shuffled_indices = spec::compute_shuffled_indices(&indices, &data.seed, context);
+                            assert_eq!(shuffled_indices, data.mapping);
                             Ok(())
                         }
                     }
