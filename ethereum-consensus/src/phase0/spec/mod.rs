@@ -43,7 +43,7 @@ pub use crate::{
             get_validator_churn_limit, increase_balance, initiate_validator_exit,
             is_active_validator, is_eligible_for_activation, is_eligible_for_activation_queue,
             is_slashable_attestation_data, is_slashable_validator, is_valid_indexed_attestation,
-            slash_validator, verify_block_signature,
+            sample_proposer_index, slash_validator, verify_block_signature,
         },
         operations::{
             Attestation, AttestationData, AttesterSlashing, Checkpoint, Deposit, DepositData,
