@@ -7,7 +7,9 @@ gen-types:
     just fmt
 
 test:
-    cargo test --all-features
+    cargo test --all-features --all-targets --workspace --exclude spec-tests
+run-spec-tests:
+    cargo test -p spec-tests
 fmt:
     cargo +nightly fmt --all
 lint: fmt
