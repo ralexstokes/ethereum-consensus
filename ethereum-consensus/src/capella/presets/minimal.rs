@@ -2,7 +2,7 @@ use crate::capella::spec;
 pub use crate::{
     bellatrix::presets::minimal::{
         AggregateAndProof, Attestation, AttesterSlashing, ContributionAndProof, HistoricalBatch,
-        IndexedAttestation, LightClientUpdate, PendingAttestation, SignedAggregateAndProof,
+        IndexedAttestation, PendingAttestation, SignedAggregateAndProof,
         SignedContributionAndProof, SyncAggregate, SyncCommittee, SyncCommitteeContribution,
         BYTES_PER_LOGS_BLOOM, EPOCHS_PER_HISTORICAL_VECTOR, EPOCHS_PER_SLASHINGS_VECTOR,
         ETH1_DATA_VOTES_BOUND, HISTORICAL_ROOTS_LIMIT, MAX_ATTESTATIONS, MAX_ATTESTER_SLASHINGS,
@@ -134,4 +134,20 @@ pub type SignedBeaconBlock = spec::SignedBeaconBlock<
     MAX_TRANSACTIONS_PER_PAYLOAD,
     MAX_WITHDRAWALS_PER_PAYLOAD,
     MAX_BLS_TO_EXECUTION_CHANGES,
+>;
+
+pub type LightClientHeader = spec::LightClientHeader<BYTES_PER_LOGS_BLOOM, MAX_EXTRA_DATA_BYTES>;
+pub type LightClientBootstrap =
+    spec::LightClientBootstrap<SYNC_COMMITTEE_SIZE, BYTES_PER_LOGS_BLOOM, MAX_EXTRA_DATA_BYTES>;
+pub type LightClientUpdate =
+    spec::LightClientUpdate<SYNC_COMMITTEE_SIZE, BYTES_PER_LOGS_BLOOM, MAX_EXTRA_DATA_BYTES>;
+pub type LightClientFinalityUpdate = spec::LightClientFinalityUpdate<
+    SYNC_COMMITTEE_SIZE,
+    BYTES_PER_LOGS_BLOOM,
+    MAX_EXTRA_DATA_BYTES,
+>;
+pub type LightClientOptimisticUpdate = spec::LightClientOptimisticUpdate<
+    SYNC_COMMITTEE_SIZE,
+    BYTES_PER_LOGS_BLOOM,
+    MAX_EXTRA_DATA_BYTES,
 >;

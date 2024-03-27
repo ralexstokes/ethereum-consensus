@@ -76,6 +76,7 @@ impl Fork {
                 "execution_payload",
                 "genesis",
                 "helpers",
+                "light_client",
                 "withdrawal",
             ],
             Self::Deneb => &[
@@ -89,6 +90,7 @@ impl Fork {
                 "execution_payload",
                 "genesis",
                 "helpers",
+                "light_client",
             ],
         }
     }

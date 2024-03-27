@@ -27,9 +27,9 @@ pub use crate::{
         },
         light_client::{
             LightClientBootstrap, LightClientFinalityUpdate, LightClientHeader,
-            LightClientOptimisticUpdate, LightClientStore, LightClientUpdate,
-            CURRENT_SYNC_COMMITTEE_INDEX, CURRENT_SYNC_COMMITTEE_INDEX_FLOOR_LOG_2,
-            FINALIZED_ROOT_INDEX, FINALIZED_ROOT_INDEX_FLOOR_LOG_2, NEXT_SYNC_COMMITTEE_INDEX,
+            LightClientOptimisticUpdate, LightClientUpdate, CURRENT_SYNC_COMMITTEE_INDEX,
+            CURRENT_SYNC_COMMITTEE_INDEX_FLOOR_LOG_2, FINALIZED_ROOT_INDEX,
+            FINALIZED_ROOT_INDEX_FLOOR_LOG_2, NEXT_SYNC_COMMITTEE_INDEX,
             NEXT_SYNC_COMMITTEE_INDEX_FLOOR_LOG_2,
         },
         sync::{SyncAggregate, SyncCommittee},

@@ -37,14 +37,6 @@ pub const PRESET: Preset = Preset {
 pub type SyncAggregate = spec::SyncAggregate<SYNC_COMMITTEE_SIZE>;
 pub type SyncCommittee = spec::SyncCommittee<SYNC_COMMITTEE_SIZE>;
 
-pub type LightClientUpdate = crate::altair::light_client::LightClientUpdate<SYNC_COMMITTEE_SIZE>;
-pub type LightClientBootstrap =
-    crate::altair::light_client::LightClientBootstrap<SYNC_COMMITTEE_SIZE>;
-pub type LightClientFinalityUpdate =
-    crate::altair::light_client::LightClientFinalityUpdate<SYNC_COMMITTEE_SIZE>;
-pub type LightClientOptimisticUpdate =
-    crate::altair::light_client::LightClientOptimisticUpdate<SYNC_COMMITTEE_SIZE>;
-
 pub type BeaconState = spec::BeaconState<
     SLOTS_PER_HISTORICAL_ROOT,
     HISTORICAL_ROOTS_LIMIT,
@@ -89,3 +81,8 @@ pub type SignedBeaconBlock = spec::SignedBeaconBlock<
 pub type SyncCommitteeContribution = spec::SyncCommitteeContribution<SYNC_SUBCOMMITTEE_SIZE>;
 pub type ContributionAndProof = spec::ContributionAndProof<SYNC_SUBCOMMITTEE_SIZE>;
 pub type SignedContributionAndProof = spec::SignedContributionAndProof<SYNC_SUBCOMMITTEE_SIZE>;
+
+pub type LightClientBootstrap = spec::LightClientBootstrap<SYNC_COMMITTEE_SIZE>;
+pub type LightClientUpdate = spec::LightClientUpdate<SYNC_COMMITTEE_SIZE>;
+pub type LightClientFinalityUpdate = spec::LightClientFinalityUpdate<SYNC_COMMITTEE_SIZE>;
+pub type LightClientOptimisticUpdate = spec::LightClientOptimisticUpdate<SYNC_COMMITTEE_SIZE>;

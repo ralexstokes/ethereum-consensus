@@ -2,11 +2,12 @@ use crate::bellatrix::spec;
 pub use crate::{
     altair::presets::mainnet::{
         AggregateAndProof, Attestation, AttesterSlashing, ContributionAndProof, HistoricalBatch,
-        IndexedAttestation, LightClientUpdate, PendingAttestation, SignedAggregateAndProof,
-        SignedContributionAndProof, SyncAggregate, SyncCommittee, SyncCommitteeContribution,
-        EPOCHS_PER_HISTORICAL_VECTOR, EPOCHS_PER_SLASHINGS_VECTOR, ETH1_DATA_VOTES_BOUND,
-        HISTORICAL_ROOTS_LIMIT, MAX_ATTESTATIONS, MAX_ATTESTER_SLASHINGS, MAX_DEPOSITS,
-        MAX_PROPOSER_SLASHINGS, MAX_VALIDATORS_PER_COMMITTEE, MAX_VOLUNTARY_EXITS,
+        IndexedAttestation, LightClientBootstrap, LightClientFinalityUpdate,
+        LightClientOptimisticUpdate, LightClientUpdate, PendingAttestation,
+        SignedAggregateAndProof, SignedContributionAndProof, SyncAggregate, SyncCommittee,
+        SyncCommitteeContribution, EPOCHS_PER_HISTORICAL_VECTOR, EPOCHS_PER_SLASHINGS_VECTOR,
+        ETH1_DATA_VOTES_BOUND, HISTORICAL_ROOTS_LIMIT, MAX_ATTESTATIONS, MAX_ATTESTER_SLASHINGS,
+        MAX_DEPOSITS, MAX_PROPOSER_SLASHINGS, MAX_VALIDATORS_PER_COMMITTEE, MAX_VOLUNTARY_EXITS,
         SLOTS_PER_HISTORICAL_ROOT, SYNC_COMMITTEE_SIZE, VALIDATOR_REGISTRY_LIMIT,
     },
     bellatrix::presets::Preset,

@@ -8,8 +8,6 @@ pub use crate::{
             TIMELY_TARGET_WEIGHT, WEIGHT_DENOMINATOR,
         },
         light_client::{
-            LightClientBootstrap, LightClientFinalityUpdate, LightClientHeader,
-            LightClientOptimisticUpdate, LightClientStore, LightClientUpdate,
             CURRENT_SYNC_COMMITTEE_INDEX, CURRENT_SYNC_COMMITTEE_INDEX_FLOOR_LOG_2,
             FINALIZED_ROOT_INDEX, FINALIZED_ROOT_INDEX_FLOOR_LOG_2, NEXT_SYNC_COMMITTEE_INDEX,
             NEXT_SYNC_COMMITTEE_INDEX_FLOOR_LOG_2,
@@ -39,6 +37,11 @@ pub use crate::{
         helpers::{
             has_eth1_withdrawal_credential, is_fully_withdrawable_validator,
             is_partially_withdrawable_validator,
+        },
+        light_client::{
+            LightClientBootstrap, LightClientFinalityUpdate, LightClientHeader,
+            LightClientOptimisticUpdate, LightClientUpdate, EXECUTION_PAYLOAD_INDEX,
+            EXECUTION_PAYLOAD_INDEX_FLOOR_LOG_2,
         },
         withdrawal::Withdrawal,
     },
