@@ -2,7 +2,6 @@
 resolver = "2"
 
 members = ["beacon-api-client", "ethereum-consensus", "spec-gen", "spec-tests"]
-default-members = ["ethereum-consensus", "beacon-api-client"]
 
 [workspace.dependencies]
 tokio = { version = "1.18.2", features = ["full"] }
