@@ -189,7 +189,11 @@ pub fn dispatch(test: &TestCase) -> Result<(), Error> {
     gen_altair_and_later! {
         test,
         ContributionAndProof,
+        LightClientHeader,
+        LightClientBootstrap,
         LightClientUpdate,
+        LightClientFinalityUpdate,
+        LightClientOptimisticUpdate,
         SignedContributionAndProof,
         SyncAggregate,
         SyncAggregatorSelectionData,

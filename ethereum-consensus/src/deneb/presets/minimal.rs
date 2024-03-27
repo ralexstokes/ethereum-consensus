@@ -2,7 +2,7 @@ use crate::deneb::spec;
 pub use crate::{
     capella::presets::minimal::{
         AggregateAndProof, Attestation, AttesterSlashing, ContributionAndProof, HistoricalBatch,
-        IndexedAttestation, LightClientUpdate, PendingAttestation, SignedAggregateAndProof,
+        IndexedAttestation, PendingAttestation, SignedAggregateAndProof,
         SignedContributionAndProof, SyncAggregate, SyncCommittee, SyncCommitteeContribution,
         BYTES_PER_LOGS_BLOOM, EPOCHS_PER_HISTORICAL_VECTOR, EPOCHS_PER_SLASHINGS_VECTOR,
         ETH1_DATA_VOTES_BOUND, HISTORICAL_ROOTS_LIMIT, MAX_ATTESTATIONS, MAX_ATTESTER_SLASHINGS,
@@ -152,3 +152,19 @@ pub type SignedBeaconBlock = spec::SignedBeaconBlock<
 pub type Blob = spec::Blob<BYTES_PER_BLOB>;
 pub type BlobSidecar = spec::BlobSidecar<BYTES_PER_BLOB, KZG_COMMITMENT_INCLUSION_PROOF_DEPTH>;
 pub type BlobsBundle = spec::BlobsBundle<BYTES_PER_BLOB>;
+
+pub type LightClientHeader = spec::LightClientHeader<BYTES_PER_LOGS_BLOOM, MAX_EXTRA_DATA_BYTES>;
+pub type LightClientBootstrap =
+    spec::LightClientBootstrap<SYNC_COMMITTEE_SIZE, BYTES_PER_LOGS_BLOOM, MAX_EXTRA_DATA_BYTES>;
+pub type LightClientUpdate =
+    spec::LightClientUpdate<SYNC_COMMITTEE_SIZE, BYTES_PER_LOGS_BLOOM, MAX_EXTRA_DATA_BYTES>;
+pub type LightClientFinalityUpdate = spec::LightClientFinalityUpdate<
+    SYNC_COMMITTEE_SIZE,
+    BYTES_PER_LOGS_BLOOM,
+    MAX_EXTRA_DATA_BYTES,
+>;
+pub type LightClientOptimisticUpdate = spec::LightClientOptimisticUpdate<
+    SYNC_COMMITTEE_SIZE,
+    BYTES_PER_LOGS_BLOOM,
+    MAX_EXTRA_DATA_BYTES,
+>;

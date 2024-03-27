@@ -11,6 +11,7 @@ pub mod execution_payload;
 pub mod fork;
 pub mod genesis;
 pub mod helpers;
+pub mod light_client;
 pub mod presets;
 pub mod spec;
 pub mod withdrawal;

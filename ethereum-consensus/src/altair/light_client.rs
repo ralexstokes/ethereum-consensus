@@ -54,14 +54,3 @@ pub struct LightClientOptimisticUpdate<const SYNC_COMMITTEE_SIZE: usize> {
     pub sync_aggregate: SyncAggregate<SYNC_COMMITTEE_SIZE>,
     pub signature_slot: Slot,
 }
-
-#[derive(Default, Debug, Clone)]
-pub struct LightClientStore<const SYNC_COMMITTEE_SIZE: usize> {
-    pub finalized_header: LightClientHeader,
-    pub current_sync_committee: SyncCommittee<SYNC_COMMITTEE_SIZE>,
-    pub next_sync_committee: SyncCommittee<SYNC_COMMITTEE_SIZE>,
-    pub best_valid_update: Option<LightClientUpdate<SYNC_COMMITTEE_SIZE>>,
-    pub optimistic_header: LightClientHeader,
-    pub previous_max_active_participants: u64,
-    pub current_max_active_participants: u64,
-}

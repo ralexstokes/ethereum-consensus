@@ -203,13 +203,15 @@ impl TestMeta {
         format!("{self}")
     }
 
+    // Mark this test as "ignored", which does collect it but does not try to run the test.
+    // If ignored, a test could be implemented in the future but is currently not.
     pub fn should_ignore(&self) -> bool {
-        let ignored_runner = self.runner.should_ignore();
-        let ignored_handler =
-            matches!(self.runner, Runner::SszStatic) && self.handler.0.contains("LightClient");
-        ignored_runner | ignored_handler
+        self.runner.should_ignore()
     }
 
+    // Skip collecting this test if `true`.
+    // If not collected, a test is completely ignored from the spec testing
+    // as it is not currently supported and there is no intention to support in this repo.
     pub fn should_skip(&self) -> bool {
         let skipped_runner = self.runner.should_skip();
         let skipped_forks = matches!(self.fork, Fork::Eip6110 | Fork::Whisk);
