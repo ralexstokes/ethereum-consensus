@@ -31,6 +31,7 @@ pub use crate::{
             BlindedBeaconBlock, BlindedBeaconBlockBody, SignedBlindedBeaconBlock,
         },
         blob_sidecar::{
+            generalized_index_for_blob_index, get_subtree_index,
             verify_blob_sidecar_inclusion_proof, Blob, BlobIdentifier, BlobSidecar, BlobsBundle,
             VERSIONED_HASH_VERSION_KZG,
         },
