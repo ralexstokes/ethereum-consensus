@@ -112,8 +112,9 @@ pub fn generalized_index_for_blob_index<
     >::generalized_index(path)
 }
 
-fn get_subtree_index(i: GeneralizedIndex) -> Result<usize, MerkleizationError> {
-    log_2(i).ok_or(MerkleizationError::InvalidGeneralizedIndex)
+pub fn get_subtree_index(i: GeneralizedIndex) -> Result<usize, MerkleizationError> {
+    let i_log2 = log_2(i).ok_or(MerkleizationError::InvalidGeneralizedIndex)?;
+    Ok(i % 2usize.pow(i_log2))
 }
 
 #[derive(
