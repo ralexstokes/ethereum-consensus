@@ -1,7 +1,7 @@
 use crate::{
     runners::{
-        bls, epoch_processing, finality, fork, genesis, operations, random, rewards, sanity,
-        shuffling, ssz_static, transition,
+        bls, epoch_processing, finality, fork, genesis, merkle_proof, operations, random, rewards,
+        sanity, shuffling, ssz_static, transition,
     },
     test_meta::TestMeta,
     Config, Context,
@@ -50,7 +50,7 @@ impl TestCase {
             Transition => transition::dispatch(self),
             Kzg => todo!(),
             LightClient => todo!(),
-            MerkleProof => todo!(),
+            MerkleProof => merkle_proof::dispatch(self),
             Sync => todo!(),
             SszGeneric => unreachable!(),
         };
