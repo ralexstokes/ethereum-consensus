@@ -83,7 +83,7 @@ pub enum Runner {
 
 impl Runner {
     pub fn should_ignore(&self) -> bool {
-        matches!(self, Self::ForkChoice | Self::Kzg | Self::LightClient | Self::Sync)
+        matches!(self, Self::ForkChoice | Self::Kzg | Self::Sync)
     }
 
     // Do not collect these tests.
@@ -203,7 +203,10 @@ impl TestMeta {
     // Mark this test as "ignored", which does collect it but does not try to run the test.
     // If ignored, a test could be implemented in the future but is currently not.
     pub fn should_ignore(&self) -> bool {
-        self.runner.should_ignore()
+        let ignored_runner = self.runner.should_ignore();
+        let ignored_handler =
+            matches!(self.runner, Runner::LightClient) && self.handler.0 != "single_merkle_proof";
+        ignored_runner || ignored_handler
     }
 
     // Skip collecting this test if `true`.
