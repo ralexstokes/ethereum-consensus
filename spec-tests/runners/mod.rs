@@ -3,6 +3,7 @@ pub mod epoch_processing;
 pub mod finality;
 pub mod fork;
 pub mod genesis;
+pub mod light_client;
 pub mod merkle_proof;
 pub mod operations;
 pub mod random;
