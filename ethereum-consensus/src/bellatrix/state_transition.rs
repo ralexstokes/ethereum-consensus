@@ -2,7 +2,7 @@ use crate::{
     bellatrix::{
         process_block, process_slots, verify_block_signature, BeaconState, SignedBeaconBlock,
     },
-    ssz::prelude::Merkleized,
+    ssz::prelude::HashTreeRoot,
     state_transition::{Context, Result, Validation},
     Error,
 };

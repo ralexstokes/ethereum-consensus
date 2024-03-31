@@ -534,7 +534,7 @@ impl<'a, const BYTES_PER_LOGS_BLOOM: usize, const MAX_EXTRA_DATA_BYTES: usize>
         Self::Deneb(value)
     }
 }
-#[derive(Debug, PartialEq, Eq, Merkleized)]
+#[derive(Debug, PartialEq, Eq, HashTreeRoot)]
 #[ssz(transparent)]
 pub enum ExecutionPayloadHeaderRefMut<
     'a,

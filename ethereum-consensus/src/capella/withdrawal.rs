@@ -4,15 +4,7 @@ use crate::{
 };
 
 #[derive(
-    Default,
-    Debug,
-    Clone,
-    SimpleSerialize,
-    Indexed,
-    PartialEq,
-    Eq,
-    serde::Serialize,
-    serde::Deserialize,
+    Default, Debug, Clone, SimpleSerialize, PartialEq, Eq, serde::Serialize, serde::Deserialize,
 )]
 pub struct Withdrawal {
     #[serde(with = "crate::serde::as_str")]

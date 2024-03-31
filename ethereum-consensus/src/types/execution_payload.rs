@@ -779,7 +779,7 @@ impl<
         Self::Deneb(value)
     }
 }
-#[derive(Debug, PartialEq, Eq, Merkleized)]
+#[derive(Debug, PartialEq, Eq, HashTreeRoot)]
 #[ssz(transparent)]
 pub enum ExecutionPayloadRefMut<
     'a,

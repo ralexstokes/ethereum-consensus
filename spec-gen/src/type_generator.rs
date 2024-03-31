@@ -671,7 +671,7 @@ fn derive_ref_impl_type(
         })
         .collect::<Vec<syn::Variant>>();
     let derive_attr: Attribute = if is_mut {
-        parse_quote!(#[derive(Debug, PartialEq, Eq, Merkleized)])
+        parse_quote!(#[derive(Debug, PartialEq, Eq, HashTreeRoot)])
     } else {
         parse_quote!(#[derive(Debug, PartialEq, Eq)])
     };
