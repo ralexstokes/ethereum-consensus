@@ -19,7 +19,7 @@ pub struct Proof {
     branch: Vec<Node>,
 }
 
-fn load_test<O: ssz_rs::Deserialize>(test_case_path: &str) -> (O, Proof) {
+pub fn load_test<O: ssz_rs::Deserialize>(test_case_path: &str) -> (O, Proof) {
     let path = test_case_path.to_string() + "/object.ssz_snappy";
     let object: O = load_snappy_ssz(&path).unwrap();
 
@@ -39,7 +39,7 @@ fn path_from(meta: &TestMeta) -> Vec<PathElement> {
     }
 }
 
-fn run_test<O: SimpleSerialize>(mut object: O, path: Path, proof: &Proof) -> Result<(), Error> {
+pub fn run_test<O: SimpleSerialize>(mut object: O, path: Path, proof: &Proof) -> Result<(), Error> {
     let root = object.hash_tree_root().unwrap();
     // test proof matches
     let (computed_proof, witness) = prove(&mut object, path).expect("can prove");
