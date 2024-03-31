@@ -8,6 +8,7 @@ use crate::{
     ssz::prelude::*,
     Error,
 };
+use ssz_rs::proofs::get_subtree_index;
 
 pub const VERSIONED_HASH_VERSION_KZG: u8 = 1;
 
@@ -110,11 +111,6 @@ pub fn generalized_index_for_blob_index<
         MAX_BLS_TO_EXECUTION_CHANGES,
         MAX_BLOB_COMMITMENTS_PER_BLOCK,
     >::generalized_index(path)
-}
-
-pub fn get_subtree_index(i: GeneralizedIndex) -> Result<usize, MerkleizationError> {
-    let i_log2 = log_2(i).ok_or(MerkleizationError::InvalidGeneralizedIndex)?;
-    Ok(i % 2usize.pow(i_log2))
 }
 
 #[derive(

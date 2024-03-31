@@ -6,9 +6,7 @@ use std::{
     ops::{Deref, DerefMut},
 };
 
-#[derive(
-    Default, Clone, PartialEq, Eq, SimpleSerialize, Indexed, serde::Serialize, serde::Deserialize,
-)]
+#[derive(Default, Clone, PartialEq, Eq, SimpleSerialize, serde::Serialize, serde::Deserialize)]
 pub struct ByteList<const N: usize>(#[serde(with = "crate::serde::as_hex")] List<u8, N>);
 
 impl<const N: usize> TryFrom<&[u8]> for ByteList<N> {

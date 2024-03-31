@@ -4,15 +4,7 @@ use crate::{
 };
 
 #[derive(
-    Default,
-    Debug,
-    Clone,
-    SimpleSerialize,
-    Indexed,
-    PartialEq,
-    Eq,
-    serde::Serialize,
-    serde::Deserialize,
+    Default, Debug, Clone, SimpleSerialize, PartialEq, Eq, serde::Serialize, serde::Deserialize,
 )]
 pub struct SyncAggregate<const SYNC_COMMITTEE_SIZE: usize> {
     pub sync_committee_bits: Bitvector<SYNC_COMMITTEE_SIZE>,

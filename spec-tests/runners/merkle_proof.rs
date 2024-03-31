@@ -8,7 +8,10 @@ use ethereum_consensus::{
     Error as SpecError,
 };
 use serde::Deserialize;
-use ssz_rs::prelude::*;
+use ssz_rs::{
+    prelude::*,
+    proofs::{get_subtree_index, log_2},
+};
 
 #[derive(Debug, Deserialize)]
 pub struct Proof {
@@ -43,7 +46,7 @@ pub fn dispatch(test: &TestCase) -> Result<(), Error> {
                                 proof.leaf,
                                 &proof.branch,
                                 log_2(proof.leaf_index).unwrap() as usize,
-                                spec::get_subtree_index(proof.leaf_index).unwrap(),
+                                get_subtree_index(proof.leaf_index).unwrap(),
                                 object.hash_tree_root().unwrap()
                             ).map_err(|err| SpecError::from(err).into())
                         }

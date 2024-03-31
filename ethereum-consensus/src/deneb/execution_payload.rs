@@ -7,15 +7,7 @@ use crate::{
 };
 
 #[derive(
-    Default,
-    Debug,
-    Clone,
-    SimpleSerialize,
-    Indexed,
-    PartialEq,
-    Eq,
-    serde::Serialize,
-    serde::Deserialize,
+    Default, Debug, Clone, SimpleSerialize, PartialEq, Eq, serde::Serialize, serde::Deserialize,
 )]
 pub struct ExecutionPayload<
     const BYTES_PER_LOGS_BLOOM: usize,

@@ -18,7 +18,7 @@ serde_yaml = "0.8"
 itertools = "0.10.3"
 thiserror = "1.0.30"
 hex = "0.4.3"
-ssz_rs = { git = "https://github.com/ralexstokes/ssz-rs", rev = "b0e5350dcded5ef587220fa7d124a37e2dc09bd2" }
+ssz_rs = { git = "https://github.com/ralexstokes/ssz-rs", rev = "13d2c7d1a0dc35a6dfbc2d657d5db95080cb44c0" }
 blst = "0.3.11"
 rand = "0.8.4"
 sha2 = "0.10.8"

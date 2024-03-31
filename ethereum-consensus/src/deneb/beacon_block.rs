@@ -10,15 +10,7 @@ use crate::{
 };
 
 #[derive(
-    Default,
-    Debug,
-    Clone,
-    SimpleSerialize,
-    Indexed,
-    PartialEq,
-    Eq,
-    serde::Serialize,
-    serde::Deserialize,
+    Default, Debug, Clone, SimpleSerialize, PartialEq, Eq, serde::Serialize, serde::Deserialize,
 )]
 pub struct BeaconBlockBody<
     const MAX_PROPOSER_SLASHINGS: usize,

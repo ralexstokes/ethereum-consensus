@@ -78,15 +78,7 @@ pub struct SignedBeaconBlock<
 }
 
 #[derive(
-    Default,
-    Debug,
-    SimpleSerialize,
-    Indexed,
-    Clone,
-    PartialEq,
-    Eq,
-    serde::Serialize,
-    serde::Deserialize,
+    Default, Debug, SimpleSerialize, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize,
 )]
 pub struct BeaconBlockHeader {
     #[serde(with = "crate::serde::as_str")]
@@ -99,15 +91,7 @@ pub struct BeaconBlockHeader {
 }
 
 #[derive(
-    Default,
-    Debug,
-    SimpleSerialize,
-    Indexed,
-    Clone,
-    PartialEq,
-    Eq,
-    serde::Serialize,
-    serde::Deserialize,
+    Default, Debug, SimpleSerialize, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize,
 )]
 pub struct SignedBeaconBlockHeader {
     pub message: BeaconBlockHeader,

@@ -11,7 +11,7 @@ pub struct SigningData {
     pub domain: Domain,
 }
 
-pub fn compute_signing_root<T: Merkleized>(
+pub fn compute_signing_root<T: HashTreeRoot>(
     ssz_object: &mut T,
     domain: Domain,
 ) -> Result<Root, Error> {
@@ -21,7 +21,7 @@ pub fn compute_signing_root<T: Merkleized>(
     s.hash_tree_root().map_err(Error::Merkleization)
 }
 
-pub fn sign_with_domain<T: Merkleized>(
+pub fn sign_with_domain<T: HashTreeRoot>(
     data: &mut T,
     signing_key: &SecretKey,
     domain: Domain,
@@ -30,7 +30,7 @@ pub fn sign_with_domain<T: Merkleized>(
     Ok(signing_key.sign(signing_root.as_ref()))
 }
 
-pub fn verify_signed_data<T: Merkleized>(
+pub fn verify_signed_data<T: HashTreeRoot>(
     data: &mut T,
     signature: &BlsSignature,
     public_key: &BlsPublicKey,
