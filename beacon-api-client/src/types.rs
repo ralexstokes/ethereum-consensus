@@ -91,7 +91,7 @@ impl FromStr for StateId {
                 Ok(slot) => Ok(Self::Slot(slot)),
                 Err(_) => match try_bytes_from_hex_str(s) {
                     Ok(root_data) => {
-                        let root = Root::try_from(root_data.as_ref()).map_err(|err| format!("could not parse state identifier by root from the provided argument {s}: {err}"))?;
+                        let root = Root::try_from(root_data.as_slice()).map_err(|err| format!("could not parse state identifier by root from the provided argument {s}: {err}"))?;
                         Ok(Self::Root(root))
                     }
                     Err(err) => {

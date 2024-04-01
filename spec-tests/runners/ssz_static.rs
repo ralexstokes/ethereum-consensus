@@ -3,14 +3,14 @@ use crate::{
     test_case::TestCase,
     test_utils::{load_snappy_ssz_bytes, load_yaml, Error},
 };
-use ethereum_consensus::{primitives::Bytes32, state_transition::Context};
+use ethereum_consensus::{primitives::Root, state_transition::Context};
 use serde::Deserialize;
 use ssz_rs::prelude::*;
 use std::path::Path;
 
 #[derive(Deserialize)]
 struct RootData {
-    root: Bytes32,
+    root: Root,
 }
 
 fn load_test(test_case_path: &str) -> (RootData, Vec<u8>) {
@@ -31,7 +31,7 @@ fn run_test<T: ssz_rs::SimpleSerialize>(
     let serialized = serialize(&decoded_data).unwrap();
     let root = decoded_data.hash_tree_root().unwrap();
     assert_eq!(serialized, encoding);
-    assert_eq!(root.as_ref(), data.root.as_ref());
+    assert_eq!(root, data.root);
     Ok(())
 }
 

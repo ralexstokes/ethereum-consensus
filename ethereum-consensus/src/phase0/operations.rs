@@ -117,7 +117,7 @@ const DEPOSIT_PROOF_LENGTH: usize = get_deposit_proof_length();
     Default, Debug, SimpleSerialize, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize,
 )]
 pub struct Deposit {
-    pub proof: Vector<Bytes32, DEPOSIT_PROOF_LENGTH>,
+    pub proof: Vector<Node, DEPOSIT_PROOF_LENGTH>,
     pub data: DepositData,
 }
 

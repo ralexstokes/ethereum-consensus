@@ -1,4 +1,95 @@
-pub use ssz_rs::serde::{as_hex, as_str, try_bytes_from_hex_str};
+use hex::FromHexError;
+use std::fmt;
+
+const HEX_ENCODING_PREFIX: &str = "0x";
+
+#[inline]
+fn write_hex_from_bytes<D: AsRef<[u8]>>(f: &mut fmt::Formatter<'_>, data: D) -> fmt::Result {
+    for i in data.as_ref() {
+        write!(f, "{i:02x}")?;
+    }
+    Ok(())
+}
+
+pub fn write_bytes_to_lower_hex<T: AsRef<[u8]>>(
+    f: &mut fmt::Formatter<'_>,
+    data: T,
+) -> fmt::Result {
+    write!(f, "0x")?;
+    write_hex_from_bytes(f, data)
+}
+
+pub fn write_bytes_to_lower_hex_display<T: AsRef<[u8]> + ExactSizeIterator>(
+    f: &mut fmt::Formatter<'_>,
+    data: T,
+) -> fmt::Result {
+    let len = data.len();
+    let (first, last) = if len >= 4 { ((0..2), Some(len - 2..len)) } else { ((0..len), None) };
+    let data = data.as_ref();
+    write!(f, "0x")?;
+    write_hex_from_bytes(f, &data[first])?;
+    if let Some(last) = last {
+        write!(f, "…")?;
+        write_hex_from_bytes(f, &data[last])?;
+    }
+    Ok(())
+}
+
+pub fn try_bytes_from_hex_str(s: &str) -> Result<Vec<u8>, FromHexError> {
+    let target = s.strip_prefix(HEX_ENCODING_PREFIX).unwrap_or(s);
+    let data = hex::decode(target)?;
+    Ok(data)
+}
+
+pub mod as_hex {
+    use super::*;
+    use serde::Deserialize;
+    use std::fmt::Display;
+
+    pub fn serialize<S, T: AsRef<[u8]>>(data: T, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        let encoding = hex::encode(data.as_ref());
+        let output = format!("{HEX_ENCODING_PREFIX}{encoding}");
+        serializer.collect_str(&output)
+    }
+
+    pub fn deserialize<'de, D, T, E>(deserializer: D) -> Result<T, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+        T: for<'a> TryFrom<&'a [u8], Error = E> + fmt::Debug,
+        E: Display,
+    {
+        let str = String::deserialize(deserializer)?;
+
+        let data = try_bytes_from_hex_str(&str).map_err(serde::de::Error::custom)?;
+
+        T::try_from(&data).map_err(serde::de::Error::custom)
+    }
+}
+
+pub mod as_str {
+    use serde::Deserialize;
+    use std::{fmt::Display, str::FromStr};
+
+    pub fn serialize<S, T: Display>(data: T, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        serializer.collect_str(&data.to_string())
+    }
+
+    pub fn deserialize<'de, D, T, E>(deserializer: D) -> Result<T, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+        T: FromStr<Err = E>,
+        E: Display,
+    {
+        let s = String::deserialize(deserializer)?;
+        T::from_str(&s).map_err(serde::de::Error::custom)
+    }
+}
 
 pub mod seq_of_str {
     use serde::{
@@ -59,6 +150,7 @@ pub mod seq_of_str {
 
 #[cfg(test)]
 mod tests {
+    use super::*;
     use crate::types::mainnet::SignedBeaconBlock;
 
     const EXPECTED_SIGNED_BLOCK_STR: &str = r#"
@@ -119,5 +211,28 @@ mod tests {
         assert_eq!(str, expected_str);
         let recovered_signed_block: SignedBeaconBlock = serde_json::from_str(&str).unwrap();
         assert_eq!(signed_block, recovered_signed_block);
+    }
+
+    struct Fmt(Vec<u8>);
+
+    impl fmt::Debug for Fmt {
+        fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+            write_bytes_to_lower_hex(f, self.0.iter())
+        }
+    }
+
+    impl fmt::Display for Fmt {
+        fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+            write!(f, "{:?}", self)
+        }
+    }
+
+    #[test]
+    fn test_fmt() {
+        let data = Fmt((0u8..3).collect::<Vec<_>>());
+        let s = format!("{data:?}");
+        assert_eq!(s, "0x000102");
+        let s = format!("{data}");
+        assert_eq!(s, "0x000102");
     }
 }

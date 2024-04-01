@@ -4,7 +4,7 @@ use crate::{
         polynomial_commitments::{KzgCommitment, KzgProof},
         SignedBeaconBlockHeader,
     },
-    primitives::{BlobIndex, Bytes32, Root},
+    primitives::{BlobIndex, Root},
     ssz::prelude::*,
     Error,
 };
@@ -27,7 +27,7 @@ pub struct BlobSidecar<
     pub kzg_commitment: KzgCommitment,
     pub kzg_proof: KzgProof,
     pub signed_block_header: SignedBeaconBlockHeader,
-    pub kzg_commitment_inclusion_proof: Vector<Bytes32, KZG_COMMITMENT_INCLUSION_PROOF_DEPTH>,
+    pub kzg_commitment_inclusion_proof: Vector<Node, KZG_COMMITMENT_INCLUSION_PROOF_DEPTH>,
 }
 
 pub fn verify_blob_sidecar_inclusion_proof<
