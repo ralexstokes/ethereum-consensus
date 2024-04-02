@@ -223,16 +223,7 @@ pub fn process_deposit<
     let root = state.eth1_data.deposit_root;
     if is_valid_merkle_branch(leaf, branch, depth, index, root).is_err() {
         return Err(invalid_operation_error(InvalidOperation::Deposit(
-            InvalidDeposit::InvalidProof {
-                leaf,
-                branch: branch
-                    .iter()
-                    .map(|node| Node::try_from(node.as_ref()).expect("correct size"))
-                    .collect(),
-                depth,
-                index,
-                root,
-            },
+            InvalidDeposit::InvalidProof { leaf, branch: branch.to_vec(), depth, index, root },
         )));
     }
     state.eth1_deposit_index += 1;

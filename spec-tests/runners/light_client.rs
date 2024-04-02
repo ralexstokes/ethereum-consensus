@@ -9,7 +9,7 @@ use ethereum_consensus::Error as SpecError;
 use serde::Deserialize;
 use ssz_rs::{
     prelude::*,
-    proofs::{get_subtree_index, is_valid_merkle_branch_for_generalized_index, log_2, prove},
+    proofs::{get_subtree_index, is_valid_merkle_branch_for_generalized_index, log_2},
 };
 
 #[derive(Debug, Deserialize)]
@@ -42,7 +42,7 @@ fn path_from(meta: &TestMeta) -> Vec<PathElement> {
 pub fn run_test<O: SimpleSerialize>(mut object: O, path: Path, proof: &Proof) -> Result<(), Error> {
     let root = object.hash_tree_root().unwrap();
     // test proof matches
-    let (computed_proof, witness) = prove(&mut object, path).expect("can prove");
+    let (computed_proof, witness) = object.prove(path).expect("can prove");
     assert_eq!(root, witness);
     assert_eq!(proof.leaf, computed_proof.leaf);
     assert_eq!(proof.leaf_index, computed_proof.index);

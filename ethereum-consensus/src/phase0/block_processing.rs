@@ -342,10 +342,7 @@ pub fn process_deposit<
         return Err(invalid_operation_error(InvalidOperation::Deposit(
             InvalidDeposit::InvalidProof {
                 leaf,
-                branch: branch
-                    .iter()
-                    .map(|node| Node::try_from(node.as_ref()).expect("correct size"))
-                    .collect(),
+                branch: branch.to_vec(),
                 depth: DEPOSIT_MERKLE_DEPTH,
                 index,
                 root,

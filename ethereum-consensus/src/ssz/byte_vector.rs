@@ -1,5 +1,7 @@
-use crate::ssz::prelude::*;
-use ssz_rs::utils::{write_bytes_to_lower_hex, write_bytes_to_lower_hex_display};
+use crate::{
+    serde::{write_bytes_to_lower_hex, write_bytes_to_lower_hex_display},
+    ssz::prelude::*,
+};
 use std::{
     fmt,
     hash::{Hash, Hasher},
