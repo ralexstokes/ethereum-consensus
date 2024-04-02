@@ -4,18 +4,20 @@ use crate::{
 };
 use ethereum_consensus::deneb::{
     mainnet as spec,
-    polynomial_commitments::{blob_to_kzg_commitment, KzgCommitment, KzgSettings},
+    polynomial_commitments::{self, blob_to_kzg_commitment, KzgCommitment},
+    presets::TRUSTED_SETUP_JSON,
 };
 use serde::Deserialize;
-use serde_with::{serde_as, DefaultOnError};
 
 pub fn dispatch(test: &TestCase) -> Result<(), Error> {
     let meta = &test.meta;
     let path = &test.data_path;
+    let kzg_settings = polynomial_commitments::kzg_settings_from_json(TRUSTED_SETUP_JSON)?;
+
     match meta.handler.0.as_str() {
         "blob_to_kzg_commitment" => {
             let test_case = BlobToKzgCommitmentTestCase::from(path);
-            test_case.run();
+            test_case.run(&test_case.blob, &kzg_settings);
             Ok(())
         }
         "compute_kzg_proof" => {
@@ -33,22 +35,14 @@ pub fn dispatch(test: &TestCase) -> Result<(), Error> {
         "verify_blob_kzg_proof_batch" => {
             todo!()
         }
+        _ => todo!(),
     }
-}
-
-#[serde_as]
-#[derive(Debug, Deserialize)]
-struct BlobToKzgCommitmentInput {
-    #[serde_as(deserialize_as = "DefaultOnError")]
-    blob: spec::Blob,
-    #[serde_as(deserialize_as = "DefaultOnError")]
-    kzg_settings: KzgSettings,
 }
 
 #[derive(Debug, Deserialize)]
 pub struct BlobToKzgCommitmentTestCase {
-    input: BlobToKzgCommitmentInput,
-    output: KzgCommitment,
+    blob: spec::Blob,
+    output: Option<KzgCommitment>,
 }
 
 impl BlobToKzgCommitmentTestCase {
@@ -57,7 +51,13 @@ impl BlobToKzgCommitmentTestCase {
         load_yaml(&path)
     }
 
-    pub fn run(&self) -> bool {
-        blob_to_kzg_commitment(&self.input.blob, &self.input.kzg_settings).is_ok()
+    pub fn run(
+        &self,
+        blob: &spec::Blob,
+        kzg_settings: &polynomial_commitments::KzgSettings,
+    ) -> bool {
+        let kzg_commitment = blob_to_kzg_commitment(blob, kzg_settings).unwrap();
+        println!("Kzg commitment: {}", kzg_commitment);
+        &kzg_commitment == self.output.as_ref().unwrap()
     }
 }
