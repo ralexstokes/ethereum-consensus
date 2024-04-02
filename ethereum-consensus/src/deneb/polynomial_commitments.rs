@@ -1,7 +1,7 @@
 use crate::{
     deneb::blob_sidecar::Blob, primitives::Bytes32, ssz::prelude::*, Error as ConsensusError,
 };
-pub use c_kzg::KzgSettings;
+pub use c_kzg::{Error as CKzgError, KzgSettings};
 use thiserror::Error;
 
 pub const BYTES_PER_FIELD_ELEMENT: usize = 32;

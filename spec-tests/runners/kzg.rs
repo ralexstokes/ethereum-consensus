@@ -3,16 +3,18 @@ use crate::{
     test_utils::{load_yaml, Error},
 };
 use ethereum_consensus::deneb::{
-    mainnet as spec,
-    polynomial_commitments::{self, blob_to_kzg_commitment, KzgCommitment},
+    mainnet::Blob,
+    polynomial_commitments::{
+        blob_to_kzg_commitment, kzg_settings_from_json, CKzgError,
+        Error as PolynomialCommitmentsError, KzgCommitment,
+    },
     presets::TRUSTED_SETUP_JSON,
 };
-use serde::Deserialize;
 
 pub fn dispatch(test: &TestCase) -> Result<(), Error> {
     let meta = &test.meta;
     let path = &test.data_path;
-    let kzg_settings = polynomial_commitments::kzg_settings_from_json(TRUSTED_SETUP_JSON)?;
+    let kzg_settings = kzg_settings_from_json(TRUSTED_SETUP_JSON)?;
 
     match meta.handler.0.as_str() {
         "blob_to_kzg_commitment" => {
@@ -22,16 +24,31 @@ pub fn dispatch(test: &TestCase) -> Result<(), Error> {
             let input = test_data.get("input").unwrap();
             let output_yaml = test_data.get("output").unwrap();
             let blob_yaml = input.get("blob").unwrap();
-            let blob: spec::Blob = serde_yaml::from_value(blob_yaml.clone()).unwrap();
-            let output: polynomial_commitments::KzgCommitment =
-                serde_yaml::from_value(output_yaml.clone()).unwrap();
 
-            // TODO: Verify all test case format conditions
+            let input_result: Result<Blob, _> = serde_yaml::from_value(blob_yaml.clone());
+            let output_result: Result<Option<KzgCommitment>, _> =
+                serde_yaml::from_value(output_yaml.clone());
 
-            // Run test ----
-            let kzg_commitment = blob_to_kzg_commitment(&blob, &kzg_settings).unwrap();
-            assert!(kzg_commitment == output);
-            Ok(())
+            match (input_result, output_result) {
+                (Ok(blob), Ok(Some(expected))) => {
+                    let kzg_commitment = blob_to_kzg_commitment(&blob, &kzg_settings).unwrap();
+                    assert!(kzg_commitment == expected);
+                    Ok(())
+                }
+                (Err(_), Ok(None)) => {
+                    // Expected state for failed test case
+                    Ok(())
+                }
+                (Ok(blob), Ok(None)) => {
+                    let result = blob_to_kzg_commitment(&blob, &kzg_settings);
+                    assert!(matches!(
+                        result,
+                        Err(PolynomialCommitmentsError::CKzg(CKzgError::CError(..)))
+                    ));
+                    Ok(())
+                }
+                _ => unreachable!("not possible"),
+            }
         }
         "compute_kzg_proof" => {
             todo!()
@@ -51,7 +68,7 @@ pub fn dispatch(test: &TestCase) -> Result<(), Error> {
         _ => todo!(),
     }
 }
-
+/*
 #[derive(Debug, Deserialize)]
 pub struct BlobToKzgCommitmentTestCase {
     input: spec::Blob,
@@ -74,3 +91,4 @@ impl BlobToKzgCommitmentTestCase {
         &kzg_commitment == self.output.as_ref().unwrap()
     }
 }
+ */
