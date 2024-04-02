@@ -8,8 +8,8 @@ gen-types:
 
 test:
     cargo test --all-features --all-targets --workspace --exclude spec-tests
-run-spec-tests:
-    cargo test -p spec-tests
+run-spec-tests filter="":
+    cargo test -p spec-tests {{filter}}
 fmt:
     cargo +nightly fmt --all
 lint: fmt
