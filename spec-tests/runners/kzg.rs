@@ -16,8 +16,21 @@ pub fn dispatch(test: &TestCase) -> Result<(), Error> {
 
     match meta.handler.0.as_str() {
         "blob_to_kzg_commitment" => {
-            let test_case = BlobToKzgCommitmentTestCase::from(path);
-            test_case.run(&test_case.blob, &kzg_settings);
+            // Load test case ----
+            let path = path.to_string() + "/data.yaml";
+            let test_data: serde_yaml::Value = load_yaml(&path);
+            let input = test_data.get("input").unwrap();
+            let output_yaml = test_data.get("output").unwrap();
+            let blob_yaml = input.get("blob").unwrap();
+            let blob: spec::Blob = serde_yaml::from_value(blob_yaml.clone()).unwrap();
+            let output: polynomial_commitments::KzgCommitment =
+                serde_yaml::from_value(output_yaml.clone()).unwrap();
+
+            // TODO: Verify all test case format conditions
+
+            // Run test ----
+            let kzg_commitment = blob_to_kzg_commitment(&blob, &kzg_settings).unwrap();
+            assert!(kzg_commitment == output);
             Ok(())
         }
         "compute_kzg_proof" => {
@@ -41,7 +54,7 @@ pub fn dispatch(test: &TestCase) -> Result<(), Error> {
 
 #[derive(Debug, Deserialize)]
 pub struct BlobToKzgCommitmentTestCase {
-    blob: spec::Blob,
+    input: spec::Blob,
     output: Option<KzgCommitment>,
 }
 
