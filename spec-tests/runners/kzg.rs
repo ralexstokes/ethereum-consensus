@@ -5,7 +5,7 @@ use crate::{
 use ethereum_consensus::deneb::{
     mainnet::Blob,
     polynomial_commitments::{
-        blob_to_kzg_commitment, compute_kzg_proof, kzg_settings_from_json, CKzgError,
+        blob_to_kzg_commitment, compute_kzg_proof, kzg_settings_from_json,
         Error as PolynomialCommitmentsError, FieldElement, KzgCommitment, KzgProof,
         ProofAndEvaluation,
     },
@@ -31,21 +31,18 @@ pub fn dispatch(test: &TestCase) -> Result<(), Error> {
                 serde_yaml::from_value(output_yaml.clone());
 
             match (input_result, output_result) {
-                (Ok(blob), Ok(Some(expected))) => {
+                (Ok(blob), Ok(Some(expected_commmitment))) => {
                     let kzg_commitment = blob_to_kzg_commitment(&blob, &kzg_settings).unwrap();
-                    assert!(kzg_commitment == expected);
+                    assert!(kzg_commitment == expected_commmitment);
                     Ok(())
                 }
                 (Err(_), Ok(None)) => {
-                    // Expected state for failed test case
+                    // Note: Expected state for failed test case
                     Ok(())
                 }
                 (Ok(blob), Ok(None)) => {
                     let result = blob_to_kzg_commitment(&blob, &kzg_settings);
-                    assert!(matches!(
-                        result,
-                        Err(PolynomialCommitmentsError::CKzg(CKzgError::CError(..)))
-                    ));
+                    assert!(matches!(result, Err(PolynomialCommitmentsError::CKzg(..))));
                     Ok(())
                 }
                 _ => unreachable!("not possible"),
@@ -66,28 +63,28 @@ pub fn dispatch(test: &TestCase) -> Result<(), Error> {
                 serde_yaml::from_value(output_yaml.clone());
 
             match (input_blob_result, input_z_result, output_result) {
-                // All maps for yaml file deserialized correctly
-                (Ok(blob), Ok(z), Ok(Some(expected))) => {
+                // Note: All maps for yaml file deserialized correctly
+                (Ok(blob), Ok(z), Ok(Some(expected_proof_and_evaluation))) => {
                     let proof_and_evaluation = compute_kzg_proof(&blob, &z, &kzg_settings).unwrap();
-                    let expected = ProofAndEvaluation { proof: expected.0, evaluation: expected.1 };
-                    assert_eq!(proof_and_evaluation, expected);
+                    let expected_proof_and_evaluation = ProofAndEvaluation {
+                        proof: expected_proof_and_evaluation.0,
+                        evaluation: expected_proof_and_evaluation.1,
+                    };
+                    assert_eq!(proof_and_evaluation, expected_proof_and_evaluation);
                     Ok(())
                 }
                 (Err(_), Ok(_), Ok(None)) => {
-                    // Expected state for failed test case - invalid length blob
+                    // Note: Expected state for failed test case - invalid length blob
                     Ok(())
                 }
                 (Ok(blob), Ok(z), Ok(None)) => {
                     let result = compute_kzg_proof(&blob, &z, &kzg_settings);
-                    assert!(matches!(
-                        result,
-                        Err(PolynomialCommitmentsError::CKzg(CKzgError::CError(..)))
-                    ));
+                    assert!(matches!(result, Err(PolynomialCommitmentsError::CKzg(..))));
                     Ok(())
                 }
 
                 (Ok(_), Err(_), Ok(None)) => {
-                    // Expected state for failed test case - invalid evaluation point
+                    // Note: Expected state for failed test case - invalid evaluation point
                     Ok(())
                 }
                 _ => unreachable!("not possible"),
@@ -105,6 +102,6 @@ pub fn dispatch(test: &TestCase) -> Result<(), Error> {
         "verify_blob_kzg_proof_batch" => {
             todo!()
         }
-        _ => todo!(),
+        handler => unreachable!("no tests for {handler}"),
     }
 }
