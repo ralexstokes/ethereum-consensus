@@ -116,7 +116,7 @@ pub fn process_attestation<
     // Verify signature
     is_valid_indexed_attestation(
         state,
-        &mut get_indexed_attestation(state, attestation, context)?,
+        &get_indexed_attestation(state, attestation, context)?,
         context,
     )?;
 
@@ -225,8 +225,8 @@ pub fn process_sync_aggregate<
         Some(compute_epoch_at_slot(previous_slot, context)),
         context,
     )?;
-    let mut root_at_slot = *get_block_root_at_slot(state, previous_slot)?;
-    let signing_root = compute_signing_root(&mut root_at_slot, domain)?;
+    let root_at_slot = *get_block_root_at_slot(state, previous_slot)?;
+    let signing_root = compute_signing_root(&root_at_slot, domain)?;
     if eth_fast_aggregate_verify(
         participant_public_keys.as_slice(),
         signing_root.as_ref(),
@@ -304,7 +304,7 @@ pub fn process_block<
         MAX_VALIDATORS_PER_COMMITTEE,
         SYNC_COMMITTEE_SIZE,
     >,
-    block: &mut BeaconBlock<
+    block: &BeaconBlock<
         MAX_PROPOSER_SLASHINGS,
         MAX_VALIDATORS_PER_COMMITTEE,
         MAX_ATTESTER_SLASHINGS,
@@ -318,7 +318,7 @@ pub fn process_block<
     process_block_header(state, block, context)?;
     process_randao(state, &block.body, context)?;
     process_eth1_data(state, &block.body, context);
-    process_operations(state, &mut block.body, context)?;
+    process_operations(state, &block.body, context)?;
     process_sync_aggregate(state, &block.body.sync_aggregate, context)?;
     Ok(())
 }

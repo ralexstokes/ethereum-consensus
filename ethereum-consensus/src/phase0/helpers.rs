@@ -88,7 +88,7 @@ pub fn is_valid_indexed_attestation<
         MAX_VALIDATORS_PER_COMMITTEE,
         PENDING_ATTESTATIONS_BOUND,
     >,
-    indexed_attestation: &mut IndexedAttestation<MAX_VALIDATORS_PER_COMMITTEE>,
+    indexed_attestation: &IndexedAttestation<MAX_VALIDATORS_PER_COMMITTEE>,
     context: &Context,
 ) -> Result<()> {
     let attesting_indices = &indexed_attestation.attesting_indices;
@@ -136,7 +136,7 @@ pub fn is_valid_indexed_attestation<
         Some(indexed_attestation.data.target.epoch),
         context,
     )?;
-    let signing_root = compute_signing_root(&mut indexed_attestation.data, domain)?;
+    let signing_root = compute_signing_root(&indexed_attestation.data, domain)?;
     fast_aggregate_verify(&public_keys, signing_root.as_ref(), &indexed_attestation.signature)
         .map_err(Into::into)
 }
@@ -166,7 +166,7 @@ pub fn verify_block_signature<
         MAX_VALIDATORS_PER_COMMITTEE,
         PENDING_ATTESTATIONS_BOUND,
     >,
-    signed_block: &mut SignedBeaconBlock<
+    signed_block: &SignedBeaconBlock<
         MAX_PROPOSER_SLASHINGS,
         MAX_VALIDATORS_PER_COMMITTEE,
         MAX_ATTESTER_SLASHINGS,
@@ -182,7 +182,7 @@ pub fn verify_block_signature<
         .get(proposer_index)
         .ok_or(Error::OutOfBounds { requested: proposer_index, bound: state.validators.len() })?;
     let domain = get_domain(state, DomainType::BeaconProposer, None, context)?;
-    let signing_root = compute_signing_root(&mut signed_block.message, domain)?;
+    let signing_root = compute_signing_root(&signed_block.message, domain)?;
 
     let public_key = &proposer.public_key;
     verify_signature(public_key, signing_root.as_ref(), &signed_block.signature).map_err(Into::into)

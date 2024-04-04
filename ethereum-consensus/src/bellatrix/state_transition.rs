@@ -41,7 +41,7 @@ pub fn state_transition_block_in_slot<
         BYTES_PER_LOGS_BLOOM,
         MAX_EXTRA_DATA_BYTES,
     >,
-    signed_block: &mut SignedBeaconBlock<
+    signed_block: &SignedBeaconBlock<
         MAX_PROPOSER_SLASHINGS,
         MAX_VALIDATORS_PER_COMMITTEE,
         MAX_ATTESTER_SLASHINGS,
@@ -64,7 +64,7 @@ pub fn state_transition_block_in_slot<
     if validate_result {
         verify_block_signature(state, signed_block, context)?;
     }
-    let block = &mut signed_block.message;
+    let block = &signed_block.message;
     process_block(state, block, context)?;
     if validate_result && block.state_root != state.hash_tree_root()? {
         Err(Error::InvalidStateRoot)
@@ -104,7 +104,7 @@ pub fn state_transition<
         BYTES_PER_LOGS_BLOOM,
         MAX_EXTRA_DATA_BYTES,
     >,
-    signed_block: &mut SignedBeaconBlock<
+    signed_block: &SignedBeaconBlock<
         MAX_PROPOSER_SLASHINGS,
         MAX_VALIDATORS_PER_COMMITTEE,
         MAX_ATTESTER_SLASHINGS,

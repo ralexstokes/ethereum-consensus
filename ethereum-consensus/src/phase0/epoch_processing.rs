@@ -513,7 +513,7 @@ pub fn process_historical_roots_update<
     let next_epoch = get_current_epoch(state, context) + 1;
     let epochs_per_historical_root = context.slots_per_historical_root / context.slots_per_epoch;
     if next_epoch % epochs_per_historical_root == 0 {
-        let mut historical_batch = HistoricalSummary {
+        let historical_batch = HistoricalSummary {
             block_summary_root: state.block_roots.hash_tree_root()?,
             state_summary_root: state.state_roots.hash_tree_root()?,
         };

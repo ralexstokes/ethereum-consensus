@@ -82,15 +82,14 @@ fn load_execution_payload_test<S: ssz_rs::Deserialize, O: ssz_rs::Deserialize>(
 fn run_test<S: Eq, O, F>(
     mut pre: S,
     post: Option<S>,
-    mut operation: O,
+    operation: O,
     context: &Context,
     exec_fn: F,
 ) -> Result<(), Error>
 where
-    F: FnOnce(&mut S, &mut O, &Context) -> Result<(), SpecError>,
+    F: FnOnce(&mut S, &O, &Context) -> Result<(), SpecError>,
 {
-    let operation = &mut operation;
-    let result = exec_fn(&mut pre, operation, context);
+    let result = exec_fn(&mut pre, &operation, context);
     if let Some(post) = post {
         assert!(result.is_ok());
         if pre != post {
@@ -112,7 +111,7 @@ pub fn dispatch(test: &TestCase) -> Result<(), Error> {
                 test,
                 load_attestation_test,
                 |(pre, post, operation): (spec::BeaconState, Option<spec::BeaconState>, spec::Attestation), context| {
-                    run_test(pre, post, operation, context, |state, operation, context| { spec::process_attestation(state, &*operation, context)} )
+                    run_test(pre, post, operation, context, |state, operation, context| { spec::process_attestation(state, operation, context)} )
                 }
             }
         }
@@ -177,7 +176,7 @@ pub fn dispatch(test: &TestCase) -> Result<(), Error> {
                         test,
                         load_sync_aggregate_test,
                         |(pre, post, operation): (spec::BeaconState, Option<spec::BeaconState>, spec::SyncAggregate), context| {
-                            run_test(pre, post, operation, context, |state, operation, context| { spec::process_sync_aggregate(state, &*operation, context)} )
+                            run_test(pre, post, operation, context, |state, operation, context| { spec::process_sync_aggregate(state, operation, context)} )
                         }
                     }
                 }
@@ -217,7 +216,7 @@ pub fn dispatch(test: &TestCase) -> Result<(), Error> {
                         test,
                         load_withdrawals_test,
                         |(pre, post, operation): (spec::BeaconState, Option<spec::BeaconState>, spec::ExecutionPayload), context| {
-                            run_test(pre, post, operation, context, |state, operation, context| { spec::process_withdrawals(state, &*operation, context)} )
+                            run_test(pre, post, operation, context, |state, operation, context| { spec::process_withdrawals(state, operation, context)} )
                         }
                     }
                 }

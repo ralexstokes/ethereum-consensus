@@ -29,7 +29,7 @@ pub fn initialize_beacon_state_from_eth1<
 >(
     eth1_block_hash: Hash32,
     eth1_timestamp: u64,
-    deposits: &mut [Deposit],
+    deposits: &[Deposit],
     context: &Context,
 ) -> Result<
     BeaconState<
@@ -53,7 +53,7 @@ pub fn initialize_beacon_state_from_eth1<
         deposit_count: deposits.len() as u64,
         ..Default::default()
     };
-    let mut latest_block_body = BeaconBlockBody::<
+    let latest_block_body = BeaconBlockBody::<
         MAX_PROPOSER_SLASHINGS,
         MAX_VALIDATORS_PER_COMMITTEE,
         MAX_ATTESTER_SLASHINGS,
@@ -79,7 +79,7 @@ pub fn initialize_beacon_state_from_eth1<
     };
 
     let mut leaves = List::<DepositData, DEPOSIT_DATA_LIST_BOUND>::default();
-    for deposit in deposits.iter_mut() {
+    for deposit in deposits.iter() {
         leaves.push(deposit.data.clone());
         state.eth1_data.deposit_root = leaves.hash_tree_root()?;
         process_deposit(&mut state, deposit, context)?;
@@ -149,7 +149,7 @@ pub fn get_genesis_block<
     const MAX_DEPOSITS: usize,
     const MAX_VOLUNTARY_EXITS: usize,
 >(
-    genesis_state: &mut BeaconState<
+    genesis_state: &BeaconState<
         SLOTS_PER_HISTORICAL_ROOT,
         HISTORICAL_ROOTS_LIMIT,
         ETH1_DATA_VOTES_BOUND,

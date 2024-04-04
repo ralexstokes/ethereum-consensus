@@ -8,7 +8,7 @@ use crate::{
     types::blinded_beacon_block::{BlindedBeaconBlockRef, BlindedBeaconBlockRefMut},
     Fork as Version,
 };
-#[derive(Debug, Clone, PartialEq, Eq, SimpleSerialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serializable, HashTreeRoot, serde::Serialize)]
 #[ssz(transparent)]
 #[serde(untagged)]
 pub enum SignedBlindedBeaconBlock<

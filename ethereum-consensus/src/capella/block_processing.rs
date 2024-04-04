@@ -43,10 +43,10 @@ pub fn process_bls_to_execution_change<
         BYTES_PER_LOGS_BLOOM,
         MAX_EXTRA_DATA_BYTES,
     >,
-    signed_address_change: &mut SignedBlsToExecutionChange,
+    signed_address_change: &SignedBlsToExecutionChange,
     context: &Context,
 ) -> Result<()> {
-    let address_change = &mut signed_address_change.message;
+    let address_change = &signed_address_change.message;
     let signature = &signed_address_change.signature;
 
     if address_change.validator_index >= state.validators.len() {
@@ -121,7 +121,7 @@ pub fn process_operations<
         BYTES_PER_LOGS_BLOOM,
         MAX_EXTRA_DATA_BYTES,
     >,
-    body: &mut BeaconBlockBody<
+    body: &BeaconBlockBody<
         MAX_PROPOSER_SLASHINGS,
         MAX_VALIDATORS_PER_COMMITTEE,
         MAX_ATTESTER_SLASHINGS,
@@ -151,18 +151,16 @@ pub fn process_operations<
         )))
     }
     body.proposer_slashings
-        .iter_mut()
+        .iter()
         .try_for_each(|op| process_proposer_slashing(state, op, context))?;
     body.attester_slashings
-        .iter_mut()
+        .iter()
         .try_for_each(|op| process_attester_slashing(state, op, context))?;
     body.attestations.iter().try_for_each(|op| process_attestation(state, op, context))?;
-    body.deposits.iter_mut().try_for_each(|op| process_deposit(state, op, context))?;
-    body.voluntary_exits
-        .iter_mut()
-        .try_for_each(|op| process_voluntary_exit(state, op, context))?;
+    body.deposits.iter().try_for_each(|op| process_deposit(state, op, context))?;
+    body.voluntary_exits.iter().try_for_each(|op| process_voluntary_exit(state, op, context))?;
     body.bls_to_execution_changes
-        .iter_mut()
+        .iter()
         .try_for_each(|op| process_bls_to_execution_change(state, op, context))?;
     Ok(())
 }
@@ -200,7 +198,7 @@ pub fn process_execution_payload<
         BYTES_PER_LOGS_BLOOM,
         MAX_EXTRA_DATA_BYTES,
     >,
-    block: &mut BeaconBlockBody<
+    block: &BeaconBlockBody<
         MAX_PROPOSER_SLASHINGS,
         MAX_VALIDATORS_PER_COMMITTEE,
         MAX_ATTESTER_SLASHINGS,
@@ -217,7 +215,7 @@ pub fn process_execution_payload<
     >,
     context: &Context,
 ) -> Result<()> {
-    let payload = &mut block.execution_payload;
+    let payload = &block.execution_payload;
 
     let parent_hash_invalid =
         payload.parent_hash != state.latest_execution_payload_header.block_hash;
@@ -447,7 +445,7 @@ pub fn process_block<
         BYTES_PER_LOGS_BLOOM,
         MAX_EXTRA_DATA_BYTES,
     >,
-    block: &mut BeaconBlock<
+    block: &BeaconBlock<
         MAX_PROPOSER_SLASHINGS,
         MAX_VALIDATORS_PER_COMMITTEE,
         MAX_ATTESTER_SLASHINGS,
@@ -466,10 +464,10 @@ pub fn process_block<
 ) -> Result<()> {
     process_block_header(state, block, context)?;
     process_withdrawals(state, &block.body.execution_payload, context)?;
-    process_execution_payload(state, &mut block.body, context)?;
+    process_execution_payload(state, &block.body, context)?;
     process_randao(state, &block.body, context)?;
     process_eth1_data(state, &block.body, context);
-    process_operations(state, &mut block.body, context)?;
+    process_operations(state, &block.body, context)?;
     process_sync_aggregate(state, &block.body.sync_aggregate, context)?;
     Ok(())
 }
