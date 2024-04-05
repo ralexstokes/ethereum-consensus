@@ -5,7 +5,7 @@ use crate::{
 use ethereum_consensus::deneb::{
     mainnet::Blob,
     polynomial_commitments::{
-        blob_to_kzg_commitment, compute_kzg_proof, kzg_settings_from_json,
+        blob_to_kzg_commitment, compute_kzg_proof, kzg_settings_from_json, verify_kzg_proof,
         Error as PolynomialCommitmentsError, FieldElement, KzgCommitment, KzgProof,
         ProofAndEvaluation,
     },
@@ -23,8 +23,8 @@ pub fn dispatch(test: &TestCase) -> Result<(), Error> {
             let path = path.to_string() + "/data.yaml";
             let test_data: serde_yaml::Value = load_yaml(&path);
             let input_yaml = test_data.get("input").unwrap();
-            let output_yaml = test_data.get("output").unwrap();
             let blob_yaml = input_yaml.get("blob").unwrap();
+            let output_yaml = test_data.get("output").unwrap();
 
             let input_result: Result<Blob, _> = serde_yaml::from_value(blob_yaml.clone());
             let output_result: Result<Option<KzgCommitment>, _> =
@@ -37,7 +37,7 @@ pub fn dispatch(test: &TestCase) -> Result<(), Error> {
                     Ok(())
                 }
                 (Err(_), Ok(None)) => {
-                    // Note: Expected state for failed test case
+                    // Note: Expected state for invalid length blob
                     Ok(())
                 }
                 (Ok(blob), Ok(None)) => {
@@ -53,9 +53,9 @@ pub fn dispatch(test: &TestCase) -> Result<(), Error> {
             let path = path.to_string() + "/data.yaml";
             let test_data: serde_yaml::Value = load_yaml(&path);
             let input_yaml = test_data.get("input").unwrap();
-            let output_yaml = test_data.get("output").unwrap();
             let blob_yaml = input_yaml.get("blob").unwrap();
             let z_yaml = input_yaml.get("z").unwrap();
+            let output_yaml = test_data.get("output").unwrap();
 
             let input_blob_result: Result<Blob, _> = serde_yaml::from_value(blob_yaml.clone());
             let input_z_result: Result<FieldElement, _> = serde_yaml::from_value(z_yaml.clone());
@@ -74,7 +74,7 @@ pub fn dispatch(test: &TestCase) -> Result<(), Error> {
                     Ok(())
                 }
                 (Err(_), Ok(_), Ok(None)) => {
-                    // Note: Expected state for failed test case - invalid length blob
+                    // Note: Expected state for invalid length blob
                     Ok(())
                 }
                 (Ok(blob), Ok(z), Ok(None)) => {
@@ -82,16 +82,63 @@ pub fn dispatch(test: &TestCase) -> Result<(), Error> {
                     assert!(matches!(result, Err(PolynomialCommitmentsError::CKzg(..))));
                     Ok(())
                 }
-
                 (Ok(_), Err(_), Ok(None)) => {
-                    // Note: Expected state for failed test case - invalid evaluation point
+                    // Note: Expected state for invalid evaluation point
                     Ok(())
                 }
                 _ => unreachable!("not possible"),
             }
         }
         "verify_kzg_proof" => {
-            todo!()
+            // Load test case ----
+            let path = path.to_string() + "/data.yaml";
+            let test_data: serde_yaml::Value = load_yaml(&path);
+            let input_yaml = test_data.get("input").unwrap();
+            let commitment_yaml = input_yaml.get("commitment").unwrap();
+            let z_yaml = input_yaml.get("z").unwrap();
+            let y_yaml = input_yaml.get("y").unwrap();
+            let proof_yaml = input_yaml.get("proof").unwrap();
+            let output_yaml = test_data.get("output").unwrap();
+
+            let input_commitment_result: Result<KzgCommitment, _> =
+                serde_yaml::from_value(commitment_yaml.clone());
+            let input_z_result: Result<FieldElement, _> = serde_yaml::from_value(z_yaml.clone());
+            let input_y_result: Result<FieldElement, _> = serde_yaml::from_value(y_yaml.clone());
+            let input_proof_result: Result<KzgProof, _> =
+                serde_yaml::from_value(proof_yaml.clone());
+            let output_result: Result<Option<bool>, _> =
+                serde_yaml::from_value(output_yaml.clone());
+
+            match (
+                input_commitment_result,
+                input_z_result,
+                input_y_result,
+                input_proof_result,
+                output_result,
+            ) {
+                (
+                    Ok(commitment),
+                    Ok(z),
+                    Ok(y),
+                    Ok(proof),
+                    Ok(Some(expected_verification_status)),
+                ) => {
+                    assert!(
+                        verify_kzg_proof(&commitment, &z, &y, &proof, &kzg_settings).is_ok()
+                            == expected_verification_status
+                    );
+                    Ok(())
+                }
+                // Note: If the commitment or proof or z or y is invalid...
+                (Ok(commitment), Ok(z), Ok(y), Ok(proof), Ok(None)) => {
+                    let result = verify_kzg_proof(&commitment, &z, &y, &proof, &kzg_settings);
+                    assert!(matches!(result, Err(..)));
+                    Ok(())
+                }
+
+                // TODO: Implement remaining test case states
+                _ => unreachable!("not possible"),
+            }
         }
         "compute_blob_kzg_proof" => {
             todo!()
