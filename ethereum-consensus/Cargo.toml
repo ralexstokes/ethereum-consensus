@@ -69,7 +69,7 @@ bitvec = { workspace = true, optional = true }
 
 [dev-dependencies]
 toml = "0.8.2"
-reth-primitives = { git = "https://github.com/paradigmxyz/reth", rev = "415efc82af05d1eae57f61beb04b0f711d0b7e42", default-features = false, features = [
+reth-primitives = { git = "https://github.com/paradigmxyz/reth", rev = "b89af430e2f45f8a6e53776a6e5150c1b21458c6", default-features = false, features = [
     "c-kzg",
 ] }
 

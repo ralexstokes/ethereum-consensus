@@ -31,8 +31,8 @@ pub use crate::{
             BlindedBeaconBlock, BlindedBeaconBlockBody, SignedBlindedBeaconBlock,
         },
         blob_sidecar::{
-            generalized_index_for_blob_index, verify_blob_sidecar_inclusion_proof, Blob,
-            BlobIdentifier, BlobSidecar, BlobsBundle, VERSIONED_HASH_VERSION_KZG,
+            verify_blob_sidecar_inclusion_proof, Blob, BlobIdentifier, BlobSidecar, BlobsBundle,
+            VERSIONED_HASH_VERSION_KZG,
         },
         block_processing::{
             process_attestation, process_block, process_execution_payload, process_voluntary_exit,

@@ -2,13 +2,18 @@ use crate::{
     altair, bellatrix, capella,
     clock::{self, Clock, SystemTimeProvider},
     configs::{self, Config},
-    deneb,
+    deneb::{
+        self,
+        polynomial_commitments::{kzg_settings_from_json, KzgSettings},
+        presets::TRUSTED_SETUP_JSON,
+    },
     execution_engine::ExecutionEngine,
     networks::Network,
     phase0,
     primitives::{Epoch, ExecutionAddress, Gwei, Hash32, Slot, Version, U256},
     Error, Fork,
 };
+use std::sync::Arc;
 
 // Controls the default behavior of the execution engine via the `bool` impl of `ExecutionEngine`.
 pub const DEFAULT_EXECUTION_ENGINE_VALIDITY: bool = true;
@@ -123,6 +128,8 @@ pub struct Context {
     pub execution_engine: bool,
     #[cfg(not(feature = "spec-tests"))]
     execution_engine: bool,
+
+    pub kzg_settings: Arc<KzgSettings>,
 }
 
 impl Context {
@@ -174,6 +181,8 @@ impl Context {
         deneb_preset: &deneb::Preset,
         config: &Config,
     ) -> Self {
+        let kzg_settings = kzg_settings_from_json(TRUSTED_SETUP_JSON).unwrap();
+
         Self {
             // phase0
             max_committees_per_slot: phase0_preset.max_committees_per_slot,
@@ -271,6 +280,7 @@ impl Context {
             deposit_network_id: config.deposit_network_id,
             deposit_contract_address: config.deposit_contract_address.clone(),
             execution_engine: DEFAULT_EXECUTION_ENGINE_VALIDITY,
+            kzg_settings: Arc::new(kzg_settings),
         }
     }
 
