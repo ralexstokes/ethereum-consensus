@@ -73,13 +73,13 @@ pub fn dispatch(test: &TestCase) -> Result<(), Error> {
                     assert_eq!(proof_and_evaluation, expected_proof_and_evaluation);
                     Ok(())
                 }
-                (Err(_), Ok(_), Ok(None)) => {
-                    // Note: Expected state for invalid length blob
-                    Ok(())
-                }
                 (Ok(blob), Ok(z), Ok(None)) => {
                     let result = compute_kzg_proof(&blob, &z, &kzg_settings);
                     assert!(matches!(result, Err(PolynomialCommitmentsError::CKzg(..))));
+                    Ok(())
+                }
+                (Err(_), Ok(_), Ok(None)) => {
+                    // Note: Expected state for invalid length blob
                     Ok(())
                 }
                 (Ok(_), Err(_), Ok(None)) => {
@@ -129,14 +129,18 @@ pub fn dispatch(test: &TestCase) -> Result<(), Error> {
                     );
                     Ok(())
                 }
-                // Note: If the commitment or proof or z or y is invalid...
+                // Note: If the commitment or proof or z or y is malformed...
+                (Err(_), Ok(_), Ok(_), Ok(_), Ok(None)) => Ok(()),
+                (Ok(_), Err(_), Ok(_), Ok(_), Ok(None)) => Ok(()),
+                (Ok(_), Ok(_), Err(_), Ok(_), Ok(None)) => Ok(()),
+                (Ok(_), Ok(_), Ok(_), Err(_), Ok(None)) => Ok(()),
+                // Note: This match catches no failing tests.  Is the test suite incomplete?  Or does deserialization
+                //       into the types catch all invalid state for inputs here? (unlike tests utilizing blobs)
                 (Ok(commitment), Ok(z), Ok(y), Ok(proof), Ok(None)) => {
                     let result = verify_kzg_proof(&commitment, &z, &y, &proof, &kzg_settings);
                     assert!(matches!(result, Err(..)));
                     Ok(())
                 }
-
-                // TODO: Implement remaining test case states
                 _ => unreachable!("not possible"),
             }
         }
