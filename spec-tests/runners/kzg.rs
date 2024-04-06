@@ -124,7 +124,7 @@ fn run_verify_kzg_proof_test(test: &TestCase, kzg_settings: &KzgSettings) -> Res
         Ok(commitment) => commitment,
         Err(_) => {
             assert!(output.is_none());
-            return Ok(())
+            return Ok(());
         }
     };
 
@@ -132,7 +132,7 @@ fn run_verify_kzg_proof_test(test: &TestCase, kzg_settings: &KzgSettings) -> Res
         Ok(z) => z,
         Err(_) => {
             assert!(output.is_none());
-            return Ok(())
+            return Ok(());
         }
     };
 
@@ -140,7 +140,7 @@ fn run_verify_kzg_proof_test(test: &TestCase, kzg_settings: &KzgSettings) -> Res
         Ok(y) => y,
         Err(_) => {
             assert!(output.is_none());
-            return Ok(())
+            return Ok(());
         }
     };
 
@@ -148,7 +148,7 @@ fn run_verify_kzg_proof_test(test: &TestCase, kzg_settings: &KzgSettings) -> Res
         Ok(proof) => proof,
         Err(_) => {
             assert!(output.is_none());
-            return Ok(())
+            return Ok(());
         }
     };
 
