@@ -116,6 +116,7 @@ impl Type {
     }
 
     fn imports(&self) -> syn::Item {
+        // TODO: electra
         match self {
             Self::BeaconBlockBody => parse_quote! {
                 use crate::{
@@ -827,7 +828,8 @@ fn render(target_type: &Type, items: Vec<Item>) {
 }
 
 pub fn run() {
-    let fork_sequence = &[Fork::Phase0, Fork::Altair, Fork::Bellatrix, Fork::Capella, Fork::Deneb];
+    let fork_sequence =
+        &[Fork::Phase0, Fork::Altair, Fork::Bellatrix, Fork::Capella, Fork::Deneb, Fork::Electra];
     let types = [
         Type::BeaconBlockBody,
         Type::BeaconBlock,
@@ -857,6 +859,7 @@ mod tests {
     fn test_fork_cmp() {
         assert_eq!(Fork::Phase0.cmp(&Fork::Altair), Ordering::Less);
         assert_eq!(Fork::Bellatrix.cmp(&Fork::Altair), Ordering::Greater);
-        assert_eq!(Fork::Deneb.cmp(&Fork::Altair), Ordering::Greater);
+        assert_eq!(Fork::Deneb.cmp(&Fork::Bellatrix), Ordering::Greater);
+        assert_eq!(Fork::Electra.cmp(&Fork::Deneb), Ordering::Greater);
     }
 }

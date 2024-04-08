@@ -20,6 +20,7 @@ pub enum Fork {
     Bellatrix,
     Capella,
     Deneb,
+    Electra,
 }
 
 impl Fork {
@@ -92,6 +93,8 @@ impl Fork {
                 "helpers",
                 "light_client",
             ],
+            // TODO: electra
+            Self::Electra => &[],
         }
     }
 
@@ -172,6 +175,20 @@ impl Fork {
                     use crate::crypto::{hash, fast_aggregate_verify, eth_aggregate_public_keys, eth_fast_aggregate_verify};
 
                     pub use crate::deneb::fork::upgrade_to_deneb;
+                };
+                fragment.items
+            }
+            Fork::Electra => {
+                let fragment: syn::File = parse_quote! {
+                    use std::cmp;
+                    use std::mem;
+                    use std::collections::{HashSet, HashMap};
+                    use std::iter::zip;
+                    use crate::ssz::prelude::*;
+                    use integer_sqrt::IntegerSquareRoot;
+                    use crate::crypto::{hash, fast_aggregate_verify, eth_aggregate_public_keys, eth_fast_aggregate_verify};
+
+                    // TODO: electra
                 };
                 fragment.items
             }
