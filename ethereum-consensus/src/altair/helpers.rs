@@ -119,7 +119,7 @@ pub fn get_next_sync_committee<
         .map_err(|(_, err)| err)?;
     let aggregate_public_key = eth_aggregate_public_keys(&public_keys)?;
 
-    Ok(SyncCommittee::<SYNC_COMMITTEE_SIZE> { public_keys, aggregate_public_key })
+    Ok(SyncCommittee { public_keys, aggregate_public_key })
 }
 
 pub fn get_base_reward_per_increment<
