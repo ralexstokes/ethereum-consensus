@@ -364,6 +364,12 @@ impl Spec {
                 index.insert(name, module_name.to_string());
             }
 
+            let target_module = self.diff.modules.entry(module_name.to_string()).or_default();
+            target_module.merge(module);
+        }
+
+        for (module_name, previous_module) in previous.diff.modules.iter() {
+            let mut module = Module::default();
             for container in &previous_module.containers {
                 let name = container.name.to_string();
                 if index.contains_key(&name) {
@@ -374,6 +380,12 @@ impl Spec {
                 index.insert(name, module_name.to_string());
             }
 
+            let target_module = self.diff.modules.entry(module_name.to_string()).or_default();
+            target_module.merge(module);
+        }
+
+        for (module_name, previous_module) in previous.diff.modules.iter() {
+            let mut module = Module::default();
             for type_def in &previous_module.type_defs {
                 let name = type_def.name.to_string();
                 if index.contains_key(&name) {
@@ -384,6 +396,12 @@ impl Spec {
                 index.insert(name, module_name.to_string());
             }
 
+            let target_module = self.diff.modules.entry(module_name.to_string()).or_default();
+            target_module.merge(module);
+        }
+
+        for (module_name, previous_module) in previous.diff.modules.iter() {
+            let mut module = Module::default();
             for f in &previous_module.fns {
                 let mut f = f.clone();
                 let fn_name = f.name.to_string();
@@ -449,6 +467,12 @@ impl Spec {
                 index.insert(fn_name, module_name.to_string());
             }
 
+            let target_module = self.diff.modules.entry(module_name.to_string()).or_default();
+            target_module.merge(module);
+        }
+
+        for (module_name, previous_module) in previous.diff.modules.iter() {
+            let mut module = Module::default();
             for trait_def in &previous_module.trait_defs {
                 let name = trait_def.name.to_string();
                 if index.contains_key(&name) {
