@@ -20,6 +20,7 @@ pub enum Fork {
     Bellatrix,
     Capella,
     Deneb,
+    Electra,
 }
 
 impl Fork {
@@ -92,6 +93,7 @@ impl Fork {
                 "helpers",
                 "light_client",
             ],
+            Self::Electra => &[],
         }
     }
 
@@ -172,6 +174,18 @@ impl Fork {
                     use crate::crypto::{hash, fast_aggregate_verify, eth_aggregate_public_keys, eth_fast_aggregate_verify};
 
                     pub use crate::deneb::fork::upgrade_to_deneb;
+                };
+                fragment.items
+            }
+            Fork::Electra => {
+                let fragment: syn::File = parse_quote! {
+                    use std::cmp;
+                    use std::mem;
+                    use std::collections::{HashSet, HashMap};
+                    use std::iter::zip;
+                    use crate::ssz::prelude::*;
+                    use integer_sqrt::IntegerSquareRoot;
+                    use crate::crypto::{hash, fast_aggregate_verify, eth_aggregate_public_keys, eth_fast_aggregate_verify};
                 };
                 fragment.items
             }
@@ -364,6 +378,12 @@ impl Spec {
                 index.insert(name, module_name.to_string());
             }
 
+            let target_module = self.diff.modules.entry(module_name.to_string()).or_default();
+            target_module.merge(module);
+        }
+
+        for (module_name, previous_module) in previous.diff.modules.iter() {
+            let mut module = Module::default();
             for container in &previous_module.containers {
                 let name = container.name.to_string();
                 if index.contains_key(&name) {
@@ -374,6 +394,12 @@ impl Spec {
                 index.insert(name, module_name.to_string());
             }
 
+            let target_module = self.diff.modules.entry(module_name.to_string()).or_default();
+            target_module.merge(module);
+        }
+
+        for (module_name, previous_module) in previous.diff.modules.iter() {
+            let mut module = Module::default();
             for type_def in &previous_module.type_defs {
                 let name = type_def.name.to_string();
                 if index.contains_key(&name) {
@@ -384,6 +410,12 @@ impl Spec {
                 index.insert(name, module_name.to_string());
             }
 
+            let target_module = self.diff.modules.entry(module_name.to_string()).or_default();
+            target_module.merge(module);
+        }
+
+        for (module_name, previous_module) in previous.diff.modules.iter() {
+            let mut module = Module::default();
             for f in &previous_module.fns {
                 let mut f = f.clone();
                 let fn_name = f.name.to_string();
@@ -449,6 +481,12 @@ impl Spec {
                 index.insert(fn_name, module_name.to_string());
             }
 
+            let target_module = self.diff.modules.entry(module_name.to_string()).or_default();
+            target_module.merge(module);
+        }
+
+        for (module_name, previous_module) in previous.diff.modules.iter() {
+            let mut module = Module::default();
             for trait_def in &previous_module.trait_defs {
                 let name = trait_def.name.to_string();
                 if index.contains_key(&name) {
@@ -651,6 +689,7 @@ pub fn run() {
         Some(Fork::Bellatrix),
         Some(Fork::Capella),
         Some(Fork::Deneb),
+        Some(Fork::Electra),
     ];
 
     let mut specs = HashMap::<_, Rc<_>>::new();
