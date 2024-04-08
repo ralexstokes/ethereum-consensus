@@ -1,3 +1,4 @@
+use quote::quote;
 use syn::{
     parse_quote, visit, visit::Visit, visit_mut, visit_mut::VisitMut,
     AngleBracketedGenericArguments, Generics, Ident, ItemFn, Type,
@@ -202,7 +203,10 @@ impl<'ast> Visit<'ast> for TypeNameVisitor {
                 visit::visit_type_path(self, node);
                 self.in_context = false;
             }
-            ty => println!("skipping type during visit: {ty:?}"),
+            ty => {
+                let ty_str = quote!(#ty).to_string();
+                println!("skipping type during visit: `{ty_str}`");
+            }
         }
         visit::visit_pat_type(self, i);
     }
