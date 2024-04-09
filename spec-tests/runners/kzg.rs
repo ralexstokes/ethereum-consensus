@@ -44,7 +44,7 @@ fn run_blob_to_kzg_commitment_test(
 
     match (input_blob_result, output_result) {
         (Ok(blob), Ok(Some(expected_commmitment))) => {
-            let kzg_commitment = blob_to_kzg_commitment(&blob, &kzg_settings).unwrap();
+            let kzg_commitment = blob_to_kzg_commitment(&blob, kzg_settings).unwrap();
             assert!(kzg_commitment == expected_commmitment);
             Ok(())
         }
@@ -53,7 +53,7 @@ fn run_blob_to_kzg_commitment_test(
             Ok(())
         }
         (Ok(blob), Ok(None)) => {
-            let result = blob_to_kzg_commitment(&blob, &kzg_settings);
+            let result = blob_to_kzg_commitment(&blob, kzg_settings);
             assert!(matches!(result, Err(PolynomialCommitmentsError::CKzg(..))));
             Ok(())
         }
@@ -79,7 +79,7 @@ fn run_compute_kzg_proof_test(test: &TestCase, kzg_settings: &KzgSettings) -> Re
     match (input_blob_result, input_z_result, output_result) {
         // Note: All maps for yaml file deserialized correctly
         (Ok(blob), Ok(z), Ok(Some(expected_proof_and_evaluation))) => {
-            let proof_and_evaluation = compute_kzg_proof(&blob, &z, &kzg_settings).unwrap();
+            let proof_and_evaluation = compute_kzg_proof(&blob, &z, kzg_settings).unwrap();
             let expected_proof_and_evaluation = ProofAndEvaluation {
                 proof: expected_proof_and_evaluation.0,
                 evaluation: expected_proof_and_evaluation.1,
@@ -88,7 +88,7 @@ fn run_compute_kzg_proof_test(test: &TestCase, kzg_settings: &KzgSettings) -> Re
             Ok(())
         }
         (Ok(blob), Ok(z), Ok(None)) => {
-            let result = compute_kzg_proof(&blob, &z, &kzg_settings);
+            let result = compute_kzg_proof(&blob, &z, kzg_settings);
             assert!(matches!(result, Err(PolynomialCommitmentsError::CKzg(..))));
             Ok(())
         }
@@ -152,7 +152,7 @@ fn run_verify_kzg_proof_test(test: &TestCase, kzg_settings: &KzgSettings) -> Res
         }
     };
 
-    let result = verify_kzg_proof(&commitment, &z, &y, &proof, &kzg_settings);
+    let result = verify_kzg_proof(&commitment, &z, &y, &proof, kzg_settings);
     if let Some(expected_validity) = output {
         // some `output` was present, use inner value to determine if the spec code should succeed
         // or fail
@@ -165,7 +165,7 @@ fn run_verify_kzg_proof_test(test: &TestCase, kzg_settings: &KzgSettings) -> Res
         }
     } else {
         // `output` is `null`, implying the spec code should always fail
-        let result = verify_kzg_proof(&commitment, &z, &y, &proof, &kzg_settings);
+        let result = verify_kzg_proof(&commitment, &z, &y, &proof, kzg_settings);
         assert!(result.is_err());
         Ok(())
     }
@@ -192,12 +192,12 @@ fn run_compute_blob_kzg_proof_test(
     match (input_blob_result, input_commitment_result, output_result) {
         // Note: All maps for yaml file deserialized correctly
         (Ok(blob), Ok(commitment), Ok(Some(expected_proof))) => {
-            let proof = compute_blob_kzg_proof(&blob, &commitment, &kzg_settings).unwrap();
+            let proof = compute_blob_kzg_proof(&blob, &commitment, kzg_settings).unwrap();
             assert_eq!(proof, expected_proof);
             Ok(())
         }
         (Ok(blob), Ok(commitment), Ok(None)) => {
-            let result = compute_blob_kzg_proof(&blob, &commitment, &kzg_settings);
+            let result = compute_blob_kzg_proof(&blob, &commitment, kzg_settings);
             assert!(matches!(result, Err(PolynomialCommitmentsError::CKzg(..))));
             Ok(())
         }
@@ -215,18 +215,18 @@ fn run_compute_blob_kzg_proof_test(
 
 fn run_verify_blob_kzg_proof_test(
     test: &TestCase,
-    kzg_settings: &KzgSettings,
+    _kzg_settings: &KzgSettings,
 ) -> Result<(), Error> {
-    let path = &test.data_path;
+    let _path = &test.data_path;
 
     todo!()
 }
 
 fn run_verify_blob_kzg_proof_batch_test(
     test: &TestCase,
-    kzg_settings: &KzgSettings,
+    _kzg_settings: &KzgSettings,
 ) -> Result<(), Error> {
-    let path = &test.data_path;
+    let _path = &test.data_path;
 
     todo!()
 }
