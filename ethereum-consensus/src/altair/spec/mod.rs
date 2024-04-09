@@ -4,7 +4,8 @@ pub use crate::{
         beacon_block::{BeaconBlock, BeaconBlockBody, SignedBeaconBlock},
         beacon_state::BeaconState,
         block_processing::{
-            process_attestation, process_block, process_deposit, process_sync_aggregate,
+            add_validator_to_registry, apply_deposit, process_attestation, process_block,
+            process_deposit, process_sync_aggregate,
         },
         constants::{
             PARTICIPATION_FLAG_WEIGHTS, PROPOSER_WEIGHT, SYNC_COMMITTEE_SUBNET_COUNT,
@@ -187,15 +188,19 @@ pub fn process_attester_slashing<
         Ok(())
     }
 }
-pub fn get_validator_from_deposit(deposit: &Deposit, context: &Context) -> Validator {
-    let amount = deposit.data.amount;
+pub fn get_validator_from_deposit(
+    public_key: BlsPublicKey,
+    withdrawal_credentials: Bytes32,
+    amount: u64,
+    context: &Context,
+) -> Validator {
     let effective_balance = Gwei::min(
         amount - amount % context.effective_balance_increment,
         context.max_effective_balance,
     );
     Validator {
-        public_key: deposit.data.public_key.clone(),
-        withdrawal_credentials: deposit.data.withdrawal_credentials.clone(),
+        public_key,
+        withdrawal_credentials,
         effective_balance,
         activation_eligibility_epoch: FAR_FUTURE_EPOCH,
         activation_epoch: FAR_FUTURE_EPOCH,
