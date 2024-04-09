@@ -6,8 +6,8 @@ use ethereum_consensus::deneb::{
     mainnet::Blob,
     polynomial_commitments::{
         blob_to_kzg_commitment, compute_blob_kzg_proof, compute_kzg_proof, kzg_settings_from_json,
-        verify_kzg_proof, Error as PolynomialCommitmentsError, FieldElement, KzgCommitment,
-        KzgProof, KzgSettings, ProofAndEvaluation,
+        verify_blob_kzg_proof, verify_kzg_proof, Error as PolynomialCommitmentsError, FieldElement,
+        KzgCommitment, KzgProof, KzgSettings, ProofAndEvaluation,
     },
     presets::TRUSTED_SETUP_JSON,
 };
@@ -41,18 +41,19 @@ fn run_blob_to_kzg_commitment_test(
     let input_blob_result: Result<Blob, _> = serde_yaml::from_value(blob_yaml.clone());
     let output_result: Result<Option<KzgCommitment>, _> =
         serde_yaml::from_value(output_yaml.clone());
+    let output = output_result.unwrap();
 
-    match (input_blob_result, output_result) {
-        (Ok(blob), Ok(Some(expected_commmitment))) => {
+    match (input_blob_result, output) {
+        (Ok(blob), Some(expected_commmitment)) => {
             let kzg_commitment = blob_to_kzg_commitment(&blob, kzg_settings).unwrap();
             assert!(kzg_commitment == expected_commmitment);
             Ok(())
         }
-        (Err(_), Ok(None)) => {
+        (Err(_), None) => {
             // Note: Expected state for invalid length blob
             Ok(())
         }
-        (Ok(blob), Ok(None)) => {
+        (Ok(blob), None) => {
             let result = blob_to_kzg_commitment(&blob, kzg_settings);
             assert!(matches!(result, Err(PolynomialCommitmentsError::CKzg(..))));
             Ok(())
@@ -75,10 +76,11 @@ fn run_compute_kzg_proof_test(test: &TestCase, kzg_settings: &KzgSettings) -> Re
     let input_z_result: Result<FieldElement, _> = serde_yaml::from_value(z_yaml.clone());
     let output_result: Result<Option<(KzgProof, FieldElement)>, _> =
         serde_yaml::from_value(output_yaml.clone());
+    let output = output_result.unwrap();
 
-    match (input_blob_result, input_z_result, output_result) {
+    match (input_blob_result, input_z_result, output) {
         // Note: All maps for yaml file deserialized correctly
-        (Ok(blob), Ok(z), Ok(Some(expected_proof_and_evaluation))) => {
+        (Ok(blob), Ok(z), Some(expected_proof_and_evaluation)) => {
             let proof_and_evaluation = compute_kzg_proof(&blob, &z, kzg_settings).unwrap();
             let expected_proof_and_evaluation = ProofAndEvaluation {
                 proof: expected_proof_and_evaluation.0,
@@ -87,16 +89,16 @@ fn run_compute_kzg_proof_test(test: &TestCase, kzg_settings: &KzgSettings) -> Re
             assert_eq!(proof_and_evaluation, expected_proof_and_evaluation);
             Ok(())
         }
-        (Ok(blob), Ok(z), Ok(None)) => {
+        (Ok(blob), Ok(z), None) => {
             let result = compute_kzg_proof(&blob, &z, kzg_settings);
             assert!(matches!(result, Err(PolynomialCommitmentsError::CKzg(..))));
             Ok(())
         }
-        (Err(_), Ok(_), Ok(None)) => {
+        (Err(_), Ok(_), None) => {
             // Note: Expected state for invalid length blob
             Ok(())
         }
-        (Ok(_), Err(_), Ok(None)) => {
+        (Ok(_), Err(_), None) => {
             // Note: Expected state for invalid evaluation point
             Ok(())
         }
@@ -188,24 +190,25 @@ fn run_compute_blob_kzg_proof_test(
     let input_commitment_result: Result<KzgCommitment, _> =
         serde_yaml::from_value(commitment_yaml.clone());
     let output_result: Result<Option<KzgProof>, _> = serde_yaml::from_value(output_yaml.clone());
+    let output = output_result.unwrap();
 
-    match (input_blob_result, input_commitment_result, output_result) {
+    match (input_blob_result, input_commitment_result, output) {
         // Note: All maps for yaml file deserialized correctly
-        (Ok(blob), Ok(commitment), Ok(Some(expected_proof))) => {
+        (Ok(blob), Ok(commitment), Some(expected_proof)) => {
             let proof = compute_blob_kzg_proof(&blob, &commitment, kzg_settings).unwrap();
             assert_eq!(proof, expected_proof);
             Ok(())
         }
-        (Ok(blob), Ok(commitment), Ok(None)) => {
+        (Ok(blob), Ok(commitment), None) => {
             let result = compute_blob_kzg_proof(&blob, &commitment, kzg_settings);
             assert!(matches!(result, Err(PolynomialCommitmentsError::CKzg(..))));
             Ok(())
         }
-        (Err(_), Ok(_), Ok(None)) => {
+        (Err(_), Ok(_), None) => {
             // Note: Expected state for invalid length blob
             Ok(())
         }
-        (Ok(_), Err(_), Ok(None)) => {
+        (Ok(_), Err(_), None) => {
             // Note: Expected state for invalid evaluation point
             Ok(())
         }
@@ -215,9 +218,30 @@ fn run_compute_blob_kzg_proof_test(
 
 fn run_verify_blob_kzg_proof_test(
     test: &TestCase,
-    _kzg_settings: &KzgSettings,
+    kzg_settings: &KzgSettings,
 ) -> Result<(), Error> {
-    let _path = &test.data_path;
+    let path = &test.data_path;
+    // Load test case ----
+    let path = path.to_string() + "/data.yaml";
+    let test_data: serde_yaml::Value = load_yaml(&path);
+    let input_yaml = test_data.get("input").unwrap();
+    let blob_yaml = input_yaml.get("blob").unwrap();
+    let commitment_yaml = input_yaml.get("commitment").unwrap();
+    let proof_yaml = input_yaml.get("proof").unwrap();
+    let output_yaml = test_data.get("output").unwrap();
+
+    let input_blob_result: Result<Blob, _> = serde_yaml::from_value(blob_yaml.clone());
+    let input_commitment_result: Result<KzgCommitment, _> =
+        serde_yaml::from_value(commitment_yaml.clone());
+    let input_proof_result: Result<KzgProof, _> = serde_yaml::from_value(proof_yaml.clone());
+    let output_result: Result<Option<bool>, _> = serde_yaml::from_value(output_yaml.clone());
+    let output = output_result.unwrap();
+
+    match (input_blob_result, input_commitment_result, input_proof_result, output) {
+        (Ok(blob), Ok(commitment), Ok(proof), Some(expected_validity)) => {
+            let result = verify_blob_kzg_proof(&blob, &commitment, &proof, kzg_settings);
+        }
+    }
 
     todo!()
 }
