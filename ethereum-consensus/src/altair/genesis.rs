@@ -1,8 +1,8 @@
 use crate::{
     altair::{
-        beacon_block::BeaconBlockBody, beacon_state::BeaconState,
-        block_processing::process_deposit, helpers::get_next_sync_committee, BeaconBlockHeader,
-        Deposit, DepositData, Eth1Data, Fork, DEPOSIT_DATA_LIST_BOUND,
+        beacon_block::BeaconBlockBody, beacon_state::BeaconState, helpers::get_next_sync_committee,
+        process_deposit, BeaconBlockHeader, Deposit, DepositData, Eth1Data, Fork,
+        DEPOSIT_DATA_LIST_BOUND,
     },
     primitives::{Gwei, Hash32, GENESIS_EPOCH},
     ssz::prelude::*,

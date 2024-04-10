@@ -2,7 +2,7 @@ use crate::{
     altair::{
         beacon_block::BeaconBlock,
         beacon_state::BeaconState,
-        compute_domain, compute_epoch_at_slot,
+        compute_epoch_at_slot,
         constants::{
             PARTICIPATION_FLAG_WEIGHTS, PROPOSER_WEIGHT, SYNC_REWARD_WEIGHT, WEIGHT_DENOMINATOR,
         },
@@ -17,17 +17,13 @@ use crate::{
         increase_balance, is_valid_indexed_attestation, process_block_header, process_eth1_data,
         process_operations, process_randao,
         sync::SyncAggregate,
-        Attestation, BlsSignature, Bytes32, Deposit, DepositMessage,
+        Attestation, Bytes32,
     },
-    crypto::{eth_fast_aggregate_verify, verify_signature},
+    crypto::eth_fast_aggregate_verify,
     domains::DomainType,
-    error::{
-        invalid_operation_error, InvalidAttestation, InvalidDeposit, InvalidOperation,
-        InvalidSyncAggregate,
-    },
+    error::{invalid_operation_error, InvalidAttestation, InvalidOperation, InvalidSyncAggregate},
     primitives::{BlsPublicKey, ParticipationFlags, ValidatorIndex},
     signing::compute_signing_root,
-    ssz::prelude::*,
     state_transition::{Context, Result},
 };
 use std::{collections::HashMap, iter::zip};
@@ -191,109 +187,6 @@ pub fn add_validator_to_registry<
     state.previous_epoch_participation.push(ParticipationFlags::default());
     state.current_epoch_participation.push(ParticipationFlags::default());
     state.inactivity_scores.push(0)
-}
-
-pub fn apply_deposit<
-    const SLOTS_PER_HISTORICAL_ROOT: usize,
-    const HISTORICAL_ROOTS_LIMIT: usize,
-    const ETH1_DATA_VOTES_BOUND: usize,
-    const VALIDATOR_REGISTRY_LIMIT: usize,
-    const EPOCHS_PER_HISTORICAL_VECTOR: usize,
-    const EPOCHS_PER_SLASHINGS_VECTOR: usize,
-    const MAX_VALIDATORS_PER_COMMITTEE: usize,
-    const SYNC_COMMITTEE_SIZE: usize,
->(
-    state: &mut BeaconState<
-        SLOTS_PER_HISTORICAL_ROOT,
-        HISTORICAL_ROOTS_LIMIT,
-        ETH1_DATA_VOTES_BOUND,
-        VALIDATOR_REGISTRY_LIMIT,
-        EPOCHS_PER_HISTORICAL_VECTOR,
-        EPOCHS_PER_SLASHINGS_VECTOR,
-        MAX_VALIDATORS_PER_COMMITTEE,
-        SYNC_COMMITTEE_SIZE,
-    >,
-    public_key: &BlsPublicKey,
-    withdrawal_credentials: &Bytes32,
-    amount: u64,
-    signature: &BlsSignature,
-    context: &Context,
-) -> Result<()> {
-    let index = state
-        .validators
-        .iter()
-        .enumerate()
-        .find(|(_, v)| v.public_key == *public_key)
-        .map(|(i, _)| i);
-    if let Some(index) = index {
-        increase_balance(state, index, amount);
-        return Ok(());
-    }
-
-    let mut deposit_message = DepositMessage {
-        public_key: public_key.clone(),
-        withdrawal_credentials: withdrawal_credentials.clone(),
-        amount,
-    };
-    let domain = compute_domain(DomainType::Deposit, None, None, context)?;
-    let signing_root = compute_signing_root(&mut deposit_message, domain)?;
-    if verify_signature(public_key, signing_root.as_ref(), signature).is_err() {
-        // NOTE: explicitly return with no error and also no further mutations to `state`
-        return Ok(());
-    }
-
-    add_validator_to_registry(
-        state,
-        public_key.clone(),
-        withdrawal_credentials.clone(),
-        amount,
-        context,
-    );
-
-    Ok(())
-}
-
-pub fn process_deposit<
-    const SLOTS_PER_HISTORICAL_ROOT: usize,
-    const HISTORICAL_ROOTS_LIMIT: usize,
-    const ETH1_DATA_VOTES_BOUND: usize,
-    const VALIDATOR_REGISTRY_LIMIT: usize,
-    const EPOCHS_PER_HISTORICAL_VECTOR: usize,
-    const EPOCHS_PER_SLASHINGS_VECTOR: usize,
-    const MAX_VALIDATORS_PER_COMMITTEE: usize,
-    const SYNC_COMMITTEE_SIZE: usize,
->(
-    state: &mut BeaconState<
-        SLOTS_PER_HISTORICAL_ROOT,
-        HISTORICAL_ROOTS_LIMIT,
-        ETH1_DATA_VOTES_BOUND,
-        VALIDATOR_REGISTRY_LIMIT,
-        EPOCHS_PER_HISTORICAL_VECTOR,
-        EPOCHS_PER_SLASHINGS_VECTOR,
-        MAX_VALIDATORS_PER_COMMITTEE,
-        SYNC_COMMITTEE_SIZE,
-    >,
-    deposit: &mut Deposit,
-    context: &Context,
-) -> Result<()> {
-    let leaf = deposit.data.hash_tree_root()?;
-    let branch = &deposit.proof;
-    let depth = crate::phase0::block_processing::DEPOSIT_MERKLE_DEPTH;
-    let index = state.eth1_deposit_index as usize;
-    let root = state.eth1_data.deposit_root;
-    if is_valid_merkle_branch(leaf, branch, depth, index, root).is_err() {
-        return Err(invalid_operation_error(InvalidOperation::Deposit(
-            InvalidDeposit::InvalidProof { leaf, branch: branch.to_vec(), depth, index, root },
-        )))
-    }
-
-    state.eth1_deposit_index += 1;
-
-    let public_key = &deposit.data.public_key;
-    let withdrawal_credentials = &deposit.data.withdrawal_credentials;
-    let amount = deposit.data.amount;
-    let signature = &deposit.data.signature;
-    apply_deposit(state, public_key, withdrawal_credentials, amount, signature, context)
 }
 
 pub fn process_sync_aggregate<

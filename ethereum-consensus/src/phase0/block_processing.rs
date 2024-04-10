@@ -315,7 +315,7 @@ pub fn get_validator_from_deposit(
     }
 }
 
-pub(crate) const DEPOSIT_MERKLE_DEPTH: usize = DEPOSIT_CONTRACT_TREE_DEPTH + 1;
+pub const DEPOSIT_MERKLE_DEPTH: usize = DEPOSIT_CONTRACT_TREE_DEPTH + 1;
 
 pub fn add_validator_to_registry<
     const SLOTS_PER_HISTORICAL_ROOT: usize,
@@ -402,8 +402,8 @@ pub fn apply_deposit<
 
     add_validator_to_registry(
         state,
-        public_key.clone(),
-        withdrawal_credentials.clone(),
+        deposit_message.public_key,
+        deposit_message.withdrawal_credentials,
         amount,
         context,
     );
