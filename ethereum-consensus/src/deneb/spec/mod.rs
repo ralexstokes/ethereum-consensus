@@ -659,12 +659,7 @@ pub fn apply_deposit<
     signature: &BlsSignature,
     context: &Context,
 ) -> Result<()> {
-    let index = state
-        .validators
-        .iter()
-        .enumerate()
-        .find(|(_, v)| v.public_key == *public_key)
-        .map(|(i, _)| i);
+    let index = state.validators.iter().position(|v| v.public_key == *public_key);
     if let Some(index) = index {
         increase_balance(state, index, amount);
         return Ok(());
