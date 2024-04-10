@@ -339,7 +339,7 @@ pub fn add_validator_to_registry<
     >,
     public_key: BlsPublicKey,
     withdrawal_credentials: Bytes32,
-    amount: u64,
+    amount: Gwei,
     context: &Context,
 ) {
     state.validators.push(get_validator_from_deposit(
@@ -373,7 +373,7 @@ pub fn apply_deposit<
     >,
     public_key: &BlsPublicKey,
     withdrawal_credentials: &Bytes32,
-    amount: u64,
+    amount: Gwei,
     signature: &BlsSignature,
     context: &Context,
 ) -> Result<()> {

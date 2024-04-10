@@ -490,7 +490,7 @@ pub fn apply_deposit<
     >,
     public_key: &BlsPublicKey,
     withdrawal_credentials: &Bytes32,
-    amount: u64,
+    amount: Gwei,
     signature: &BlsSignature,
     context: &Context,
 ) -> Result<()> {
