@@ -43,6 +43,8 @@ fn run_blob_to_kzg_commitment_test(
         serde_yaml::from_value(output_yaml.clone());
     let output = output_result.unwrap();
 
+    // TODO: Check the deserialization of each input
+
     match (input_blob_result, output) {
         (Ok(blob), Some(expected_commmitment)) => {
             let kzg_commitment = blob_to_kzg_commitment(&blob, kzg_settings).unwrap();
@@ -77,6 +79,8 @@ fn run_compute_kzg_proof_test(test: &TestCase, kzg_settings: &KzgSettings) -> Re
     let output_result: Result<Option<(KzgProof, FieldElement)>, _> =
         serde_yaml::from_value(output_yaml.clone());
     let output = output_result.unwrap();
+
+    // TODO: Check the deserialization of each input
 
     match (input_blob_result, input_z_result, output) {
         // Note: All maps for yaml file deserialized correctly
@@ -191,6 +195,8 @@ fn run_compute_blob_kzg_proof_test(
         serde_yaml::from_value(commitment_yaml.clone());
     let output_result: Result<Option<KzgProof>, _> = serde_yaml::from_value(output_yaml.clone());
     let output = output_result.unwrap();
+
+    // TODO: Check the deserialization of each input
 
     match (input_blob_result, input_commitment_result, output) {
         (Ok(blob), Ok(commitment), Some(expected_proof)) => {

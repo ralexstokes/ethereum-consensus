@@ -83,7 +83,7 @@ pub enum Runner {
 
 impl Runner {
     pub fn should_ignore(&self) -> bool {
-        matches!(self, Self::ForkChoice | Self::LightClient | Self::MerkleProof | Self::Sync)
+        matches!(self, Self::ForkChoice | Self::Sync)
     }
 
     // Do not collect these tests.
