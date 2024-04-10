@@ -222,35 +222,53 @@ fn run_verify_blob_kzg_proof_test(
     let blob_yaml = input_yaml.get("blob").unwrap();
     let commitment_yaml = input_yaml.get("commitment").unwrap();
     let proof_yaml = input_yaml.get("proof").unwrap();
-    let output_yaml = test_data.get("output").unwrap();
 
-    let input_blob_result: Result<Blob, _> = serde_yaml::from_value(blob_yaml.clone());
-    let input_commitment_result: Result<KzgCommitment, _> =
-        serde_yaml::from_value(commitment_yaml.clone());
-    let input_proof_result: Result<KzgProof, _> = serde_yaml::from_value(proof_yaml.clone());
+    let output_yaml = test_data.get("output").unwrap();
     let output_result: Result<Option<bool>, _> = serde_yaml::from_value(output_yaml.clone());
     let output = output_result.unwrap();
 
-    match (input_blob_result, input_commitment_result, input_proof_result, output) {
-        (Ok(blob), Ok(commitment), Ok(proof), Some(_expected_validity)) => {
-            let result = verify_blob_kzg_proof(&blob, &commitment, &proof, kzg_settings);
-            // Note: expected_validity is never compared.  This is ok, right?
+    // Check the deserialization of each input.  Checks for validity.
+    let blob: Blob = match serde_yaml::from_value(blob_yaml.clone()) {
+        Ok(blob) => blob,
+        Err(_) => {
+            assert!(output.is_none());
+            return Ok(());
+        }
+    };
+
+    let commitment = match serde_yaml::from_value(commitment_yaml.clone()) {
+        Ok(commitment) => commitment,
+        Err(_) => {
+            assert!(output.is_none());
+            return Ok(());
+        }
+    };
+
+    let proof = match serde_yaml::from_value(proof_yaml.clone()) {
+        Ok(proof) => proof,
+        Err(_) => {
+            assert!(output.is_none());
+            return Ok(());
+        }
+    };
+
+    let result = verify_blob_kzg_proof(&blob, &commitment, &proof, kzg_settings);
+    // Then check for incorrect proofs with if else statements on expected_validity.
+    if let Some(expected_validity) = output {
+        // some `output` was present, use inner value to determine if the spec code should succeed
+        // or fail
+        if expected_validity {
             assert!(result.is_ok());
             Ok(())
-        }
-        (Ok(blob), Ok(commitment), Ok(proof), None) => {
-            let result = verify_blob_kzg_proof(&blob, &commitment, &proof, kzg_settings);
-            assert!(matches!(result, Err(PolynomialCommitmentsError::CKzg(..))));
+        } else {
+            assert!(result.is_err());
             Ok(())
         }
-        // Note: "Err(_), Err(_), ..." and other variants are possible. Should i either match on
-        // those cases or check for individual deserializations like
-        // `run_verify_kzg_proof_test`?
-        (Err(_), Ok(_), Ok(_), None) => Ok(()),
-        (Ok(_), Err(_), Ok(_), None) => Ok(()),
-        (Ok(_), Ok(_), Err(_), None) => Ok(()),
-
-        _ => unreachable!("not possible"),
+    } else {
+        // `output` is `null`, implying the spec code should always fail
+        let result = verify_blob_kzg_proof(&blob, &commitment, &proof, kzg_settings);
+        assert!(result.is_err());
+        Ok(())
     }
 }
 
