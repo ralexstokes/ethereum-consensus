@@ -110,7 +110,7 @@ fn run_compute_kzg_proof_test(test: &TestCase, kzg_settings: &KzgSettings) -> Re
                     evaluation: expected_proof_and_evaluation.1,
                 };
                 assert_eq!(proof_and_evaluation, expected_proof_and_evaluation);
-                return Ok(());
+                Ok(())
             }
             Err(_) => Ok(()),
         }
@@ -171,15 +171,15 @@ fn run_verify_kzg_proof_test(test: &TestCase, kzg_settings: &KzgSettings) -> Res
     if let Some(expected_validity) = output {
         if expected_validity {
             assert!(result.is_ok());
-            return Ok(());
+            Ok(())
         } else {
             assert!(result.is_err());
-            return Ok(());
+            Ok(())
         }
     } else {
         let result = verify_kzg_proof(&commitment, &z, &y, &proof, kzg_settings);
         assert!(result.is_err());
-        return Ok(());
+        Ok(())
     }
 }
 
@@ -328,14 +328,14 @@ fn run_verify_blob_kzg_proof_batch_test(
     if let Some(expected_validity) = output {
         if expected_validity {
             assert!(result.is_ok());
-            return Ok(());
+            Ok(())
         } else {
             assert!(result.is_err());
-            return Ok(());
+            Ok(())
         }
     } else {
         let result = verify_blob_kzg_proof_batch(&blobs, &commitments, &proofs, kzg_settings);
         assert!(result.is_err());
-        return Ok(());
+        Ok(())
     }
 }
