@@ -6,13 +6,15 @@ use ethereum_consensus::deneb::{
     mainnet::Blob,
     polynomial_commitments::{
         blob_to_kzg_commitment, compute_blob_kzg_proof, compute_kzg_proof, kzg_settings_from_json,
-        verify_blob_kzg_proof, verify_kzg_proof, FieldElement, KzgCommitment, KzgProof,
-        KzgSettings, ProofAndEvaluation,
+        verify_blob_kzg_proof, verify_blob_kzg_proof_batch, verify_kzg_proof, FieldElement,
+        KzgCommitment, KzgProof, KzgSettings, ProofAndEvaluation,
     },
     presets::TRUSTED_SETUP_JSON,
 };
 
 pub fn dispatch(test: &TestCase) -> Result<(), Error> {
+    // TODO: Figure out why all tests fail when importing kzg settings via .context()
+    // let kzg_settings = &test.context().kzg_settings;
     let kzg_settings = kzg_settings_from_json(TRUSTED_SETUP_JSON)?;
 
     match test.meta.handler.0.as_str() {
@@ -169,15 +171,15 @@ fn run_verify_kzg_proof_test(test: &TestCase, kzg_settings: &KzgSettings) -> Res
     if let Some(expected_validity) = output {
         if expected_validity {
             assert!(result.is_ok());
-            Ok(())
+            return Ok(());
         } else {
             assert!(result.is_err());
-            Ok(())
+            return Ok(());
         }
     } else {
         let result = verify_kzg_proof(&commitment, &z, &y, &proof, kzg_settings);
         assert!(result.is_err());
-        Ok(())
+        return Ok(());
     }
 }
 
@@ -286,9 +288,54 @@ fn run_verify_blob_kzg_proof_test(
 
 fn run_verify_blob_kzg_proof_batch_test(
     test: &TestCase,
-    _kzg_settings: &KzgSettings,
+    kzg_settings: &KzgSettings,
 ) -> Result<(), Error> {
-    let _path = &test.data_path;
+    let path = &test.data_path;
+    let path = path.to_string() + "/data.yaml";
+    let test_data: serde_yaml::Value = load_yaml(&path);
+    let input_yaml = test_data.get("input").unwrap();
+    let blobs_yaml = input_yaml.get("blobs").unwrap();
+    let commitments_yaml = input_yaml.get("commitments").unwrap();
+    let proofs_yaml = input_yaml.get("proofs").unwrap();
+    let output_yaml = test_data.get("output").unwrap();
 
-    todo!()
+    let output_result: Result<Option<bool>, _> = serde_yaml::from_value(output_yaml.clone());
+    let output = output_result.unwrap();
+
+    let blobs: Vec<Blob> = match serde_yaml::from_value(blobs_yaml.clone()) {
+        Ok(blobs) => blobs,
+        Err(_) => {
+            assert!(output.is_none());
+            return Ok(());
+        }
+    };
+    let commitments: Vec<KzgCommitment> = match serde_yaml::from_value(commitments_yaml.clone()) {
+        Ok(commitments) => commitments,
+        Err(_) => {
+            assert!(output.is_none());
+            return Ok(());
+        }
+    };
+    let proofs: Vec<KzgCommitment> = match serde_yaml::from_value(proofs_yaml.clone()) {
+        Ok(commitments) => commitments,
+        Err(_) => {
+            assert!(output.is_none());
+            return Ok(());
+        }
+    };
+
+    let result = verify_blob_kzg_proof_batch(&blobs, &commitments, &proofs, kzg_settings);
+    if let Some(expected_validity) = output {
+        if expected_validity {
+            assert!(result.is_ok());
+            return Ok(());
+        } else {
+            assert!(result.is_err());
+            return Ok(());
+        }
+    } else {
+        let result = verify_blob_kzg_proof_batch(&blobs, &commitments, &proofs, kzg_settings);
+        assert!(result.is_err());
+        return Ok(());
+    }
 }

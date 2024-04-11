@@ -54,7 +54,7 @@ pub enum Error {
     InvalidProof,
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, Eq, PartialEq)]
 pub struct ProofAndEvaluation {
     pub proof: KzgProof,
     pub evaluation: FieldElement,
