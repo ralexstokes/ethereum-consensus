@@ -309,8 +309,6 @@ pub fn get_validator_from_deposit(deposit: &Deposit, context: &Context) -> Valid
     }
 }
 
-pub(crate) const DEPOSIT_MERKLE_DEPTH: usize = DEPOSIT_CONTRACT_TREE_DEPTH + 1;
-
 pub fn process_deposit<
     const SLOTS_PER_HISTORICAL_ROOT: usize,
     const HISTORICAL_ROOTS_LIMIT: usize,
@@ -336,17 +334,12 @@ pub fn process_deposit<
 ) -> Result<()> {
     let leaf = deposit.data.hash_tree_root()?;
     let branch = &deposit.proof;
+    let depth = DEPOSIT_CONTRACT_TREE_DEPTH + 1;
     let index = state.eth1_deposit_index as usize;
     let root = state.eth1_data.deposit_root;
-    if is_valid_merkle_branch(leaf, branch, DEPOSIT_MERKLE_DEPTH, index, root).is_err() {
+    if is_valid_merkle_branch(leaf, branch, depth, index, root).is_err() {
         return Err(invalid_operation_error(InvalidOperation::Deposit(
-            InvalidDeposit::InvalidProof {
-                leaf,
-                branch: branch.to_vec(),
-                depth: DEPOSIT_MERKLE_DEPTH,
-                index,
-                root,
-            },
+            InvalidDeposit::InvalidProof { leaf, branch: branch.to_vec(), depth, index, root },
         )))
     }
 

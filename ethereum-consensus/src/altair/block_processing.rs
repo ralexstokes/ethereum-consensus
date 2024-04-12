@@ -25,6 +25,7 @@ use crate::{
         invalid_operation_error, InvalidAttestation, InvalidDeposit, InvalidOperation,
         InvalidSyncAggregate,
     },
+    phase0::constants::DEPOSIT_CONTRACT_TREE_DEPTH,
     primitives::{BlsPublicKey, ParticipationFlags, ValidatorIndex},
     signing::compute_signing_root,
     ssz::prelude::*,
@@ -184,7 +185,7 @@ pub fn process_deposit<
 ) -> Result<()> {
     let leaf = deposit.data.hash_tree_root()?;
     let branch = &deposit.proof;
-    let depth = crate::phase0::block_processing::DEPOSIT_MERKLE_DEPTH;
+    let depth = DEPOSIT_CONTRACT_TREE_DEPTH + 1;
     let index = state.eth1_deposit_index as usize;
     let root = state.eth1_data.deposit_root;
     if is_valid_merkle_branch(leaf, branch, depth, index, root).is_err() {
