@@ -126,7 +126,6 @@ impl Fork {
             Fork::Phase0 => vec![],
             Fork::Altair => {
                 let fragment: syn::File = parse_quote! {
-                    use std::cmp;
                     use std::collections::HashSet;
                     use crate::ssz::prelude::*;
                     use crate::crypto::{hash, fast_aggregate_verify};
@@ -137,7 +136,6 @@ impl Fork {
             }
             Fork::Bellatrix => {
                 let fragment: syn::File = parse_quote! {
-                    use std::cmp;
                     use std::mem;
                     use std::collections::{HashSet, HashMap};
                     use std::iter::zip;
@@ -151,7 +149,6 @@ impl Fork {
             }
             Fork::Capella => {
                 let fragment: syn::File = parse_quote! {
-                    use std::cmp;
                     use std::mem;
                     use std::collections::{HashSet, HashMap};
                     use std::iter::zip;
@@ -165,7 +162,6 @@ impl Fork {
             }
             Fork::Deneb => {
                 let fragment: syn::File = parse_quote! {
-                    use std::cmp;
                     use std::mem;
                     use std::collections::{HashSet, HashMap};
                     use std::iter::zip;
@@ -179,7 +175,6 @@ impl Fork {
             }
             Fork::Electra => {
                 let fragment: syn::File = parse_quote! {
-                    use std::cmp;
                     use std::mem;
                     use std::collections::{HashSet, HashMap};
                     use std::iter::zip;
@@ -443,13 +438,27 @@ impl Spec {
                             .find(|&c| c.name == name)
                             .expect("internal state integrity");
 
-                        let arguments = generics_to_arguments(&container.item.generics);
-                        let mut editor = ArgumentsEditor::new(&container.name, &arguments);
-                        editor.edit(&mut fragment);
+                        // if we find a newer definition, edit the types of this function
+                        // if not, just import from the earlier fork
+                        if container.fork == self.fork {
+                            let arguments = generics_to_arguments(&container.item.generics);
+                            let mut editor = ArgumentsEditor::new(&container.name, &arguments);
+                            editor.edit(&mut fragment);
 
-                        all_arguments.push(arguments);
-                        f.fork = self.fork;
+                            all_arguments.push(arguments);
+                            f.fork = self.fork;
+                        } else {
+                            f.can_import = true;
+                        }
                     }
+                }
+
+                // if item's `fork` did not change, we can just import it
+                if f.fork != self.fork {
+                    assert!(f.can_import);
+                    module.fns.push(f);
+                    index.insert(fn_name, module_name.to_string());
+                    continue
                 }
 
                 let lifetimes = collect_lifetimes(&fragment);
