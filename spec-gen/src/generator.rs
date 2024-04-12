@@ -232,14 +232,14 @@ struct Fn {
     name: String,
     item: syn::ItemFn,
     fork: Fork,
-    expand: bool,
+    can_import: bool,
 }
 
 impl Fn {
     fn new(value: syn::ItemFn, fork: Fork) -> Self {
         let sig = &value.sig;
         let name = &sig.ident;
-        Self { name: name.to_string(), item: value, fork, expand: false }
+        Self { name: name.to_string(), item: value, fork, can_import: true }
     }
 
     fn is_pub(&self) -> bool {
@@ -475,7 +475,7 @@ impl Spec {
                 fragment.sig.generics = generics;
 
                 f.item = fragment;
-                f.expand = true;
+                f.can_import = false;
 
                 module.fns.push(f);
                 index.insert(fn_name, module_name.to_string());
@@ -555,17 +555,17 @@ impl Spec {
             .collect::<Vec<_>>();
 
         // NOTE: keep expansions at end of generated code
-        all_fn_items.sort_by_key(|(_, f)| f.expand);
+        all_fn_items.sort_by_key(|(_, f)| !f.can_import);
 
         for (module_name, f) in all_fn_items {
-            let item: Item = if f.expand {
-                f.item.clone().into()
-            } else {
+            let item: Item = if f.can_import {
                 let ident = &f.item.sig.ident;
                 let fork_name = as_syn_ident(f.fork.name());
                 parse_quote! {
                     pub use crate::#fork_name::#module_name::#ident;
                 }
+            } else {
+                f.item.clone().into()
             };
             self.items.push(item);
         }
