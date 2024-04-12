@@ -4,7 +4,7 @@ pub use crate::{
         beacon_block::{BeaconBlock, BeaconBlockBody, SignedBeaconBlock},
         beacon_state::BeaconState,
         block_processing::{
-            process_attestation, process_block, process_deposit, process_sync_aggregate,
+            add_validator_to_registry, process_attestation, process_block, process_sync_aggregate,
         },
         constants::{
             PARTICIPATION_FLAG_WEIGHTS, PROPOSER_WEIGHT, SYNC_COMMITTEE_SUBNET_COUNT,
@@ -194,6 +194,96 @@ pub fn process_attester_slashing<
     } else {
         Ok(())
     }
+}
+pub fn apply_deposit<
+    const SLOTS_PER_HISTORICAL_ROOT: usize,
+    const HISTORICAL_ROOTS_LIMIT: usize,
+    const ETH1_DATA_VOTES_BOUND: usize,
+    const VALIDATOR_REGISTRY_LIMIT: usize,
+    const EPOCHS_PER_HISTORICAL_VECTOR: usize,
+    const EPOCHS_PER_SLASHINGS_VECTOR: usize,
+    const MAX_VALIDATORS_PER_COMMITTEE: usize,
+    const SYNC_COMMITTEE_SIZE: usize,
+>(
+    state: &mut BeaconState<
+        SLOTS_PER_HISTORICAL_ROOT,
+        HISTORICAL_ROOTS_LIMIT,
+        ETH1_DATA_VOTES_BOUND,
+        VALIDATOR_REGISTRY_LIMIT,
+        EPOCHS_PER_HISTORICAL_VECTOR,
+        EPOCHS_PER_SLASHINGS_VECTOR,
+        MAX_VALIDATORS_PER_COMMITTEE,
+        SYNC_COMMITTEE_SIZE,
+    >,
+    public_key: &BlsPublicKey,
+    withdrawal_credentials: &Bytes32,
+    amount: Gwei,
+    signature: &BlsSignature,
+    context: &Context,
+) -> Result<()> {
+    let index = state.validators.iter().position(|v| v.public_key == *public_key);
+    if let Some(index) = index {
+        increase_balance(state, index, amount);
+        return Ok(());
+    }
+    let mut deposit_message = DepositMessage {
+        public_key: public_key.clone(),
+        withdrawal_credentials: withdrawal_credentials.clone(),
+        amount,
+    };
+    let domain = compute_domain(DomainType::Deposit, None, None, context)?;
+    let signing_root = compute_signing_root(&mut deposit_message, domain)?;
+    if verify_signature(public_key, signing_root.as_ref(), signature).is_err() {
+        return Ok(());
+    }
+    add_validator_to_registry(
+        state,
+        deposit_message.public_key,
+        deposit_message.withdrawal_credentials,
+        amount,
+        context,
+    );
+    Ok(())
+}
+pub fn process_deposit<
+    const SLOTS_PER_HISTORICAL_ROOT: usize,
+    const HISTORICAL_ROOTS_LIMIT: usize,
+    const ETH1_DATA_VOTES_BOUND: usize,
+    const VALIDATOR_REGISTRY_LIMIT: usize,
+    const EPOCHS_PER_HISTORICAL_VECTOR: usize,
+    const EPOCHS_PER_SLASHINGS_VECTOR: usize,
+    const MAX_VALIDATORS_PER_COMMITTEE: usize,
+    const SYNC_COMMITTEE_SIZE: usize,
+>(
+    state: &mut BeaconState<
+        SLOTS_PER_HISTORICAL_ROOT,
+        HISTORICAL_ROOTS_LIMIT,
+        ETH1_DATA_VOTES_BOUND,
+        VALIDATOR_REGISTRY_LIMIT,
+        EPOCHS_PER_HISTORICAL_VECTOR,
+        EPOCHS_PER_SLASHINGS_VECTOR,
+        MAX_VALIDATORS_PER_COMMITTEE,
+        SYNC_COMMITTEE_SIZE,
+    >,
+    deposit: &mut Deposit,
+    context: &Context,
+) -> Result<()> {
+    let leaf = deposit.data.hash_tree_root()?;
+    let branch = &deposit.proof;
+    let depth = DEPOSIT_CONTRACT_TREE_DEPTH + 1;
+    let index = state.eth1_deposit_index as usize;
+    let root = state.eth1_data.deposit_root;
+    if is_valid_merkle_branch(leaf, branch, depth, index, root).is_err() {
+        return Err(invalid_operation_error(InvalidOperation::Deposit(
+            InvalidDeposit::InvalidProof { leaf, branch: branch.to_vec(), depth, index, root },
+        )));
+    }
+    state.eth1_deposit_index += 1;
+    let public_key = &deposit.data.public_key;
+    let withdrawal_credentials = &deposit.data.withdrawal_credentials;
+    let amount = deposit.data.amount;
+    let signature = &deposit.data.signature;
+    apply_deposit(state, public_key, withdrawal_credentials, amount, signature, context)
 }
 pub fn process_voluntary_exit<
     const SLOTS_PER_HISTORICAL_ROOT: usize,

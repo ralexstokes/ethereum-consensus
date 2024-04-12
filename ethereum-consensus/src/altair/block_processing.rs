@@ -2,7 +2,7 @@ use crate::{
     altair::{
         beacon_block::BeaconBlock,
         beacon_state::BeaconState,
-        compute_domain, compute_epoch_at_slot,
+        compute_epoch_at_slot,
         constants::{
             PARTICIPATION_FLAG_WEIGHTS, PROPOSER_WEIGHT, SYNC_REWARD_WEIGHT, WEIGHT_DENOMINATOR,
         },
@@ -17,24 +17,16 @@ use crate::{
         increase_balance, is_valid_indexed_attestation, process_block_header, process_eth1_data,
         process_operations, process_randao,
         sync::SyncAggregate,
-        Attestation, Deposit, DepositMessage,
+        Attestation, Bytes32, Gwei,
     },
-    crypto::{eth_fast_aggregate_verify, verify_signature},
+    crypto::eth_fast_aggregate_verify,
     domains::DomainType,
-    error::{
-        invalid_operation_error, InvalidAttestation, InvalidDeposit, InvalidOperation,
-        InvalidSyncAggregate,
-    },
-    phase0::constants::DEPOSIT_CONTRACT_TREE_DEPTH,
+    error::{invalid_operation_error, InvalidAttestation, InvalidOperation, InvalidSyncAggregate},
     primitives::{BlsPublicKey, ParticipationFlags, ValidatorIndex},
     signing::compute_signing_root,
-    ssz::prelude::*,
     state_transition::{Context, Result},
 };
-use std::{
-    collections::{HashMap, HashSet},
-    iter::zip,
-};
+use std::{collections::HashMap, iter::zip};
 
 pub fn process_attestation<
     const SLOTS_PER_HISTORICAL_ROOT: usize,
@@ -160,7 +152,7 @@ pub fn process_attestation<
     Ok(())
 }
 
-pub fn process_deposit<
+pub fn add_validator_to_registry<
     const SLOTS_PER_HISTORICAL_ROOT: usize,
     const HISTORICAL_ROOTS_LIMIT: usize,
     const ETH1_DATA_VOTES_BOUND: usize,
@@ -180,51 +172,21 @@ pub fn process_deposit<
         MAX_VALIDATORS_PER_COMMITTEE,
         SYNC_COMMITTEE_SIZE,
     >,
-    deposit: &mut Deposit,
+    public_key: BlsPublicKey,
+    withdrawal_credentials: Bytes32,
+    amount: Gwei,
     context: &Context,
-) -> Result<()> {
-    let leaf = deposit.data.hash_tree_root()?;
-    let branch = &deposit.proof;
-    let depth = DEPOSIT_CONTRACT_TREE_DEPTH + 1;
-    let index = state.eth1_deposit_index as usize;
-    let root = state.eth1_data.deposit_root;
-    if is_valid_merkle_branch(leaf, branch, depth, index, root).is_err() {
-        return Err(invalid_operation_error(InvalidOperation::Deposit(
-            InvalidDeposit::InvalidProof { leaf, branch: branch.to_vec(), depth, index, root },
-        )))
-    }
-
-    state.eth1_deposit_index += 1;
-
-    let public_key = &deposit.data.public_key;
-    let amount = deposit.data.amount;
-    let validator_public_keys: HashSet<&BlsPublicKey> =
-        HashSet::from_iter(state.validators.iter().map(|v| &v.public_key));
-    if !validator_public_keys.contains(public_key) {
-        let mut deposit_message = DepositMessage {
-            public_key: public_key.clone(),
-            withdrawal_credentials: deposit.data.withdrawal_credentials.clone(),
-            amount,
-        };
-        let domain = compute_domain(DomainType::Deposit, None, None, context)?;
-        let signing_root = compute_signing_root(&mut deposit_message, domain)?;
-
-        if verify_signature(public_key, signing_root.as_ref(), &deposit.data.signature).is_err() {
-            // NOTE: explicitly return with no error and also no further mutations to `state`
-            return Ok(())
-        }
-        state.validators.push(get_validator_from_deposit(deposit, context));
-        state.balances.push(amount);
-        state.previous_epoch_participation.push(ParticipationFlags::default());
-        state.current_epoch_participation.push(ParticipationFlags::default());
-        state.inactivity_scores.push(0)
-    } else {
-        let index = state.validators.iter().position(|v| &v.public_key == public_key).unwrap();
-
-        increase_balance(state, index, amount);
-    }
-
-    Ok(())
+) {
+    state.validators.push(get_validator_from_deposit(
+        public_key,
+        withdrawal_credentials,
+        amount,
+        context,
+    ));
+    state.balances.push(amount);
+    state.previous_epoch_participation.push(ParticipationFlags::default());
+    state.current_epoch_participation.push(ParticipationFlags::default());
+    state.inactivity_scores.push(0);
 }
 
 pub fn process_sync_aggregate<
