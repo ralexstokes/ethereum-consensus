@@ -1175,7 +1175,7 @@ pub fn process_attester_slashing<
 pub fn get_validator_from_deposit(
     public_key: BlsPublicKey,
     withdrawal_credentials: Bytes32,
-    amount: u64,
+    amount: Gwei,
     context: &Context,
 ) -> Validator {
     let effective_balance = Gwei::min(
