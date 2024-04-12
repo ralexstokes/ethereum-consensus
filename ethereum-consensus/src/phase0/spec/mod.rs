@@ -11,7 +11,7 @@ pub use crate::{
             add_validator_to_registry, apply_deposit, get_validator_from_deposit,
             process_attestation, process_attester_slashing, process_block, process_block_header,
             process_deposit, process_eth1_data, process_operations, process_proposer_slashing,
-            process_randao, process_voluntary_exit, xor, DEPOSIT_MERKLE_DEPTH,
+            process_randao, process_voluntary_exit, xor,
         },
         constants::{
             BASE_REWARDS_PER_EPOCH, DEPOSIT_CONTRACT_TREE_DEPTH, DEPOSIT_DATA_LIST_BOUND,

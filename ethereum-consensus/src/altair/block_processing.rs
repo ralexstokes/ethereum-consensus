@@ -17,7 +17,7 @@ use crate::{
         increase_balance, is_valid_indexed_attestation, process_block_header, process_eth1_data,
         process_operations, process_randao,
         sync::SyncAggregate,
-        Attestation, Bytes32,
+        Attestation, Bytes32, Gwei,
     },
     crypto::eth_fast_aggregate_verify,
     domains::DomainType,
@@ -174,7 +174,7 @@ pub fn add_validator_to_registry<
     >,
     public_key: BlsPublicKey,
     withdrawal_credentials: Bytes32,
-    amount: u64,
+    amount: Gwei,
     context: &Context,
 ) {
     state.validators.push(get_validator_from_deposit(
@@ -186,7 +186,7 @@ pub fn add_validator_to_registry<
     state.balances.push(amount);
     state.previous_epoch_participation.push(ParticipationFlags::default());
     state.current_epoch_participation.push(ParticipationFlags::default());
-    state.inactivity_scores.push(0)
+    state.inactivity_scores.push(0);
 }
 
 pub fn process_sync_aggregate<
