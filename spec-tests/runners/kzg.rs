@@ -5,17 +5,14 @@ use crate::{
 use ethereum_consensus::deneb::{
     mainnet::Blob,
     polynomial_commitments::{
-        blob_to_kzg_commitment, compute_blob_kzg_proof, compute_kzg_proof, kzg_settings_from_json,
-        verify_blob_kzg_proof, verify_blob_kzg_proof_batch, verify_kzg_proof, FieldElement,
-        KzgCommitment, KzgProof, KzgSettings, ProofAndEvaluation,
+        blob_to_kzg_commitment, compute_blob_kzg_proof, compute_kzg_proof, verify_blob_kzg_proof,
+        verify_blob_kzg_proof_batch, verify_kzg_proof, FieldElement, KzgCommitment, KzgProof,
+        KzgSettings, ProofAndEvaluation,
     },
-    presets::TRUSTED_SETUP_JSON,
 };
 
 pub fn dispatch(test: &TestCase) -> Result<(), Error> {
-    // TODO: Figure out why all tests fail when importing kzg settings via .context()
-    // let kzg_settings = &test.context().kzg_settings;
-    let kzg_settings = kzg_settings_from_json(TRUSTED_SETUP_JSON)?;
+    let kzg_settings = &test.context().kzg_settings;
 
     match test.meta.handler.0.as_str() {
         "blob_to_kzg_commitment" => run_blob_to_kzg_commitment_test(test, &kzg_settings),

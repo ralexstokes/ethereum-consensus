@@ -69,7 +69,7 @@ fn visit_dir(
     } else {
         if entries.is_empty() {
             // some spurious test dirs exist
-            return Ok(())
+            return Ok(());
         }
         let test_case_paths = entries
             .iter()
@@ -87,7 +87,7 @@ fn visit_dir(
 
         let test_case = parse_test_case(&test_case_paths, path_mask, context.clone());
         if test_case.meta.should_skip() {
-            return Ok(())
+            return Ok(());
         }
         let name = test_case.name();
         let should_ignore = test_case.meta.should_ignore();

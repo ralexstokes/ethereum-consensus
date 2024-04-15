@@ -29,7 +29,7 @@ impl TestCase {
         match self.meta.config {
             Config::Mainnet => &self.context.mainnet,
             Config::Minimal => &self.context.minimal,
-            _ => unreachable!(),
+            Config::General => &self.context.mainnet,
         }
     }
 
