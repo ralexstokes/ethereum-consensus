@@ -15,12 +15,12 @@ pub fn dispatch(test: &TestCase) -> Result<(), Error> {
     let kzg_settings = &test.context().kzg_settings;
 
     match test.meta.handler.0.as_str() {
-        "blob_to_kzg_commitment" => run_blob_to_kzg_commitment_test(test, &kzg_settings),
-        "compute_kzg_proof" => run_compute_kzg_proof_test(test, &kzg_settings),
-        "verify_kzg_proof" => run_verify_kzg_proof_test(test, &kzg_settings),
-        "compute_blob_kzg_proof" => run_compute_blob_kzg_proof_test(test, &kzg_settings),
-        "verify_blob_kzg_proof" => run_verify_blob_kzg_proof_test(test, &kzg_settings),
-        "verify_blob_kzg_proof_batch" => run_verify_blob_kzg_proof_batch_test(test, &kzg_settings),
+        "blob_to_kzg_commitment" => run_blob_to_kzg_commitment_test(test, kzg_settings),
+        "compute_kzg_proof" => run_compute_kzg_proof_test(test, kzg_settings),
+        "verify_kzg_proof" => run_verify_kzg_proof_test(test, kzg_settings),
+        "compute_blob_kzg_proof" => run_compute_blob_kzg_proof_test(test, kzg_settings),
+        "verify_blob_kzg_proof" => run_verify_blob_kzg_proof_test(test, kzg_settings),
+        "verify_blob_kzg_proof_batch" => run_verify_blob_kzg_proof_batch_test(test, kzg_settings),
         handler => unreachable!("no tests for {handler}"),
     }
 }
