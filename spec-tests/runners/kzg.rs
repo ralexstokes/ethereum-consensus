@@ -51,13 +51,9 @@ fn run_blob_to_kzg_commitment_test(
     if let Some(expected_commitment) = output {
         // some `output` was present, use inner value to determine if the spec code should succeed
         // or fail
-        match result {
-            Ok(commitment) => {
-                assert_eq!(commitment, expected_commitment);
-                Ok(())
-            }
-            Err(_) => Ok(()),
-        }
+        let commitment = result.unwrap();
+        assert_eq!(commitment, expected_commitment);
+        Ok(())
     } else {
         // `output` is `null`, implying the spec code should always fail
         let result = blob_to_kzg_commitment(&blob, kzg_settings);
@@ -94,18 +90,12 @@ fn run_compute_kzg_proof_test(test: &TestCase, kzg_settings: &KzgSettings) -> Re
     };
 
     let result = compute_kzg_proof(&blob, &z, kzg_settings);
-    if let Some(expected_proof_and_evaluation) = output {
-        match result {
-            Ok(proof_and_evaluation) => {
-                let expected_proof_and_evaluation = ProofAndEvaluation {
-                    proof: expected_proof_and_evaluation.0,
-                    evaluation: expected_proof_and_evaluation.1,
-                };
-                assert_eq!(proof_and_evaluation, expected_proof_and_evaluation);
-                Ok(())
-            }
-            Err(_) => Ok(()),
-        }
+    if let Some(outputs) = output {
+        let proof_and_evaluation = result.unwrap();
+        let expected_proof_and_evaluation =
+            ProofAndEvaluation { proof: outputs.0, evaluation: outputs.1 };
+        assert_eq!(proof_and_evaluation, expected_proof_and_evaluation);
+        Ok(())
     } else {
         let result = compute_kzg_proof(&blob, &z, kzg_settings);
         assert!(result.is_err());
@@ -204,13 +194,9 @@ fn run_compute_blob_kzg_proof_test(
 
     let result = compute_blob_kzg_proof(&blob, &commitment, kzg_settings);
     if let Some(expected_proof) = output {
-        match result {
-            Ok(proof) => {
-                assert_eq!(proof, expected_proof);
-                Ok(())
-            }
-            Err(_) => Ok(()),
-        }
+        let proof = result.unwrap();
+        assert_eq!(proof, expected_proof);
+        Ok(())
     } else {
         let result = compute_blob_kzg_proof(&blob, &commitment, kzg_settings);
         assert!(result.is_err());
