@@ -56,7 +56,6 @@ fn run_blob_to_kzg_commitment_test(
         Ok(())
     } else {
         // `output` is `null`, implying the spec code should always fail
-        let result = blob_to_kzg_commitment(&blob, kzg_settings);
         assert!(result.is_err());
         Ok(())
     }
@@ -97,7 +96,6 @@ fn run_compute_kzg_proof_test(test: &TestCase, kzg_settings: &KzgSettings) -> Re
         assert_eq!(proof_and_evaluation, expected_proof_and_evaluation);
         Ok(())
     } else {
-        let result = compute_kzg_proof(&blob, &z, kzg_settings);
         assert!(result.is_err());
         Ok(())
     }
@@ -157,7 +155,6 @@ fn run_verify_kzg_proof_test(test: &TestCase, kzg_settings: &KzgSettings) -> Res
             Ok(())
         }
     } else {
-        let result = verify_kzg_proof(&commitment, &z, &y, &proof, kzg_settings);
         assert!(result.is_err());
         Ok(())
     }
@@ -198,7 +195,6 @@ fn run_compute_blob_kzg_proof_test(
         assert_eq!(proof, expected_proof);
         Ok(())
     } else {
-        let result = compute_blob_kzg_proof(&blob, &commitment, kzg_settings);
         assert!(result.is_err());
         Ok(())
     }
@@ -252,7 +248,6 @@ fn run_verify_blob_kzg_proof_test(
             Ok(())
         }
     } else {
-        let result = verify_blob_kzg_proof(&blob, &commitment, &proof, kzg_settings);
         assert!(result.is_err());
         Ok(())
     }
@@ -304,7 +299,6 @@ fn run_verify_blob_kzg_proof_batch_test(
             Ok(())
         }
     } else {
-        let result = verify_blob_kzg_proof_batch(&blobs, &commitments, &proofs, kzg_settings);
         assert!(result.is_err());
         Ok(())
     }
