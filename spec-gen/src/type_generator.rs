@@ -859,7 +859,8 @@ mod tests {
     fn test_fork_cmp() {
         assert_eq!(Fork::Phase0.cmp(&Fork::Altair), Ordering::Less);
         assert_eq!(Fork::Bellatrix.cmp(&Fork::Altair), Ordering::Greater);
-        assert_eq!(Fork::Deneb.cmp(&Fork::Bellatrix), Ordering::Greater);
+        assert_eq!(Fork::Capella.cmp(&Fork::Bellatrix), Ordering::Greater);
+        assert_eq!(Fork::Deneb.cmp(&Fork::Capella), Ordering::Greater);
         assert_eq!(Fork::Electra.cmp(&Fork::Deneb), Ordering::Greater);
     }
 }
