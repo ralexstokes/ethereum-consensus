@@ -7,6 +7,7 @@ pub mod configs;
 pub mod crypto;
 pub mod deneb;
 pub mod domains;
+pub mod electra;
 pub mod error;
 pub mod execution_engine;
 mod fork;

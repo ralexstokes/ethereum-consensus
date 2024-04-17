@@ -93,6 +93,7 @@ impl Fork {
                 "helpers",
                 "light_client",
             ],
+            // TODO: electra
             Self::Electra => &[],
         }
     }
@@ -181,6 +182,8 @@ impl Fork {
                     use crate::ssz::prelude::*;
                     use integer_sqrt::IntegerSquareRoot;
                     use crate::crypto::{hash, fast_aggregate_verify, eth_aggregate_public_keys, eth_fast_aggregate_verify};
+
+                    pub use crate::electra::fork::upgrade_to_electra;
                 };
                 fragment.items
             }
