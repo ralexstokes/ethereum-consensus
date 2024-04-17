@@ -4,6 +4,8 @@ pub mod constants;
 pub mod deposit_receipt;
 pub mod execution_layer_exit;
 pub mod execution_payload;
+pub mod fork;
+pub mod helpers;
 pub mod operations;
 pub mod spec;
 

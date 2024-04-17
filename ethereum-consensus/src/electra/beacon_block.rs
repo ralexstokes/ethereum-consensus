@@ -2,7 +2,7 @@ use crate::{
     altair::SyncAggregate,
     capella::SignedBlsToExecutionChange,
     deneb::polynomial_commitments::KzgCommitment,
-    electra::{Attestation, ExecutionPayload},
+    electra::{execution_payload::ExecutionPayload, operations::Attestation},
     phase0::{AttesterSlashing, Deposit, Eth1Data, ProposerSlashing, SignedVoluntaryExit},
     primitives::{BlsSignature, Bytes32, Root, Slot, ValidatorIndex},
     ssz::prelude::*,

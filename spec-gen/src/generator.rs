@@ -127,7 +127,6 @@ impl Fork {
             Fork::Phase0 => vec![],
             Fork::Altair => {
                 let fragment: syn::File = parse_quote! {
-                    use std::cmp;
                     use std::collections::HashSet;
                     use crate::ssz::prelude::*;
                     use crate::crypto::{hash, fast_aggregate_verify};
@@ -138,7 +137,6 @@ impl Fork {
             }
             Fork::Bellatrix => {
                 let fragment: syn::File = parse_quote! {
-                    use std::cmp;
                     use std::mem;
                     use std::collections::{HashSet, HashMap};
                     use std::iter::zip;
@@ -152,7 +150,6 @@ impl Fork {
             }
             Fork::Capella => {
                 let fragment: syn::File = parse_quote! {
-                    use std::cmp;
                     use std::mem;
                     use std::collections::{HashSet, HashMap};
                     use std::iter::zip;
@@ -166,7 +163,6 @@ impl Fork {
             }
             Fork::Deneb => {
                 let fragment: syn::File = parse_quote! {
-                    use std::cmp;
                     use std::mem;
                     use std::collections::{HashSet, HashMap};
                     use std::iter::zip;
@@ -180,7 +176,6 @@ impl Fork {
             }
             Fork::Electra => {
                 let fragment: syn::File = parse_quote! {
-                    use std::cmp;
                     use std::mem;
                     use std::collections::{HashSet, HashMap};
                     use std::iter::zip;
@@ -188,7 +183,7 @@ impl Fork {
                     use integer_sqrt::IntegerSquareRoot;
                     use crate::crypto::{hash, fast_aggregate_verify, eth_aggregate_public_keys, eth_fast_aggregate_verify};
 
-                    // TODO: electra
+                    pub use crate::electra::fork::upgrade_to_electra;
                 };
                 fragment.items
             }
@@ -235,14 +230,14 @@ struct Fn {
     name: String,
     item: syn::ItemFn,
     fork: Fork,
-    expand: bool,
+    can_import: bool,
 }
 
 impl Fn {
     fn new(value: syn::ItemFn, fork: Fork) -> Self {
         let sig = &value.sig;
         let name = &sig.ident;
-        Self { name: name.to_string(), item: value, fork, expand: false }
+        Self { name: name.to_string(), item: value, fork, can_import: true }
     }
 
     fn is_pub(&self) -> bool {
@@ -381,6 +376,12 @@ impl Spec {
                 index.insert(name, module_name.to_string());
             }
 
+            let target_module = self.diff.modules.entry(module_name.to_string()).or_default();
+            target_module.merge(module);
+        }
+
+        for (module_name, previous_module) in previous.diff.modules.iter() {
+            let mut module = Module::default();
             for container in &previous_module.containers {
                 let name = container.name.to_string();
                 if index.contains_key(&name) {
@@ -391,6 +392,12 @@ impl Spec {
                 index.insert(name, module_name.to_string());
             }
 
+            let target_module = self.diff.modules.entry(module_name.to_string()).or_default();
+            target_module.merge(module);
+        }
+
+        for (module_name, previous_module) in previous.diff.modules.iter() {
+            let mut module = Module::default();
             for type_def in &previous_module.type_defs {
                 let name = type_def.name.to_string();
                 if index.contains_key(&name) {
@@ -401,6 +408,12 @@ impl Spec {
                 index.insert(name, module_name.to_string());
             }
 
+            let target_module = self.diff.modules.entry(module_name.to_string()).or_default();
+            target_module.merge(module);
+        }
+
+        for (module_name, previous_module) in previous.diff.modules.iter() {
+            let mut module = Module::default();
             for f in &previous_module.fns {
                 let mut f = f.clone();
                 let fn_name = f.name.to_string();
@@ -428,13 +441,27 @@ impl Spec {
                             .find(|&c| c.name == name)
                             .expect("internal state integrity");
 
-                        let arguments = generics_to_arguments(&container.item.generics);
-                        let mut editor = ArgumentsEditor::new(&container.name, &arguments);
-                        editor.edit(&mut fragment);
+                        // if we find a newer definition, edit the types of this function
+                        // if not, just import from the earlier fork
+                        if container.fork == self.fork {
+                            let arguments = generics_to_arguments(&container.item.generics);
+                            let mut editor = ArgumentsEditor::new(&container.name, &arguments);
+                            editor.edit(&mut fragment);
 
-                        all_arguments.push(arguments);
-                        f.fork = self.fork;
+                            all_arguments.push(arguments);
+                            f.fork = self.fork;
+                        } else {
+                            f.can_import = true;
+                        }
                     }
+                }
+
+                // if item's `fork` did not change, we can just import it
+                if f.fork != self.fork {
+                    assert!(f.can_import);
+                    module.fns.push(f);
+                    index.insert(fn_name, module_name.to_string());
+                    continue
                 }
 
                 let lifetimes = collect_lifetimes(&fragment);
@@ -460,12 +487,18 @@ impl Spec {
                 fragment.sig.generics = generics;
 
                 f.item = fragment;
-                f.expand = true;
+                f.can_import = false;
 
                 module.fns.push(f);
                 index.insert(fn_name, module_name.to_string());
             }
 
+            let target_module = self.diff.modules.entry(module_name.to_string()).or_default();
+            target_module.merge(module);
+        }
+
+        for (module_name, previous_module) in previous.diff.modules.iter() {
+            let mut module = Module::default();
             for trait_def in &previous_module.trait_defs {
                 let name = trait_def.name.to_string();
                 if index.contains_key(&name) {
@@ -534,17 +567,17 @@ impl Spec {
             .collect::<Vec<_>>();
 
         // NOTE: keep expansions at end of generated code
-        all_fn_items.sort_by_key(|(_, f)| f.expand);
+        all_fn_items.sort_by_key(|(_, f)| !f.can_import);
 
         for (module_name, f) in all_fn_items {
-            let item: Item = if f.expand {
-                f.item.clone().into()
-            } else {
+            let item: Item = if f.can_import {
                 let ident = &f.item.sig.ident;
                 let fork_name = as_syn_ident(f.fork.name());
                 parse_quote! {
                     pub use crate::#fork_name::#module_name::#ident;
                 }
+            } else {
+                f.item.clone().into()
             };
             self.items.push(item);
         }
@@ -668,6 +701,7 @@ pub fn run() {
         Some(Fork::Bellatrix),
         Some(Fork::Capella),
         Some(Fork::Deneb),
+        Some(Fork::Electra),
     ];
 
     let mut specs = HashMap::<_, Rc<_>>::new();

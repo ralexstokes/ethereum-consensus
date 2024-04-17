@@ -1,7 +1,7 @@
 use crate::{
     runners::{
-        bls, epoch_processing, finality, fork, genesis, light_client, merkle_proof, operations,
-        random, rewards, sanity, shuffling, ssz_static, transition,
+        bls, epoch_processing, finality, fork, genesis, kzg, light_client, merkle_proof,
+        operations, random, rewards, sanity, shuffling, ssz_static, transition,
     },
     test_meta::TestMeta,
     Config, Context,
@@ -29,7 +29,7 @@ impl TestCase {
         match self.meta.config {
             Config::Mainnet => &self.context.mainnet,
             Config::Minimal => &self.context.minimal,
-            _ => unreachable!(),
+            Config::General => &self.context.mainnet,
         }
     }
 
@@ -48,8 +48,8 @@ impl TestCase {
             Shuffling => shuffling::dispatch(self),
             SszStatic => ssz_static::dispatch(self),
             Transition => transition::dispatch(self),
-            Kzg => todo!(),
             LightClient => light_client::dispatch(self),
+            Kzg => kzg::dispatch(self),
             MerkleProof => merkle_proof::dispatch(self),
             Sync => todo!(),
             SszGeneric => unreachable!(),

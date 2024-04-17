@@ -17,7 +17,7 @@ pub struct IndexedAttestation<const MAX_VALIDATORS_PER_SLOT: usize> {
 #[derive(
     Default, Debug, SimpleSerialize, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize,
 )]
-pub struct Attestation<const MAX_COMMITTEES_PER_SLOT: usize, const MAX_VALIDATORS_PER_SLOT: usize> {
+pub struct Attestation<const MAX_VALIDATORS_PER_SLOT: usize, const MAX_COMMITTEES_PER_SLOT: usize> {
     pub aggregation_bits: Bitlist<MAX_VALIDATORS_PER_SLOT>,
     pub data: AttestationData,
     pub committee_bits: Bitlist<MAX_COMMITTEES_PER_SLOT>,

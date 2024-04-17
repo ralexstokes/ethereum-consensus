@@ -5,5 +5,6 @@ pub use crate::electra::{
     deposit_receipt::DepositReceipt,
     execution_layer_exit::ExecutionLayerExit,
     execution_payload::{ExecutionPayload, ExecutionPayloadHeader},
-    operations::Attestation,
+    helpers::get_committee_indices,
+    operations::{Attestation, IndexedAttestation},
 };

@@ -7,6 +7,7 @@ pub use crate::{
             TIMELY_SOURCE_FLAG_INDEX, TIMELY_SOURCE_WEIGHT, TIMELY_TARGET_FLAG_INDEX,
             TIMELY_TARGET_WEIGHT, WEIGHT_DENOMINATOR,
         },
+        helpers::{add_flag, has_flag},
         light_client::{
             LightClientBootstrap, LightClientFinalityUpdate, LightClientHeader,
             LightClientOptimisticUpdate, LightClientUpdate, CURRENT_SYNC_COMMITTEE_INDEX,
@@ -42,9 +43,17 @@ pub use crate::{
     phase0::{
         beacon_block::{BeaconBlockHeader, SignedBeaconBlockHeader},
         beacon_state::{Fork, ForkData, HistoricalBatch, HistoricalSummary},
+        block_processing::{get_validator_from_deposit, xor},
         constants::{
             BASE_REWARDS_PER_EPOCH, DEPOSIT_CONTRACT_TREE_DEPTH, DEPOSIT_DATA_LIST_BOUND,
             JUSTIFICATION_BITS_LENGTH,
+        },
+        helpers::{
+            compute_activation_exit_epoch, compute_committee, compute_domain,
+            compute_epoch_at_slot, compute_fork_data_root, compute_fork_digest,
+            compute_shuffled_index, compute_shuffled_indices, compute_start_slot_at_epoch,
+            is_active_validator, is_eligible_for_activation_queue, is_slashable_attestation_data,
+            is_slashable_validator,
         },
         operations::{
             Attestation, AttestationData, AttesterSlashing, Checkpoint, Deposit, DepositData,
@@ -63,7 +72,6 @@ use crate::{
 };
 use integer_sqrt::IntegerSquareRoot;
 use std::{
-    cmp,
     collections::{HashMap, HashSet},
     iter::zip,
     mem,
@@ -182,7 +190,7 @@ pub fn process_attestation<
     increase_balance(state, get_beacon_proposer_index(state, context)?, proposer_reward);
     Ok(())
 }
-pub fn process_deposit<
+pub fn add_validator_to_registry<
     const SLOTS_PER_HISTORICAL_ROOT: usize,
     const HISTORICAL_ROOTS_LIMIT: usize,
     const ETH1_DATA_VOTES_BOUND: usize,
@@ -206,45 +214,21 @@ pub fn process_deposit<
         BYTES_PER_LOGS_BLOOM,
         MAX_EXTRA_DATA_BYTES,
     >,
-    deposit: &mut Deposit,
+    public_key: BlsPublicKey,
+    withdrawal_credentials: Bytes32,
+    amount: Gwei,
     context: &Context,
-) -> Result<()> {
-    let leaf = deposit.data.hash_tree_root()?;
-    let branch = &deposit.proof;
-    let depth = crate::phase0::block_processing::DEPOSIT_MERKLE_DEPTH;
-    let index = state.eth1_deposit_index as usize;
-    let root = state.eth1_data.deposit_root;
-    if is_valid_merkle_branch(leaf, branch, depth, index, root).is_err() {
-        return Err(invalid_operation_error(InvalidOperation::Deposit(
-            InvalidDeposit::InvalidProof { leaf, branch: branch.to_vec(), depth, index, root },
-        )));
-    }
-    state.eth1_deposit_index += 1;
-    let public_key = &deposit.data.public_key;
-    let amount = deposit.data.amount;
-    let validator_public_keys: HashSet<&BlsPublicKey> =
-        HashSet::from_iter(state.validators.iter().map(|v| &v.public_key));
-    if !validator_public_keys.contains(public_key) {
-        let mut deposit_message = DepositMessage {
-            public_key: public_key.clone(),
-            withdrawal_credentials: deposit.data.withdrawal_credentials.clone(),
-            amount,
-        };
-        let domain = compute_domain(DomainType::Deposit, None, None, context)?;
-        let signing_root = compute_signing_root(&mut deposit_message, domain)?;
-        if verify_signature(public_key, signing_root.as_ref(), &deposit.data.signature).is_err() {
-            return Ok(());
-        }
-        state.validators.push(get_validator_from_deposit(deposit, context));
-        state.balances.push(amount);
-        state.previous_epoch_participation.push(ParticipationFlags::default());
-        state.current_epoch_participation.push(ParticipationFlags::default());
-        state.inactivity_scores.push(0)
-    } else {
-        let index = state.validators.iter().position(|v| &v.public_key == public_key).unwrap();
-        increase_balance(state, index, amount);
-    }
-    Ok(())
+) {
+    state.validators.push(get_validator_from_deposit(
+        public_key,
+        withdrawal_credentials,
+        amount,
+        context,
+    ));
+    state.balances.push(amount);
+    state.previous_epoch_participation.push(ParticipationFlags::default());
+    state.current_epoch_participation.push(ParticipationFlags::default());
+    state.inactivity_scores.push(0);
 }
 pub fn process_sync_aggregate<
     const SLOTS_PER_HISTORICAL_ROOT: usize,
@@ -466,22 +450,103 @@ pub fn process_attester_slashing<
         Ok(())
     }
 }
-pub fn get_validator_from_deposit(deposit: &Deposit, context: &Context) -> Validator {
-    let amount = deposit.data.amount;
-    let effective_balance = Gwei::min(
-        amount - amount % context.effective_balance_increment,
-        context.max_effective_balance,
-    );
-    Validator {
-        public_key: deposit.data.public_key.clone(),
-        withdrawal_credentials: deposit.data.withdrawal_credentials.clone(),
-        effective_balance,
-        activation_eligibility_epoch: FAR_FUTURE_EPOCH,
-        activation_epoch: FAR_FUTURE_EPOCH,
-        exit_epoch: FAR_FUTURE_EPOCH,
-        withdrawable_epoch: FAR_FUTURE_EPOCH,
-        ..Default::default()
+pub fn apply_deposit<
+    const SLOTS_PER_HISTORICAL_ROOT: usize,
+    const HISTORICAL_ROOTS_LIMIT: usize,
+    const ETH1_DATA_VOTES_BOUND: usize,
+    const VALIDATOR_REGISTRY_LIMIT: usize,
+    const EPOCHS_PER_HISTORICAL_VECTOR: usize,
+    const EPOCHS_PER_SLASHINGS_VECTOR: usize,
+    const MAX_VALIDATORS_PER_COMMITTEE: usize,
+    const SYNC_COMMITTEE_SIZE: usize,
+    const BYTES_PER_LOGS_BLOOM: usize,
+    const MAX_EXTRA_DATA_BYTES: usize,
+>(
+    state: &mut BeaconState<
+        SLOTS_PER_HISTORICAL_ROOT,
+        HISTORICAL_ROOTS_LIMIT,
+        ETH1_DATA_VOTES_BOUND,
+        VALIDATOR_REGISTRY_LIMIT,
+        EPOCHS_PER_HISTORICAL_VECTOR,
+        EPOCHS_PER_SLASHINGS_VECTOR,
+        MAX_VALIDATORS_PER_COMMITTEE,
+        SYNC_COMMITTEE_SIZE,
+        BYTES_PER_LOGS_BLOOM,
+        MAX_EXTRA_DATA_BYTES,
+    >,
+    public_key: &BlsPublicKey,
+    withdrawal_credentials: &Bytes32,
+    amount: Gwei,
+    signature: &BlsSignature,
+    context: &Context,
+) -> Result<()> {
+    let index = state.validators.iter().position(|v| v.public_key == *public_key);
+    if let Some(index) = index {
+        increase_balance(state, index, amount);
+        return Ok(());
     }
+    let mut deposit_message = DepositMessage {
+        public_key: public_key.clone(),
+        withdrawal_credentials: withdrawal_credentials.clone(),
+        amount,
+    };
+    let domain = compute_domain(DomainType::Deposit, None, None, context)?;
+    let signing_root = compute_signing_root(&mut deposit_message, domain)?;
+    if verify_signature(public_key, signing_root.as_ref(), signature).is_err() {
+        return Ok(());
+    }
+    add_validator_to_registry(
+        state,
+        deposit_message.public_key,
+        deposit_message.withdrawal_credentials,
+        amount,
+        context,
+    );
+    Ok(())
+}
+pub fn process_deposit<
+    const SLOTS_PER_HISTORICAL_ROOT: usize,
+    const HISTORICAL_ROOTS_LIMIT: usize,
+    const ETH1_DATA_VOTES_BOUND: usize,
+    const VALIDATOR_REGISTRY_LIMIT: usize,
+    const EPOCHS_PER_HISTORICAL_VECTOR: usize,
+    const EPOCHS_PER_SLASHINGS_VECTOR: usize,
+    const MAX_VALIDATORS_PER_COMMITTEE: usize,
+    const SYNC_COMMITTEE_SIZE: usize,
+    const BYTES_PER_LOGS_BLOOM: usize,
+    const MAX_EXTRA_DATA_BYTES: usize,
+>(
+    state: &mut BeaconState<
+        SLOTS_PER_HISTORICAL_ROOT,
+        HISTORICAL_ROOTS_LIMIT,
+        ETH1_DATA_VOTES_BOUND,
+        VALIDATOR_REGISTRY_LIMIT,
+        EPOCHS_PER_HISTORICAL_VECTOR,
+        EPOCHS_PER_SLASHINGS_VECTOR,
+        MAX_VALIDATORS_PER_COMMITTEE,
+        SYNC_COMMITTEE_SIZE,
+        BYTES_PER_LOGS_BLOOM,
+        MAX_EXTRA_DATA_BYTES,
+    >,
+    deposit: &mut Deposit,
+    context: &Context,
+) -> Result<()> {
+    let leaf = deposit.data.hash_tree_root()?;
+    let branch = &deposit.proof;
+    let depth = DEPOSIT_CONTRACT_TREE_DEPTH + 1;
+    let index = state.eth1_deposit_index as usize;
+    let root = state.eth1_data.deposit_root;
+    if is_valid_merkle_branch(leaf, branch, depth, index, root).is_err() {
+        return Err(invalid_operation_error(InvalidOperation::Deposit(
+            InvalidDeposit::InvalidProof { leaf, branch: branch.to_vec(), depth, index, root },
+        )));
+    }
+    state.eth1_deposit_index += 1;
+    let public_key = &deposit.data.public_key;
+    let withdrawal_credentials = &deposit.data.withdrawal_credentials;
+    let amount = deposit.data.amount;
+    let signature = &deposit.data.signature;
+    apply_deposit(state, public_key, withdrawal_credentials, amount, signature, context)
 }
 pub fn process_voluntary_exit<
     const SLOTS_PER_HISTORICAL_ROOT: usize,
@@ -639,10 +704,6 @@ pub fn process_block_header<
         return Err(invalid_header_error(InvalidBeaconBlockHeader::ProposerSlashed(proposer_index)));
     }
     Ok(())
-}
-pub fn xor(a: &Bytes32, b: &Bytes32) -> Bytes32 {
-    let inner = a.iter().zip(b.iter()).map(|(a, b)| a ^ b).collect::<Vec<_>>();
-    ByteVector::<32>::try_from(inner.as_ref()).unwrap()
 }
 pub fn process_randao<
     const SLOTS_PER_HISTORICAL_ROOT: usize,
@@ -1538,14 +1599,6 @@ pub fn get_genesis_block<
 > {
     Ok(BeaconBlock { state_root: genesis_state.hash_tree_root()?, ..Default::default() })
 }
-pub fn add_flag(flags: ParticipationFlags, flag_index: usize) -> ParticipationFlags {
-    let flag = 2u8.pow(flag_index as u32);
-    flags | flag
-}
-pub fn has_flag(flags: ParticipationFlags, flag_index: usize) -> bool {
-    let flag = 2u8.pow(flag_index as u32);
-    flags & flag == flag
-}
 pub fn get_next_sync_committee_indices<
     const SLOTS_PER_HISTORICAL_ROOT: usize,
     const HISTORICAL_ROOTS_LIMIT: usize,
@@ -1632,7 +1685,7 @@ pub fn get_next_sync_committee<
     let public_keys = Vector::<BlsPublicKey, SYNC_COMMITTEE_SIZE>::try_from(public_keys)
         .map_err(|(_, err)| err)?;
     let aggregate_public_key = eth_aggregate_public_keys(&public_keys)?;
-    Ok(SyncCommittee::<SYNC_COMMITTEE_SIZE> { public_keys, aggregate_public_key })
+    Ok(SyncCommittee { public_keys, aggregate_public_key })
 }
 pub fn get_base_reward_per_increment<
     const SLOTS_PER_HISTORICAL_ROOT: usize,
@@ -1828,13 +1881,6 @@ pub fn get_flag_index_deltas<
     }
     Ok((rewards, penalties))
 }
-pub fn is_active_validator(validator: &Validator, epoch: Epoch) -> bool {
-    validator.activation_epoch <= epoch && epoch < validator.exit_epoch
-}
-pub fn is_eligible_for_activation_queue(validator: &Validator, context: &Context) -> bool {
-    validator.activation_eligibility_epoch == FAR_FUTURE_EPOCH &&
-        validator.effective_balance == context.max_effective_balance
-}
 pub fn is_eligible_for_activation<
     const SLOTS_PER_HISTORICAL_ROOT: usize,
     const HISTORICAL_ROOTS_LIMIT: usize,
@@ -1863,17 +1909,6 @@ pub fn is_eligible_for_activation<
 ) -> bool {
     validator.activation_eligibility_epoch <= state.finalized_checkpoint.epoch &&
         validator.activation_epoch == FAR_FUTURE_EPOCH
-}
-pub fn is_slashable_validator(validator: &Validator, epoch: Epoch) -> bool {
-    !validator.slashed &&
-        validator.activation_epoch <= epoch &&
-        epoch < validator.withdrawable_epoch
-}
-pub fn is_slashable_attestation_data(data_1: &AttestationData, data_2: &AttestationData) -> bool {
-    let double_vote = data_1 != data_2 && data_1.target.epoch == data_2.target.epoch;
-    let surround_vote =
-        data_1.source.epoch < data_2.source.epoch && data_2.target.epoch < data_1.target.epoch;
-    double_vote || surround_vote
 }
 pub fn is_valid_indexed_attestation<
     const SLOTS_PER_HISTORICAL_ROOT: usize,
@@ -2065,98 +2100,6 @@ pub fn get_current_epoch<
 ) -> Epoch {
     compute_epoch_at_slot(state.slot, context)
 }
-pub fn compute_shuffled_index(
-    mut index: usize,
-    index_count: usize,
-    seed: &Bytes32,
-    context: &Context,
-) -> Result<usize> {
-    if index >= index_count {
-        return Err(Error::InvalidShufflingIndex { index, total: index_count });
-    }
-    let mut pivot_input = [0u8; 33];
-    pivot_input[..32].copy_from_slice(seed.as_ref());
-    let mut source_input = [0u8; 37];
-    source_input[..32].copy_from_slice(seed.as_ref());
-    for current_round in 0..context.shuffle_round_count {
-        pivot_input[32] = current_round as u8;
-        let pivot_bytes: [u8; 8] = hash(pivot_input).as_ref()[..8].try_into().unwrap();
-        let pivot = (u64::from_le_bytes(pivot_bytes) as usize) % index_count;
-        let flip = (pivot + index_count - index) % index_count;
-        let position = cmp::max(index, flip);
-        let position_bytes: [u8; 4] = ((position / 256) as u32).to_le_bytes();
-        source_input[32] = current_round as u8;
-        source_input[33..].copy_from_slice(&position_bytes);
-        let source = hash(source_input);
-        let byte = source.as_ref()[(position % 256) / 8];
-        let bit = (byte >> (position % 8)) % 2;
-        index = if bit != 0 { flip } else { index };
-    }
-    Ok(index)
-}
-pub fn compute_shuffled_indices(
-    indices: &[ValidatorIndex],
-    seed: &Bytes32,
-    context: &Context,
-) -> ShuffledIndices {
-    let mut input = indices.to_vec();
-    if input.is_empty() {
-        return input;
-    }
-    let index_count = input.len();
-    let mut pivot_input = [0u8; 33];
-    pivot_input[..32].copy_from_slice(seed.as_ref());
-    let mut source_input = [0u8; 37];
-    source_input[..32].copy_from_slice(seed.as_ref());
-    for current_round in (0..=context.shuffle_round_count - 1).rev() {
-        pivot_input[32] = current_round as u8;
-        let pivot_bytes: [u8; 8] = hash(pivot_input).as_ref()[..8].try_into().unwrap();
-        let pivot = u64::from_le_bytes(pivot_bytes) as usize % index_count;
-        source_input[32] = current_round as u8;
-        let position = (pivot >> 8) as u32;
-        source_input[33..].copy_from_slice(&position.to_le_bytes());
-        let mut source = hash(source_input);
-        let mut byte_source = source[(pivot & 0xff) >> 3];
-        let mirror = (pivot + 1) >> 1;
-        for i in 0..mirror {
-            let j = pivot - i;
-            if j & 0xff == 0xff {
-                let position = (j >> 8) as u32;
-                source_input[33..].copy_from_slice(&position.to_le_bytes());
-                source = hash(source_input);
-            }
-            if j & 0x07 == 0x07 {
-                byte_source = source[(j & 0xff) >> 3];
-            }
-            let bit_source = (byte_source >> (j & 0x07)) & 0x01;
-            if bit_source == 1 {
-                input.swap(i, j);
-            }
-        }
-        let end = index_count - 1;
-        let position = (end >> 8) as u32;
-        source_input[33..].copy_from_slice(&position.to_le_bytes());
-        source = hash(source_input);
-        byte_source = source[(end & 0xff) >> 3];
-        let mirror = (pivot + index_count + 1) >> 1;
-        for (k, i) in ((pivot + 1)..mirror).enumerate() {
-            let j = end - k;
-            if j & 0xff == 0xff {
-                let position = (j >> 8) as u32;
-                source_input[33..].copy_from_slice(&position.to_le_bytes());
-                source = hash(source_input);
-            }
-            if j & 0x07 == 0x07 {
-                byte_source = source[(j & 0xff) >> 3];
-            }
-            let bit_source = (byte_source >> (j & 0x07)) & 0x01;
-            if bit_source == 1 {
-                input.swap(i, j);
-            }
-        }
-    }
-    input
-}
 pub fn sample_proposer_index<
     const SLOTS_PER_HISTORICAL_ROOT: usize,
     const HISTORICAL_ROOTS_LIMIT: usize,
@@ -2255,70 +2198,6 @@ pub fn compute_proposer_index<
             round += 1;
         }
     }
-}
-pub fn compute_committee(
-    indices: &[ValidatorIndex],
-    seed: &Bytes32,
-    index: usize,
-    count: usize,
-    context: &Context,
-) -> Result<Vec<ValidatorIndex>> {
-    if cfg!(feature = "shuffling") {
-        let shuffled_indices = compute_shuffled_indices(indices, seed, context);
-        let index_count = indices.len();
-        let start = index_count * index / count;
-        let end = index_count * (index + 1) / count;
-        let committee = shuffled_indices[start..end].to_vec();
-        Ok(committee)
-    } else {
-        let start = indices.len() * index / count;
-        let end = indices.len() * (index + 1) / count;
-        let mut committee = vec![0usize; end - start];
-        for i in start..end {
-            let index = compute_shuffled_index(i, indices.len(), seed, context)?;
-            committee[i - start] = indices[index];
-        }
-        Ok(committee)
-    }
-}
-pub fn compute_epoch_at_slot(slot: Slot, context: &Context) -> Epoch {
-    slot / context.slots_per_epoch
-}
-pub fn compute_start_slot_at_epoch(epoch: Epoch, context: &Context) -> Slot {
-    epoch * context.slots_per_epoch
-}
-pub fn compute_activation_exit_epoch(epoch: Epoch, context: &Context) -> Epoch {
-    epoch + 1 + context.max_seed_lookahead
-}
-pub fn compute_fork_digest(
-    current_version: Version,
-    genesis_validators_root: Root,
-) -> Result<ForkDigest> {
-    let fork_data_root = compute_fork_data_root(current_version, genesis_validators_root)?;
-    let digest = &fork_data_root[..4];
-    Ok(digest.try_into().expect("should not fail"))
-}
-pub fn compute_domain(
-    domain_type: DomainType,
-    fork_version: Option<Version>,
-    genesis_validators_root: Option<Root>,
-    context: &Context,
-) -> Result<Domain> {
-    let fork_version = fork_version.unwrap_or(context.genesis_fork_version);
-    let genesis_validators_root = genesis_validators_root.unwrap_or_default();
-    let fork_data_root = compute_fork_data_root(fork_version, genesis_validators_root)?;
-    let mut domain = Domain::default();
-    domain[..4].copy_from_slice(&domain_type.as_bytes());
-    domain[4..].copy_from_slice(&fork_data_root[..28]);
-    Ok(domain)
-}
-pub fn compute_fork_data_root(
-    current_version: Version,
-    genesis_validators_root: Root,
-) -> Result<Root> {
-    ForkData { current_version, genesis_validators_root }
-        .hash_tree_root()
-        .map_err(Error::Merkleization)
 }
 pub fn get_previous_epoch<
     const SLOTS_PER_HISTORICAL_ROOT: usize,
