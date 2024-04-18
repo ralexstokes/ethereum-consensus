@@ -29,6 +29,8 @@ pub const INACTIVITY_SCORE_RECOVERY_RATE: u64 = 16;
 pub const EJECTION_BALANCE: Gwei = 16 * 10u64.pow(9);
 pub const MIN_PER_EPOCH_CHURN_LIMIT: u64 = 2;
 pub const MAX_PER_EPOCH_ACTIVATION_CHURN_LIMIT: u64 = 4;
+pub const MIN_PER_EPOCH_CHURN_LIMIT_ELECTRA: u64 = 64 * 10u64.pow(9);
+pub const MAX_PER_EPOCH_ACTIVATION_EXIT_CHURN_LIMIT: u64 = 128 * 10u64.pow(9);
 pub const CHURN_LIMIT_QUOTIENT: u64 = 32;
 pub const PROPOSER_SCORE_BOOST: u64 = 40;
 pub const DEPOSIT_CHAIN_ID: usize = 5;
@@ -80,6 +82,8 @@ pub fn config() -> Config {
         ejection_balance: EJECTION_BALANCE,
         min_per_epoch_churn_limit: MIN_PER_EPOCH_CHURN_LIMIT,
         max_per_epoch_activation_churn_limit: MAX_PER_EPOCH_ACTIVATION_CHURN_LIMIT,
+        min_per_epoch_churn_limit_electra: MIN_PER_EPOCH_CHURN_LIMIT_ELECTRA,
+        max_per_epoch_activation_exit_churn_limit: MAX_PER_EPOCH_ACTIVATION_EXIT_CHURN_LIMIT,
         churn_limit_quotient: CHURN_LIMIT_QUOTIENT,
         proposer_score_boost: PROPOSER_SCORE_BOOST,
         deposit_chain_id: DEPOSIT_CHAIN_ID,

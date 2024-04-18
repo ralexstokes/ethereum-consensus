@@ -16,6 +16,5 @@ pub struct Preset {
     pub max_consolidations: usize,
     pub max_deposit_receipts_per_payload: usize,
     pub max_withdrawal_requests_per_payload: usize,
-    pub min_per_epoch_churn_limit_electra: Gwei,
-    pub max_per_epoch_activation_exit_churn_limit: Gwei,
+    pub max_pending_partials_per_withdrawals_sweep: usize,
 }

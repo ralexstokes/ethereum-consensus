@@ -7,6 +7,7 @@ use crate::{
         polynomial_commitments::{kzg_settings_from_json, KzgSettings},
         presets::TRUSTED_SETUP_JSON,
     },
+    electra,
     execution_engine::ExecutionEngine,
     networks::Network,
     phase0,
@@ -82,6 +83,21 @@ pub struct Context {
     pub max_blob_commitments_per_block: usize,
     pub max_blobs_per_block: usize,
 
+    // electra preset
+    pub min_activation_balance: Gwei,
+    pub max_effective_balance_electra: Gwei,
+    pub min_slashing_penalty_quotient_electra: u64,
+    pub whistleblower_reward_quotient_electra: u64,
+    pub pending_balance_deposits_limit: usize,
+    pub pending_partial_withdrawals_limit: usize,
+    pub pending_consolidations_limit: usize,
+    pub max_attester_slashings_electra: usize,
+    pub max_attestations_electra: usize,
+    pub max_consolidations: usize,
+    pub max_deposit_receipts_per_payload: usize,
+    pub max_withdrawal_requests_per_payload: usize,
+    pub max_pending_partials_per_withdrawals_sweep: usize,
+
     // config
     pub name: Network,
 
@@ -116,6 +132,8 @@ pub struct Context {
     pub ejection_balance: Gwei,
     pub min_per_epoch_churn_limit: u64,
     pub max_per_epoch_activation_churn_limit: u64,
+    pub min_per_epoch_churn_limit_electra: u64,
+    pub max_per_epoch_activation_exit_churn_limit: u64,
     pub churn_limit_quotient: u64,
 
     pub proposer_score_boost: u64,
@@ -146,12 +164,14 @@ impl Context {
                 let bellatrix_preset = &bellatrix::mainnet::PRESET;
                 let capella_preset = &capella::mainnet::PRESET;
                 let deneb_preset = &deneb::mainnet::PRESET;
+                let electra_preset = &electra::mainnet::PRESET;
                 Self::from(
                     phase0_preset,
                     altair_preset,
                     bellatrix_preset,
                     capella_preset,
                     deneb_preset,
+                    electra_preset,
                     &config,
                 )
             }
@@ -161,12 +181,14 @@ impl Context {
                 let bellatrix_preset = &bellatrix::minimal::PRESET;
                 let capella_preset = &capella::minimal::PRESET;
                 let deneb_preset = &deneb::minimal::PRESET;
+                let electra_preset = &electra::minimal::PRESET;
                 Self::from(
                     phase0_preset,
                     altair_preset,
                     bellatrix_preset,
                     capella_preset,
                     deneb_preset,
+                    electra_preset,
                     &config,
                 )
             }
@@ -181,6 +203,7 @@ impl Context {
         bellatrix_preset: &bellatrix::Preset,
         capella_preset: &capella::Preset,
         deneb_preset: &deneb::Preset,
+        electra_preset: &electra::Preset,
         config: &Config,
     ) -> Self {
         let kzg_settings = kzg_settings_from_json(TRUSTED_SETUP_JSON).unwrap();
@@ -249,6 +272,23 @@ impl Context {
             field_elements_per_blob: deneb_preset.field_elements_per_blob,
             max_blob_commitments_per_block: deneb_preset.max_blob_commitments_per_block,
             max_blobs_per_block: deneb_preset.max_blobs_per_block,
+            // electra
+            min_activation_balance: electra_preset.min_activation_balance,
+            max_effective_balance_electra: electra_preset.max_effective_balance_electra,
+            min_slashing_penalty_quotient_electra: electra_preset
+                .min_slashing_penalty_quotient_electra,
+            whistleblower_reward_quotient_electra: electra_preset
+                .whistleblower_reward_quotient_electra,
+            pending_balance_deposits_limit: electra_preset.pending_balance_deposits_limit,
+            pending_partial_withdrawals_limit: electra_preset.pending_partial_withdrawals_limit,
+            pending_consolidations_limit: electra_preset.pending_consolidations_limit,
+            max_attester_slashings_electra: electra_preset.max_attester_slashings_electra,
+            max_attestations_electra: electra_preset.max_attestations_electra,
+            max_consolidations: electra_preset.max_consolidations,
+            max_deposit_receipts_per_payload: electra_preset.max_deposit_receipts_per_payload,
+            max_withdrawal_requests_per_payload: electra_preset.max_withdrawal_requests_per_payload,
+            max_pending_partials_per_withdrawals_sweep: electra_preset
+                .max_pending_partials_per_withdrawals_sweep,
             // config
             name: config.name.clone(),
             terminal_total_difficulty: config.terminal_total_difficulty,
@@ -278,6 +318,9 @@ impl Context {
             ejection_balance: config.ejection_balance,
             min_per_epoch_churn_limit: config.min_per_epoch_churn_limit,
             max_per_epoch_activation_churn_limit: config.max_per_epoch_activation_churn_limit,
+            min_per_epoch_churn_limit_electra: config.min_per_epoch_churn_limit_electra,
+            max_per_epoch_activation_exit_churn_limit: config
+                .max_per_epoch_activation_exit_churn_limit,
             churn_limit_quotient: config.churn_limit_quotient,
             proposer_score_boost: config.proposer_score_boost,
             deposit_chain_id: config.deposit_chain_id,
@@ -295,12 +338,14 @@ impl Context {
         let bellatrix_preset = &bellatrix::mainnet::PRESET;
         let capella_preset = &capella::mainnet::PRESET;
         let deneb_preset = &deneb::mainnet::PRESET;
+        let electra_preset = &electra::mainnet::PRESET;
         Self::from(
             phase0_preset,
             altair_preset,
             bellatrix_preset,
             capella_preset,
             deneb_preset,
+            electra_preset,
             config,
         )
     }
@@ -312,12 +357,14 @@ impl Context {
         let bellatrix_preset = &bellatrix::minimal::PRESET;
         let capella_preset = &capella::minimal::PRESET;
         let deneb_preset = &deneb::minimal::PRESET;
+        let electra_preset = &electra::minimal::PRESET;
         Self::from(
             phase0_preset,
             altair_preset,
             bellatrix_preset,
             capella_preset,
             deneb_preset,
+            electra_preset,
             config,
         )
     }
@@ -329,12 +376,14 @@ impl Context {
         let bellatrix_preset = &bellatrix::mainnet::PRESET;
         let capella_preset = &capella::mainnet::PRESET;
         let deneb_preset = &deneb::mainnet::PRESET;
+        let electra_preset = &electra::mainnet::PRESET;
         Self::from(
             phase0_preset,
             altair_preset,
             bellatrix_preset,
             capella_preset,
             deneb_preset,
+            electra_preset,
             config,
         )
     }
@@ -346,12 +395,14 @@ impl Context {
         let bellatrix_preset = &bellatrix::mainnet::PRESET;
         let capella_preset = &capella::mainnet::PRESET;
         let deneb_preset = &deneb::mainnet::PRESET;
+        let electra_prest = &electra::mainnet::PRESET;
         Self::from(
             phase0_preset,
             altair_preset,
             bellatrix_preset,
             capella_preset,
             deneb_preset,
+            electra_prest,
             config,
         )
     }
@@ -363,12 +414,14 @@ impl Context {
         let bellatrix_preset = &bellatrix::mainnet::PRESET;
         let capella_preset = &capella::mainnet::PRESET;
         let deneb_preset = &deneb::mainnet::PRESET;
+        let electra_preset = &electra::mainnet::PRESET;
         Self::from(
             phase0_preset,
             altair_preset,
             bellatrix_preset,
             capella_preset,
             deneb_preset,
+            electra_preset,
             config,
         )
     }
