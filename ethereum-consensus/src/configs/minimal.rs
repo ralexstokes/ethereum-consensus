@@ -17,6 +17,8 @@ pub const CAPELLA_FORK_VERSION: Version = [3, 0, 0, 1];
 pub const CAPELLA_FORK_EPOCH: Epoch = FAR_FUTURE_EPOCH;
 pub const DENEB_FORK_VERSION: Version = [4, 0, 0, 1];
 pub const DENEB_FORK_EPOCH: Epoch = FAR_FUTURE_EPOCH;
+pub const ELECTRA_FORK_VERSION: Version = [5, 0, 0, 1];
+pub const ELECTRA_FORK_EPOCH: Epoch = FAR_FUTURE_EPOCH;
 pub const SECONDS_PER_SLOT: u64 = 6;
 pub const SECONDS_PER_ETH1_BLOCK: u64 = 14;
 pub const MIN_VALIDATOR_WITHDRAWABILITY_DELAY: Epoch = 256;
@@ -66,6 +68,8 @@ pub fn config() -> Config {
         capella_fork_epoch: CAPELLA_FORK_EPOCH,
         deneb_fork_version: DENEB_FORK_VERSION,
         deneb_fork_epoch: DENEB_FORK_EPOCH,
+        electra_fork_version: ELECTRA_FORK_VERSION,
+        electra_fork_epoch: ELECTRA_FORK_EPOCH,
         seconds_per_slot: SECONDS_PER_SLOT,
         seconds_per_eth1_block: SECONDS_PER_ETH1_BLOCK,
         min_validator_withdrawability_delay: MIN_VALIDATOR_WITHDRAWABILITY_DELAY,

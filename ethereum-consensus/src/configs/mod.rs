@@ -38,6 +38,9 @@ pub struct Config {
     #[serde(with = "crate::serde::as_hex")]
     pub deneb_fork_version: Version,
     pub deneb_fork_epoch: Epoch,
+    #[serde(with = "crate::serde::as_hex")]
+    pub electra_fork_version: Version,
+    pub electra_fork_epoch: Epoch,
 
     pub seconds_per_slot: u64,
     pub seconds_per_eth1_block: u64,

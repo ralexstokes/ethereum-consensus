@@ -102,6 +102,8 @@ pub struct Context {
     pub capella_fork_epoch: Epoch,
     pub deneb_fork_version: Version,
     pub deneb_fork_epoch: Epoch,
+    pub electra_fork_version: Version,
+    pub electra_fork_epoch: Epoch,
 
     pub seconds_per_slot: u64,
     pub seconds_per_eth1_block: u64,
@@ -264,6 +266,8 @@ impl Context {
             capella_fork_epoch: config.capella_fork_epoch,
             deneb_fork_version: config.deneb_fork_version,
             deneb_fork_epoch: config.deneb_fork_epoch,
+            electra_fork_version: config.electra_fork_version,
+            electra_fork_epoch: config.electra_fork_epoch,
             seconds_per_slot: config.seconds_per_slot,
             seconds_per_eth1_block: config.seconds_per_eth1_block,
             min_validator_withdrawability_delay: config.min_validator_withdrawability_delay,
