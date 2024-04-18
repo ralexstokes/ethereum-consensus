@@ -39,7 +39,7 @@ fn path_from(meta: &TestMeta) -> Vec<PathElement> {
     }
 }
 
-pub fn run_test<O: SimpleSerialize>(mut object: O, path: Path, proof: &Proof) -> Result<(), Error> {
+pub fn run_test<O: SimpleSerialize>(object: O, path: Path, proof: &Proof) -> Result<(), Error> {
     let root = object.hash_tree_root().unwrap();
     // test proof matches
     let (computed_proof, witness) = object.prove(path).expect("can prove");

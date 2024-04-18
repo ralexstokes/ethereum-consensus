@@ -103,7 +103,7 @@ pub fn process_attestation<
         get_attestation_participation_flag_indices(state, data, inclusion_delay, context)?;
     is_valid_indexed_attestation(
         state,
-        &mut get_indexed_attestation(state, attestation, context)?,
+        &get_indexed_attestation(state, attestation, context)?,
         context,
     )?;
     let attesting_indices =
@@ -169,7 +169,7 @@ pub fn process_execution_payload<
         BYTES_PER_LOGS_BLOOM,
         MAX_EXTRA_DATA_BYTES,
     >,
-    body: &mut BeaconBlockBody<
+    body: &BeaconBlockBody<
         MAX_PROPOSER_SLASHINGS,
         MAX_VALIDATORS_PER_COMMITTEE,
         MAX_ATTESTER_SLASHINGS,
@@ -187,7 +187,7 @@ pub fn process_execution_payload<
     >,
     context: &Context,
 ) -> Result<()> {
-    let payload = &mut body.execution_payload;
+    let payload = &body.execution_payload;
 
     let parent_hash_invalid =
         payload.parent_hash != state.latest_execution_payload_header.block_hash;
@@ -292,10 +292,10 @@ pub fn process_voluntary_exit<
         BYTES_PER_LOGS_BLOOM,
         MAX_EXTRA_DATA_BYTES,
     >,
-    signed_voluntary_exit: &mut SignedVoluntaryExit,
+    signed_voluntary_exit: &SignedVoluntaryExit,
     context: &Context,
 ) -> Result<()> {
-    let voluntary_exit = &mut signed_voluntary_exit.message;
+    let voluntary_exit = &signed_voluntary_exit.message;
     let validator = state.validators.get(voluntary_exit.validator_index).ok_or_else(|| {
         invalid_operation_error(InvalidOperation::VoluntaryExit(
             InvalidVoluntaryExit::InvalidIndex(voluntary_exit.validator_index),
@@ -381,7 +381,7 @@ pub fn process_block<
         BYTES_PER_LOGS_BLOOM,
         MAX_EXTRA_DATA_BYTES,
     >,
-    block: &mut BeaconBlock<
+    block: &BeaconBlock<
         MAX_PROPOSER_SLASHINGS,
         MAX_VALIDATORS_PER_COMMITTEE,
         MAX_ATTESTER_SLASHINGS,
@@ -401,10 +401,10 @@ pub fn process_block<
 ) -> Result<()> {
     process_block_header(state, block, context)?;
     process_withdrawals(state, &block.body.execution_payload, context)?;
-    process_execution_payload(state, &mut block.body, context)?;
+    process_execution_payload(state, &block.body, context)?;
     process_randao(state, &block.body, context)?;
     process_eth1_data(state, &block.body, context);
-    process_operations(state, &mut block.body, context)?;
+    process_operations(state, &block.body, context)?;
     process_sync_aggregate(state, &block.body.sync_aggregate, context)?;
     Ok(())
 }

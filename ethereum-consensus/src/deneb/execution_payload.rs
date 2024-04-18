@@ -84,7 +84,7 @@ impl<
         const MAX_WITHDRAWALS_PER_PAYLOAD: usize,
     >
     TryFrom<
-        &'a mut ExecutionPayload<
+        &'a ExecutionPayload<
             BYTES_PER_LOGS_BLOOM,
             MAX_EXTRA_DATA_BYTES,
             MAX_BYTES_PER_TRANSACTION,
@@ -96,7 +96,7 @@ impl<
     type Error = Error;
 
     fn try_from(
-        payload: &'a mut ExecutionPayload<
+        payload: &'a ExecutionPayload<
             BYTES_PER_LOGS_BLOOM,
             MAX_EXTRA_DATA_BYTES,
             MAX_BYTES_PER_TRANSACTION,

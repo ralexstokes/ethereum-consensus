@@ -12,17 +12,17 @@ pub struct SigningData {
 }
 
 pub fn compute_signing_root<T: HashTreeRoot>(
-    ssz_object: &mut T,
+    ssz_object: &T,
     domain: Domain,
 ) -> Result<Root, Error> {
     let object_root = ssz_object.hash_tree_root()?;
 
-    let mut s = SigningData { object_root, domain };
+    let s = SigningData { object_root, domain };
     s.hash_tree_root().map_err(Error::Merkleization)
 }
 
 pub fn sign_with_domain<T: HashTreeRoot>(
-    data: &mut T,
+    data: &T,
     signing_key: &SecretKey,
     domain: Domain,
 ) -> Result<BlsSignature, Error> {
@@ -31,7 +31,7 @@ pub fn sign_with_domain<T: HashTreeRoot>(
 }
 
 pub fn verify_signed_data<T: HashTreeRoot>(
-    data: &mut T,
+    data: &T,
     signature: &BlsSignature,
     public_key: &BlsPublicKey,
     domain: Domain,

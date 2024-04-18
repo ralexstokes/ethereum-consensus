@@ -112,7 +112,7 @@ impl<
 
     pub fn apply_block(
         &mut self,
-        signed_block: &mut SignedBeaconBlock<
+        signed_block: &SignedBeaconBlock<
             MAX_PROPOSER_SLASHINGS,
             MAX_VALIDATORS_PER_COMMITTEE,
             MAX_ATTESTER_SLASHINGS,
@@ -134,7 +134,7 @@ impl<
 
     pub fn apply_block_with_validation(
         &mut self,
-        signed_block: &mut SignedBeaconBlock<
+        signed_block: &SignedBeaconBlock<
             MAX_PROPOSER_SLASHINGS,
             MAX_VALIDATORS_PER_COMMITTEE,
             MAX_ATTESTER_SLASHINGS,
@@ -173,7 +173,7 @@ impl<
 
     pub fn apply_phase0_block_with_validation(
         &mut self,
-        signed_block: &mut phase0::SignedBeaconBlock<
+        signed_block: &phase0::SignedBeaconBlock<
             MAX_PROPOSER_SLASHINGS,
             MAX_VALIDATORS_PER_COMMITTEE,
             MAX_ATTESTER_SLASHINGS,
@@ -196,7 +196,7 @@ impl<
 
     pub fn apply_altair_block_with_validation(
         &mut self,
-        signed_block: &mut altair::SignedBeaconBlock<
+        signed_block: &altair::SignedBeaconBlock<
             MAX_PROPOSER_SLASHINGS,
             MAX_VALIDATORS_PER_COMMITTEE,
             MAX_ATTESTER_SLASHINGS,
@@ -237,7 +237,7 @@ impl<
 
     pub fn apply_bellatrix_block_with_validation(
         &mut self,
-        signed_block: &mut bellatrix::SignedBeaconBlock<
+        signed_block: &bellatrix::SignedBeaconBlock<
             MAX_PROPOSER_SLASHINGS,
             MAX_VALIDATORS_PER_COMMITTEE,
             MAX_ATTESTER_SLASHINGS,
@@ -313,7 +313,7 @@ impl<
 
     pub fn apply_capella_block_with_validation(
         &mut self,
-        signed_block: &mut capella::SignedBeaconBlock<
+        signed_block: &capella::SignedBeaconBlock<
             MAX_PROPOSER_SLASHINGS,
             MAX_VALIDATORS_PER_COMMITTEE,
             MAX_ATTESTER_SLASHINGS,
@@ -409,7 +409,7 @@ impl<
 
     pub fn apply_deneb_block_with_validation(
         &mut self,
-        signed_block: &mut deneb::SignedBeaconBlock<
+        signed_block: &deneb::SignedBeaconBlock<
             MAX_PROPOSER_SLASHINGS,
             MAX_VALIDATORS_PER_COMMITTEE,
             MAX_ATTESTER_SLASHINGS,

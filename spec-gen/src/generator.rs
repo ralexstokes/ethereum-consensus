@@ -701,7 +701,6 @@ pub fn run() {
         Some(Fork::Bellatrix),
         Some(Fork::Capella),
         Some(Fork::Deneb),
-        Some(Fork::Electra),
     ];
 
     let mut specs = HashMap::<_, Rc<_>>::new();

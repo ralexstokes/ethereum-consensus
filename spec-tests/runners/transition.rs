@@ -58,7 +58,7 @@ fn load_test<
     (pre, post, pre_blocks, post_blocks, meta)
 }
 
-fn set_fork_epochs(meta: &mut Meta, context: &mut Context) {
+fn set_fork_epochs(meta: &Meta, context: &mut Context) {
     context.altair_fork_epoch = Epoch::MAX;
     context.bellatrix_fork_epoch = Epoch::MAX;
     context.capella_fork_epoch = Epoch::MAX;
@@ -98,18 +98,18 @@ pub fn dispatch(test: &TestCase) -> Result<(), Error> {
                     gen_exec! {
                         test,
                         load_test,
-                        | (pre, expected, pre_blocks, post_blocks, mut meta): (pre_spec::BeaconState, spec::BeaconState, Vec<pre_spec::SignedBeaconBlock>, Vec<spec::SignedBeaconBlock>, Meta), context: &Context| {
+                        | (pre, expected, pre_blocks, post_blocks, meta): (pre_spec::BeaconState, spec::BeaconState, Vec<pre_spec::SignedBeaconBlock>, Vec<spec::SignedBeaconBlock>, Meta), context: &Context| {
                             assert_eq!(meta.post_fork, "altair");
                             let mut context = context.clone();
-                            set_fork_epochs(&mut meta, &mut context);
+                            set_fork_epochs(&meta, &mut context);
                             let mut executor = state_transition::mainnet::Executor::new(BeaconState::Phase0(pre), context);
                             for block in pre_blocks.into_iter() {
-                                let mut block = SignedBeaconBlock::Phase0(block);
-                                executor.apply_block(&mut block)?;
+                                let block = SignedBeaconBlock::Phase0(block);
+                                executor.apply_block(&block)?;
                             }
                             for block in post_blocks.into_iter() {
-                                let mut block = SignedBeaconBlock::Altair(block);
-                                executor.apply_block(&mut block)?;
+                                let block = SignedBeaconBlock::Altair(block);
+                                executor.apply_block(&block)?;
                             }
                             let post = executor.state.altair().unwrap();
                             if post != &expected {
@@ -127,18 +127,18 @@ pub fn dispatch(test: &TestCase) -> Result<(), Error> {
                     gen_exec! {
                         test,
                         load_test,
-                        | (pre, expected, pre_blocks, post_blocks, mut meta): (pre_spec::BeaconState, spec::BeaconState, Vec<pre_spec::SignedBeaconBlock>, Vec<spec::SignedBeaconBlock>, Meta), context: &Context| {
+                        | (pre, expected, pre_blocks, post_blocks, meta): (pre_spec::BeaconState, spec::BeaconState, Vec<pre_spec::SignedBeaconBlock>, Vec<spec::SignedBeaconBlock>, Meta), context: &Context| {
                             assert_eq!(meta.post_fork, "bellatrix");
                             let mut context = context.clone();
-                            set_fork_epochs(&mut meta, &mut context);
+                            set_fork_epochs(&meta, &mut context);
                             let mut executor = state_transition::mainnet::Executor::new(BeaconState::Altair(pre), context);
                             for block in pre_blocks.into_iter() {
-                                let mut block = SignedBeaconBlock::Altair(block);
-                                executor.apply_block(&mut block)?;
+                                let block = SignedBeaconBlock::Altair(block);
+                                executor.apply_block(&block)?;
                             }
                             for block in post_blocks.into_iter() {
-                                let mut block = SignedBeaconBlock::Bellatrix(block);
-                                executor.apply_block(&mut block)?;
+                                let block = SignedBeaconBlock::Bellatrix(block);
+                                executor.apply_block(&block)?;
                             }
                             let post = executor.state.bellatrix().unwrap();
                             if post != &expected {
@@ -156,18 +156,18 @@ pub fn dispatch(test: &TestCase) -> Result<(), Error> {
                     gen_exec! {
                         test,
                         load_test,
-                        | (pre, expected, pre_blocks, post_blocks, mut meta): (pre_spec::BeaconState, spec::BeaconState, Vec<pre_spec::SignedBeaconBlock>, Vec<spec::SignedBeaconBlock>, Meta), context: &Context| {
+                        | (pre, expected, pre_blocks, post_blocks, meta): (pre_spec::BeaconState, spec::BeaconState, Vec<pre_spec::SignedBeaconBlock>, Vec<spec::SignedBeaconBlock>, Meta), context: &Context| {
                             assert_eq!(meta.post_fork, "capella");
                             let mut context = context.clone();
-                            set_fork_epochs(&mut meta, &mut context);
+                            set_fork_epochs(&meta, &mut context);
                             let mut executor = state_transition::mainnet::Executor::new(BeaconState::Bellatrix(pre), context);
                             for block in pre_blocks.into_iter() {
-                                let mut block = SignedBeaconBlock::Bellatrix(block);
-                                executor.apply_block(&mut block)?;
+                                let block = SignedBeaconBlock::Bellatrix(block);
+                                executor.apply_block(&block)?;
                             }
                             for block in post_blocks.into_iter() {
-                                let mut block = SignedBeaconBlock::Capella(block);
-                                executor.apply_block(&mut block)?;
+                                let block = SignedBeaconBlock::Capella(block);
+                                executor.apply_block(&block)?;
                             }
                             let post = executor.state.capella().unwrap();
                             if post != &expected {
@@ -185,18 +185,18 @@ pub fn dispatch(test: &TestCase) -> Result<(), Error> {
                     gen_exec! {
                         test,
                         load_test,
-                        | (pre, expected, pre_blocks, post_blocks, mut meta): (pre_spec::BeaconState, spec::BeaconState, Vec<pre_spec::SignedBeaconBlock>, Vec<spec::SignedBeaconBlock>, Meta), context: &Context| {
+                        | (pre, expected, pre_blocks, post_blocks, meta): (pre_spec::BeaconState, spec::BeaconState, Vec<pre_spec::SignedBeaconBlock>, Vec<spec::SignedBeaconBlock>, Meta), context: &Context| {
                             assert_eq!(meta.post_fork, "deneb");
                             let mut context = context.clone();
-                            set_fork_epochs(&mut meta, &mut context);
+                            set_fork_epochs(&meta, &mut context);
                             let mut executor = state_transition::mainnet::Executor::new(BeaconState::Capella(pre), context);
                             for block in pre_blocks.into_iter() {
-                                let mut block = SignedBeaconBlock::Capella(block);
-                                executor.apply_block(&mut block)?;
+                                let block = SignedBeaconBlock::Capella(block);
+                                executor.apply_block(&block)?;
                             }
                             for block in post_blocks.into_iter() {
-                                let mut block = SignedBeaconBlock::Deneb(block);
-                                executor.apply_block(&mut block)?;
+                                let block = SignedBeaconBlock::Deneb(block);
+                                executor.apply_block(&block)?;
                             }
                             let post = executor.state.deneb().unwrap();
                             if post != &expected {
@@ -217,18 +217,18 @@ pub fn dispatch(test: &TestCase) -> Result<(), Error> {
                     gen_exec! {
                         test,
                         load_test,
-                        | (pre, expected, pre_blocks, post_blocks, mut meta): (pre_spec::BeaconState, spec::BeaconState, Vec<pre_spec::SignedBeaconBlock>, Vec<spec::SignedBeaconBlock>, Meta), context: &Context| {
+                        | (pre, expected, pre_blocks, post_blocks, meta): (pre_spec::BeaconState, spec::BeaconState, Vec<pre_spec::SignedBeaconBlock>, Vec<spec::SignedBeaconBlock>, Meta), context: &Context| {
                             assert_eq!(meta.post_fork, "altair");
                             let mut context = context.clone();
-                            set_fork_epochs(&mut meta, &mut context);
+                            set_fork_epochs(&meta, &mut context);
                             let mut executor = state_transition::minimal::Executor::new(BeaconState::Phase0(pre), context);
                             for block in pre_blocks.into_iter() {
-                                let mut block = SignedBeaconBlock::Phase0(block);
-                                executor.apply_block(&mut block)?;
+                                let block = SignedBeaconBlock::Phase0(block);
+                                executor.apply_block(&block)?;
                             }
                             for block in post_blocks.into_iter() {
-                                let mut block = SignedBeaconBlock::Altair(block);
-                                executor.apply_block(&mut block)?;
+                                let block = SignedBeaconBlock::Altair(block);
+                                executor.apply_block(&block)?;
                             }
                             let post = executor.state.altair().unwrap();
                             if post != &expected {
@@ -246,18 +246,18 @@ pub fn dispatch(test: &TestCase) -> Result<(), Error> {
                     gen_exec! {
                         test,
                         load_test,
-                        | (pre, expected, pre_blocks, post_blocks, mut meta): (pre_spec::BeaconState, spec::BeaconState, Vec<pre_spec::SignedBeaconBlock>, Vec<spec::SignedBeaconBlock>, Meta), context: &Context| {
+                        | (pre, expected, pre_blocks, post_blocks, meta): (pre_spec::BeaconState, spec::BeaconState, Vec<pre_spec::SignedBeaconBlock>, Vec<spec::SignedBeaconBlock>, Meta), context: &Context| {
                             assert_eq!(meta.post_fork, "bellatrix");
                             let mut context = context.clone();
-                            set_fork_epochs(&mut meta, &mut context);
+                            set_fork_epochs(&meta, &mut context);
                             let mut executor = state_transition::minimal::Executor::new(BeaconState::Altair(pre), context);
                             for block in pre_blocks.into_iter() {
-                                let mut block = SignedBeaconBlock::Altair(block);
-                                executor.apply_block(&mut block)?;
+                                let block = SignedBeaconBlock::Altair(block);
+                                executor.apply_block(&block)?;
                             }
                             for block in post_blocks.into_iter() {
-                                let mut block = SignedBeaconBlock::Bellatrix(block);
-                                executor.apply_block(&mut block)?;
+                                let block = SignedBeaconBlock::Bellatrix(block);
+                                executor.apply_block(&block)?;
                             }
                             let post = executor.state.bellatrix().unwrap();
                             if post != &expected {
@@ -275,18 +275,18 @@ pub fn dispatch(test: &TestCase) -> Result<(), Error> {
                     gen_exec! {
                         test,
                         load_test,
-                        | (pre, expected, pre_blocks, post_blocks, mut meta): (pre_spec::BeaconState, spec::BeaconState, Vec<pre_spec::SignedBeaconBlock>, Vec<spec::SignedBeaconBlock>, Meta), context: &Context| {
+                        | (pre, expected, pre_blocks, post_blocks, meta): (pre_spec::BeaconState, spec::BeaconState, Vec<pre_spec::SignedBeaconBlock>, Vec<spec::SignedBeaconBlock>, Meta), context: &Context| {
                             assert_eq!(meta.post_fork, "capella");
                             let mut context = context.clone();
-                            set_fork_epochs(&mut meta, &mut context);
+                            set_fork_epochs(&meta, &mut context);
                             let mut executor = state_transition::minimal::Executor::new(BeaconState::Bellatrix(pre), context);
                             for block in pre_blocks.into_iter() {
-                                let mut block = SignedBeaconBlock::Bellatrix(block);
-                                executor.apply_block(&mut block)?;
+                                let block = SignedBeaconBlock::Bellatrix(block);
+                                executor.apply_block(&block)?;
                             }
                             for block in post_blocks.into_iter() {
-                                let mut block = SignedBeaconBlock::Capella(block);
-                                executor.apply_block(&mut block)?;
+                                let block = SignedBeaconBlock::Capella(block);
+                                executor.apply_block(&block)?;
                             }
                             let post = executor.state.capella().unwrap();
                             if post != &expected {
@@ -304,18 +304,18 @@ pub fn dispatch(test: &TestCase) -> Result<(), Error> {
                     gen_exec! {
                         test,
                         load_test,
-                        | (pre, expected, pre_blocks, post_blocks, mut meta): (pre_spec::BeaconState, spec::BeaconState, Vec<pre_spec::SignedBeaconBlock>, Vec<spec::SignedBeaconBlock>, Meta), context: &Context| {
+                        | (pre, expected, pre_blocks, post_blocks, meta): (pre_spec::BeaconState, spec::BeaconState, Vec<pre_spec::SignedBeaconBlock>, Vec<spec::SignedBeaconBlock>, Meta), context: &Context| {
                             assert_eq!(meta.post_fork, "deneb");
                             let mut context = context.clone();
-                            set_fork_epochs(&mut meta, &mut context);
+                            set_fork_epochs(&meta, &mut context);
                             let mut executor = state_transition::minimal::Executor::new(BeaconState::Capella(pre), context);
                             for block in pre_blocks.into_iter() {
-                                let mut block = SignedBeaconBlock::Capella(block);
-                                executor.apply_block(&mut block)?;
+                                let block = SignedBeaconBlock::Capella(block);
+                                executor.apply_block(&block)?;
                             }
                             for block in post_blocks.into_iter() {
-                                let mut block = SignedBeaconBlock::Deneb(block);
-                                executor.apply_block(&mut block)?;
+                                let block = SignedBeaconBlock::Deneb(block);
+                                executor.apply_block(&block)?;
                             }
                             let post = executor.state.deneb().unwrap();
                             if post != &expected {

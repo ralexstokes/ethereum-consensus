@@ -50,7 +50,7 @@ pub fn verify_blob_sidecar_inclusion_proof<
     const BYTES_PER_BLOB: usize,
     BlockBody: SimpleSerialize,
 >(
-    blob_sidecar: &mut BlobSidecar<BYTES_PER_BLOB, KZG_COMMITMENT_INCLUSION_PROOF_DEPTH>,
+    blob_sidecar: &BlobSidecar<BYTES_PER_BLOB, KZG_COMMITMENT_INCLUSION_PROOF_DEPTH>,
 ) -> Result<(), Error> {
     let path = &["blob_kzg_commitments".into(), blob_sidecar.index.into()];
     let g_index = BlockBody::generalized_index(path)?;
@@ -111,7 +111,7 @@ mod tests {
 
     #[test]
     fn test_blob_sidecar_inclusion_proof_from_live_data() {
-        let mut blob_sidecar: spec::BlobSidecar = serde_json::from_str(BLOB_SIDECAR_JSON).unwrap();
+        let blob_sidecar: spec::BlobSidecar = serde_json::from_str(BLOB_SIDECAR_JSON).unwrap();
 
         let context = Context::for_sepolia();
         let kzg_settings = &context.kzg_settings;
@@ -131,7 +131,7 @@ mod tests {
             { spec::KZG_COMMITMENT_INCLUSION_PROOF_DEPTH },
             { spec::BYTES_PER_BLOB },
             spec::BeaconBlockBody,
-        >(&mut blob_sidecar)
+        >(&blob_sidecar)
         .is_ok());
     }
 }

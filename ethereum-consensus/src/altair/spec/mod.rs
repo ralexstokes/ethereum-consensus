@@ -90,7 +90,7 @@ pub fn process_proposer_slashing<
         MAX_VALIDATORS_PER_COMMITTEE,
         SYNC_COMMITTEE_SIZE,
     >,
-    proposer_slashing: &mut ProposerSlashing,
+    proposer_slashing: &ProposerSlashing,
     context: &Context,
 ) -> Result<()> {
     let header_1 = &proposer_slashing.signed_header_1.message;
@@ -126,10 +126,8 @@ pub fn process_proposer_slashing<
     }
     let epoch = compute_epoch_at_slot(header_1.slot, context);
     let domain = get_domain(state, DomainType::BeaconProposer, Some(epoch), context)?;
-    for signed_header in
-        [&mut proposer_slashing.signed_header_1, &mut proposer_slashing.signed_header_2]
-    {
-        let signing_root = compute_signing_root(&mut signed_header.message, domain)?;
+    for signed_header in [&proposer_slashing.signed_header_1, &proposer_slashing.signed_header_2] {
+        let signing_root = compute_signing_root(&signed_header.message, domain)?;
         let public_key = &proposer.public_key;
         if verify_signature(public_key, signing_root.as_ref(), &signed_header.signature).is_err() {
             return Err(invalid_operation_error(InvalidOperation::ProposerSlashing(
@@ -159,11 +157,11 @@ pub fn process_attester_slashing<
         MAX_VALIDATORS_PER_COMMITTEE,
         SYNC_COMMITTEE_SIZE,
     >,
-    attester_slashing: &mut AttesterSlashing<MAX_VALIDATORS_PER_COMMITTEE>,
+    attester_slashing: &AttesterSlashing<MAX_VALIDATORS_PER_COMMITTEE>,
     context: &Context,
 ) -> Result<()> {
-    let attestation_1 = &mut attester_slashing.attestation_1;
-    let attestation_2 = &mut attester_slashing.attestation_2;
+    let attestation_1 = &attester_slashing.attestation_1;
+    let attestation_2 = &attester_slashing.attestation_2;
     if !is_slashable_attestation_data(&attestation_1.data, &attestation_2.data) {
         return Err(invalid_operation_error(InvalidOperation::AttesterSlashing(
             InvalidAttesterSlashing::NotSlashable(
@@ -226,13 +224,13 @@ pub fn apply_deposit<
         increase_balance(state, index, amount);
         return Ok(());
     }
-    let mut deposit_message = DepositMessage {
+    let deposit_message = DepositMessage {
         public_key: public_key.clone(),
         withdrawal_credentials: withdrawal_credentials.clone(),
         amount,
     };
     let domain = compute_domain(DomainType::Deposit, None, None, context)?;
-    let signing_root = compute_signing_root(&mut deposit_message, domain)?;
+    let signing_root = compute_signing_root(&deposit_message, domain)?;
     if verify_signature(public_key, signing_root.as_ref(), signature).is_err() {
         return Ok(());
     }
@@ -265,7 +263,7 @@ pub fn process_deposit<
         MAX_VALIDATORS_PER_COMMITTEE,
         SYNC_COMMITTEE_SIZE,
     >,
-    deposit: &mut Deposit,
+    deposit: &Deposit,
     context: &Context,
 ) -> Result<()> {
     let leaf = deposit.data.hash_tree_root()?;
@@ -305,10 +303,10 @@ pub fn process_voluntary_exit<
         MAX_VALIDATORS_PER_COMMITTEE,
         SYNC_COMMITTEE_SIZE,
     >,
-    signed_voluntary_exit: &mut SignedVoluntaryExit,
+    signed_voluntary_exit: &SignedVoluntaryExit,
     context: &Context,
 ) -> Result<()> {
-    let voluntary_exit = &mut signed_voluntary_exit.message;
+    let voluntary_exit = &signed_voluntary_exit.message;
     let validator = state.validators.get(voluntary_exit.validator_index).ok_or_else(|| {
         invalid_operation_error(InvalidOperation::VoluntaryExit(
             InvalidVoluntaryExit::InvalidIndex(voluntary_exit.validator_index),
@@ -378,7 +376,7 @@ pub fn process_block_header<
         MAX_VALIDATORS_PER_COMMITTEE,
         SYNC_COMMITTEE_SIZE,
     >,
-    block: &mut BeaconBlock<
+    block: &BeaconBlock<
         MAX_PROPOSER_SLASHINGS,
         MAX_VALIDATORS_PER_COMMITTEE,
         MAX_ATTESTER_SLASHINGS,
@@ -464,11 +462,11 @@ pub fn process_randao<
     >,
     context: &Context,
 ) -> Result<()> {
-    let mut epoch = get_current_epoch(state, context);
+    let epoch = get_current_epoch(state, context);
     let proposer_index = get_beacon_proposer_index(state, context)?;
     let proposer = &state.validators[proposer_index];
     let domain = get_domain(state, DomainType::Randao, Some(epoch), context)?;
-    let signing_root = compute_signing_root(&mut epoch, domain)?;
+    let signing_root = compute_signing_root(&epoch, domain)?;
     if verify_signature(&proposer.public_key, signing_root.as_ref(), &body.randao_reveal).is_err() {
         return Err(invalid_operation_error(InvalidOperation::Randao(body.randao_reveal.clone())));
     }
@@ -545,7 +543,7 @@ pub fn process_operations<
         MAX_VALIDATORS_PER_COMMITTEE,
         SYNC_COMMITTEE_SIZE,
     >,
-    body: &mut BeaconBlockBody<
+    body: &BeaconBlockBody<
         MAX_PROPOSER_SLASHINGS,
         MAX_VALIDATORS_PER_COMMITTEE,
         MAX_ATTESTER_SLASHINGS,
@@ -569,16 +567,14 @@ pub fn process_operations<
         )));
     }
     body.proposer_slashings
-        .iter_mut()
+        .iter()
         .try_for_each(|op| process_proposer_slashing(state, op, context))?;
     body.attester_slashings
-        .iter_mut()
+        .iter()
         .try_for_each(|op| process_attester_slashing(state, op, context))?;
     body.attestations.iter().try_for_each(|op| process_attestation(state, op, context))?;
-    body.deposits.iter_mut().try_for_each(|op| process_deposit(state, op, context))?;
-    body.voluntary_exits
-        .iter_mut()
-        .try_for_each(|op| process_voluntary_exit(state, op, context))?;
+    body.deposits.iter().try_for_each(|op| process_deposit(state, op, context))?;
+    body.voluntary_exits.iter().try_for_each(|op| process_voluntary_exit(state, op, context))?;
     Ok(())
 }
 pub fn process_registry_updates<
@@ -783,7 +779,7 @@ pub fn process_historical_roots_update<
     let next_epoch = get_current_epoch(state, context) + 1;
     let epochs_per_historical_root = context.slots_per_historical_root / context.slots_per_epoch;
     if next_epoch % epochs_per_historical_root == 0 {
-        let mut historical_batch = HistoricalSummary {
+        let historical_batch = HistoricalSummary {
             block_summary_root: state.block_roots.hash_tree_root()?,
             state_summary_root: state.state_roots.hash_tree_root()?,
         };
@@ -968,7 +964,7 @@ pub fn get_genesis_block<
     const MAX_DEPOSITS: usize,
     const MAX_VOLUNTARY_EXITS: usize,
 >(
-    genesis_state: &mut BeaconState<
+    genesis_state: &BeaconState<
         SLOTS_PER_HISTORICAL_ROOT,
         HISTORICAL_ROOTS_LIMIT,
         ETH1_DATA_VOTES_BOUND,
@@ -1036,7 +1032,7 @@ pub fn is_valid_indexed_attestation<
         MAX_VALIDATORS_PER_COMMITTEE,
         SYNC_COMMITTEE_SIZE,
     >,
-    indexed_attestation: &mut IndexedAttestation<MAX_VALIDATORS_PER_COMMITTEE>,
+    indexed_attestation: &IndexedAttestation<MAX_VALIDATORS_PER_COMMITTEE>,
     context: &Context,
 ) -> Result<()> {
     let attesting_indices = &indexed_attestation.attesting_indices;
@@ -1078,7 +1074,7 @@ pub fn is_valid_indexed_attestation<
         Some(indexed_attestation.data.target.epoch),
         context,
     )?;
-    let signing_root = compute_signing_root(&mut indexed_attestation.data, domain)?;
+    let signing_root = compute_signing_root(&indexed_attestation.data, domain)?;
     fast_aggregate_verify(&public_keys, signing_root.as_ref(), &indexed_attestation.signature)
         .map_err(Into::into)
 }
@@ -1107,7 +1103,7 @@ pub fn verify_block_signature<
         MAX_VALIDATORS_PER_COMMITTEE,
         SYNC_COMMITTEE_SIZE,
     >,
-    signed_block: &mut SignedBeaconBlock<
+    signed_block: &SignedBeaconBlock<
         MAX_PROPOSER_SLASHINGS,
         MAX_VALIDATORS_PER_COMMITTEE,
         MAX_ATTESTER_SLASHINGS,
@@ -1124,7 +1120,7 @@ pub fn verify_block_signature<
         .get(proposer_index)
         .ok_or(Error::OutOfBounds { requested: proposer_index, bound: state.validators.len() })?;
     let domain = get_domain(state, DomainType::BeaconProposer, None, context)?;
-    let signing_root = compute_signing_root(&mut signed_block.message, domain)?;
+    let signing_root = compute_signing_root(&signed_block.message, domain)?;
     let public_key = &proposer.public_key;
     verify_signature(public_key, signing_root.as_ref(), &signed_block.signature).map_err(Into::into)
 }
@@ -1927,7 +1923,7 @@ pub fn state_transition_block_in_slot<
         MAX_VALIDATORS_PER_COMMITTEE,
         SYNC_COMMITTEE_SIZE,
     >,
-    signed_block: &mut SignedBeaconBlock<
+    signed_block: &SignedBeaconBlock<
         MAX_PROPOSER_SLASHINGS,
         MAX_VALIDATORS_PER_COMMITTEE,
         MAX_ATTESTER_SLASHINGS,
@@ -1946,7 +1942,7 @@ pub fn state_transition_block_in_slot<
     if validate_result {
         verify_block_signature(state, signed_block, context)?;
     }
-    let block = &mut signed_block.message;
+    let block = &signed_block.message;
     process_block(state, block, context)?;
     if validate_result && block.state_root != state.hash_tree_root()? {
         Err(Error::InvalidStateRoot)
@@ -1979,7 +1975,7 @@ pub fn state_transition<
         MAX_VALIDATORS_PER_COMMITTEE,
         SYNC_COMMITTEE_SIZE,
     >,
-    signed_block: &mut SignedBeaconBlock<
+    signed_block: &SignedBeaconBlock<
         MAX_PROPOSER_SLASHINGS,
         MAX_VALIDATORS_PER_COMMITTEE,
         MAX_ATTESTER_SLASHINGS,

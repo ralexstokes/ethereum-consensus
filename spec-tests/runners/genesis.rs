@@ -71,7 +71,7 @@ pub fn dispatch(test: &TestCase) -> Result<(), Error> {
                     gen_exec! {
                         test,
                         load_initialization_test,
-                        |(eth1, mut deposits, _, expected): (
+                        |(eth1, deposits, _, expected): (
                             Eth1,
                             Vec<spec::Deposit>,
                             Option<bool>,
@@ -95,7 +95,7 @@ pub fn dispatch(test: &TestCase) -> Result<(), Error> {
                             >(
                                 eth1.eth1_block_hash,
                                 eth1.eth1_timestamp,
-                                &mut deposits,
+                                &deposits,
                                 context,
                             )
                             .unwrap();
@@ -111,7 +111,7 @@ pub fn dispatch(test: &TestCase) -> Result<(), Error> {
                     gen_exec! {
                         test,
                         load_initialization_test,
-                        |(eth1, mut deposits, _, expected): (
+                        |(eth1, deposits, _, expected): (
                             Eth1,
                             Vec<spec::Deposit>,
                             Option<bool>,
@@ -135,7 +135,7 @@ pub fn dispatch(test: &TestCase) -> Result<(), Error> {
                             >(
                                 eth1.eth1_block_hash,
                                 eth1.eth1_timestamp,
-                                &mut deposits,
+                                &deposits,
                                 context,
                             )
                             .unwrap();
@@ -151,7 +151,7 @@ pub fn dispatch(test: &TestCase) -> Result<(), Error> {
                     gen_exec! {
                         test,
                         load_initialization_test,
-                        |(eth1, mut deposits, execution_payload_header, expected): (
+                        |(eth1, deposits, execution_payload_header, expected): (
                             Eth1,
                             Vec<spec::Deposit>,
                             Option<spec::ExecutionPayloadHeader>,
@@ -179,7 +179,7 @@ pub fn dispatch(test: &TestCase) -> Result<(), Error> {
                             >(
                                 eth1.eth1_block_hash,
                                 eth1.eth1_timestamp,
-                                &mut deposits,
+                                &deposits,
                                 execution_payload_header.as_ref(),
                                 context,
                             )
@@ -196,7 +196,7 @@ pub fn dispatch(test: &TestCase) -> Result<(), Error> {
                     gen_exec! {
                         test,
                         load_initialization_test,
-                        |(eth1, mut deposits, execution_payload_header, expected): (
+                        |(eth1, deposits, execution_payload_header, expected): (
                             Eth1,
                             Vec<spec::Deposit>,
                             Option<spec::ExecutionPayloadHeader>,
@@ -226,7 +226,7 @@ pub fn dispatch(test: &TestCase) -> Result<(), Error> {
                             >(
                                 eth1.eth1_block_hash,
                                 eth1.eth1_timestamp,
-                                &mut deposits,
+                                &deposits,
                                 execution_payload_header.as_ref(),
                                 context,
                             )
@@ -243,7 +243,7 @@ pub fn dispatch(test: &TestCase) -> Result<(), Error> {
                     gen_exec! {
                         test,
                         load_initialization_test,
-                        |(eth1, mut deposits, execution_payload_header, expected): (
+                        |(eth1, deposits, execution_payload_header, expected): (
                             Eth1,
                             Vec<spec::Deposit>,
                             Option<spec::ExecutionPayloadHeader>,
@@ -274,7 +274,7 @@ pub fn dispatch(test: &TestCase) -> Result<(), Error> {
                             >(
                                 eth1.eth1_block_hash,
                                 eth1.eth1_timestamp,
-                                &mut deposits,
+                                &deposits,
                                 execution_payload_header.as_ref(),
                                 context,
                             )

@@ -13,9 +13,9 @@ run-spec-tests filter="":
 fmt:
     cargo +nightly fmt --all
 lint: fmt
-    cargo +nightly clippy --all-targets --all-features
+    cargo +nightly clippy --all-targets --all-features --workspace
 build:
-    cargo build --all-targets --all-features
+    cargo build --all-targets --all-features --workspace
 run-ci: lint build test
 ec +command:
     cargo run -p ethereum-consensus --features ec {{command}}

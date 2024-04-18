@@ -27,7 +27,7 @@ fn run_test<T: ssz_rs::SimpleSerialize>(
     (data, encoding): (RootData, Vec<u8>),
     _: &Context,
 ) -> Result<(), Error> {
-    let mut decoded_data: T = deserialize(&encoding).unwrap();
+    let decoded_data: T = deserialize(&encoding).unwrap();
     let serialized = serialize(&decoded_data).unwrap();
     let root = decoded_data.hash_tree_root().unwrap();
     assert_eq!(serialized, encoding);

@@ -42,7 +42,7 @@ pub fn process_execution_payload<
         BYTES_PER_LOGS_BLOOM,
         MAX_EXTRA_DATA_BYTES,
     >,
-    block: &mut BeaconBlockBody<
+    block: &BeaconBlockBody<
         MAX_PROPOSER_SLASHINGS,
         MAX_VALIDATORS_PER_COMMITTEE,
         MAX_ATTESTER_SLASHINGS,
@@ -57,7 +57,7 @@ pub fn process_execution_payload<
     >,
     context: &Context,
 ) -> Result<()> {
-    let payload = &mut block.execution_payload;
+    let payload = &block.execution_payload;
 
     let parent_hash_invalid =
         payload.parent_hash != state.latest_execution_payload_header.block_hash;
@@ -148,7 +148,7 @@ pub fn process_block<
         BYTES_PER_LOGS_BLOOM,
         MAX_EXTRA_DATA_BYTES,
     >,
-    block: &mut BeaconBlock<
+    block: &BeaconBlock<
         MAX_PROPOSER_SLASHINGS,
         MAX_VALIDATORS_PER_COMMITTEE,
         MAX_ATTESTER_SLASHINGS,
@@ -165,11 +165,11 @@ pub fn process_block<
 ) -> Result<()> {
     process_block_header(state, block, context)?;
     if is_execution_enabled(state, &block.body) {
-        process_execution_payload(state, &mut block.body, context)?;
+        process_execution_payload(state, &block.body, context)?;
     }
     process_randao(state, &block.body, context)?;
     process_eth1_data(state, &block.body, context);
-    process_operations(state, &mut block.body, context)?;
+    process_operations(state, &block.body, context)?;
     process_sync_aggregate(state, &block.body.sync_aggregate, context)?;
     Ok(())
 }
