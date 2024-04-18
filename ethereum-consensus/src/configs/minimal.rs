@@ -17,6 +17,8 @@ pub const CAPELLA_FORK_VERSION: Version = [3, 0, 0, 1];
 pub const CAPELLA_FORK_EPOCH: Epoch = FAR_FUTURE_EPOCH;
 pub const DENEB_FORK_VERSION: Version = [4, 0, 0, 1];
 pub const DENEB_FORK_EPOCH: Epoch = FAR_FUTURE_EPOCH;
+pub const ELECTRA_FORK_VERSION: Version = [5, 0, 0, 1];
+pub const ELECTRA_FORK_EPOCH: Epoch = FAR_FUTURE_EPOCH;
 pub const SECONDS_PER_SLOT: u64 = 6;
 pub const SECONDS_PER_ETH1_BLOCK: u64 = 14;
 pub const MIN_VALIDATOR_WITHDRAWABILITY_DELAY: Epoch = 256;
@@ -27,6 +29,8 @@ pub const INACTIVITY_SCORE_RECOVERY_RATE: u64 = 16;
 pub const EJECTION_BALANCE: Gwei = 16 * 10u64.pow(9);
 pub const MIN_PER_EPOCH_CHURN_LIMIT: u64 = 2;
 pub const MAX_PER_EPOCH_ACTIVATION_CHURN_LIMIT: u64 = 4;
+pub const MIN_PER_EPOCH_CHURN_LIMIT_ELECTRA: u64 = 64 * 10u64.pow(9);
+pub const MAX_PER_EPOCH_ACTIVATION_EXIT_CHURN_LIMIT: u64 = 128 * 10u64.pow(9);
 pub const CHURN_LIMIT_QUOTIENT: u64 = 32;
 pub const PROPOSER_SCORE_BOOST: u64 = 40;
 pub const DEPOSIT_CHAIN_ID: usize = 5;
@@ -66,6 +70,8 @@ pub fn config() -> Config {
         capella_fork_epoch: CAPELLA_FORK_EPOCH,
         deneb_fork_version: DENEB_FORK_VERSION,
         deneb_fork_epoch: DENEB_FORK_EPOCH,
+        electra_fork_version: ELECTRA_FORK_VERSION,
+        electra_fork_epoch: ELECTRA_FORK_EPOCH,
         seconds_per_slot: SECONDS_PER_SLOT,
         seconds_per_eth1_block: SECONDS_PER_ETH1_BLOCK,
         min_validator_withdrawability_delay: MIN_VALIDATOR_WITHDRAWABILITY_DELAY,
@@ -76,6 +82,8 @@ pub fn config() -> Config {
         ejection_balance: EJECTION_BALANCE,
         min_per_epoch_churn_limit: MIN_PER_EPOCH_CHURN_LIMIT,
         max_per_epoch_activation_churn_limit: MAX_PER_EPOCH_ACTIVATION_CHURN_LIMIT,
+        min_per_epoch_churn_limit_electra: MIN_PER_EPOCH_CHURN_LIMIT_ELECTRA,
+        max_per_epoch_activation_exit_churn_limit: MAX_PER_EPOCH_ACTIVATION_EXIT_CHURN_LIMIT,
         churn_limit_quotient: CHURN_LIMIT_QUOTIENT,
         proposer_score_boost: PROPOSER_SCORE_BOOST,
         deposit_chain_id: DEPOSIT_CHAIN_ID,

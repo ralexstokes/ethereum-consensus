@@ -1,9 +1,17 @@
 use crate::{
-    deneb::{self, Fork},
+    deneb,
     electra::{
-        beacon_state::BeaconState, constants::UNSET_DEPOSIT_RECEIPTS_START_INDEX,
+        beacon_state::BeaconState,
+        constants::UNSET_DEPOSIT_RECEIPTS_START_INDEX,
         execution_payload::ExecutionPayloadHeader,
+        helpers::{
+            get_activation_exit_churn_limit, get_consolidation_churn_limit,
+            has_compounding_withdrawal_credential, queue_entire_balance_and_reset_validator,
+            queue_excess_active_balance,
+        },
     },
+    phase0::{helpers::compute_activation_exit_epoch, Fork},
+    primitives::FAR_FUTURE_EPOCH,
     state_transition::Context,
 };
 
@@ -18,6 +26,9 @@ pub fn upgrade_to_electra<
     const SYNC_COMMITTEE_SIZE: usize,
     const BYTES_PER_LOGS_BLOOM: usize,
     const MAX_EXTRA_DATA_BYTES: usize,
+    const PENDING_BALANCE_DEPOSITS_LIMIT: usize,
+    const PENDING_PARTIAL_WITHDRAWALS_LIMIT: usize,
+    const PENDING_CONSOLIDATIONS_LIMIT: usize,
 >(
     state: &deneb::BeaconState<
         SLOTS_PER_HISTORICAL_ROOT,
@@ -43,6 +54,9 @@ pub fn upgrade_to_electra<
     SYNC_COMMITTEE_SIZE,
     BYTES_PER_LOGS_BLOOM,
     MAX_EXTRA_DATA_BYTES,
+    PENDING_BALANCE_DEPOSITS_LIMIT,
+    PENDING_PARTIAL_WITHDRAWALS_LIMIT,
+    PENDING_CONSOLIDATIONS_LIMIT,
 > {
     let epoch = deneb::get_current_epoch(state, context);
     let latest_execution_payload_header = &state.latest_execution_payload_header;
@@ -65,15 +79,24 @@ pub fn upgrade_to_electra<
         blob_gas_used: latest_execution_payload_header.blob_gas_used,
         excess_blob_gas: latest_execution_payload_header.excess_blob_gas,
         deposit_receipts_root: Default::default(),
-        exits_root: Default::default(),
+        withdrawal_requests_root: Default::default(),
     };
-    BeaconState {
+
+    let exit_epoch = state
+        .validators
+        .iter()
+        .filter_map(|v| if v.exit_epoch != FAR_FUTURE_EPOCH { Some(v.exit_epoch) } else { None })
+        .max()
+        .or(Some(epoch));
+    let earliest_exit_epoch = exit_epoch.unwrap() + 1;
+
+    let post = BeaconState {
         genesis_time: state.genesis_time,
         genesis_validators_root: state.genesis_validators_root,
         slot: state.slot,
         fork: Fork {
             previous_version: state.fork.current_version,
-            current_version: context.deneb_fork_version,
+            current_version: context.electra_fork_version,
             epoch,
         },
         latest_block_header: state.latest_block_header.clone(),
@@ -101,5 +124,39 @@ pub fn upgrade_to_electra<
         next_withdrawal_validator_index: state.next_withdrawal_validator_index,
         historical_summaries: state.historical_summaries.clone(),
         deposit_receipts_start_index: UNSET_DEPOSIT_RECEIPTS_START_INDEX,
+        deposit_balance_to_consume: 0,
+        exit_balance_to_consume: get_activation_exit_churn_limit(),
+        earliest_exit_epoch,
+        consolidation_balance_to_consume: get_consolidation_churn_limit(),
+        earliest_consolidation_epoch: compute_activation_exit_epoch(epoch, context),
+        pending_balance_deposits: Default::default(),
+        pending_partial_withdrawals: Default::default(),
+        pending_consolidations: Default::default(),
+    };
+
+    let mut pre_activation_validators = post
+        .validators
+        .iter()
+        .enumerate()
+        .filter_map(|(index, validator)| {
+            if validator.activation_epoch == FAR_FUTURE_EPOCH {
+                Some((validator.activation_eligibility_epoch, index))
+            } else {
+                None
+            }
+        })
+        .collect::<Vec<_>>();
+    pre_activation_validators.sort();
+
+    for (_, index) in pre_activation_validators {
+        queue_entire_balance_and_reset_validator(index);
     }
+
+    for (index, validator) in post.validators.iter().enumerate() {
+        if has_compounding_withdrawal_credential(validator) {
+            queue_excess_active_balance(index);
+        }
+    }
+
+    post
 }

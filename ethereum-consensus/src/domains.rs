@@ -11,7 +11,7 @@ pub enum DomainType {
     SyncCommitteeSelectionProof, // 8
     ContributionAndProof,        // 9
     BlsToExecutionChange,        // A
-    BlobSidecar,                 // B
+    Consolidation,               // B
     ApplicationMask,
     ApplicationBuilder,
 }

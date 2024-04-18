@@ -17,6 +17,8 @@ pub const EJECTION_BALANCE: Gwei = 16 * 10u64.pow(9);
 pub const MIN_PER_EPOCH_CHURN_LIMIT: u64 = 4;
 pub const MAX_PER_EPOCH_ACTIVATION_CHURN_LIMIT: u64 = 8;
 pub const CHURN_LIMIT_QUOTIENT: u64 = 65536;
+pub const MIN_PER_EPOCH_CHURN_LIMIT_ELECTRA: u64 = 128 * 10u64.pow(9);
+pub const MAX_PER_EPOCH_ACTIVATION_EXIT_CHURN_LIMIT: u64 = 256 * 10u64.pow(9);
 pub const TERMINAL_BLOCK_HASH_ACTIVATION_EPOCH: Epoch = FAR_FUTURE_EPOCH;
 pub const ALTAIR_FORK_VERSION: Version = [1, 0, 0, 0];
 pub const ALTAIR_FORK_EPOCH: Epoch = 74240;
@@ -26,6 +28,8 @@ pub const CAPELLA_FORK_VERSION: Version = [3, 0, 0, 0];
 pub const CAPELLA_FORK_EPOCH: Epoch = 194048;
 pub const DENEB_FORK_VERSION: Version = [4, 0, 0, 0];
 pub const DENEB_FORK_EPOCH: Epoch = 269568;
+pub const ELECTRA_FORK_VERSION: Version = [5, 0, 0, 0];
+pub const ELECTRA_FORK_EPOCH: Epoch = FAR_FUTURE_EPOCH;
 pub const INACTIVITY_SCORE_BIAS: u64 = 4;
 pub const INACTIVITY_SCORE_RECOVERY_RATE: u64 = 16;
 pub const PROPOSER_SCORE_BOOST: u64 = 40;
@@ -65,6 +69,8 @@ pub fn config() -> Config {
         capella_fork_epoch: CAPELLA_FORK_EPOCH,
         deneb_fork_version: DENEB_FORK_VERSION,
         deneb_fork_epoch: DENEB_FORK_EPOCH,
+        electra_fork_version: ELECTRA_FORK_VERSION,
+        electra_fork_epoch: ELECTRA_FORK_EPOCH,
         seconds_per_slot: SECONDS_PER_SLOT,
         seconds_per_eth1_block: SECONDS_PER_ETH1_BLOCK,
         min_validator_withdrawability_delay: MIN_VALIDATOR_WITHDRAWABILITY_DELAY,
@@ -75,6 +81,8 @@ pub fn config() -> Config {
         ejection_balance: EJECTION_BALANCE,
         min_per_epoch_churn_limit: MIN_PER_EPOCH_CHURN_LIMIT,
         max_per_epoch_activation_churn_limit: MAX_PER_EPOCH_ACTIVATION_CHURN_LIMIT,
+        min_per_epoch_churn_limit_electra: MIN_PER_EPOCH_CHURN_LIMIT_ELECTRA,
+        max_per_epoch_activation_exit_churn_limit: MAX_PER_EPOCH_ACTIVATION_EXIT_CHURN_LIMIT,
         churn_limit_quotient: CHURN_LIMIT_QUOTIENT,
         proposer_score_boost: PROPOSER_SCORE_BOOST,
         deposit_chain_id: DEPOSIT_CHAIN_ID,

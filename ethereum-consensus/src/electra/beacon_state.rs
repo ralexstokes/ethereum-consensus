@@ -3,9 +3,69 @@ use crate::{
     capella::HistoricalSummary,
     electra::ExecutionPayloadHeader,
     phase0::{BeaconBlockHeader, Checkpoint, Eth1Data, Fork, Validator, JUSTIFICATION_BITS_LENGTH},
-    primitives::{Bytes32, Gwei, ParticipationFlags, Root, Slot, ValidatorIndex, WithdrawalIndex},
+    primitives::{
+        BlsPublicKey, BlsSignature, Bytes32, Epoch, ExecutionAddress, Gwei, ParticipationFlags,
+        Root, Slot, ValidatorIndex, WithdrawalIndex,
+    },
     ssz::prelude::*,
 };
+
+#[derive(
+    Default, Debug, Clone, SimpleSerialize, PartialEq, Eq, serde::Serialize, serde::Deserialize,
+)]
+pub struct DepositReceipt {
+    #[serde(rename = "pubkey")]
+    pub public_key: BlsPublicKey,
+    pub withdrawal_credentials: Bytes32,
+    #[serde(with = "crate::serde::as_str")]
+    pub amount: Gwei,
+    pub signature: BlsSignature,
+    #[serde(with = "crate::serde::as_str")]
+    pub index: u64,
+}
+
+#[derive(
+    Default, Debug, Clone, SimpleSerialize, PartialEq, Eq, serde::Serialize, serde::Deserialize,
+)]
+pub struct PendingBalanceDeposit {
+    #[serde(with = "crate::serde::as_str")]
+    pub index: ValidatorIndex,
+    #[serde(with = "crate::serde::as_str")]
+    pub amount: Gwei,
+}
+
+#[derive(
+    Default, Debug, Clone, SimpleSerialize, PartialEq, Eq, serde::Serialize, serde::Deserialize,
+)]
+pub struct PendingPartialWithdrawal {
+    #[serde(with = "crate::serde::as_str")]
+    pub index: ValidatorIndex,
+    #[serde(with = "crate::serde::as_str")]
+    pub amount: Gwei,
+    #[serde(with = "crate::serde::as_str")]
+    pub withdrawable_epoch: Epoch,
+}
+
+#[derive(
+    Default, Debug, Clone, SimpleSerialize, PartialEq, Eq, serde::Serialize, serde::Deserialize,
+)]
+pub struct PendingConsolidation {
+    #[serde(with = "crate::serde::as_str")]
+    pub source_index: ValidatorIndex,
+    #[serde(with = "crate::serde::as_str")]
+    pub target_index: ValidatorIndex,
+}
+
+#[derive(
+    Default, Debug, Clone, SimpleSerialize, PartialEq, Eq, serde::Serialize, serde::Deserialize,
+)]
+pub struct ExecutionLayerWithdrawalRequest {
+    pub source_address: ExecutionAddress,
+    #[serde(rename = "pubkey")]
+    pub validator_public_key: BlsPublicKey,
+    #[serde(with = "crate::serde::as_str")]
+    pub amount: Gwei,
+}
 
 #[derive(
     Default, Debug, SimpleSerialize, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize,
@@ -21,6 +81,9 @@ pub struct BeaconState<
     const SYNC_COMMITTEE_SIZE: usize,
     const BYTES_PER_LOGS_BLOOM: usize,
     const MAX_EXTRA_DATA_BYTES: usize,
+    const PENDING_BALANCE_DEPOSITS_LIMIT: usize,
+    const PENDING_PARTIAL_WITHDRAWALS_LIMIT: usize,
+    const PENDING_CONSOLIDATIONS_LIMIT: usize,
 > {
     #[serde(with = "crate::serde::as_str")]
     pub genesis_time: u64,
@@ -63,4 +126,18 @@ pub struct BeaconState<
     pub historical_summaries: List<HistoricalSummary, HISTORICAL_ROOTS_LIMIT>,
     #[serde(with = "crate::serde::as_str")]
     pub deposit_receipts_start_index: u64,
+    #[serde(with = "crate::serde::as_str")]
+    pub deposit_balance_to_consume: Gwei,
+    #[serde(with = "crate::serde::as_str")]
+    pub exit_balance_to_consume: Gwei,
+    #[serde(with = "crate::serde::as_str")]
+    pub earliest_exit_epoch: Epoch,
+    #[serde(with = "crate::serde::as_str")]
+    pub consolidation_balance_to_consume: Gwei,
+    #[serde(with = "crate::serde::as_str")]
+    pub earliest_consolidation_epoch: Epoch,
+    pub pending_balance_deposits: List<PendingBalanceDeposit, PENDING_BALANCE_DEPOSITS_LIMIT>,
+    pub pending_partial_withdrawals:
+        List<PendingPartialWithdrawal, PENDING_PARTIAL_WITHDRAWALS_LIMIT>,
+    pub pending_consolidations: List<PendingConsolidation, PENDING_CONSOLIDATIONS_LIMIT>,
 }

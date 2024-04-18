@@ -38,6 +38,9 @@ pub struct Config {
     #[serde(with = "crate::serde::as_hex")]
     pub deneb_fork_version: Version,
     pub deneb_fork_epoch: Epoch,
+    #[serde(with = "crate::serde::as_hex")]
+    pub electra_fork_version: Version,
+    pub electra_fork_epoch: Epoch,
 
     pub seconds_per_slot: u64,
     pub seconds_per_eth1_block: u64,
@@ -51,6 +54,8 @@ pub struct Config {
     pub min_per_epoch_churn_limit: u64,
     pub max_per_epoch_activation_churn_limit: u64,
     pub churn_limit_quotient: u64,
+    pub min_per_epoch_churn_limit_electra: u64,
+    pub max_per_epoch_activation_exit_churn_limit: u64,
 
     pub proposer_score_boost: u64,
 
