@@ -1,7 +1,7 @@
 use crate::{
     bellatrix::Transaction,
     capella::Withdrawal,
-    electra::{DepositReceipt, ExecutionLayerExit},
+    electra::beacon_state::{DepositReceipt, ExecutionLayerWithdrawalRequest},
     primitives::{Bytes32, ExecutionAddress, Hash32, Root},
     ssz::prelude::*,
     Error,
@@ -17,7 +17,7 @@ pub struct ExecutionPayload<
     const MAX_TRANSACTIONS_PER_PAYLOAD: usize,
     const MAX_WITHDRAWALS_PER_PAYLOAD: usize,
     const MAX_DEPOSIT_RECEIPTS_PER_PAYLOAD: usize,
-    const MAX_EXECUTION_LAYER_EXITS: usize,
+    const MAX_WITHDRAWAL_REQUESTS_PER_PAYLOAD: usize,
 > {
     pub parent_hash: Hash32,
     pub fee_recipient: ExecutionAddress,
@@ -44,7 +44,8 @@ pub struct ExecutionPayload<
     #[serde(with = "crate::serde::as_str")]
     pub excess_blob_gas: u64,
     pub deposit_receipts: List<DepositReceipt, MAX_DEPOSIT_RECEIPTS_PER_PAYLOAD>,
-    pub exits: List<ExecutionLayerExit, MAX_EXECUTION_LAYER_EXITS>,
+    pub withdrawal_requests:
+        List<ExecutionLayerWithdrawalRequest, MAX_WITHDRAWAL_REQUESTS_PER_PAYLOAD>,
 }
 
 #[derive(
@@ -79,7 +80,7 @@ pub struct ExecutionPayloadHeader<
     #[serde(with = "crate::serde::as_str")]
     pub excess_blob_gas: u64,
     pub deposit_receipts_root: Root,
-    pub exits_root: Root,
+    pub withdrawal_requests_root: Root,
 }
 
 impl<
@@ -121,7 +122,7 @@ impl<
         let transactions_root = payload.transactions.hash_tree_root()?;
         let withdrawals_root = payload.withdrawals.hash_tree_root()?;
         let deposit_receipts_root = payload.deposit_receipts.hash_tree_root()?;
-        let exits_root = payload.exits.hash_tree_root()?;
+        let withdrawal_requests_root = payload.withdrawal_requests.hash_tree_root()?;
 
         Ok(ExecutionPayloadHeader {
             parent_hash: payload.parent_hash.clone(),
@@ -142,7 +143,7 @@ impl<
             blob_gas_used: payload.blob_gas_used,
             excess_blob_gas: payload.excess_blob_gas,
             deposit_receipts_root,
-            exits_root,
+            withdrawal_requests_root,
         })
     }
 }

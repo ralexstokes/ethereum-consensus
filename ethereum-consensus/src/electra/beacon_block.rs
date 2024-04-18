@@ -2,8 +2,11 @@ use crate::{
     altair::SyncAggregate,
     capella::SignedBlsToExecutionChange,
     deneb::polynomial_commitments::KzgCommitment,
-    electra::{execution_payload::ExecutionPayload, operations::Attestation},
-    phase0::{AttesterSlashing, Deposit, Eth1Data, ProposerSlashing, SignedVoluntaryExit},
+    electra::{
+        execution_payload::ExecutionPayload,
+        operations::{Attestation, AttesterSlashing, SignedConsolidation},
+    },
+    phase0::{Deposit, Eth1Data, ProposerSlashing, SignedVoluntaryExit},
     primitives::{BlsSignature, Bytes32, Root, Slot, ValidatorIndex},
     ssz::prelude::*,
 };
@@ -29,16 +32,16 @@ pub struct BeaconBlockBody<
     const MAX_COMMITTEES_PER_SLOT: usize,
     const MAX_VALIDATORS_PER_SLOT: usize,
     const MAX_DEPOSIT_RECEIPTS_PER_PAYLOAD: usize,
-    const MAX_EXECUTION_LAYER_EXITS: usize,
+    const MAX_WITHDRAWAL_REQUESTS_PER_PAYLOAD: usize,
+    const MAX_CONSOLIDATIONS: usize,
 > {
     pub randao_reveal: BlsSignature,
     pub eth1_data: Eth1Data,
     pub graffiti: Bytes32,
     pub proposer_slashings: List<ProposerSlashing, MAX_PROPOSER_SLASHINGS>,
-    pub attester_slashings:
-        List<AttesterSlashing<MAX_VALIDATORS_PER_COMMITTEE>, MAX_ATTESTER_SLASHINGS>,
+    pub attester_slashings: List<AttesterSlashing<MAX_VALIDATORS_PER_SLOT>, MAX_ATTESTER_SLASHINGS>,
     pub attestations:
-        List<Attestation<MAX_COMMITTEES_PER_SLOT, MAX_VALIDATORS_PER_SLOT>, MAX_ATTESTATIONS>,
+        List<Attestation<MAX_VALIDATORS_PER_SLOT, MAX_COMMITTEES_PER_SLOT>, MAX_ATTESTATIONS>,
     pub deposits: List<Deposit, MAX_DEPOSITS>,
     pub voluntary_exits: List<SignedVoluntaryExit, MAX_VOLUNTARY_EXITS>,
     pub sync_aggregate: SyncAggregate<SYNC_COMMITTEE_SIZE>,
@@ -49,10 +52,11 @@ pub struct BeaconBlockBody<
         MAX_TRANSACTIONS_PER_PAYLOAD,
         MAX_WITHDRAWALS_PER_PAYLOAD,
         MAX_DEPOSIT_RECEIPTS_PER_PAYLOAD,
-        MAX_EXECUTION_LAYER_EXITS,
+        MAX_WITHDRAWAL_REQUESTS_PER_PAYLOAD,
     >,
     pub bls_to_execution_changes: List<SignedBlsToExecutionChange, MAX_BLS_TO_EXECUTION_CHANGES>,
     pub blob_kzg_commitments: List<KzgCommitment, MAX_BLOB_COMMITMENTS_PER_BLOCK>,
+    pub consolidations: List<SignedConsolidation, MAX_CONSOLIDATIONS>,
 }
 
 #[derive(
@@ -76,7 +80,8 @@ pub struct BeaconBlock<
     const MAX_COMMITTEES_PER_SLOT: usize,
     const MAX_VALIDATORS_PER_SLOT: usize,
     const MAX_DEPOSIT_RECEIPTS_PER_PAYLOAD: usize,
-    const MAX_EXECUTION_LAYER_EXITS: usize,
+    const MAX_WITHDRAWAL_REQUESTS_PER_PAYLOAD: usize,
+    const MAX_CONSOLIDATIONS: usize,
 > {
     #[serde(with = "crate::serde::as_str")]
     pub slot: Slot,
@@ -102,7 +107,8 @@ pub struct BeaconBlock<
         MAX_COMMITTEES_PER_SLOT,
         MAX_VALIDATORS_PER_SLOT,
         MAX_DEPOSIT_RECEIPTS_PER_PAYLOAD,
-        MAX_EXECUTION_LAYER_EXITS,
+        MAX_WITHDRAWAL_REQUESTS_PER_PAYLOAD,
+        MAX_CONSOLIDATIONS,
     >,
 }
 
@@ -127,7 +133,8 @@ pub struct SignedBeaconBlock<
     const MAX_COMMITTEES_PER_SLOT: usize,
     const MAX_VALIDATORS_PER_SLOT: usize,
     const MAX_DEPOSIT_RECEIPTS_PER_PAYLOAD: usize,
-    const MAX_EXECUTION_LAYER_EXITS: usize,
+    const MAX_WITHDRAWAL_REQUESTS_PER_PAYLOAD: usize,
+    const MAX_CONSOLIDATIONS: usize,
 > {
     pub message: BeaconBlock<
         MAX_PROPOSER_SLASHINGS,
@@ -147,7 +154,8 @@ pub struct SignedBeaconBlock<
         MAX_COMMITTEES_PER_SLOT,
         MAX_VALIDATORS_PER_SLOT,
         MAX_DEPOSIT_RECEIPTS_PER_PAYLOAD,
-        MAX_EXECUTION_LAYER_EXITS,
+        MAX_WITHDRAWALS_PER_PAYLOAD,
+        MAX_CONSOLIDATIONS,
     >,
     pub signature: BlsSignature,
 }
