@@ -1,5 +1,5 @@
 pub use crate::electra::presets::Preset;
-use crate::{electra::spec, primitives::Gwei};
+use crate::electra::spec;
 
 pub use spec::*;
 

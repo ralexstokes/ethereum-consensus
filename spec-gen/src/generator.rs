@@ -93,8 +93,16 @@ impl Fork {
                 "helpers",
                 "light_client",
             ],
-            // TODO: electra
-            Self::Electra => &[],
+            Self::Electra => &[
+                "beacon_block",
+                "beacon_state",
+                "block_processing",
+                "constants",
+                "execution_payload",
+                "genesis",
+                "helpers",
+                "operations",
+            ],
         }
     }
 
@@ -701,6 +709,7 @@ pub fn run() {
         Some(Fork::Bellatrix),
         Some(Fork::Capella),
         Some(Fork::Deneb),
+        Some(Fork::Electra),
     ];
 
     let mut specs = HashMap::<_, Rc<_>>::new();
