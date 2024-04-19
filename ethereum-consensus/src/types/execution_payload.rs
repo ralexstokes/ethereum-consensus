@@ -438,7 +438,8 @@ impl<
         Err(serde::de::Error::custom("no variant could be deserialized from input"))
     }
 }
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, PartialEq, Eq, HashTreeRoot)]
+#[ssz(transparent)]
 pub enum ExecutionPayloadRef<
     'a,
     const BYTES_PER_LOGS_BLOOM: usize,

@@ -339,7 +339,8 @@ impl<'de, const BYTES_PER_LOGS_BLOOM: usize, const MAX_EXTRA_DATA_BYTES: usize>
         Err(serde::de::Error::custom("no variant could be deserialized from input"))
     }
 }
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, PartialEq, Eq, HashTreeRoot)]
+#[ssz(transparent)]
 pub enum ExecutionPayloadHeaderRef<
     'a,
     const BYTES_PER_LOGS_BLOOM: usize,
