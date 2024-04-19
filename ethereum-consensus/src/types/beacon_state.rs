@@ -959,7 +959,8 @@ impl<
         Err(serde::de::Error::custom("no variant could be deserialized from input"))
     }
 }
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, PartialEq, Eq, HashTreeRoot)]
+#[ssz(transparent)]
 pub enum BeaconStateRef<
     'a,
     const SLOTS_PER_HISTORICAL_ROOT: usize,
