@@ -35,7 +35,6 @@ pub fn process_registry_updates<
     >,
     context: &Context,
 ) -> Result<()> {
-    // Process activation eligibility and ejections
     let current_epoch = get_current_epoch(state, context);
     for i in 0..state.validators.len() {
         let validator = &mut state.validators[i];
@@ -49,20 +48,13 @@ pub fn process_registry_updates<
         }
     }
 
-    //  Note: Name changed from `activation_exit_epoch` (Deneb) to `activation_epoch` (Electra) in
-    // spec.
     let activation_epoch = compute_activation_exit_epoch(current_epoch, context);
-    let mut eligible_val_indices = Vec::new();
     for i in 0..state.validators.len() {
         let validator = &state.validators[i];
         if is_eligible_for_activation(state, validator) {
-            eligible_val_indices.push(i);
+            let validator = &mut state.validators[i];
+            validator.activation_epoch = activation_epoch;
         }
-    }
-
-    for i in eligible_val_indices.iter() {
-        let validator = &mut state.validators[*i];
-        validator.activation_epoch = activation_epoch;
     }
 
     Ok(())
