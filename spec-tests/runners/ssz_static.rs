@@ -35,6 +35,31 @@ fn run_test<T: ssz_rs::SimpleSerialize>(
     Ok(())
 }
 
+macro_rules! gen_electra {
+    ($test_case:expr, $($handler:ident),*) => {
+        let result = match $test_case.meta.handler.0.as_str() {
+            $(
+                stringify!($handler) => gen_match_for! {
+                    $test_case,
+                    (mainnet, electra),
+                    (minimal, electra)
+                    {
+                        gen_exec! {
+                            $test_case, load_test, run_test::<spec::$handler>
+                        }
+                    }
+                },
+            )*
+            _ => Err(Error::InternalContinue),
+        };
+        match result {
+            Ok(()) => return Ok(()),
+            Err(Error::InternalContinue) => {},
+            Err(err) => return Err(err)
+        }
+    };
+}
+
 macro_rules! gen_deneb_and_later {
     ($test_case:expr, $($handler:ident),*) => {
         let result = match $test_case.meta.handler.0.as_str() {
@@ -165,6 +190,11 @@ macro_rules! gen_match {
 }
 
 pub fn dispatch(test: &TestCase) -> Result<(), Error> {
+    gen_electra! {
+        test,
+        Attestation
+    }
+
     gen_deneb_and_later! {
         test,
         BlobSidecar,
