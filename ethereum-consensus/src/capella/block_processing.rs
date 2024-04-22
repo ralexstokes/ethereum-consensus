@@ -1,20 +1,21 @@
 use crate::{
     capella::{
-        compute_domain, compute_signing_root, compute_timestamp_at_slot, decrease_balance,
-        get_current_epoch, get_randao_mix, is_fully_withdrawable_validator,
-        is_partially_withdrawable_validator, process_attestation, process_attester_slashing,
-        process_block_header, process_deposit, process_eth1_data, process_proposer_slashing,
-        process_randao, process_sync_aggregate, process_voluntary_exit, BeaconBlock,
-        BeaconBlockBody, BeaconState, DomainType, ExecutionAddress, ExecutionPayload,
-        ExecutionPayloadHeader, SignedBlsToExecutionChange, Withdrawal,
+        compute_domain, compute_timestamp_at_slot, decrease_balance, get_current_epoch,
+        get_randao_mix, is_fully_withdrawable_validator, is_partially_withdrawable_validator,
+        process_attestation, process_attester_slashing, process_block_header, process_deposit,
+        process_eth1_data, process_proposer_slashing, process_randao, process_sync_aggregate,
+        process_voluntary_exit, BeaconBlock, BeaconBlockBody, BeaconState, DomainType,
+        ExecutionAddress, ExecutionPayload, ExecutionPayloadHeader, SignedBlsToExecutionChange,
+        Withdrawal,
     },
-    crypto::{hash, verify_signature},
+    crypto::hash,
     error::{
         invalid_operation_error, InvalidBlsToExecutionChange, InvalidDeposit,
         InvalidExecutionPayload, InvalidOperation, InvalidWithdrawals,
     },
     execution_engine::ExecutionEngine,
     primitives::{BLS_WITHDRAWAL_PREFIX, ETH1_ADDRESS_WITHDRAWAL_PREFIX},
+    signing::verify_signed_data,
     ssz::prelude::*,
     state_transition::{Context, Result},
 };
@@ -63,15 +64,6 @@ pub fn process_bls_to_execution_change<
         )))
     }
 
-    // NOTE: compute `signing_root` ahead of the public key check to satisfy borrow check
-    let domain = compute_domain(
-        DomainType::BlsToExecutionChange,
-        None,
-        Some(state.genesis_validators_root),
-        context,
-    )?;
-    let signing_root = compute_signing_root(address_change, domain)?;
-
     let public_key = &address_change.from_bls_public_key;
     if withdrawal_credentials[1..] != hash(public_key.as_ref())[1..] {
         return Err(invalid_operation_error(InvalidOperation::BlsToExecutionChange(
@@ -79,7 +71,13 @@ pub fn process_bls_to_execution_change<
         )))
     }
 
-    verify_signature(public_key, signing_root.as_ref(), signature)?;
+    let domain = compute_domain(
+        DomainType::BlsToExecutionChange,
+        None,
+        Some(state.genesis_validators_root),
+        context,
+    )?;
+    verify_signed_data(address_change, signature, public_key, domain)?;
 
     withdrawal_credentials[0] = ETH1_ADDRESS_WITHDRAWAL_PREFIX;
     withdrawal_credentials[1..12].fill(0);
