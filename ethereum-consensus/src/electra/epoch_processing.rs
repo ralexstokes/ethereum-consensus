@@ -1,7 +1,9 @@
 use crate::electra::{
-    compute_activation_exit_epoch, get_current_epoch, initiate_validator_exit, is_active_validator,
-    is_eligible_for_activation, is_eligible_for_activation_queue, BeaconState, Context,
+    compute_activation_exit_epoch, get_activation_exit_churn_limit, get_current_epoch,
+    increase_balance, initiate_validator_exit, is_active_validator, is_eligible_for_activation,
+    is_eligible_for_activation_queue, BeaconState, Context,
 };
+use ssz_rs::List;
 use std::error::Error;
 
 pub fn process_registry_updates<
@@ -56,6 +58,69 @@ pub fn process_registry_updates<
             let validator = &mut state.validators[i];
             validator.activation_epoch = activation_epoch;
         }
+    }
+
+    Ok(())
+}
+
+pub fn process_pending_balance_deposits<
+    const SLOTS_PER_HISTORICAL_ROOT: usize,
+    const HISTORICAL_ROOTS_LIMIT: usize,
+    const ETH1_DATA_VOTES_BOUND: usize,
+    const VALIDATOR_REGISTRY_LIMIT: usize,
+    const EPOCHS_PER_HISTORICAL_VECTOR: usize,
+    const EPOCHS_PER_SLASHINGS_VECTOR: usize,
+    const MAX_VALIDATORS_PER_COMMITTEE: usize,
+    const SYNC_COMMITTEE_SIZE: usize,
+    const BYTES_PER_LOGS_BLOOM: usize,
+    const MAX_EXTRA_DATA_BYTES: usize,
+    const PENDING_BALANCE_DEPOSITS_LIMIT: usize,
+    const PENDING_PARTIAL_WITHDRAWALS_LIMIT: usize,
+    const PENDING_CONSOLIDATIONS_LIMIT: usize,
+>(
+    state: &mut BeaconState<
+        SLOTS_PER_HISTORICAL_ROOT,
+        HISTORICAL_ROOTS_LIMIT,
+        ETH1_DATA_VOTES_BOUND,
+        VALIDATOR_REGISTRY_LIMIT,
+        EPOCHS_PER_HISTORICAL_VECTOR,
+        EPOCHS_PER_SLASHINGS_VECTOR,
+        MAX_VALIDATORS_PER_COMMITTEE,
+        SYNC_COMMITTEE_SIZE,
+        BYTES_PER_LOGS_BLOOM,
+        MAX_EXTRA_DATA_BYTES,
+        PENDING_BALANCE_DEPOSITS_LIMIT,
+        PENDING_PARTIAL_WITHDRAWALS_LIMIT,
+        PENDING_CONSOLIDATIONS_LIMIT,
+    >,
+    context: &Context,
+) -> std::result::Result<(), Box<dyn Error>> {
+    let available_for_processing =
+        state.deposit_balance_to_consume + get_activation_exit_churn_limit(state, context)?;
+    let mut processed_amount = 0;
+    let mut next_deposit_index = 0;
+
+    // TODO: Try refactoring into 1 for loop.
+    let mut valid_deposits = vec![];
+    for deposit in state.pending_balance_deposits.iter() {
+        if processed_amount + deposit.amount > available_for_processing {
+            break
+        }
+        valid_deposits.push(deposit.clone());
+    }
+    for deposit in valid_deposits.iter() {
+        increase_balance(state, deposit.index, deposit.amount);
+        processed_amount += deposit.amount;
+        next_deposit_index += 1;
+    }
+
+    state.pending_balance_deposits =
+        List::try_from(state.pending_balance_deposits.split_off(next_deposit_index)).unwrap();
+
+    if state.pending_balance_deposits.len() == 0 {
+        state.deposit_balance_to_consume = 0;
+    } else {
+        state.deposit_balance_to_consume = available_for_processing - processed_amount;
     }
 
     Ok(())
