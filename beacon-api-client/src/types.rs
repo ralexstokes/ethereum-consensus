@@ -312,13 +312,13 @@ pub struct PayloadAttributesEvent {
 #[derive(Debug, Serialize, Deserialize)]
 pub struct PayloadAttributes {
     #[serde(with = "crate::serde::as_str")]
-    timestamp: u64,
-    prev_randao: Root,
-    suggested_fee_recipient: ExecutionAddress,
+    pub timestamp: u64,
+    pub prev_randao: Root,
+    pub suggested_fee_recipient: ExecutionAddress,
     #[serde(skip_serializing_if = "Option::is_none")]
-    withdrawals: Option<Vec<Withdrawal>>,
+    pub withdrawals: Option<Vec<Withdrawal>>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    parent_beacon_block_root: Option<Root>,
+    pub parent_beacon_block_root: Option<Root>,
 }
 
 #[derive(Serialize, Deserialize)]
