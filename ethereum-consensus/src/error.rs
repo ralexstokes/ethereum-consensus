@@ -95,6 +95,8 @@ pub enum InvalidOperation {
     Withdrawal(#[from] InvalidWithdrawals),
     #[error("invalid BLS signature to execution change: {0}")]
     BlsToExecutionChange(#[from] InvalidBlsToExecutionChange),
+    #[error("invalid consolidation: {0}")]
+    InvalidConsolidation(InvalidConsolidation),
 }
 
 #[derive(Debug, Error)]
@@ -189,6 +191,8 @@ pub enum InvalidVoluntaryExit {
     ValidatorIsNotActiveForLongEnough { current_epoch: Epoch, minimum_time_active: Epoch },
     #[error("voluntary exit has invalid signature: {0:?}")]
     InvalidSignature(BlsSignature),
+    #[error("validator has non-zero pending balance to withdraw in queue")]
+    NonZeroPendingBalanceToWithdraw,
 }
 
 #[derive(Debug, Error)]
@@ -205,6 +209,28 @@ pub enum InvalidBlsToExecutionChange {
     WithdrawalCredentialsPrefix(u8),
     #[error("operation's public key did not match the registered key: {0:?}")]
     PublicKeyMismatch(BlsPublicKey),
+}
+
+#[derive(Debug, Error)]
+pub enum InvalidConsolidation {
+    #[error("validator with index {0} is not in state")]
+    InvalidIndex(ValidatorIndex),
+    #[error("pending consolidations queue full")]
+    PendingConsolidationsQueueFull,
+    #[error("insufficient consolidation churn limit")]
+    InsufficientConsolidationChurnLimit,
+    #[error("source validator index equals target validator index {0}")]
+    EqualSourceAndTargetIndices(ValidatorIndex),
+    #[error("validator {0} is not active in the current epoch {1}")]
+    InactiveValidator(ValidatorIndex, Epoch),
+    #[error("exit initiated for validator {0}")]
+    ExitInitiatedForValidator(ValidatorIndex),
+    #[error("consolidation in epoch {consolidation_epoch} is not eligible for processing in current epoch {current_epoch}")]
+    EarlyConsolidation { current_epoch: Epoch, consolidation_epoch: Epoch },
+    #[error("validator {0} missing execution layer withdrawal credentials")]
+    MissingExecutionWithdrawalCredentials(ValidatorIndex),
+    #[error("source withdrawal credentials {source_address} do not equal target withdrawal credentials {target_address}")]
+    WithdrawalCredentialsMismatch { source_address: ByteVector<32>, target_address: ByteVector<32> },
 }
 
 #[derive(Debug, Error)]

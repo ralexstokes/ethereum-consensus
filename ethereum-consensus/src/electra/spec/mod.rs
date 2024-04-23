@@ -34,7 +34,6 @@ pub use crate::{
             verify_blob_sidecar_inclusion_proof, Blob, BlobIdentifier, BlobSidecar, BlobsBundle,
             VERSIONED_HASH_VERSION_KZG,
         },
-        execution_engine::NewPayloadRequest,
         helpers::kzg_commitment_to_versioned_hash,
         light_client::{
             LightClientBootstrap, LightClientFinalityUpdate, LightClientHeader,
@@ -47,8 +46,15 @@ pub use crate::{
             BeaconState, DepositReceipt, ExecutionLayerWithdrawalRequest, PendingBalanceDeposit,
             PendingConsolidation, PendingPartialWithdrawal,
         },
-        block_processing::{process_attestation, process_execution_payload},
+        block_processing::{
+            add_validator_to_registry, apply_deposit, get_expected_withdrawals,
+            get_validator_from_deposit, is_valid_deposit_signature, process_attestation,
+            process_consolidation, process_deposit_receipt,
+            process_execution_layer_withdrawal_request, process_execution_payload,
+            process_operations, process_voluntary_exit, process_withdrawals,
+        },
         constants::{FULL_EXIT_REQUEST_AMOUNT, UNSET_DEPOSIT_RECEIPTS_START_INDEX},
+        execution_engine::NewPayloadRequest,
         execution_payload::{ExecutionPayload, ExecutionPayloadHeader},
         fork::upgrade_to_electra,
         genesis::initialize_beacon_state_from_eth1,
@@ -72,7 +78,7 @@ pub use crate::{
     phase0::{
         beacon_block::{BeaconBlockHeader, SignedBeaconBlockHeader},
         beacon_state::{Fork, ForkData, HistoricalBatch, HistoricalSummary},
-        block_processing::{get_validator_from_deposit, xor},
+        block_processing::xor,
         constants::{
             BASE_REWARDS_PER_EPOCH, DEPOSIT_CONTRACT_TREE_DEPTH, DEPOSIT_DATA_LIST_BOUND,
             JUSTIFICATION_BITS_LENGTH,
@@ -103,90 +109,6 @@ use std::{
     iter::zip,
     mem,
 };
-pub fn process_voluntary_exit<
-    const SLOTS_PER_HISTORICAL_ROOT: usize,
-    const HISTORICAL_ROOTS_LIMIT: usize,
-    const ETH1_DATA_VOTES_BOUND: usize,
-    const VALIDATOR_REGISTRY_LIMIT: usize,
-    const EPOCHS_PER_HISTORICAL_VECTOR: usize,
-    const EPOCHS_PER_SLASHINGS_VECTOR: usize,
-    const MAX_VALIDATORS_PER_COMMITTEE: usize,
-    const SYNC_COMMITTEE_SIZE: usize,
-    const BYTES_PER_LOGS_BLOOM: usize,
-    const MAX_EXTRA_DATA_BYTES: usize,
-    const PENDING_BALANCE_DEPOSITS_LIMIT: usize,
-    const PENDING_PARTIAL_WITHDRAWALS_LIMIT: usize,
-    const PENDING_CONSOLIDATIONS_LIMIT: usize,
->(
-    state: &mut BeaconState<
-        SLOTS_PER_HISTORICAL_ROOT,
-        HISTORICAL_ROOTS_LIMIT,
-        ETH1_DATA_VOTES_BOUND,
-        VALIDATOR_REGISTRY_LIMIT,
-        EPOCHS_PER_HISTORICAL_VECTOR,
-        EPOCHS_PER_SLASHINGS_VECTOR,
-        MAX_VALIDATORS_PER_COMMITTEE,
-        SYNC_COMMITTEE_SIZE,
-        BYTES_PER_LOGS_BLOOM,
-        MAX_EXTRA_DATA_BYTES,
-        PENDING_BALANCE_DEPOSITS_LIMIT,
-        PENDING_PARTIAL_WITHDRAWALS_LIMIT,
-        PENDING_CONSOLIDATIONS_LIMIT,
-    >,
-    signed_voluntary_exit: &SignedVoluntaryExit,
-    context: &Context,
-) -> Result<()> {
-    let voluntary_exit = &signed_voluntary_exit.message;
-    let validator = state.validators.get(voluntary_exit.validator_index).ok_or_else(|| {
-        invalid_operation_error(InvalidOperation::VoluntaryExit(
-            InvalidVoluntaryExit::InvalidIndex(voluntary_exit.validator_index),
-        ))
-    })?;
-    let current_epoch = get_current_epoch(state, context);
-    if !is_active_validator(validator, current_epoch) {
-        return Err(invalid_operation_error(InvalidOperation::VoluntaryExit(
-            InvalidVoluntaryExit::InactiveValidator(current_epoch),
-        )));
-    }
-    if validator.exit_epoch != FAR_FUTURE_EPOCH {
-        return Err(invalid_operation_error(InvalidOperation::VoluntaryExit(
-            InvalidVoluntaryExit::ValidatorAlreadyExited {
-                index: voluntary_exit.validator_index,
-                epoch: validator.exit_epoch,
-            },
-        )));
-    }
-    if current_epoch < voluntary_exit.epoch {
-        return Err(invalid_operation_error(InvalidOperation::VoluntaryExit(
-            InvalidVoluntaryExit::EarlyExit { current_epoch, exit_epoch: voluntary_exit.epoch },
-        )));
-    }
-    let minimum_time_active =
-        validator.activation_eligibility_epoch + context.shard_committee_period;
-    if current_epoch < minimum_time_active {
-        return Err(invalid_operation_error(InvalidOperation::VoluntaryExit(
-            InvalidVoluntaryExit::ValidatorIsNotActiveForLongEnough {
-                current_epoch,
-                minimum_time_active,
-            },
-        )));
-    }
-    let domain = compute_domain(
-        DomainType::VoluntaryExit,
-        Some(context.capella_fork_version),
-        Some(state.genesis_validators_root),
-        context,
-    )?;
-    let public_key = &validator.public_key;
-    verify_signed_data(voluntary_exit, &signed_voluntary_exit.signature, public_key, domain)
-        .map_err(|_| {
-            invalid_operation_error(InvalidOperation::VoluntaryExit(
-                InvalidVoluntaryExit::InvalidSignature(signed_voluntary_exit.signature.clone()),
-            ))
-        })?;
-    initiate_validator_exit(state, voluntary_exit.validator_index, context)?;
-    Ok(())
-}
 pub fn process_block<
     const SLOTS_PER_HISTORICAL_ROOT: usize,
     const HISTORICAL_ROOTS_LIMIT: usize,
@@ -328,287 +250,6 @@ pub fn process_bls_to_execution_change<
     withdrawal_credentials[1..12].fill(0);
     withdrawal_credentials[12..].copy_from_slice(address_change.to_execution_address.as_ref());
     Ok(())
-}
-pub fn process_operations<
-    const SLOTS_PER_HISTORICAL_ROOT: usize,
-    const HISTORICAL_ROOTS_LIMIT: usize,
-    const ETH1_DATA_VOTES_BOUND: usize,
-    const VALIDATOR_REGISTRY_LIMIT: usize,
-    const EPOCHS_PER_HISTORICAL_VECTOR: usize,
-    const EPOCHS_PER_SLASHINGS_VECTOR: usize,
-    const MAX_VALIDATORS_PER_COMMITTEE: usize,
-    const SYNC_COMMITTEE_SIZE: usize,
-    const BYTES_PER_LOGS_BLOOM: usize,
-    const MAX_EXTRA_DATA_BYTES: usize,
-    const PENDING_BALANCE_DEPOSITS_LIMIT: usize,
-    const PENDING_PARTIAL_WITHDRAWALS_LIMIT: usize,
-    const PENDING_CONSOLIDATIONS_LIMIT: usize,
-    const MAX_PROPOSER_SLASHINGS: usize,
-    const MAX_VALIDATORS_PER_SLOT: usize,
-    const MAX_COMMITTEES_PER_SLOT: usize,
-    const MAX_ATTESTER_SLASHINGS: usize,
-    const MAX_ATTESTATIONS: usize,
-    const MAX_DEPOSITS: usize,
-    const MAX_VOLUNTARY_EXITS: usize,
-    const MAX_BYTES_PER_TRANSACTION: usize,
-    const MAX_TRANSACTIONS_PER_PAYLOAD: usize,
-    const MAX_WITHDRAWALS_PER_PAYLOAD: usize,
-    const MAX_DEPOSIT_RECEIPTS_PER_PAYLOAD: usize,
-    const MAX_WITHDRAWAL_REQUESTS_PER_PAYLOAD: usize,
-    const MAX_BLS_TO_EXECUTION_CHANGES: usize,
-    const MAX_BLOB_COMMITMENTS_PER_BLOCK: usize,
-    const MAX_CONSOLIDATIONS: usize,
->(
-    state: &mut BeaconState<
-        SLOTS_PER_HISTORICAL_ROOT,
-        HISTORICAL_ROOTS_LIMIT,
-        ETH1_DATA_VOTES_BOUND,
-        VALIDATOR_REGISTRY_LIMIT,
-        EPOCHS_PER_HISTORICAL_VECTOR,
-        EPOCHS_PER_SLASHINGS_VECTOR,
-        MAX_VALIDATORS_PER_COMMITTEE,
-        SYNC_COMMITTEE_SIZE,
-        BYTES_PER_LOGS_BLOOM,
-        MAX_EXTRA_DATA_BYTES,
-        PENDING_BALANCE_DEPOSITS_LIMIT,
-        PENDING_PARTIAL_WITHDRAWALS_LIMIT,
-        PENDING_CONSOLIDATIONS_LIMIT,
-    >,
-    body: &BeaconBlockBody<
-        MAX_PROPOSER_SLASHINGS,
-        MAX_VALIDATORS_PER_SLOT,
-        MAX_COMMITTEES_PER_SLOT,
-        MAX_ATTESTER_SLASHINGS,
-        MAX_ATTESTATIONS,
-        MAX_DEPOSITS,
-        MAX_VOLUNTARY_EXITS,
-        SYNC_COMMITTEE_SIZE,
-        BYTES_PER_LOGS_BLOOM,
-        MAX_EXTRA_DATA_BYTES,
-        MAX_BYTES_PER_TRANSACTION,
-        MAX_TRANSACTIONS_PER_PAYLOAD,
-        MAX_WITHDRAWALS_PER_PAYLOAD,
-        MAX_DEPOSIT_RECEIPTS_PER_PAYLOAD,
-        MAX_WITHDRAWAL_REQUESTS_PER_PAYLOAD,
-        MAX_BLS_TO_EXECUTION_CHANGES,
-        MAX_BLOB_COMMITMENTS_PER_BLOCK,
-        MAX_CONSOLIDATIONS,
-    >,
-    context: &Context,
-) -> Result<()> {
-    let expected_deposit_count = usize::min(
-        context.max_deposits,
-        (state.eth1_data.deposit_count - state.eth1_deposit_index) as usize,
-    );
-    if body.deposits.len() != expected_deposit_count {
-        return Err(invalid_operation_error(InvalidOperation::Deposit(
-            InvalidDeposit::IncorrectCount {
-                expected: expected_deposit_count,
-                count: body.deposits.len(),
-            },
-        )));
-    }
-    body.proposer_slashings
-        .iter()
-        .try_for_each(|op| process_proposer_slashing(state, op, context))?;
-    body.attester_slashings
-        .iter()
-        .try_for_each(|op| process_attester_slashing(state, op, context))?;
-    body.attestations.iter().try_for_each(|op| process_attestation(state, op, context))?;
-    body.deposits.iter().try_for_each(|op| process_deposit(state, op, context))?;
-    body.voluntary_exits.iter().try_for_each(|op| process_voluntary_exit(state, op, context))?;
-    body.bls_to_execution_changes
-        .iter()
-        .try_for_each(|op| process_bls_to_execution_change(state, op, context))?;
-    Ok(())
-}
-pub fn process_withdrawals<
-    const SLOTS_PER_HISTORICAL_ROOT: usize,
-    const HISTORICAL_ROOTS_LIMIT: usize,
-    const ETH1_DATA_VOTES_BOUND: usize,
-    const VALIDATOR_REGISTRY_LIMIT: usize,
-    const EPOCHS_PER_HISTORICAL_VECTOR: usize,
-    const EPOCHS_PER_SLASHINGS_VECTOR: usize,
-    const MAX_VALIDATORS_PER_COMMITTEE: usize,
-    const SYNC_COMMITTEE_SIZE: usize,
-    const BYTES_PER_LOGS_BLOOM: usize,
-    const MAX_EXTRA_DATA_BYTES: usize,
-    const PENDING_BALANCE_DEPOSITS_LIMIT: usize,
-    const PENDING_PARTIAL_WITHDRAWALS_LIMIT: usize,
-    const PENDING_CONSOLIDATIONS_LIMIT: usize,
-    const MAX_BYTES_PER_TRANSACTION: usize,
-    const MAX_TRANSACTIONS_PER_PAYLOAD: usize,
-    const MAX_WITHDRAWALS_PER_PAYLOAD: usize,
-    const MAX_DEPOSIT_RECEIPTS_PER_PAYLOAD: usize,
-    const MAX_WITHDRAWAL_REQUESTS_PER_PAYLOAD: usize,
->(
-    state: &mut BeaconState<
-        SLOTS_PER_HISTORICAL_ROOT,
-        HISTORICAL_ROOTS_LIMIT,
-        ETH1_DATA_VOTES_BOUND,
-        VALIDATOR_REGISTRY_LIMIT,
-        EPOCHS_PER_HISTORICAL_VECTOR,
-        EPOCHS_PER_SLASHINGS_VECTOR,
-        MAX_VALIDATORS_PER_COMMITTEE,
-        SYNC_COMMITTEE_SIZE,
-        BYTES_PER_LOGS_BLOOM,
-        MAX_EXTRA_DATA_BYTES,
-        PENDING_BALANCE_DEPOSITS_LIMIT,
-        PENDING_PARTIAL_WITHDRAWALS_LIMIT,
-        PENDING_CONSOLIDATIONS_LIMIT,
-    >,
-    execution_payload: &ExecutionPayload<
-        BYTES_PER_LOGS_BLOOM,
-        MAX_EXTRA_DATA_BYTES,
-        MAX_BYTES_PER_TRANSACTION,
-        MAX_TRANSACTIONS_PER_PAYLOAD,
-        MAX_WITHDRAWALS_PER_PAYLOAD,
-        MAX_DEPOSIT_RECEIPTS_PER_PAYLOAD,
-        MAX_WITHDRAWAL_REQUESTS_PER_PAYLOAD,
-    >,
-    context: &Context,
-) -> Result<()> {
-    let expected_withdrawals = get_expected_withdrawals(state, context);
-    if execution_payload.withdrawals.as_ref() != expected_withdrawals {
-        return Err(invalid_operation_error(InvalidOperation::Withdrawal(
-            InvalidWithdrawals::IncorrectWithdrawals {
-                provided: execution_payload.withdrawals.to_vec(),
-                expected: expected_withdrawals,
-            },
-        )));
-    }
-    for withdrawal in &expected_withdrawals {
-        decrease_balance(state, withdrawal.validator_index, withdrawal.amount);
-    }
-    if let Some(latest_withdrawal) = expected_withdrawals.last() {
-        state.next_withdrawal_index = latest_withdrawal.index + 1;
-    }
-    if expected_withdrawals.len() == context.max_withdrawals_per_payload {
-        let latest_withdrawal = expected_withdrawals.last().expect("empty withdrawals");
-        let next_validator_index = (latest_withdrawal.validator_index + 1) % state.validators.len();
-        state.next_withdrawal_validator_index = next_validator_index;
-    } else {
-        let next_index =
-            state.next_withdrawal_validator_index + context.max_validators_per_withdrawals_sweep;
-        state.next_withdrawal_validator_index = next_index % state.validators.len();
-    }
-    Ok(())
-}
-pub fn get_expected_withdrawals<
-    const SLOTS_PER_HISTORICAL_ROOT: usize,
-    const HISTORICAL_ROOTS_LIMIT: usize,
-    const ETH1_DATA_VOTES_BOUND: usize,
-    const VALIDATOR_REGISTRY_LIMIT: usize,
-    const EPOCHS_PER_HISTORICAL_VECTOR: usize,
-    const EPOCHS_PER_SLASHINGS_VECTOR: usize,
-    const MAX_VALIDATORS_PER_COMMITTEE: usize,
-    const SYNC_COMMITTEE_SIZE: usize,
-    const BYTES_PER_LOGS_BLOOM: usize,
-    const MAX_EXTRA_DATA_BYTES: usize,
-    const PENDING_BALANCE_DEPOSITS_LIMIT: usize,
-    const PENDING_PARTIAL_WITHDRAWALS_LIMIT: usize,
-    const PENDING_CONSOLIDATIONS_LIMIT: usize,
->(
-    state: &BeaconState<
-        SLOTS_PER_HISTORICAL_ROOT,
-        HISTORICAL_ROOTS_LIMIT,
-        ETH1_DATA_VOTES_BOUND,
-        VALIDATOR_REGISTRY_LIMIT,
-        EPOCHS_PER_HISTORICAL_VECTOR,
-        EPOCHS_PER_SLASHINGS_VECTOR,
-        MAX_VALIDATORS_PER_COMMITTEE,
-        SYNC_COMMITTEE_SIZE,
-        BYTES_PER_LOGS_BLOOM,
-        MAX_EXTRA_DATA_BYTES,
-        PENDING_BALANCE_DEPOSITS_LIMIT,
-        PENDING_PARTIAL_WITHDRAWALS_LIMIT,
-        PENDING_CONSOLIDATIONS_LIMIT,
-    >,
-    context: &Context,
-) -> Vec<Withdrawal> {
-    let epoch = get_current_epoch(state, context);
-    let mut withdrawal_index = state.next_withdrawal_index;
-    let mut validator_index = state.next_withdrawal_validator_index;
-    let mut withdrawals = vec![];
-    let bound = state.validators.len().min(context.max_validators_per_withdrawals_sweep);
-    for _ in 0..bound {
-        let validator = &state.validators[validator_index];
-        let balance = state.balances[validator_index];
-        if is_fully_withdrawable_validator(validator, balance, epoch) {
-            let address =
-                ExecutionAddress::try_from(&validator.withdrawal_credentials.as_slice()[12..])
-                    .expect("providing the correct amount of input to type");
-            withdrawals.push(Withdrawal {
-                index: withdrawal_index,
-                validator_index,
-                address,
-                amount: balance,
-            });
-            withdrawal_index += 1;
-        } else if is_partially_withdrawable_validator(validator, balance, context) {
-            let address =
-                ExecutionAddress::try_from(&validator.withdrawal_credentials.as_slice()[12..])
-                    .expect("providing the correct amount of input to type");
-            withdrawals.push(Withdrawal {
-                index: withdrawal_index,
-                validator_index,
-                address,
-                amount: balance - context.max_effective_balance,
-            });
-            withdrawal_index += 1;
-        }
-        if withdrawals.len() == context.max_withdrawals_per_payload {
-            break;
-        }
-        validator_index = (validator_index + 1) % state.validators.len();
-    }
-    withdrawals
-}
-pub fn add_validator_to_registry<
-    const SLOTS_PER_HISTORICAL_ROOT: usize,
-    const HISTORICAL_ROOTS_LIMIT: usize,
-    const ETH1_DATA_VOTES_BOUND: usize,
-    const VALIDATOR_REGISTRY_LIMIT: usize,
-    const EPOCHS_PER_HISTORICAL_VECTOR: usize,
-    const EPOCHS_PER_SLASHINGS_VECTOR: usize,
-    const MAX_VALIDATORS_PER_COMMITTEE: usize,
-    const SYNC_COMMITTEE_SIZE: usize,
-    const BYTES_PER_LOGS_BLOOM: usize,
-    const MAX_EXTRA_DATA_BYTES: usize,
-    const PENDING_BALANCE_DEPOSITS_LIMIT: usize,
-    const PENDING_PARTIAL_WITHDRAWALS_LIMIT: usize,
-    const PENDING_CONSOLIDATIONS_LIMIT: usize,
->(
-    state: &mut BeaconState<
-        SLOTS_PER_HISTORICAL_ROOT,
-        HISTORICAL_ROOTS_LIMIT,
-        ETH1_DATA_VOTES_BOUND,
-        VALIDATOR_REGISTRY_LIMIT,
-        EPOCHS_PER_HISTORICAL_VECTOR,
-        EPOCHS_PER_SLASHINGS_VECTOR,
-        MAX_VALIDATORS_PER_COMMITTEE,
-        SYNC_COMMITTEE_SIZE,
-        BYTES_PER_LOGS_BLOOM,
-        MAX_EXTRA_DATA_BYTES,
-        PENDING_BALANCE_DEPOSITS_LIMIT,
-        PENDING_PARTIAL_WITHDRAWALS_LIMIT,
-        PENDING_CONSOLIDATIONS_LIMIT,
-    >,
-    public_key: BlsPublicKey,
-    withdrawal_credentials: Bytes32,
-    amount: Gwei,
-    context: &Context,
-) {
-    state.validators.push(get_validator_from_deposit(
-        public_key,
-        withdrawal_credentials,
-        amount,
-        context,
-    ));
-    state.balances.push(amount);
-    state.previous_epoch_participation.push(ParticipationFlags::default());
-    state.current_epoch_participation.push(ParticipationFlags::default());
-    state.inactivity_scores.push(0);
 }
 pub fn process_sync_aggregate<
     const SLOTS_PER_HISTORICAL_ROOT: usize,
@@ -846,66 +487,6 @@ pub fn process_attester_slashing<
     } else {
         Ok(())
     }
-}
-pub fn apply_deposit<
-    const SLOTS_PER_HISTORICAL_ROOT: usize,
-    const HISTORICAL_ROOTS_LIMIT: usize,
-    const ETH1_DATA_VOTES_BOUND: usize,
-    const VALIDATOR_REGISTRY_LIMIT: usize,
-    const EPOCHS_PER_HISTORICAL_VECTOR: usize,
-    const EPOCHS_PER_SLASHINGS_VECTOR: usize,
-    const MAX_VALIDATORS_PER_COMMITTEE: usize,
-    const SYNC_COMMITTEE_SIZE: usize,
-    const BYTES_PER_LOGS_BLOOM: usize,
-    const MAX_EXTRA_DATA_BYTES: usize,
-    const PENDING_BALANCE_DEPOSITS_LIMIT: usize,
-    const PENDING_PARTIAL_WITHDRAWALS_LIMIT: usize,
-    const PENDING_CONSOLIDATIONS_LIMIT: usize,
->(
-    state: &mut BeaconState<
-        SLOTS_PER_HISTORICAL_ROOT,
-        HISTORICAL_ROOTS_LIMIT,
-        ETH1_DATA_VOTES_BOUND,
-        VALIDATOR_REGISTRY_LIMIT,
-        EPOCHS_PER_HISTORICAL_VECTOR,
-        EPOCHS_PER_SLASHINGS_VECTOR,
-        MAX_VALIDATORS_PER_COMMITTEE,
-        SYNC_COMMITTEE_SIZE,
-        BYTES_PER_LOGS_BLOOM,
-        MAX_EXTRA_DATA_BYTES,
-        PENDING_BALANCE_DEPOSITS_LIMIT,
-        PENDING_PARTIAL_WITHDRAWALS_LIMIT,
-        PENDING_CONSOLIDATIONS_LIMIT,
-    >,
-    public_key: &BlsPublicKey,
-    withdrawal_credentials: &Bytes32,
-    amount: Gwei,
-    signature: &BlsSignature,
-    context: &Context,
-) -> Result<()> {
-    let index = state.validators.iter().position(|v| v.public_key == *public_key);
-    if let Some(index) = index {
-        increase_balance(state, index, amount);
-        return Ok(());
-    }
-    let deposit_message = DepositMessage {
-        public_key: public_key.clone(),
-        withdrawal_credentials: withdrawal_credentials.clone(),
-        amount,
-    };
-    let domain = compute_domain(DomainType::Deposit, None, None, context)?;
-    let signing_root = compute_signing_root(&deposit_message, domain)?;
-    if verify_signature(public_key, signing_root.as_ref(), signature).is_err() {
-        return Ok(());
-    }
-    add_validator_to_registry(
-        state,
-        deposit_message.public_key,
-        deposit_message.withdrawal_credentials,
-        amount,
-        context,
-    );
-    Ok(())
 }
 pub fn process_deposit<
     const SLOTS_PER_HISTORICAL_ROOT: usize,

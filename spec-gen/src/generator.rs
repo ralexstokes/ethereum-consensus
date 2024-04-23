@@ -98,6 +98,7 @@ impl Fork {
                 "beacon_state",
                 "block_processing",
                 "constants",
+                "execution_engine",
                 "execution_payload",
                 "genesis",
                 "helpers",

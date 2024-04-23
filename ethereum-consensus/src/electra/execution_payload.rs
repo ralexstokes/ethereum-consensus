@@ -91,7 +91,7 @@ impl<
         const MAX_TRANSACTIONS_PER_PAYLOAD: usize,
         const MAX_WITHDRAWALS_PER_PAYLOAD: usize,
         const MAX_DEPOSIT_RECEIPTS_PER_PAYLOAD: usize,
-        const MAX_EXECUTION_LAYER_EXITS: usize,
+        const MAX_WITHDRAWAL_REQUESTS_PER_PAYLOAD: usize,
     >
     TryFrom<
         &'a ExecutionPayload<
@@ -101,7 +101,7 @@ impl<
             MAX_TRANSACTIONS_PER_PAYLOAD,
             MAX_WITHDRAWALS_PER_PAYLOAD,
             MAX_DEPOSIT_RECEIPTS_PER_PAYLOAD,
-            MAX_EXECUTION_LAYER_EXITS,
+            MAX_WITHDRAWAL_REQUESTS_PER_PAYLOAD,
         >,
     > for ExecutionPayloadHeader<BYTES_PER_LOGS_BLOOM, MAX_EXTRA_DATA_BYTES>
 {
@@ -115,7 +115,7 @@ impl<
             MAX_TRANSACTIONS_PER_PAYLOAD,
             MAX_WITHDRAWALS_PER_PAYLOAD,
             MAX_DEPOSIT_RECEIPTS_PER_PAYLOAD,
-            MAX_EXECUTION_LAYER_EXITS,
+            MAX_WITHDRAWAL_REQUESTS_PER_PAYLOAD,
         >,
     ) -> Result<ExecutionPayloadHeader<BYTES_PER_LOGS_BLOOM, MAX_EXTRA_DATA_BYTES>, Self::Error>
     {

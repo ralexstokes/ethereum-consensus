@@ -423,8 +423,6 @@ pub fn switch_to_compounding_validator<
     const PENDING_BALANCE_DEPOSITS_LIMIT: usize,
     const PENDING_PARTIAL_WITHDRAWALS_LIMIT: usize,
     const PENDING_CONSOLIDATIONS_LIMIT: usize,
-    const MAX_VALIDATORS_PER_SLOT: usize,
-    const MAX_COMMITTEES_PER_SLOT: usize,
 >(
     state: &mut BeaconState<
         SLOTS_PER_HISTORICAL_ROOT,
