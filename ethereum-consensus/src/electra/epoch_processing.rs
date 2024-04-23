@@ -1,7 +1,8 @@
 use crate::electra::{
     compute_activation_exit_epoch, get_current_epoch, initiate_validator_exit, is_active_validator,
-    is_eligible_for_activation, is_eligible_for_activation_queue, BeaconState, Context, Result,
+    is_eligible_for_activation, is_eligible_for_activation_queue, BeaconState, Context,
 };
+use std::error::Error;
 
 pub fn process_registry_updates<
     const SLOTS_PER_HISTORICAL_ROOT: usize,
@@ -34,7 +35,7 @@ pub fn process_registry_updates<
         PENDING_CONSOLIDATIONS_LIMIT,
     >,
     context: &Context,
-) -> Result<()> {
+) -> std::result::Result<(), Box<dyn Error>> {
     let current_epoch = get_current_epoch(state, context);
     for i in 0..state.validators.len() {
         let validator = &mut state.validators[i];

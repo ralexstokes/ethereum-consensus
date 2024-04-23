@@ -12,3 +12,4 @@ Cargo.lock
 consensus-spec-tests
 
 .env
+.vscode/
