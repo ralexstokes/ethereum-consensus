@@ -8,7 +8,7 @@ license = "MIT OR Apache-2.0"
 [features]
 default = ["serde", "async"]
 serde = ["hex", "serde_json", "serde_yaml"]
-async = ["tokio", "tokio-stream", "async-stream"]
+async = ["tokio", "tokio-stream"]
 optimized = ["shuffling"]
 shuffling = [] # supports optimized shuffling routines
 secret-key-debug = [
@@ -50,7 +50,6 @@ serde_yaml = { workspace = true, optional = true }
 hex = { workspace = true, optional = true }
 tokio = { workspace = true, optional = true }
 tokio-stream = { workspace = true, optional = true }
-async-stream = { workspace = true, optional = true }
 bs58 = { workspace = true }
 clap = { workspace = true, optional = true }
 eyre = { workspace = true, optional = true }

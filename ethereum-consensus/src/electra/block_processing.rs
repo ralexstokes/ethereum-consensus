@@ -16,16 +16,15 @@ use crate::{
         is_fully_withdrawable_validator, is_partially_withdrawable_validator,
         is_valid_indexed_attestation, kzg_commitment_to_versioned_hash, process_attester_slashing,
         process_bls_to_execution_change, process_deposit, process_proposer_slashing,
-        switch_to_compounding_validator, verify_signature, verify_signed_data, Attestation,
-        BeaconBlockBody, BeaconState, BlsPublicKey, BlsSignature, Bytes32, DepositMessage,
-        DepositReceipt, DomainType, ExecutionAddress, ExecutionLayerWithdrawalRequest,
-        ExecutionPayload, ExecutionPayloadHeader, Gwei, InvalidAttestation, InvalidConsolidation,
-        InvalidDeposit, InvalidExecutionPayload, InvalidOperation, InvalidVoluntaryExit,
-        InvalidWithdrawals, NewPayloadRequest, ParticipationFlags, PendingBalanceDeposit,
-        PendingConsolidation, PendingPartialWithdrawal, SignedConsolidation, SignedVoluntaryExit,
-        Validator, Withdrawal, FAR_FUTURE_EPOCH, FULL_EXIT_REQUEST_AMOUNT,
-        PARTICIPATION_FLAG_WEIGHTS, PROPOSER_WEIGHT, UNSET_DEPOSIT_RECEIPTS_START_INDEX,
-        WEIGHT_DENOMINATOR,
+        switch_to_compounding_validator, verify_signed_data, Attestation, BeaconBlockBody,
+        BeaconState, BlsPublicKey, BlsSignature, Bytes32, DepositMessage, DepositReceipt,
+        DomainType, ExecutionAddress, ExecutionLayerWithdrawalRequest, ExecutionPayload,
+        ExecutionPayloadHeader, Gwei, InvalidAttestation, InvalidConsolidation, InvalidDeposit,
+        InvalidExecutionPayload, InvalidOperation, InvalidVoluntaryExit, InvalidWithdrawals,
+        NewPayloadRequest, ParticipationFlags, PendingBalanceDeposit, PendingConsolidation,
+        PendingPartialWithdrawal, SignedConsolidation, SignedVoluntaryExit, Validator, Withdrawal,
+        FAR_FUTURE_EPOCH, FULL_EXIT_REQUEST_AMOUNT, PARTICIPATION_FLAG_WEIGHTS, PROPOSER_WEIGHT,
+        UNSET_DEPOSIT_RECEIPTS_START_INDEX, WEIGHT_DENOMINATOR,
     },
     execution_engine::ExecutionEngine,
     state_transition::Context,
@@ -698,8 +697,7 @@ pub fn is_valid_deposit_signature(
     let deposit_message =
         DepositMessage { public_key: public_key.clone(), withdrawal_credentials, amount };
     let domain = compute_domain(DomainType::Deposit, None, None, context)?;
-    let signing_root = compute_signing_root(&deposit_message, domain)?;
-    verify_signature(public_key, &signing_root[..], signature)
+    verify_signed_data(&deposit_message, signature, public_key, domain)
 }
 
 pub fn add_validator_to_registry<

@@ -232,20 +232,19 @@ pub fn process_bls_to_execution_change<
             InvalidBlsToExecutionChange::WithdrawalCredentialsPrefix(withdrawal_credentials[0]),
         )));
     }
-    let domain = compute_domain(
-        DomainType::BlsToExecutionChange,
-        None,
-        Some(state.genesis_validators_root),
-        context,
-    )?;
-    let signing_root = compute_signing_root(address_change, domain)?;
     let public_key = &address_change.from_bls_public_key;
     if withdrawal_credentials[1..] != hash(public_key.as_ref())[1..] {
         return Err(invalid_operation_error(InvalidOperation::BlsToExecutionChange(
             InvalidBlsToExecutionChange::PublicKeyMismatch(public_key.clone()),
         )));
     }
-    verify_signature(public_key, signing_root.as_ref(), signature)?;
+    let domain = compute_domain(
+        DomainType::BlsToExecutionChange,
+        None,
+        Some(state.genesis_validators_root),
+        context,
+    )?;
+    verify_signed_data(address_change, signature, public_key, domain)?;
     withdrawal_credentials[0] = ETH1_ADDRESS_WITHDRAWAL_PREFIX;
     withdrawal_credentials[1..12].fill(0);
     withdrawal_credentials[12..].copy_from_slice(address_change.to_execution_address.as_ref());
@@ -411,9 +410,10 @@ pub fn process_proposer_slashing<
     let epoch = compute_epoch_at_slot(header_1.slot, context);
     let domain = get_domain(state, DomainType::BeaconProposer, Some(epoch), context)?;
     for signed_header in [&proposer_slashing.signed_header_1, &proposer_slashing.signed_header_2] {
-        let signing_root = compute_signing_root(&signed_header.message, domain)?;
         let public_key = &proposer.public_key;
-        if verify_signature(public_key, signing_root.as_ref(), &signed_header.signature).is_err() {
+        if verify_signed_data(&signed_header.message, &signed_header.signature, public_key, domain)
+            .is_err()
+        {
             return Err(invalid_operation_error(InvalidOperation::ProposerSlashing(
                 InvalidProposerSlashing::InvalidSignature(signed_header.signature.clone()),
             )));
@@ -715,8 +715,7 @@ pub fn process_randao<
     let proposer_index = get_beacon_proposer_index(state, context)?;
     let proposer = &state.validators[proposer_index];
     let domain = get_domain(state, DomainType::Randao, Some(epoch), context)?;
-    let signing_root = compute_signing_root(&epoch, domain)?;
-    if verify_signature(&proposer.public_key, signing_root.as_ref(), &body.randao_reveal).is_err() {
+    if verify_signed_data(&epoch, &body.randao_reveal, &proposer.public_key, domain).is_err() {
         return Err(invalid_operation_error(InvalidOperation::Randao(body.randao_reveal.clone())));
     }
     let mix = xor(get_randao_mix(state, epoch), &hash(body.randao_reveal.as_ref()));
@@ -2574,9 +2573,8 @@ pub fn verify_block_signature<
         .get(proposer_index)
         .ok_or(Error::OutOfBounds { requested: proposer_index, bound: state.validators.len() })?;
     let domain = get_domain(state, DomainType::BeaconProposer, None, context)?;
-    let signing_root = compute_signing_root(&signed_block.message, domain)?;
     let public_key = &proposer.public_key;
-    verify_signature(public_key, signing_root.as_ref(), &signed_block.signature).map_err(Into::into)
+    verify_signed_data(&signed_block.message, &signed_block.signature, public_key, domain)
 }
 pub fn get_domain<
     const SLOTS_PER_HISTORICAL_ROOT: usize,

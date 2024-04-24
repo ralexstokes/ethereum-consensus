@@ -1,5 +1,5 @@
 use crate::{
-    crypto::{hash, verify_signature},
+    crypto::hash,
     error::{
         invalid_header_error, invalid_operation_error, InvalidAttestation, InvalidAttesterSlashing,
         InvalidBeaconBlockHeader, InvalidDeposit, InvalidOperation, InvalidProposerSlashing,
@@ -25,7 +25,7 @@ use crate::{
     primitives::{
         BlsPublicKey, BlsSignature, Bytes32, DomainType, Gwei, ValidatorIndex, FAR_FUTURE_EPOCH,
     },
-    signing::{compute_signing_root, verify_signed_data},
+    signing::verify_signed_data,
     ssz::prelude::*,
     state_transition::{Context, Result},
 };
@@ -93,9 +93,10 @@ pub fn process_proposer_slashing<
     let epoch = compute_epoch_at_slot(header_1.slot, context);
     let domain = get_domain(state, DomainType::BeaconProposer, Some(epoch), context)?;
     for signed_header in [&proposer_slashing.signed_header_1, &proposer_slashing.signed_header_2] {
-        let signing_root = compute_signing_root(&signed_header.message, domain)?;
         let public_key = &proposer.public_key;
-        if verify_signature(public_key, signing_root.as_ref(), &signed_header.signature).is_err() {
+        if verify_signed_data(&signed_header.message, &signed_header.signature, public_key, domain)
+            .is_err()
+        {
             return Err(invalid_operation_error(InvalidOperation::ProposerSlashing(
                 InvalidProposerSlashing::InvalidSignature(signed_header.signature.clone()),
             )))
@@ -385,8 +386,7 @@ pub fn apply_deposit<
         amount,
     };
     let domain = compute_domain(DomainType::Deposit, None, None, context)?;
-    let signing_root = compute_signing_root(&deposit_message, domain)?;
-    if verify_signature(public_key, signing_root.as_ref(), signature).is_err() {
+    if verify_signed_data(&deposit_message, signature, public_key, domain).is_err() {
         // NOTE: explicitly return with no error and also no further mutations to `state`
         return Ok(());
     }
@@ -646,9 +646,7 @@ pub fn process_randao<
     let proposer = &state.validators[proposer_index];
 
     let domain = get_domain(state, DomainType::Randao, Some(epoch), context)?;
-    let signing_root = compute_signing_root(&epoch, domain)?;
-
-    if verify_signature(&proposer.public_key, signing_root.as_ref(), &body.randao_reveal).is_err() {
+    if verify_signed_data(&epoch, &body.randao_reveal, &proposer.public_key, domain).is_err() {
         return Err(invalid_operation_error(InvalidOperation::Randao(body.randao_reveal.clone())))
     }
 

@@ -5,8 +5,8 @@ use crate::{
 use convert_case::{Case, Casing};
 use std::{collections::HashSet, fs};
 use syn::{
-    parse_quote, token::Mut, visit::Visit, AngleBracketedGenericArguments, Arm, Attribute, Expr,
-    GenericParam, Generics, Ident, ImplItemMethod, Item, ItemStruct,
+    parse_quote, token::Mut, visit::Visit, AngleBracketedGenericArguments, Arm, Expr, GenericParam,
+    Generics, Ident, ImplItemMethod, Item, ItemStruct,
 };
 
 const SOURCE_ROOT: &str = "ethereum-consensus/src";
@@ -671,17 +671,10 @@ fn derive_ref_impl_type(
             }
         })
         .collect::<Vec<syn::Variant>>();
-    let derive_attr: Attribute = if is_mut {
-        parse_quote!(#[derive(Debug, PartialEq, Eq, HashTreeRoot)])
-    } else {
-        parse_quote!(#[derive(Debug, PartialEq, Eq)])
-    };
-    let ssz_attr: Option<Attribute> =
-        if is_mut { Some(parse_quote!(#[ssz(transparent)])) } else { None };
     (
         parse_quote! {
-            #derive_attr
-            #ssz_attr
+            #[derive(Debug, PartialEq, Eq, HashTreeRoot)]
+            #[ssz(transparent)]
             pub enum #type_name #generics {
                 #(#variant_defns,)*
             }
@@ -828,8 +821,7 @@ fn render(target_type: &Type, items: Vec<Item>) {
 }
 
 pub fn run() {
-    let fork_sequence =
-        &[Fork::Phase0, Fork::Altair, Fork::Bellatrix, Fork::Capella, Fork::Deneb, Fork::Electra];
+    let fork_sequence = &[Fork::Phase0, Fork::Altair, Fork::Bellatrix, Fork::Capella, Fork::Deneb];
     let types = [
         Type::BeaconBlockBody,
         Type::BeaconBlock,

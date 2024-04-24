@@ -537,7 +537,8 @@ impl<
         Err(serde::de::Error::custom("no variant could be deserialized from input"))
     }
 }
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, PartialEq, Eq, HashTreeRoot)]
+#[ssz(transparent)]
 pub enum BeaconBlockRef<
     'a,
     const MAX_PROPOSER_SLASHINGS: usize,
