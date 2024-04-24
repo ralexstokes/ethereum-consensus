@@ -1,10 +1,9 @@
 use crate::electra::{
     compute_activation_exit_epoch, get_activation_exit_churn_limit, get_current_epoch,
     increase_balance, initiate_validator_exit, is_active_validator, is_eligible_for_activation,
-    is_eligible_for_activation_queue, BeaconState, Context,
+    is_eligible_for_activation_queue, BeaconState, Context, Error,
 };
 use ssz_rs::List;
-use std::error::Error;
 
 pub fn process_registry_updates<
     const SLOTS_PER_HISTORICAL_ROOT: usize,
@@ -37,7 +36,7 @@ pub fn process_registry_updates<
         PENDING_CONSOLIDATIONS_LIMIT,
     >,
     context: &Context,
-) -> std::result::Result<(), Box<dyn Error>> {
+) -> Result<(), Error> {
     let current_epoch = get_current_epoch(state, context);
     for i in 0..state.validators.len() {
         let validator = &mut state.validators[i];
@@ -94,7 +93,7 @@ pub fn process_pending_balance_deposits<
         PENDING_CONSOLIDATIONS_LIMIT,
     >,
     context: &Context,
-) -> std::result::Result<(), Box<dyn Error>> {
+) -> Result<(), Error> {
     let available_for_processing =
         state.deposit_balance_to_consume + get_activation_exit_churn_limit(state, context)?;
     let mut processed_amount = 0;
@@ -124,4 +123,39 @@ pub fn process_pending_balance_deposits<
     }
 
     Ok(())
+}
+
+pub fn process_pending_consolidations<
+    const SLOTS_PER_HISTORICAL_ROOT: usize,
+    const HISTORICAL_ROOTS_LIMIT: usize,
+    const ETH1_DATA_VOTES_BOUND: usize,
+    const VALIDATOR_REGISTRY_LIMIT: usize,
+    const EPOCHS_PER_HISTORICAL_VECTOR: usize,
+    const EPOCHS_PER_SLASHINGS_VECTOR: usize,
+    const MAX_VALIDATORS_PER_COMMITTEE: usize,
+    const SYNC_COMMITTEE_SIZE: usize,
+    const BYTES_PER_LOGS_BLOOM: usize,
+    const MAX_EXTRA_DATA_BYTES: usize,
+    const PENDING_BALANCE_DEPOSITS_LIMIT: usize,
+    const PENDING_PARTIAL_WITHDRAWALS_LIMIT: usize,
+    const PENDING_CONSOLIDATIONS_LIMIT: usize,
+>(
+    _state: &mut BeaconState<
+        SLOTS_PER_HISTORICAL_ROOT,
+        HISTORICAL_ROOTS_LIMIT,
+        ETH1_DATA_VOTES_BOUND,
+        VALIDATOR_REGISTRY_LIMIT,
+        EPOCHS_PER_HISTORICAL_VECTOR,
+        EPOCHS_PER_SLASHINGS_VECTOR,
+        MAX_VALIDATORS_PER_COMMITTEE,
+        SYNC_COMMITTEE_SIZE,
+        BYTES_PER_LOGS_BLOOM,
+        MAX_EXTRA_DATA_BYTES,
+        PENDING_BALANCE_DEPOSITS_LIMIT,
+        PENDING_PARTIAL_WITHDRAWALS_LIMIT,
+        PENDING_CONSOLIDATIONS_LIMIT,
+    >,
+    _context: &Context,
+) -> Result<(), Error> {
+    todo!()
 }

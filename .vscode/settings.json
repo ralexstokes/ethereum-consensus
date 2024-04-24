@@ -1,5 +1,0 @@
-{
-    "rust-analyzer.linkedProjects": [
-        "./ethereum-consensus/Cargo.toml"
-    ]
-}
