@@ -14,18 +14,18 @@ use crate::{
         has_execution_withdrawal_credential, has_flag, increase_balance, initiate_validator_exit,
         invalid_operation_error, is_active_validator, is_compounding_withdrawal_credential,
         is_fully_withdrawable_validator, is_partially_withdrawable_validator,
-        is_valid_indexed_attestation, kzg_commitment_to_versioned_hash,
-        mainnet::MIN_ACTIVATION_BALANCE, process_attester_slashing,
+        is_valid_indexed_attestation, kzg_commitment_to_versioned_hash, process_attester_slashing,
         process_bls_to_execution_change, process_deposit, process_proposer_slashing,
         switch_to_compounding_validator, verify_signature, verify_signed_data, Attestation,
         BeaconBlockBody, BeaconState, BlsPublicKey, BlsSignature, Bytes32, DepositMessage,
         DepositReceipt, DomainType, ExecutionAddress, ExecutionLayerWithdrawalRequest,
         ExecutionPayload, ExecutionPayloadHeader, Gwei, InvalidAttestation, InvalidConsolidation,
         InvalidDeposit, InvalidExecutionPayload, InvalidOperation, InvalidVoluntaryExit,
-        NewPayloadRequest, ParticipationFlags, PendingBalanceDeposit, PendingConsolidation,
-        PendingPartialWithdrawal, SignedConsolidation, SignedVoluntaryExit, Validator, Withdrawal,
-        FAR_FUTURE_EPOCH, FULL_EXIT_REQUEST_AMOUNT, PARTICIPATION_FLAG_WEIGHTS, PROPOSER_WEIGHT,
-        UNSET_DEPOSIT_RECEIPTS_START_INDEX, WEIGHT_DENOMINATOR,
+        InvalidWithdrawals, NewPayloadRequest, ParticipationFlags, PendingBalanceDeposit,
+        PendingConsolidation, PendingPartialWithdrawal, SignedConsolidation, SignedVoluntaryExit,
+        Validator, Withdrawal, FAR_FUTURE_EPOCH, FULL_EXIT_REQUEST_AMOUNT,
+        PARTICIPATION_FLAG_WEIGHTS, PROPOSER_WEIGHT, UNSET_DEPOSIT_RECEIPTS_START_INDEX,
+        WEIGHT_DENOMINATOR,
     },
     execution_engine::ExecutionEngine,
     state_transition::Context,
@@ -188,16 +188,16 @@ pub fn process_withdrawals<
 ) -> Result<(), Error> {
     let (expected_withdrawals, partial_withdrawals_count) =
         get_expected_withdrawals(state, context);
-    if payload.withdrawals.len() != expected_withdrawals.len() {
-        // TODO
-        return Err(Error::Overflow);
+    if payload.withdrawals.as_ref() != expected_withdrawals {
+        return Err(invalid_operation_error(InvalidOperation::Withdrawal(
+            InvalidWithdrawals::IncorrectWithdrawals {
+                provided: payload.withdrawals.to_vec(),
+                expected: expected_withdrawals,
+            },
+        )))
     }
 
-    for (expected, withdrawal) in expected_withdrawals.iter().zip(payload.withdrawals.iter()) {
-        if withdrawal != expected {
-            // TODO
-            return Err(Error::Overflow);
-        }
+    for withdrawal in payload.withdrawals.iter() {
         decrease_balance(state, withdrawal.validator_index, withdrawal.amount);
     }
 
@@ -742,7 +742,7 @@ pub fn add_validator_to_registry<
     state.previous_epoch_participation.push(ParticipationFlags::default());
     state.current_epoch_participation.push(ParticipationFlags::default());
     state.inactivity_scores.push(0);
-    state.pending_balance_deposits.push(super::PendingBalanceDeposit { index, amount });
+    state.pending_balance_deposits.push(PendingBalanceDeposit { index, amount });
 }
 
 pub fn get_validator_from_deposit(
@@ -1048,7 +1048,7 @@ pub fn process_consolidation<
         )));
     }
     let consolidation_churn_limit = get_consolidation_churn_limit(state, context)?;
-    if consolidation_churn_limit <= MIN_ACTIVATION_BALANCE {
+    if consolidation_churn_limit <= context.min_activation_balance {
         return Err(invalid_operation_error(InvalidOperation::InvalidConsolidation(
             InvalidConsolidation::InsufficientConsolidationChurnLimit,
         )));
