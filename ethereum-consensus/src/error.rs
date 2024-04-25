@@ -3,7 +3,10 @@ use crate::{
     crypto::Error as CryptoError,
     deneb::polynomial_commitments::Error as PolynomialCommitmentError,
     phase0::{AttestationData, BeaconBlockHeader, Checkpoint},
-    primitives::{BlsPublicKey, BlsSignature, Bytes32, Epoch, Hash32, Root, Slot, ValidatorIndex},
+    primitives::{
+        BlsPublicKey, BlsSignature, Bytes32, Epoch, ExecutionAddress, Hash32, Root, Slot,
+        ValidatorIndex,
+    },
     ssz::prelude::*,
     Fork,
 };
@@ -223,14 +226,17 @@ pub enum InvalidConsolidation {
     EqualSourceAndTargetIndices(ValidatorIndex),
     #[error("validator {0} is not active in the current epoch {1}")]
     InactiveValidator(ValidatorIndex, Epoch),
-    #[error("exit initiated for validator {0}")]
+    #[error("exit already initiated for validator {0}")]
     ExitInitiatedForValidator(ValidatorIndex),
     #[error("consolidation in epoch {consolidation_epoch} is not eligible for processing in current epoch {current_epoch}")]
     EarlyConsolidation { current_epoch: Epoch, consolidation_epoch: Epoch },
     #[error("validator {0} missing execution layer withdrawal credentials")]
     MissingExecutionWithdrawalCredentials(ValidatorIndex),
     #[error("source withdrawal credentials {source_address} do not equal target withdrawal credentials {target_address}")]
-    WithdrawalCredentialsMismatch { source_address: ByteVector<32>, target_address: ByteVector<32> },
+    WithdrawalCredentialsMismatch {
+        source_address: ExecutionAddress,
+        target_address: ExecutionAddress,
+    },
 }
 
 #[derive(Debug, Error)]

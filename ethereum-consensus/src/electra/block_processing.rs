@@ -1,5 +1,3 @@
-use ssz_rs::{HashTreeRoot, List};
-
 use crate::{
     crypto::fast_aggregate_verify,
     electra::{
@@ -27,6 +25,7 @@ use crate::{
         UNSET_DEPOSIT_RECEIPTS_START_INDEX, WEIGHT_DENOMINATOR,
     },
     execution_engine::ExecutionEngine,
+    ssz::prelude::HashTreeRoot,
     state_transition::Context,
     Error,
 };
@@ -62,7 +61,7 @@ pub fn get_expected_withdrawals<
         PENDING_CONSOLIDATIONS_LIMIT,
     >,
     context: &Context,
-) -> (Vec<Withdrawal>, u64) {
+) -> (Vec<Withdrawal>, usize) {
     let epoch = get_current_epoch(state, context);
     let mut withdrawal_index = state.next_withdrawal_index;
     let mut validator_index = state.next_withdrawal_validator_index;
@@ -101,7 +100,7 @@ pub fn get_expected_withdrawals<
         }
     }
 
-    let partial_withdrawals_count = withdrawals.len() as u64;
+    let partial_withdrawals_count = withdrawals.len();
 
     let bound = usize::min(state.validators.len(), context.max_validators_per_withdrawals_sweep);
     for _ in 0..bound {
@@ -200,9 +199,7 @@ pub fn process_withdrawals<
         decrease_balance(state, withdrawal.validator_index, withdrawal.amount);
     }
 
-    let pending_partial_withdrawals =
-        state.pending_partial_withdrawals[partial_withdrawals_count as usize..].to_vec();
-    state.pending_partial_withdrawals = List::try_from(pending_partial_withdrawals).unwrap();
+    state.pending_partial_withdrawals.drain(..partial_withdrawals_count);
 
     if let Some(latest) = expected_withdrawals.last() {
         state.next_withdrawal_index = latest.index + 1;
@@ -659,17 +656,18 @@ pub fn apply_deposit<
     let validator = state.validators.iter().enumerate().find(|(_, v)| v.public_key == *public_key);
     if let Some((index, validator)) = validator {
         state.pending_balance_deposits.push(PendingBalanceDeposit { index, amount });
-        let is_valid_deposit_signature = is_valid_deposit_signature(
+
+        is_valid_deposit_signature(
             public_key,
             withdrawal_credentials.clone(),
             amount,
             signature,
             context,
-        )
-        .map(|_| true)?;
+        )?;
+
+        // NOTE: if we did not return from signature check, then we know the signature is valid
         if is_compounding_withdrawal_credential(withdrawal_credentials) &&
-            has_eth1_withdrawal_credential(validator) &&
-            is_valid_deposit_signature
+            has_eth1_withdrawal_credential(validator)
         {
             switch_to_compounding_validator(state, index, context)?;
         }
@@ -1115,15 +1113,16 @@ pub fn process_consolidation<
         )));
     }
 
-    let source_address = &source_validator.withdrawal_credentials;
-    let target_address = &target_validator.withdrawal_credentials;
-    if source_address[12..] != target_address[12..] {
+    let source_withdrawal_credentials = &source_validator.withdrawal_credentials;
+    let target_withdrawal_credentials = &target_validator.withdrawal_credentials;
+    if source_withdrawal_credentials[12..] != target_withdrawal_credentials[12..] {
+        let mut source_address = ExecutionAddress::default();
+        source_address.copy_from_slice(&source_withdrawal_credentials[12..]);
+        let mut target_address = ExecutionAddress::default();
+        target_address.copy_from_slice(&target_withdrawal_credentials[12..]);
         return Err(invalid_operation_error(InvalidOperation::InvalidConsolidation(
-            InvalidConsolidation::WithdrawalCredentialsMismatch {
-                source_address: source_address.clone(),
-                target_address: target_address.clone(),
-            },
-        )))
+            InvalidConsolidation::WithdrawalCredentialsMismatch { source_address, target_address },
+        )));
     }
 
     let domain = compute_domain(
