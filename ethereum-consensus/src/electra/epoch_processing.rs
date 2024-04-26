@@ -1,11 +1,12 @@
 use crate::electra::{
-    compute_activation_exit_epoch, get_activation_exit_churn_limit, get_current_epoch,
-    increase_balance, initiate_validator_exit, is_active_validator, is_eligible_for_activation,
-    is_eligible_for_activation_queue, BeaconState, Context, Error,
+    compute_activation_exit_epoch, get_activation_exit_churn_limit, get_active_balance,
+    get_current_epoch, increase_balance, initiate_validator_exit, is_active_validator,
+    is_eligible_for_activation, is_eligible_for_activation_queue, switch_to_compounding_validator,
+    BeaconState, Context, Error,
 };
 use ssz_rs::List;
 
-use super::switch_to_compounding_validator;
+use super::decrease_balance;
 
 pub fn process_registry_updates<
     const SLOTS_PER_HISTORICAL_ROOT: usize,
@@ -113,6 +114,7 @@ pub fn process_pending_balance_deposits<
         next_deposit_index += 1;
     }
 
+    // TODO: Refactor using `.drain()``
     state.pending_balance_deposits =
         List::try_from(state.pending_balance_deposits.split_off(next_deposit_index)).unwrap();
 
@@ -159,5 +161,47 @@ pub fn process_pending_consolidations<
     >,
     context: &Context,
 ) -> Result<(), Error> {
-    todo!()
+    let mut next_pending_consolidation = 0;
+    for i in 0..state.pending_consolidations.len() {
+        let pending_consolidation = &state.pending_consolidations[i];
+        let source_index = pending_consolidation.source_index;
+        let target_index = pending_consolidation.target_index;
+        let source_validator = &state.validators[source_index];
+        if source_validator.slashed {
+            next_pending_consolidation += 1;
+            continue
+        }
+        if source_validator.withdrawable_epoch > get_current_epoch(state, context) {
+            break
+        }
+
+        switch_to_compounding_validator::<
+            SLOTS_PER_HISTORICAL_ROOT,
+            HISTORICAL_ROOTS_LIMIT,
+            ETH1_DATA_VOTES_BOUND,
+            VALIDATOR_REGISTRY_LIMIT,
+            EPOCHS_PER_HISTORICAL_VECTOR,
+            EPOCHS_PER_SLASHINGS_VECTOR,
+            MAX_VALIDATORS_PER_COMMITTEE,
+            SYNC_COMMITTEE_SIZE,
+            BYTES_PER_LOGS_BLOOM,
+            MAX_EXTRA_DATA_BYTES,
+            PENDING_BALANCE_DEPOSITS_LIMIT,
+            PENDING_PARTIAL_WITHDRAWALS_LIMIT,
+            PENDING_CONSOLIDATIONS_LIMIT,
+            MAX_VALIDATORS_PER_SLOT,
+            MAX_COMMITTEES_PER_SLOT,
+        >(state, target_index, context)
+        .unwrap();
+        let active_balance = get_active_balance(state, source_index, context);
+        decrease_balance(state, source_index, active_balance);
+        increase_balance(state, target_index, active_balance);
+        next_pending_consolidation += 1;
+    }
+
+    // TODO: Refactor using `.drain()``
+    state.pending_consolidations =
+        List::try_from(state.pending_consolidations.split_off(next_pending_consolidation)).unwrap();
+
+    Ok(())
 }
