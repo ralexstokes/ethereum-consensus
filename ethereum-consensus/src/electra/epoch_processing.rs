@@ -5,6 +5,8 @@ use crate::electra::{
 };
 use ssz_rs::List;
 
+use super::switch_to_compounding_validator;
+
 pub fn process_registry_updates<
     const SLOTS_PER_HISTORICAL_ROOT: usize,
     const HISTORICAL_ROOTS_LIMIT: usize,
@@ -99,17 +101,15 @@ pub fn process_pending_balance_deposits<
     let mut processed_amount = 0;
     let mut next_deposit_index = 0;
 
-    // TODO: Try refactoring into 1 for loop.
-    let mut valid_deposits = vec![];
-    for deposit in state.pending_balance_deposits.iter() {
+    for i in 0..state.pending_balance_deposits.len() {
+        let deposit = &state.pending_balance_deposits[i];
+        let index = deposit.index;
+        let amount = deposit.amount;
         if processed_amount + deposit.amount > available_for_processing {
             break
         }
-        valid_deposits.push(deposit.clone());
-    }
-    for deposit in valid_deposits.iter() {
-        increase_balance(state, deposit.index, deposit.amount);
-        processed_amount += deposit.amount;
+        increase_balance(state, index, amount);
+        processed_amount += amount;
         next_deposit_index += 1;
     }
 
@@ -139,8 +139,10 @@ pub fn process_pending_consolidations<
     const PENDING_BALANCE_DEPOSITS_LIMIT: usize,
     const PENDING_PARTIAL_WITHDRAWALS_LIMIT: usize,
     const PENDING_CONSOLIDATIONS_LIMIT: usize,
+    const MAX_VALIDATORS_PER_SLOT: usize,
+    const MAX_COMMITTEES_PER_SLOT: usize,
 >(
-    _state: &mut BeaconState<
+    state: &mut BeaconState<
         SLOTS_PER_HISTORICAL_ROOT,
         HISTORICAL_ROOTS_LIMIT,
         ETH1_DATA_VOTES_BOUND,
@@ -155,7 +157,7 @@ pub fn process_pending_consolidations<
         PENDING_PARTIAL_WITHDRAWALS_LIMIT,
         PENDING_CONSOLIDATIONS_LIMIT,
     >,
-    _context: &Context,
+    context: &Context,
 ) -> Result<(), Error> {
     todo!()
 }
