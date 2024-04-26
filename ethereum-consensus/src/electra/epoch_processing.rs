@@ -114,11 +114,10 @@ pub fn process_pending_balance_deposits<
         next_deposit_index += 1;
     }
 
-    // TODO: Refactor using `.drain()``
-    state.pending_balance_deposits =
-        List::try_from(state.pending_balance_deposits.split_off(next_deposit_index)).unwrap();
+    let deposits_vec: Vec<_> = state.pending_balance_deposits.drain(next_deposit_index..).collect();
+    state.pending_balance_deposits = List::try_from(deposits_vec).unwrap();
 
-    if state.pending_balance_deposits.len() == 0 {
+    if state.pending_balance_deposits.is_empty() {
         state.deposit_balance_to_consume = 0;
     } else {
         state.deposit_balance_to_consume = available_for_processing - processed_amount;
@@ -199,9 +198,9 @@ pub fn process_pending_consolidations<
         next_pending_consolidation += 1;
     }
 
-    // TODO: Refactor using `.drain()``
-    state.pending_consolidations =
-        List::try_from(state.pending_consolidations.split_off(next_pending_consolidation)).unwrap();
+    let consolidations_vec: Vec<_> =
+        state.pending_consolidations.drain(next_pending_consolidation..).collect();
+    state.pending_consolidations = List::try_from(consolidations_vec).unwrap();
 
     Ok(())
 }
