@@ -14,6 +14,16 @@ pub const SEPOLIA_GENESIS_TIME: u64 = 1655733600;
 pub const GOERLI_GENESIS_TIME: u64 = 1616508000;
 pub const HOLESKY_GENESIS_TIME: u64 = 1695902400;
 
+pub fn duration_since_unix_epoch() -> Duration {
+    SystemTime::now().duration_since(UNIX_EPOCH).unwrap_or_default()
+}
+
+pub fn duration_until(unix_timestamp_secs: u64) -> Duration {
+    let unix_now = duration_since_unix_epoch();
+    let timestamp = Duration::from_secs(unix_timestamp_secs);
+    timestamp.saturating_sub(unix_now)
+}
+
 fn slot_to_nanos(slot: Slot, seconds_per_slot: u128, genesis_time: u128) -> u128 {
     u128::from(slot) * seconds_per_slot + genesis_time
 }
@@ -261,10 +271,6 @@ mod tests {
     use super::*;
     use std::sync::Mutex;
 
-    fn duration_since_unix_epoch() -> u64 {
-        SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_secs()
-    }
-
     struct Ticker {
         tick: Mutex<u128>,
         seconds_per_slot: u128,
@@ -383,7 +389,7 @@ mod tests {
         while let Some(slot) = slot_stream.next().await {
             if slot != current_slot {
                 // ignore first slot, as it is not necessarily aligned to wall clock time
-                assert_eq!(duration_since_unix_epoch(), clock.timestamp_at_slot(slot));
+                assert_eq!(duration_since_unix_epoch().as_secs(), clock.timestamp_at_slot(slot));
             }
             if slot >= target_slot {
                 break
