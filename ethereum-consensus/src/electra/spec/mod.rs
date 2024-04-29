@@ -54,11 +54,7 @@ pub use crate::{
             process_operations, process_voluntary_exit, process_withdrawals,
         },
         constants::{FULL_EXIT_REQUEST_AMOUNT, UNSET_DEPOSIT_RECEIPTS_START_INDEX},
-<<<<<<< HEAD
         execution_engine::NewPayloadRequest,
-=======
-        epoch_processing,
->>>>>>> 3b086684 (Create `epoch_processing` module and `process_registry_updates()`)
         execution_payload::{ExecutionPayload, ExecutionPayloadHeader},
         fork::upgrade_to_electra,
         genesis::initialize_beacon_state_from_eth1,
