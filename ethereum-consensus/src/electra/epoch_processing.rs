@@ -174,24 +174,7 @@ pub fn process_pending_consolidations<
             break
         }
 
-        switch_to_compounding_validator::<
-            SLOTS_PER_HISTORICAL_ROOT,
-            HISTORICAL_ROOTS_LIMIT,
-            ETH1_DATA_VOTES_BOUND,
-            VALIDATOR_REGISTRY_LIMIT,
-            EPOCHS_PER_HISTORICAL_VECTOR,
-            EPOCHS_PER_SLASHINGS_VECTOR,
-            MAX_VALIDATORS_PER_COMMITTEE,
-            SYNC_COMMITTEE_SIZE,
-            BYTES_PER_LOGS_BLOOM,
-            MAX_EXTRA_DATA_BYTES,
-            PENDING_BALANCE_DEPOSITS_LIMIT,
-            PENDING_PARTIAL_WITHDRAWALS_LIMIT,
-            PENDING_CONSOLIDATIONS_LIMIT,
-            MAX_VALIDATORS_PER_SLOT,
-            MAX_COMMITTEES_PER_SLOT,
-        >(state, target_index, context)
-        .unwrap();
+        switch_to_compounding_validator(state, target_index, context)?;
         let active_balance = get_active_balance(state, source_index, context);
         decrease_balance(state, source_index, active_balance);
         increase_balance(state, target_index, active_balance);
