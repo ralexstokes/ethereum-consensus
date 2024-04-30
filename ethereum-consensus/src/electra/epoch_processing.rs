@@ -1,12 +1,15 @@
-use crate::electra::{
-    compute_activation_exit_epoch, get_activation_exit_churn_limit, get_active_balance,
-    get_current_epoch, increase_balance, initiate_validator_exit, is_active_validator,
-    is_eligible_for_activation, is_eligible_for_activation_queue, switch_to_compounding_validator,
-    BeaconState, Context, Error,
+use crate::{
+    electra::{
+        compute_activation_exit_epoch, decrease_balance, get_current_epoch,
+        helpers::{
+            get_activation_exit_churn_limit, get_active_balance, initiate_validator_exit,
+            is_eligible_for_activation_queue, switch_to_compounding_validator,
+        },
+        increase_balance, is_active_validator, is_eligible_for_activation, BeaconState, Context,
+        Error,
+    },
+    ssz::prelude::List,
 };
-use ssz_rs::List;
-
-use super::decrease_balance;
 
 pub fn process_registry_updates<
     const SLOTS_PER_HISTORICAL_ROOT: usize,
