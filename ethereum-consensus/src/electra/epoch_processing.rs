@@ -1,14 +1,10 @@
-use crate::{
-    electra::{
-        compute_activation_exit_epoch, decrease_balance, get_current_epoch,
-        helpers::{
-            get_activation_exit_churn_limit, get_active_balance, initiate_validator_exit,
-            is_eligible_for_activation_queue, switch_to_compounding_validator,
-        },
-        increase_balance, is_active_validator, is_eligible_for_activation, BeaconState, Context,
-        Error,
+use crate::electra::{
+    compute_activation_exit_epoch, decrease_balance, get_current_epoch,
+    helpers::{
+        get_activation_exit_churn_limit, get_active_balance, initiate_validator_exit,
+        is_eligible_for_activation_queue, switch_to_compounding_validator,
     },
-    ssz::prelude::List,
+    increase_balance, is_active_validator, is_eligible_for_activation, BeaconState, Context, Error,
 };
 
 pub fn process_registry_updates<
@@ -117,8 +113,7 @@ pub fn process_pending_balance_deposits<
         next_deposit_index += 1;
     }
 
-    let deposits_vec: Vec<_> = state.pending_balance_deposits.drain(next_deposit_index..).collect();
-    state.pending_balance_deposits = List::try_from(deposits_vec).map_err(|err| err.1)?;
+    state.pending_balance_deposits.drain(..next_deposit_index);
 
     if state.pending_balance_deposits.is_empty() {
         state.deposit_balance_to_consume = 0;
@@ -184,9 +179,7 @@ pub fn process_pending_consolidations<
         next_pending_consolidation += 1;
     }
 
-    let consolidations_vec: Vec<_> =
-        state.pending_consolidations.drain(next_pending_consolidation..).collect();
-    state.pending_consolidations = List::try_from(consolidations_vec).map_err(|err| err.1)?;
+    state.pending_consolidations.drain(..next_pending_consolidation);
 
     Ok(())
 }
