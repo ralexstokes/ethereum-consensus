@@ -9,6 +9,7 @@ pub enum Fork {
     Bellatrix,
     Capella,
     Deneb,
+    Electra,
 }
 
 impl fmt::Display for Fork {
@@ -19,6 +20,7 @@ impl fmt::Display for Fork {
             Self::Bellatrix => write!(f, "bellatrix"),
             Self::Capella => write!(f, "capella"),
             Self::Deneb => write!(f, "deneb"),
+            Self::Electra => write!(f, "electra"),
         }
     }
 }

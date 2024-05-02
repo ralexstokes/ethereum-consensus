@@ -428,7 +428,9 @@ impl Context {
 
     pub fn fork_for(&self, slot: Slot) -> Fork {
         let epoch = slot / self.slots_per_epoch;
-        if epoch >= self.deneb_fork_epoch {
+        if epoch >= self.electra_fork_epoch {
+            Fork::Electra
+        } else if epoch >= self.deneb_fork_epoch {
             Fork::Deneb
         } else if epoch >= self.capella_fork_epoch {
             Fork::Capella
@@ -448,6 +450,7 @@ impl Context {
             Fork::Bellatrix => self.bellatrix_fork_version,
             Fork::Capella => self.capella_fork_version,
             Fork::Deneb => self.deneb_fork_version,
+            Fork::Electra => self.electra_fork_version,
         }
     }
 
