@@ -59,6 +59,7 @@ pub mod presets {
             type BeaconState = BeaconState;
             type SignedAggregateAndProof = phase0::SignedAggregateAndProof;
             type SignedBeaconBlock = SignedBeaconBlock;
+            type Blob = deneb::Blob;
             type BlobSidecar = deneb::BlobSidecar;
             type LightClientBootstrap = altair::LightClientBootstrap;
             type LightClientUpdate = altair::LightClientUpdate;
@@ -93,6 +94,7 @@ pub mod presets {
             type BeaconState = BeaconState;
             type SignedAggregateAndProof = phase0::SignedAggregateAndProof;
             type SignedBeaconBlock = SignedBeaconBlock;
+            type Blob = deneb::Blob;
             type BlobSidecar = deneb::BlobSidecar;
             type LightClientBootstrap = altair::LightClientBootstrap;
             type LightClientUpdate = altair::LightClientUpdate;

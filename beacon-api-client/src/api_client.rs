@@ -5,9 +5,9 @@ use crate::{
         CommitteeFilter, CommitteeSummary, ConnectionOrientation, CoordinateWithMetadata,
         DepositContract, DepositSnapshot, FinalityCheckpoints, GenesisDetails, HealthStatus,
         NetworkIdentity, PeerDescription, PeerState, PeerSummary, ProposerDuty, PublicKeyOrIndex,
-        RootData, StateId, SyncCommitteeDescriptor, SyncCommitteeDuty, SyncCommitteeSummary,
-        SyncStatus, Topic, ValidatorLiveness, ValidatorStatus, ValidatorSummary, Value,
-        VersionData, VersionedValue,
+        RootData, StateId, SubmitSignedBeaconBlock, SyncCommitteeDescriptor, SyncCommitteeDuty,
+        SyncCommitteeSummary, SyncStatus, Topic, ValidatorLiveness, ValidatorStatus,
+        ValidatorSummary, Value, VersionData, VersionedValue,
     },
     ApiError, Error,
 };
@@ -66,6 +66,7 @@ pub trait ClientTypes: Clone {
     type BeaconState: serde::Serialize + serde::de::DeserializeOwned;
     type SignedAggregateAndProof: serde::Serialize;
     type SignedBeaconBlock: serde::Serialize + serde::de::DeserializeOwned;
+    type Blob: serde::Serialize + serde::de::DeserializeOwned;
     type BlobSidecar: serde::Serialize + serde::de::DeserializeOwned;
     type LightClientBootstrap: serde::Serialize + serde::de::DeserializeOwned;
     type LightClientUpdate: serde::Serialize + serde::de::DeserializeOwned;
@@ -349,9 +350,11 @@ impl<C: ClientTypes> Client<C> {
         self.post("eth/v1/beacon/blocks", block).await
     }
 
+    // NOTE: this only supports the `deneb` fork at the moment
+    // The message schema of `request` is different before `deneb`.
     pub async fn post_signed_beacon_block_v2(
         &self,
-        block: &C::SignedBeaconBlock,
+        request: SubmitSignedBeaconBlock<'_, C::SignedBeaconBlock, C::Blob>,
         version: Version,
         broadcast_validation: Option<BroadcastValidation>,
     ) -> Result<(), Error> {
@@ -359,7 +362,7 @@ impl<C: ClientTypes> Client<C> {
         let mut request = self
             .http
             .post(target)
-            .json(block)
+            .json(&request)
             .header(CONSENSUS_VERSION_HEADER, version.to_string());
         if let Some(validation) = broadcast_validation {
             request = request.query(&[("broadcast_validation", validation)]);
