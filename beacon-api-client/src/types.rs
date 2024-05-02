@@ -2,6 +2,7 @@ use crate::ApiError;
 use ethereum_consensus::{
     altair::networking::MetaData,
     capella::Withdrawal,
+    deneb::polynomial_commitments::KzgProof,
     networking::{Enr, Multiaddr, PeerId},
     phase0::{Checkpoint, SignedBeaconBlockHeader, Validator},
     primitives::{
@@ -471,6 +472,17 @@ pub struct SyncCommitteeDescriptor {
     pub sync_committee_indices: Vec<usize>,
     #[serde(with = "crate::serde::as_str")]
     pub until_epoch: Epoch,
+}
+
+#[derive(Serialize)]
+pub struct SubmitSignedBeaconBlock<'a, SignedBeaconBlock, Blob>
+where
+    SignedBeaconBlock: serde::Serialize,
+    Blob: serde::Serialize,
+{
+    pub signed_block: &'a SignedBeaconBlock,
+    pub kzg_proofs: Option<&'a [KzgProof]>,
+    pub blobs: Option<&'a [Blob]>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
