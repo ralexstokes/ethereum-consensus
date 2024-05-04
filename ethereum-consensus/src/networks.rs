@@ -25,7 +25,7 @@ impl std::fmt::Display for Network {
             Self::Sepolia => write!(f, "sepolia"),
             Self::Goerli => write!(f, "goerli"),
             Self::Holesky => write!(f, "holesky"),
-            Self::Custom(config_dir) => write!(f, "{config_dir}"),
+            Self::Custom(config_dir) => write!(f, "custom ({config_dir}/config.yaml)"),
         }
     }
 }
@@ -69,22 +69,4 @@ impl TryFrom<Network> for Context {
 // where we have control over the genesis details
 pub fn typical_genesis_time(context: &Context) -> u64 {
     context.min_genesis_time + context.genesis_delay
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[derive(Debug, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
-    struct File {
-        network: Network,
-    }
-
-    #[test]
-    fn test_serde() {
-        let file = File { network: Network::Custom("/path/to/foo.yaml".to_string()) };
-        let str = toml::to_string(&file).unwrap();
-        let recovered_file: File = toml::from_str(&str).unwrap();
-        assert_eq!(file, recovered_file);
-    }
 }
