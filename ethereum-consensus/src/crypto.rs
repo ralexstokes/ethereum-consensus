@@ -225,7 +225,16 @@ impl SecretKey {
 }
 
 #[derive(
-    Clone, Default, Hash, PartialEq, Eq, SimpleSerialize, serde::Serialize, serde::Deserialize,
+    Clone,
+    Default,
+    Hash,
+    PartialEq,
+    Eq,
+    PartialOrd,
+    Ord,
+    SimpleSerialize,
+    serde::Serialize,
+    serde::Deserialize,
 )]
 pub struct PublicKey(ByteVector<BLS_PUBLIC_KEY_BYTES_LEN>);
 
