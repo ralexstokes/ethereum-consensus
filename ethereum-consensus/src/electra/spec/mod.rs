@@ -54,6 +54,10 @@ pub use crate::{
             process_operations, process_voluntary_exit, process_withdrawals,
         },
         constants::{FULL_EXIT_REQUEST_AMOUNT, UNSET_DEPOSIT_RECEIPTS_START_INDEX},
+        epoch_processing::{
+            process_effective_balance_updates, process_epoch, process_pending_balance_deposits,
+            process_pending_consolidations, process_registry_updates,
+        },
         execution_engine::NewPayloadRequest,
         execution_payload::{ExecutionPayload, ExecutionPayloadHeader},
         fork::upgrade_to_electra,
@@ -797,76 +801,6 @@ pub fn process_eth1_data<
         state.eth1_data = body.eth1_data.clone();
     }
 }
-pub fn process_registry_updates<
-    const SLOTS_PER_HISTORICAL_ROOT: usize,
-    const HISTORICAL_ROOTS_LIMIT: usize,
-    const ETH1_DATA_VOTES_BOUND: usize,
-    const VALIDATOR_REGISTRY_LIMIT: usize,
-    const EPOCHS_PER_HISTORICAL_VECTOR: usize,
-    const EPOCHS_PER_SLASHINGS_VECTOR: usize,
-    const MAX_VALIDATORS_PER_COMMITTEE: usize,
-    const SYNC_COMMITTEE_SIZE: usize,
-    const BYTES_PER_LOGS_BLOOM: usize,
-    const MAX_EXTRA_DATA_BYTES: usize,
-    const PENDING_BALANCE_DEPOSITS_LIMIT: usize,
-    const PENDING_PARTIAL_WITHDRAWALS_LIMIT: usize,
-    const PENDING_CONSOLIDATIONS_LIMIT: usize,
->(
-    state: &mut BeaconState<
-        SLOTS_PER_HISTORICAL_ROOT,
-        HISTORICAL_ROOTS_LIMIT,
-        ETH1_DATA_VOTES_BOUND,
-        VALIDATOR_REGISTRY_LIMIT,
-        EPOCHS_PER_HISTORICAL_VECTOR,
-        EPOCHS_PER_SLASHINGS_VECTOR,
-        MAX_VALIDATORS_PER_COMMITTEE,
-        SYNC_COMMITTEE_SIZE,
-        BYTES_PER_LOGS_BLOOM,
-        MAX_EXTRA_DATA_BYTES,
-        PENDING_BALANCE_DEPOSITS_LIMIT,
-        PENDING_PARTIAL_WITHDRAWALS_LIMIT,
-        PENDING_CONSOLIDATIONS_LIMIT,
-    >,
-    context: &Context,
-) -> Result<()> {
-    let current_epoch = get_current_epoch(state, context);
-    for i in 0..state.validators.len() {
-        let validator = &mut state.validators[i];
-        if is_eligible_for_activation_queue(validator, context) {
-            validator.activation_eligibility_epoch = current_epoch + 1;
-        }
-        if is_active_validator(validator, current_epoch) &&
-            validator.effective_balance <= context.ejection_balance
-        {
-            initiate_validator_exit(state, i, context)?;
-        }
-    }
-    let mut activation_queue =
-        state
-            .validators
-            .iter()
-            .enumerate()
-            .filter_map(|(index, validator)| {
-                if is_eligible_for_activation(state, validator) {
-                    Some(index)
-                } else {
-                    None
-                }
-            })
-            .collect::<Vec<ValidatorIndex>>();
-    activation_queue.sort_by(|&i, &j| {
-        let a = &state.validators[i];
-        let b = &state.validators[j];
-        (a.activation_eligibility_epoch, i).cmp(&(b.activation_eligibility_epoch, j))
-    });
-    let activation_exit_epoch = compute_activation_exit_epoch(current_epoch, context);
-    for i in activation_queue.into_iter().take(get_validator_activation_churn_limit(state, context))
-    {
-        let validator = &mut state.validators[i];
-        validator.activation_epoch = activation_exit_epoch;
-    }
-    Ok(())
-}
 pub fn process_historical_summaries_update<
     const SLOTS_PER_HISTORICAL_ROOT: usize,
     const HISTORICAL_ROOTS_LIMIT: usize,
@@ -907,52 +841,6 @@ pub fn process_historical_summaries_update<
         };
         state.historical_summaries.push(historical_summary);
     }
-    Ok(())
-}
-pub fn process_epoch<
-    const SLOTS_PER_HISTORICAL_ROOT: usize,
-    const HISTORICAL_ROOTS_LIMIT: usize,
-    const ETH1_DATA_VOTES_BOUND: usize,
-    const VALIDATOR_REGISTRY_LIMIT: usize,
-    const EPOCHS_PER_HISTORICAL_VECTOR: usize,
-    const EPOCHS_PER_SLASHINGS_VECTOR: usize,
-    const MAX_VALIDATORS_PER_COMMITTEE: usize,
-    const SYNC_COMMITTEE_SIZE: usize,
-    const BYTES_PER_LOGS_BLOOM: usize,
-    const MAX_EXTRA_DATA_BYTES: usize,
-    const PENDING_BALANCE_DEPOSITS_LIMIT: usize,
-    const PENDING_PARTIAL_WITHDRAWALS_LIMIT: usize,
-    const PENDING_CONSOLIDATIONS_LIMIT: usize,
->(
-    state: &mut BeaconState<
-        SLOTS_PER_HISTORICAL_ROOT,
-        HISTORICAL_ROOTS_LIMIT,
-        ETH1_DATA_VOTES_BOUND,
-        VALIDATOR_REGISTRY_LIMIT,
-        EPOCHS_PER_HISTORICAL_VECTOR,
-        EPOCHS_PER_SLASHINGS_VECTOR,
-        MAX_VALIDATORS_PER_COMMITTEE,
-        SYNC_COMMITTEE_SIZE,
-        BYTES_PER_LOGS_BLOOM,
-        MAX_EXTRA_DATA_BYTES,
-        PENDING_BALANCE_DEPOSITS_LIMIT,
-        PENDING_PARTIAL_WITHDRAWALS_LIMIT,
-        PENDING_CONSOLIDATIONS_LIMIT,
-    >,
-    context: &Context,
-) -> Result<()> {
-    process_justification_and_finalization(state, context)?;
-    process_inactivity_updates(state, context)?;
-    process_rewards_and_penalties(state, context)?;
-    process_registry_updates(state, context)?;
-    process_slashings(state, context)?;
-    process_eth1_data_reset(state, context);
-    process_effective_balance_updates(state, context);
-    process_slashings_reset(state, context);
-    process_randao_mixes_reset(state, context);
-    process_historical_summaries_update(state, context)?;
-    process_participation_flag_updates(state)?;
-    process_sync_committee_updates(state, context)?;
     Ok(())
 }
 pub fn process_slashings<
@@ -1325,54 +1213,6 @@ pub fn process_eth1_data_reset<
     let next_epoch = get_current_epoch(state, context) + 1;
     if next_epoch % context.epochs_per_eth1_voting_period == 0 {
         state.eth1_data_votes.clear();
-    }
-}
-pub fn process_effective_balance_updates<
-    const SLOTS_PER_HISTORICAL_ROOT: usize,
-    const HISTORICAL_ROOTS_LIMIT: usize,
-    const ETH1_DATA_VOTES_BOUND: usize,
-    const VALIDATOR_REGISTRY_LIMIT: usize,
-    const EPOCHS_PER_HISTORICAL_VECTOR: usize,
-    const EPOCHS_PER_SLASHINGS_VECTOR: usize,
-    const MAX_VALIDATORS_PER_COMMITTEE: usize,
-    const SYNC_COMMITTEE_SIZE: usize,
-    const BYTES_PER_LOGS_BLOOM: usize,
-    const MAX_EXTRA_DATA_BYTES: usize,
-    const PENDING_BALANCE_DEPOSITS_LIMIT: usize,
-    const PENDING_PARTIAL_WITHDRAWALS_LIMIT: usize,
-    const PENDING_CONSOLIDATIONS_LIMIT: usize,
->(
-    state: &mut BeaconState<
-        SLOTS_PER_HISTORICAL_ROOT,
-        HISTORICAL_ROOTS_LIMIT,
-        ETH1_DATA_VOTES_BOUND,
-        VALIDATOR_REGISTRY_LIMIT,
-        EPOCHS_PER_HISTORICAL_VECTOR,
-        EPOCHS_PER_SLASHINGS_VECTOR,
-        MAX_VALIDATORS_PER_COMMITTEE,
-        SYNC_COMMITTEE_SIZE,
-        BYTES_PER_LOGS_BLOOM,
-        MAX_EXTRA_DATA_BYTES,
-        PENDING_BALANCE_DEPOSITS_LIMIT,
-        PENDING_PARTIAL_WITHDRAWALS_LIMIT,
-        PENDING_CONSOLIDATIONS_LIMIT,
-    >,
-    context: &Context,
-) {
-    let hysteresis_increment = context.effective_balance_increment / context.hysteresis_quotient;
-    let downward_threshold = hysteresis_increment * context.hysteresis_downward_multiplier;
-    let upward_threshold = hysteresis_increment * context.hysteresis_upward_multiplier;
-    for i in 0..state.validators.len() {
-        let validator = &mut state.validators[i];
-        let balance = state.balances[i];
-        if balance + downward_threshold < validator.effective_balance ||
-            validator.effective_balance + upward_threshold < balance
-        {
-            validator.effective_balance = Gwei::min(
-                balance - balance % context.effective_balance_increment,
-                context.max_effective_balance,
-            );
-        }
     }
 }
 pub fn process_slashings_reset<
