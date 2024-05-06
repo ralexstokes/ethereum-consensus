@@ -1,15 +1,19 @@
-use crate::electra::{
-    compute_activation_exit_epoch, decrease_balance, get_current_epoch,
-    helpers::{
-        get_activation_exit_churn_limit, get_active_balance, initiate_validator_exit,
-        is_eligible_for_activation_queue, switch_to_compounding_validator,
+use crate::{
+    electra::{
+        compute_activation_exit_epoch, decrease_balance, get_current_epoch,
+        has_compounding_withdrawal_credential,
+        helpers::{
+            get_activation_exit_churn_limit, get_active_balance, initiate_validator_exit,
+            is_eligible_for_activation_queue, switch_to_compounding_validator,
+        },
+        increase_balance, is_active_validator, is_eligible_for_activation,
+        mainnet::{MAX_EFFECTIVE_BALANCE_ELECTRA, MIN_ACTIVATION_BALANCE},
+        process_eth1_data_reset, process_historical_summaries_update, process_inactivity_updates,
+        process_justification_and_finalization, process_participation_flag_updates,
+        process_randao_mixes_reset, process_rewards_and_penalties, process_slashings,
+        process_slashings_reset, process_sync_committee_updates, BeaconState, Context, Error,
     },
-    increase_balance, is_active_validator, is_eligible_for_activation,
-    process_effective_balance_updates, process_eth1_data_reset,
-    process_historical_summaries_update, process_inactivity_updates,
-    process_justification_and_finalization, process_participation_flag_updates,
-    process_randao_mixes_reset, process_rewards_and_penalties, process_slashings,
-    process_slashings_reset, process_sync_committee_updates, BeaconState, Context, Error,
+    primitives::Gwei,
 };
 
 pub fn process_epoch<
@@ -192,8 +196,6 @@ pub fn process_pending_consolidations<
     const PENDING_BALANCE_DEPOSITS_LIMIT: usize,
     const PENDING_PARTIAL_WITHDRAWALS_LIMIT: usize,
     const PENDING_CONSOLIDATIONS_LIMIT: usize,
-    // const MAX_VALIDATORS_PER_SLOT: usize,
-    // const MAX_COMMITTEES_PER_SLOT: usize,
 >(
     state: &mut BeaconState<
         SLOTS_PER_HISTORICAL_ROOT,
@@ -236,4 +238,60 @@ pub fn process_pending_consolidations<
     state.pending_consolidations.drain(..next_pending_consolidation);
 
     Ok(())
+}
+
+pub fn process_effective_balance_updates<
+    const SLOTS_PER_HISTORICAL_ROOT: usize,
+    const HISTORICAL_ROOTS_LIMIT: usize,
+    const ETH1_DATA_VOTES_BOUND: usize,
+    const VALIDATOR_REGISTRY_LIMIT: usize,
+    const EPOCHS_PER_HISTORICAL_VECTOR: usize,
+    const EPOCHS_PER_SLASHINGS_VECTOR: usize,
+    const MAX_VALIDATORS_PER_COMMITTEE: usize,
+    const SYNC_COMMITTEE_SIZE: usize,
+    const BYTES_PER_LOGS_BLOOM: usize,
+    const MAX_EXTRA_DATA_BYTES: usize,
+    const PENDING_BALANCE_DEPOSITS_LIMIT: usize,
+    const PENDING_PARTIAL_WITHDRAWALS_LIMIT: usize,
+    const PENDING_CONSOLIDATIONS_LIMIT: usize,
+>(
+    state: &mut BeaconState<
+        SLOTS_PER_HISTORICAL_ROOT,
+        HISTORICAL_ROOTS_LIMIT,
+        ETH1_DATA_VOTES_BOUND,
+        VALIDATOR_REGISTRY_LIMIT,
+        EPOCHS_PER_HISTORICAL_VECTOR,
+        EPOCHS_PER_SLASHINGS_VECTOR,
+        MAX_VALIDATORS_PER_COMMITTEE,
+        SYNC_COMMITTEE_SIZE,
+        BYTES_PER_LOGS_BLOOM,
+        MAX_EXTRA_DATA_BYTES,
+        PENDING_BALANCE_DEPOSITS_LIMIT,
+        PENDING_PARTIAL_WITHDRAWALS_LIMIT,
+        PENDING_CONSOLIDATIONS_LIMIT,
+    >,
+    context: &Context,
+) {
+    // Update effective balances with hysteresis
+    let hysteresis_increment = context.effective_balance_increment / context.hysteresis_quotient;
+    let downward_threshold = hysteresis_increment * context.hysteresis_downward_multiplier;
+    let upward_threshold = hysteresis_increment * context.hysteresis_upward_multiplier;
+    for i in 0..state.validators.len() {
+        let validator = &mut state.validators[i];
+        let balance = state.balances[i];
+        let effective_balance_limit = if has_compounding_withdrawal_credential(&validator) {
+            MAX_EFFECTIVE_BALANCE_ELECTRA
+        } else {
+            MIN_ACTIVATION_BALANCE
+        };
+
+        if balance + downward_threshold < validator.effective_balance ||
+            validator.effective_balance + upward_threshold < balance
+        {
+            validator.effective_balance = Gwei::min(
+                balance - balance % context.effective_balance_increment,
+                effective_balance_limit,
+            );
+        }
+    }
 }
