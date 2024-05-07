@@ -278,7 +278,7 @@ pub fn process_effective_balance_updates<
     for i in 0..state.validators.len() {
         let validator = &mut state.validators[i];
         let balance = state.balances[i];
-        let effective_balance_limit = if has_compounding_withdrawal_credential(&validator) {
+        let effective_balance_limit = if has_compounding_withdrawal_credential(validator) {
             context.max_effective_balance_electra
         } else {
             context.min_activation_balance
