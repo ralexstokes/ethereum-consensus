@@ -6,9 +6,8 @@ use crate::{
             get_activation_exit_churn_limit, get_active_balance, initiate_validator_exit,
             is_eligible_for_activation_queue, switch_to_compounding_validator,
         },
-        increase_balance, is_active_validator, is_eligible_for_activation,
-        mainnet::{MAX_EFFECTIVE_BALANCE_ELECTRA, MIN_ACTIVATION_BALANCE},
-        process_eth1_data_reset, process_historical_summaries_update, process_inactivity_updates,
+        increase_balance, is_active_validator, is_eligible_for_activation, process_eth1_data_reset,
+        process_historical_summaries_update, process_inactivity_updates,
         process_justification_and_finalization, process_participation_flag_updates,
         process_randao_mixes_reset, process_rewards_and_penalties, process_slashings,
         process_slashings_reset, process_sync_committee_updates, BeaconState, Context, Error,
@@ -280,9 +279,9 @@ pub fn process_effective_balance_updates<
         let validator = &mut state.validators[i];
         let balance = state.balances[i];
         let effective_balance_limit = if has_compounding_withdrawal_credential(&validator) {
-            MAX_EFFECTIVE_BALANCE_ELECTRA
+            context.max_effective_balance_electra
         } else {
-            MIN_ACTIVATION_BALANCE
+            context.min_activation_balance
         };
 
         if balance + downward_threshold < validator.effective_balance ||
