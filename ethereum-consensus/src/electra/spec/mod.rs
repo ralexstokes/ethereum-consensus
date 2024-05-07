@@ -32,7 +32,7 @@ pub use crate::{
         },
         blob_sidecar::{
             verify_blob_sidecar_inclusion_proof, Blob, BlobIdentifier, BlobSidecar, BlobsBundle,
-            VERSIONED_HASH_VERSION_KZG,
+            VersionedHash, VERSIONED_HASH_VERSION_KZG,
         },
         helpers::kzg_commitment_to_versioned_hash,
         light_client::{
