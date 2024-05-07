@@ -2,13 +2,13 @@ use crate::{
     test_case::TestCase,
     test_utils::{load_yaml, Error},
 };
-use ethereum_consensus::deneb::{
-    mainnet::Blob,
-    polynomial_commitments::{
+use ethereum_consensus::{
+    crypto::kzg::{
         blob_to_kzg_commitment, compute_blob_kzg_proof, compute_kzg_proof, verify_blob_kzg_proof,
         verify_blob_kzg_proof_batch, verify_kzg_proof, FieldElement, KzgCommitment, KzgProof,
         KzgSettings, ProofAndEvaluation,
     },
+    deneb::mainnet::Blob,
 };
 
 pub fn dispatch(test: &TestCase) -> Result<(), Error> {
@@ -47,7 +47,7 @@ fn run_blob_to_kzg_commitment_test(
         }
     };
 
-    let result = blob_to_kzg_commitment(&blob, kzg_settings);
+    let result = blob_to_kzg_commitment(blob, kzg_settings);
     if let Some(expected_commitment) = output {
         // some `output` was present, use inner value to determine if the spec code should succeed
         // or fail
@@ -88,7 +88,7 @@ fn run_compute_kzg_proof_test(test: &TestCase, kzg_settings: &KzgSettings) -> Re
         }
     };
 
-    let result = compute_kzg_proof(&blob, &z, kzg_settings);
+    let result = compute_kzg_proof(blob, &z, kzg_settings);
     if let Some(outputs) = output {
         let proof_and_evaluation = result.unwrap();
         let expected_proof_and_evaluation =
@@ -189,7 +189,7 @@ fn run_compute_blob_kzg_proof_test(
         }
     };
 
-    let result = compute_blob_kzg_proof(&blob, &commitment, kzg_settings);
+    let result = compute_blob_kzg_proof(blob, &commitment, kzg_settings);
     if let Some(expected_proof) = output {
         let proof = result.unwrap();
         assert_eq!(proof, expected_proof);
@@ -238,7 +238,7 @@ fn run_verify_blob_kzg_proof_test(
         }
     };
 
-    let result = verify_blob_kzg_proof(&blob, &commitment, &proof, kzg_settings);
+    let result = verify_blob_kzg_proof(blob, &commitment, &proof, kzg_settings);
     if let Some(expected_validity) = output {
         if expected_validity {
             assert!(result.is_ok());

@@ -1,6 +1,4 @@
-use crate::{
-    deneb::blob_sidecar::Blob, primitives::Bytes32, ssz::prelude::*, Error as ConsensusError,
-};
+use crate::{primitives::Bytes32, ssz::prelude::*, Error as ConsensusError};
 pub use c_kzg::KzgSettings;
 use thiserror::Error;
 
@@ -10,7 +8,6 @@ pub const BYTES_PER_PROOF: usize = 48;
 pub const BYTES_PER_G1_POINT: usize = 48;
 pub const BYTES_PER_G2_POINT: usize = 96;
 
-pub type VersionedHash = Bytes32;
 pub type FieldElement = Bytes32;
 pub type KzgCommitment = ByteVector<BYTES_PER_COMMITMENT>;
 pub type KzgProof = ByteVector<BYTES_PER_PROOF>;
@@ -60,8 +57,8 @@ pub struct ProofAndEvaluation {
     pub evaluation: FieldElement,
 }
 
-pub fn blob_to_kzg_commitment<const BYTES_PER_BLOB: usize>(
-    blob: &Blob<BYTES_PER_BLOB>,
+pub fn blob_to_kzg_commitment<Blob: AsRef<[u8]>>(
+    blob: Blob,
     kzg_settings: &KzgSettings,
 ) -> Result<KzgCommitment, Error> {
     let blob = c_kzg::Blob::from_bytes(blob.as_ref())?;
@@ -71,8 +68,8 @@ pub fn blob_to_kzg_commitment<const BYTES_PER_BLOB: usize>(
     Ok(inner)
 }
 
-pub fn compute_kzg_proof<const BYTES_PER_BLOB: usize>(
-    blob: &Blob<BYTES_PER_BLOB>,
+pub fn compute_kzg_proof<Blob: AsRef<[u8]>>(
+    blob: Blob,
     evaluation_point: &FieldElement,
     kzg_settings: &KzgSettings,
 ) -> Result<ProofAndEvaluation, Error> {
@@ -88,8 +85,8 @@ pub fn compute_kzg_proof<const BYTES_PER_BLOB: usize>(
     Ok(result)
 }
 
-pub fn compute_blob_kzg_proof<const BYTES_PER_BLOB: usize>(
-    blob: &Blob<BYTES_PER_BLOB>,
+pub fn compute_blob_kzg_proof<Blob: AsRef<[u8]>>(
+    blob: Blob,
     commitment: &KzgCommitment,
     kzg_settings: &KzgSettings,
 ) -> Result<KzgProof, Error> {
@@ -124,8 +121,8 @@ pub fn verify_kzg_proof(
     res.then_some(()).ok_or(Error::InvalidProof)
 }
 
-pub fn verify_blob_kzg_proof<const BYTES_PER_BLOB: usize>(
-    blob: &Blob<BYTES_PER_BLOB>,
+pub fn verify_blob_kzg_proof<Blob: AsRef<[u8]>>(
+    blob: Blob,
     commitment: &KzgCommitment,
     proof: &KzgProof,
     kzg_settings: &KzgSettings,
@@ -139,8 +136,8 @@ pub fn verify_blob_kzg_proof<const BYTES_PER_BLOB: usize>(
     res.then_some(()).ok_or(Error::InvalidProof)
 }
 
-pub fn verify_blob_kzg_proof_batch<const BYTES_PER_BLOB: usize>(
-    blobs: &[Blob<BYTES_PER_BLOB>],
+pub fn verify_blob_kzg_proof_batch<Blob: AsRef<[u8]>>(
+    blobs: &[Blob],
     commitments: &[KzgCommitment],
     proofs: &[KzgProof],
     kzg_settings: &KzgSettings,

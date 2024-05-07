@@ -444,23 +444,21 @@ impl Spec {
                 for name in type_names {
                     if let Some(target_module) = index.get(&name) {
                         let target_module = self.diff.modules.get(target_module).unwrap();
-                        let container = target_module
-                            .containers
-                            .iter()
-                            .find(|&c| c.name == name)
-                            .expect("internal state integrity");
+                        if let Some(container) =
+                            target_module.containers.iter().find(|&c| c.name == name)
+                        {
+                            // if we find a newer definition, edit the types of this function
+                            // if not, just import from the earlier fork
+                            if container.fork == self.fork {
+                                let arguments = generics_to_arguments(&container.item.generics);
+                                let mut editor = ArgumentsEditor::new(&container.name, &arguments);
+                                editor.edit(&mut fragment);
 
-                        // if we find a newer definition, edit the types of this function
-                        // if not, just import from the earlier fork
-                        if container.fork == self.fork {
-                            let arguments = generics_to_arguments(&container.item.generics);
-                            let mut editor = ArgumentsEditor::new(&container.name, &arguments);
-                            editor.edit(&mut fragment);
-
-                            all_arguments.push(arguments);
-                            f.fork = self.fork;
-                        } else {
-                            f.can_import = true;
+                                all_arguments.push(arguments);
+                                f.fork = self.fork;
+                            } else {
+                                f.can_import = true;
+                            }
                         }
                     }
                 }

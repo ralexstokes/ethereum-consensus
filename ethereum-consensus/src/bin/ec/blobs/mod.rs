@@ -10,7 +10,7 @@ use thiserror::Error;
 
 pub(crate) const BYTES_PER_BLOB: usize = spec::mainnet::BYTES_PER_BLOB;
 pub(crate) const BYTES_PER_FIELD_ELEMENT: usize =
-    spec::polynomial_commitments::BYTES_PER_FIELD_ELEMENT;
+    ethereum_consensus::crypto::kzg::BYTES_PER_FIELD_ELEMENT;
 // Number of bits in a valid field element.
 pub(crate) const BITS_PER_FIELD_ELEMENT: usize = 254;
 

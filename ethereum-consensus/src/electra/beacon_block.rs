@@ -1,7 +1,7 @@
 use crate::{
     altair::SyncAggregate,
     capella::SignedBlsToExecutionChange,
-    deneb::polynomial_commitments::KzgCommitment,
+    crypto::KzgCommitment,
     electra::{
         execution_payload::ExecutionPayload,
         operations::{Attestation, AttesterSlashing, SignedConsolidation},

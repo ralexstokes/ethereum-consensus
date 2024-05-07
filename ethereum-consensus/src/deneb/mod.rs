@@ -14,7 +14,6 @@ pub mod genesis;
 pub mod helpers;
 pub mod light_client;
 pub mod networking;
-pub mod polynomial_commitments;
 pub mod presets;
 pub mod spec;
 

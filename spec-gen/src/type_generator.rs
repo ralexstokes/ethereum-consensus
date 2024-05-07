@@ -123,7 +123,8 @@ impl Type {
                     altair::beacon_block as altair,
                     bellatrix::beacon_block as bellatrix,
                     capella::beacon_block as capella,
-                    deneb::{beacon_block as deneb, polynomial_commitments::KzgCommitment},
+                    crypto::KzgCommitment,
+                    deneb::{beacon_block as deneb},
                     phase0::{
                         beacon_block as phase0, Attestation, AttesterSlashing, Deposit, Eth1Data, ProposerSlashing,
                         SignedVoluntaryExit,
@@ -140,7 +141,8 @@ impl Type {
                 use crate::{
                     bellatrix::blinded_beacon_block as bellatrix,
                     capella::blinded_beacon_block as capella,
-                    deneb::{blinded_beacon_block as deneb, polynomial_commitments::KzgCommitment},
+                    crypto::KzgCommitment,
+                    deneb::{blinded_beacon_block as deneb},
                     phase0::{
                         Attestation, AttesterSlashing, Deposit, Eth1Data, ProposerSlashing,
                         SignedVoluntaryExit,
