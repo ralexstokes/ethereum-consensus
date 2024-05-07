@@ -1,15 +1,14 @@
 use crate::{
-    deneb::{
-        polynomial_commitments::{KzgCommitment, KzgProof},
-        SignedBeaconBlockHeader,
-    },
-    primitives::{BlobIndex, Root},
+    crypto::{KzgCommitment, KzgProof},
+    deneb::SignedBeaconBlockHeader,
+    primitives::{BlobIndex, Bytes32, Root},
     ssz::prelude::*,
     Error,
 };
 use ssz_rs::proofs::get_subtree_index;
 
 pub const VERSIONED_HASH_VERSION_KZG: u8 = 1;
+pub type VersionedHash = Bytes32;
 
 pub type Blob<const BYTES_PER_BLOB: usize> = ByteVector<BYTES_PER_BLOB>;
 
@@ -66,10 +65,7 @@ pub fn verify_blob_sidecar_inclusion_proof<
 
 #[cfg(test)]
 mod tests {
-    use crate::{
-        deneb::{mainnet as spec, polynomial_commitments as crypto},
-        state_transition::Context,
-    };
+    use crate::{crypto::kzg as crypto, deneb::mainnet as spec, state_transition::Context};
 
     // blob side car from `sepolia` testnet
     const BLOB_SIDECAR_JSON: &str = r#"

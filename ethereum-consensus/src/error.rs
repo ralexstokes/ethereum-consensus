@@ -1,7 +1,6 @@
 use crate::{
     capella::Withdrawal,
-    crypto::Error as CryptoError,
-    deneb::polynomial_commitments::Error as PolynomialCommitmentError,
+    crypto::{BlsError, KzgError},
     phase0::{AttestationData, BeaconBlockHeader, Checkpoint},
     primitives::{
         BlsPublicKey, BlsSignature, Bytes32, Epoch, ExecutionAddress, Hash32, Root, Slot,
@@ -19,7 +18,9 @@ pub enum Error {
     #[error("{0}")]
     SimpleSerialize(#[from] SimpleSerializeError),
     #[error("{0}")]
-    Crypto(#[from] CryptoError),
+    Bls(#[from] BlsError),
+    #[error("{0}")]
+    Kzg(#[from] KzgError),
     #[cfg(feature = "serde")]
     #[error("{0}")]
     Io(#[from] std::io::Error),
@@ -62,8 +63,6 @@ pub enum Error {
     UnknownPreset(String),
     #[error(transparent)]
     ExecutionEngine(#[from] ExecutionEngineError),
-    #[error(transparent)]
-    PolynomialCommitment(#[from] PolynomialCommitmentError),
 }
 
 #[derive(Debug, Error)]

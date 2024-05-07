@@ -2,7 +2,7 @@ use crate::ApiError;
 use ethereum_consensus::{
     altair::networking::MetaData,
     capella::Withdrawal,
-    deneb::polynomial_commitments::KzgProof,
+    crypto::KzgProof,
     networking::{Enr, Multiaddr, PeerId},
     phase0::{Checkpoint, SignedBeaconBlockHeader, Validator},
     primitives::{

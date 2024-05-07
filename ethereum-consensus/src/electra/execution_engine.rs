@@ -1,5 +1,5 @@
 use crate::{
-    deneb::polynomial_commitments::VersionedHash, electra::ExecutionPayload,
+    deneb::blob_sidecar::VersionedHash, electra::ExecutionPayload,
     execution_engine::PayloadRequest, primitives::Root,
 };
 

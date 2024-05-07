@@ -2,12 +2,11 @@ use crate::{
     altair::constants::{
         TIMELY_HEAD_FLAG_INDEX, TIMELY_SOURCE_FLAG_INDEX, TIMELY_TARGET_FLAG_INDEX,
     },
-    crypto::hash,
+    crypto::{hash, KzgCommitment},
     deneb::{
-        beacon_state::BeaconState,
-        get_block_root, get_block_root_at_slot, get_current_epoch, get_validator_churn_limit,
-        polynomial_commitments::{KzgCommitment, VersionedHash},
-        AttestationData, VERSIONED_HASH_VERSION_KZG,
+        beacon_state::BeaconState, blob_sidecar::VersionedHash, get_block_root,
+        get_block_root_at_slot, get_current_epoch, get_validator_churn_limit, AttestationData,
+        VERSIONED_HASH_VERSION_KZG,
     },
     error::{invalid_operation_error, InvalidAttestation, InvalidOperation},
     state_transition::{Context, Result},

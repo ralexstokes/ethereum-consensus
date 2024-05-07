@@ -22,7 +22,7 @@ pub const MAX_BLOBS_PER_BLOCK: usize = 6;
 pub const KZG_COMMITMENT_INCLUSION_PROOF_DEPTH: usize = 17;
 
 pub const BYTES_PER_BLOB: usize =
-    crate::deneb::polynomial_commitments::BYTES_PER_FIELD_ELEMENT * FIELD_ELEMENTS_PER_BLOB;
+    crate::crypto::kzg::BYTES_PER_FIELD_ELEMENT * FIELD_ELEMENTS_PER_BLOB;
 
 pub const MAX_REQUEST_BLOB_SIDECARS: usize = MAX_REQUEST_BLOCKS_DENEB * MAX_BLOBS_PER_BLOCK;
 

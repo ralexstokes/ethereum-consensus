@@ -1,6 +1,7 @@
 use crate::blobs::{Blob, Error};
 use ethereum_consensus::{
-    deneb::{self, polynomial_commitments as spec, presets::TRUSTED_SETUP_JSON},
+    crypto::kzg as spec,
+    deneb::{self, presets::TRUSTED_SETUP_JSON},
     Error as ConsensusError,
 };
 use std::io::Read;

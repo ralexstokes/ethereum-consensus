@@ -2,11 +2,8 @@ use crate::{
     altair, bellatrix, capella,
     clock::{self, Clock, SystemTimeProvider},
     configs::{self, Config},
-    deneb::{
-        self,
-        polynomial_commitments::{kzg_settings_from_json, KzgSettings},
-        presets::TRUSTED_SETUP_JSON,
-    },
+    crypto::{kzg_settings_from_json, KzgSettings},
+    deneb::{self, presets::TRUSTED_SETUP_JSON},
     electra,
     execution_engine::ExecutionEngine,
     networks::Network,
