@@ -27,6 +27,11 @@ pub struct Executor<
     const MAX_WITHDRAWALS_PER_PAYLOAD: usize,
     const MAX_BLS_TO_EXECUTION_CHANGES: usize,
     const MAX_BLOB_COMMITMENTS_PER_BLOCK: usize,
+    const MAX_VALIDATORS_PER_SLOT: usize,
+    const MAX_COMMITTEES_PER_SLOT: usize,
+    const MAX_DEPOSIT_RECEIPTS_PER_PAYLOAD: usize,
+    const MAX_WITHDRAWAL_REQUESTS_PER_PAYLOAD: usize,
+    const MAX_CONSOLIDATIONS: usize,
 > {
     pub state: BeaconState<
         SLOTS_PER_HISTORICAL_ROOT,
@@ -66,6 +71,11 @@ impl<
         const MAX_WITHDRAWALS_PER_PAYLOAD: usize,
         const MAX_BLS_TO_EXECUTION_CHANGES: usize,
         const MAX_BLOB_COMMITMENTS_PER_BLOCK: usize,
+        const MAX_VALIDATORS_PER_SLOT: usize,
+        const MAX_COMMITTEES_PER_SLOT: usize,
+        const MAX_DEPOSIT_RECEIPTS_PER_PAYLOAD: usize,
+        const MAX_WITHDRAWAL_REQUESTS_PER_PAYLOAD: usize,
+        const MAX_CONSOLIDATIONS: usize,
     >
     Executor<
         SLOTS_PER_HISTORICAL_ROOT,
@@ -89,6 +99,11 @@ impl<
         MAX_WITHDRAWALS_PER_PAYLOAD,
         MAX_BLS_TO_EXECUTION_CHANGES,
         MAX_BLOB_COMMITMENTS_PER_BLOCK,
+        MAX_VALIDATORS_PER_SLOT,
+        MAX_COMMITTEES_PER_SLOT,
+        MAX_DEPOSIT_RECEIPTS_PER_PAYLOAD,
+        MAX_WITHDRAWAL_REQUESTS_PER_PAYLOAD,
+        MAX_CONSOLIDATIONS,
     >
 {
     pub fn new(
@@ -127,6 +142,11 @@ impl<
             MAX_WITHDRAWALS_PER_PAYLOAD,
             MAX_BLS_TO_EXECUTION_CHANGES,
             MAX_BLOB_COMMITMENTS_PER_BLOCK,
+            MAX_VALIDATORS_PER_SLOT,
+            MAX_COMMITTEES_PER_SLOT,
+            MAX_DEPOSIT_RECEIPTS_PER_PAYLOAD,
+            MAX_WITHDRAWAL_REQUESTS_PER_PAYLOAD,
+            MAX_CONSOLIDATIONS,
         >,
     ) -> Result<()> {
         self.apply_block_with_validation(signed_block, Validation::Enabled)
@@ -149,6 +169,11 @@ impl<
             MAX_WITHDRAWALS_PER_PAYLOAD,
             MAX_BLS_TO_EXECUTION_CHANGES,
             MAX_BLOB_COMMITMENTS_PER_BLOCK,
+            MAX_VALIDATORS_PER_SLOT,
+            MAX_COMMITTEES_PER_SLOT,
+            MAX_DEPOSIT_RECEIPTS_PER_PAYLOAD,
+            MAX_WITHDRAWAL_REQUESTS_PER_PAYLOAD,
+            MAX_CONSOLIDATIONS,
         >,
         validation: Validation,
     ) -> Result<()> {
@@ -167,6 +192,9 @@ impl<
             }
             SignedBeaconBlock::Deneb(signed_block) => {
                 self.apply_deneb_block_with_validation(signed_block, validation)
+            }
+            SignedBeaconBlock::Electra(_) => {
+                unimplemented!("fork not yet supported")
             }
         }
     }
