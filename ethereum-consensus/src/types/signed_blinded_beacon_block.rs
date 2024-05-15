@@ -317,12 +317,15 @@ impl<
         MAX_EXTRA_DATA_BYTES,
         MAX_BLS_TO_EXECUTION_CHANGES,
         MAX_BLOB_COMMITMENTS_PER_BLOCK,
+        MAX_VALIDATORS_PER_SLOT,
+        MAX_COMMITTEES_PER_SLOT,
+        MAX_CONSOLIDATIONS,
     > {
         match self {
             Self::Bellatrix(inner) => From::from(&inner.message),
             Self::Capella(inner) => From::from(&inner.message),
             Self::Deneb(inner) => From::from(&inner.message),
-            _ => unimplemented!("fork not yet supported"),
+            Self::Electra(inner) => From::from(&inner.message),
         }
     }
     pub fn message_mut(

@@ -101,6 +101,9 @@ pub type BlindedBeaconBlock = types::BlindedBeaconBlock<
     MAX_EXTRA_DATA_BYTES,
     MAX_BLS_TO_EXECUTION_CHANGES,
     MAX_BLOB_COMMITMENTS_PER_BLOCK,
+    MAX_VALIDATORS_PER_SLOT,
+    MAX_COMMITTEES_PER_SLOT,
+    MAX_CONSOLIDATIONS,
 >;
 
 pub type SignedBlindedBeaconBlock = types::SignedBlindedBeaconBlock<

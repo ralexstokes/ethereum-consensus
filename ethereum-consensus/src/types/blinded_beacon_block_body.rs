@@ -5,6 +5,7 @@ use crate::{
     capella::{blinded_beacon_block as capella, SignedBlsToExecutionChange},
     crypto::KzgCommitment,
     deneb::blinded_beacon_block as deneb,
+    electra::blinded_beacon_block as electra,
     phase0::{
         Attestation, AttesterSlashing, Deposit, Eth1Data, ProposerSlashing, SignedVoluntaryExit,
     },
@@ -483,6 +484,9 @@ pub enum BlindedBeaconBlockBodyRef<
     const MAX_EXTRA_DATA_BYTES: usize,
     const MAX_BLS_TO_EXECUTION_CHANGES: usize,
     const MAX_BLOB_COMMITMENTS_PER_BLOCK: usize,
+    const MAX_VALIDATORS_PER_SLOT: usize,
+    const MAX_COMMITTEES_PER_SLOT: usize,
+    const MAX_CONSOLIDATIONS: usize,
 > {
     Bellatrix(
         &'a bellatrix::BlindedBeaconBlockBody<
@@ -526,6 +530,23 @@ pub enum BlindedBeaconBlockBodyRef<
             MAX_BLOB_COMMITMENTS_PER_BLOCK,
         >,
     ),
+    Electra(
+        &'a electra::BlindedBeaconBlockBody<
+            MAX_PROPOSER_SLASHINGS,
+            MAX_VALIDATORS_PER_SLOT,
+            MAX_COMMITTEES_PER_SLOT,
+            MAX_ATTESTER_SLASHINGS,
+            MAX_ATTESTATIONS,
+            MAX_DEPOSITS,
+            MAX_VOLUNTARY_EXITS,
+            SYNC_COMMITTEE_SIZE,
+            BYTES_PER_LOGS_BLOOM,
+            MAX_EXTRA_DATA_BYTES,
+            MAX_BLS_TO_EXECUTION_CHANGES,
+            MAX_BLOB_COMMITMENTS_PER_BLOCK,
+            MAX_CONSOLIDATIONS,
+        >,
+    ),
 }
 impl<
         const MAX_PROPOSER_SLASHINGS: usize,
@@ -539,6 +560,9 @@ impl<
         const MAX_EXTRA_DATA_BYTES: usize,
         const MAX_BLS_TO_EXECUTION_CHANGES: usize,
         const MAX_BLOB_COMMITMENTS_PER_BLOCK: usize,
+        const MAX_VALIDATORS_PER_SLOT: usize,
+        const MAX_COMMITTEES_PER_SLOT: usize,
+        const MAX_CONSOLIDATIONS: usize,
     >
     BlindedBeaconBlockBodyRef<
         '_,
@@ -553,6 +577,9 @@ impl<
         MAX_EXTRA_DATA_BYTES,
         MAX_BLS_TO_EXECUTION_CHANGES,
         MAX_BLOB_COMMITMENTS_PER_BLOCK,
+        MAX_VALIDATORS_PER_SLOT,
+        MAX_COMMITTEES_PER_SLOT,
+        MAX_CONSOLIDATIONS,
     >
 {
     pub fn bellatrix(
@@ -623,6 +650,7 @@ impl<
             Self::Bellatrix(_) => Version::Bellatrix,
             Self::Capella(_) => Version::Capella,
             Self::Deneb(_) => Version::Deneb,
+            Self::Electra(_) => Version::Electra,
         }
     }
     pub fn randao_reveal(&self) -> &BlsSignature {
@@ -630,6 +658,7 @@ impl<
             Self::Bellatrix(inner) => &inner.randao_reveal,
             Self::Capella(inner) => &inner.randao_reveal,
             Self::Deneb(inner) => &inner.randao_reveal,
+            Self::Electra(inner) => &inner.randao_reveal,
         }
     }
     pub fn eth1_data(&self) -> &Eth1Data {
@@ -637,6 +666,7 @@ impl<
             Self::Bellatrix(inner) => &inner.eth1_data,
             Self::Capella(inner) => &inner.eth1_data,
             Self::Deneb(inner) => &inner.eth1_data,
+            Self::Electra(inner) => &inner.eth1_data,
         }
     }
     pub fn graffiti(&self) -> &Bytes32 {
@@ -644,6 +674,7 @@ impl<
             Self::Bellatrix(inner) => &inner.graffiti,
             Self::Capella(inner) => &inner.graffiti,
             Self::Deneb(inner) => &inner.graffiti,
+            Self::Electra(inner) => &inner.graffiti,
         }
     }
     pub fn proposer_slashings(&self) -> &List<ProposerSlashing, MAX_PROPOSER_SLASHINGS> {
@@ -651,6 +682,7 @@ impl<
             Self::Bellatrix(inner) => &inner.proposer_slashings,
             Self::Capella(inner) => &inner.proposer_slashings,
             Self::Deneb(inner) => &inner.proposer_slashings,
+            Self::Electra(inner) => &inner.proposer_slashings,
         }
     }
     pub fn attester_slashings(
@@ -660,6 +692,7 @@ impl<
             Self::Bellatrix(inner) => &inner.attester_slashings,
             Self::Capella(inner) => &inner.attester_slashings,
             Self::Deneb(inner) => &inner.attester_slashings,
+            Self::Electra(_) => unimplemented!(),
         }
     }
     pub fn attestations(
@@ -669,6 +702,7 @@ impl<
             Self::Bellatrix(inner) => &inner.attestations,
             Self::Capella(inner) => &inner.attestations,
             Self::Deneb(inner) => &inner.attestations,
+            Self::Electra(_) => unimplemented!(),
         }
     }
     pub fn deposits(&self) -> &List<Deposit, MAX_DEPOSITS> {
@@ -676,6 +710,7 @@ impl<
             Self::Bellatrix(inner) => &inner.deposits,
             Self::Capella(inner) => &inner.deposits,
             Self::Deneb(inner) => &inner.deposits,
+            Self::Electra(inner) => &inner.deposits,
         }
     }
     pub fn voluntary_exits(&self) -> &List<SignedVoluntaryExit, MAX_VOLUNTARY_EXITS> {
@@ -683,6 +718,7 @@ impl<
             Self::Bellatrix(inner) => &inner.voluntary_exits,
             Self::Capella(inner) => &inner.voluntary_exits,
             Self::Deneb(inner) => &inner.voluntary_exits,
+            Self::Electra(inner) => &inner.voluntary_exits,
         }
     }
     pub fn sync_aggregate(&self) -> &SyncAggregate<SYNC_COMMITTEE_SIZE> {
@@ -690,6 +726,7 @@ impl<
             Self::Bellatrix(inner) => &inner.sync_aggregate,
             Self::Capella(inner) => &inner.sync_aggregate,
             Self::Deneb(inner) => &inner.sync_aggregate,
+            Self::Electra(inner) => &inner.sync_aggregate,
         }
     }
     pub fn execution_payload_header(
@@ -699,6 +736,7 @@ impl<
             Self::Bellatrix(inner) => From::from(&inner.execution_payload_header),
             Self::Capella(inner) => From::from(&inner.execution_payload_header),
             Self::Deneb(inner) => From::from(&inner.execution_payload_header),
+            Self::Electra(inner) => From::from(&inner.execution_payload_header),
         }
     }
     pub fn bls_to_execution_changes(
@@ -708,6 +746,7 @@ impl<
             Self::Bellatrix(_) => None,
             Self::Capella(inner) => Some(&inner.bls_to_execution_changes),
             Self::Deneb(inner) => Some(&inner.bls_to_execution_changes),
+            Self::Electra(inner) => Some(&inner.bls_to_execution_changes),
         }
     }
     pub fn blob_kzg_commitments(
@@ -717,6 +756,7 @@ impl<
             Self::Bellatrix(_) => None,
             Self::Capella(_) => None,
             Self::Deneb(inner) => Some(&inner.blob_kzg_commitments),
+            Self::Electra(inner) => Some(&inner.blob_kzg_commitments),
         }
     }
 }
@@ -733,6 +773,9 @@ impl<
         const MAX_EXTRA_DATA_BYTES: usize,
         const MAX_BLS_TO_EXECUTION_CHANGES: usize,
         const MAX_BLOB_COMMITMENTS_PER_BLOCK: usize,
+        const MAX_VALIDATORS_PER_SLOT: usize,
+        const MAX_COMMITTEES_PER_SLOT: usize,
+        const MAX_CONSOLIDATIONS: usize,
     >
     From<
         &'a bellatrix::BlindedBeaconBlockBody<
@@ -760,6 +803,9 @@ impl<
         MAX_EXTRA_DATA_BYTES,
         MAX_BLS_TO_EXECUTION_CHANGES,
         MAX_BLOB_COMMITMENTS_PER_BLOCK,
+        MAX_VALIDATORS_PER_SLOT,
+        MAX_COMMITTEES_PER_SLOT,
+        MAX_CONSOLIDATIONS,
     >
 {
     fn from(
@@ -791,6 +837,9 @@ impl<
         const MAX_EXTRA_DATA_BYTES: usize,
         const MAX_BLS_TO_EXECUTION_CHANGES: usize,
         const MAX_BLOB_COMMITMENTS_PER_BLOCK: usize,
+        const MAX_VALIDATORS_PER_SLOT: usize,
+        const MAX_COMMITTEES_PER_SLOT: usize,
+        const MAX_CONSOLIDATIONS: usize,
     >
     From<
         &'a capella::BlindedBeaconBlockBody<
@@ -819,6 +868,9 @@ impl<
         MAX_EXTRA_DATA_BYTES,
         MAX_BLS_TO_EXECUTION_CHANGES,
         MAX_BLOB_COMMITMENTS_PER_BLOCK,
+        MAX_VALIDATORS_PER_SLOT,
+        MAX_COMMITTEES_PER_SLOT,
+        MAX_CONSOLIDATIONS,
     >
 {
     fn from(
@@ -851,6 +903,9 @@ impl<
         const MAX_EXTRA_DATA_BYTES: usize,
         const MAX_BLS_TO_EXECUTION_CHANGES: usize,
         const MAX_BLOB_COMMITMENTS_PER_BLOCK: usize,
+        const MAX_VALIDATORS_PER_SLOT: usize,
+        const MAX_COMMITTEES_PER_SLOT: usize,
+        const MAX_CONSOLIDATIONS: usize,
     >
     From<
         &'a deneb::BlindedBeaconBlockBody<
@@ -880,6 +935,9 @@ impl<
         MAX_EXTRA_DATA_BYTES,
         MAX_BLS_TO_EXECUTION_CHANGES,
         MAX_BLOB_COMMITMENTS_PER_BLOCK,
+        MAX_VALIDATORS_PER_SLOT,
+        MAX_COMMITTEES_PER_SLOT,
+        MAX_CONSOLIDATIONS,
     >
 {
     fn from(
@@ -898,6 +956,78 @@ impl<
         >,
     ) -> Self {
         Self::Deneb(value)
+    }
+}
+impl<
+        'a,
+        const MAX_PROPOSER_SLASHINGS: usize,
+        const MAX_VALIDATORS_PER_COMMITTEE: usize,
+        const MAX_ATTESTER_SLASHINGS: usize,
+        const MAX_ATTESTATIONS: usize,
+        const MAX_DEPOSITS: usize,
+        const MAX_VOLUNTARY_EXITS: usize,
+        const SYNC_COMMITTEE_SIZE: usize,
+        const BYTES_PER_LOGS_BLOOM: usize,
+        const MAX_EXTRA_DATA_BYTES: usize,
+        const MAX_BLS_TO_EXECUTION_CHANGES: usize,
+        const MAX_BLOB_COMMITMENTS_PER_BLOCK: usize,
+        const MAX_VALIDATORS_PER_SLOT: usize,
+        const MAX_COMMITTEES_PER_SLOT: usize,
+        const MAX_CONSOLIDATIONS: usize,
+    >
+    From<
+        &'a electra::BlindedBeaconBlockBody<
+            MAX_PROPOSER_SLASHINGS,
+            MAX_VALIDATORS_PER_SLOT,
+            MAX_COMMITTEES_PER_SLOT,
+            MAX_ATTESTER_SLASHINGS,
+            MAX_ATTESTATIONS,
+            MAX_DEPOSITS,
+            MAX_VOLUNTARY_EXITS,
+            SYNC_COMMITTEE_SIZE,
+            BYTES_PER_LOGS_BLOOM,
+            MAX_EXTRA_DATA_BYTES,
+            MAX_BLS_TO_EXECUTION_CHANGES,
+            MAX_BLOB_COMMITMENTS_PER_BLOCK,
+            MAX_CONSOLIDATIONS,
+        >,
+    >
+    for BlindedBeaconBlockBodyRef<
+        'a,
+        MAX_PROPOSER_SLASHINGS,
+        MAX_VALIDATORS_PER_COMMITTEE,
+        MAX_ATTESTER_SLASHINGS,
+        MAX_ATTESTATIONS,
+        MAX_DEPOSITS,
+        MAX_VOLUNTARY_EXITS,
+        SYNC_COMMITTEE_SIZE,
+        BYTES_PER_LOGS_BLOOM,
+        MAX_EXTRA_DATA_BYTES,
+        MAX_BLS_TO_EXECUTION_CHANGES,
+        MAX_BLOB_COMMITMENTS_PER_BLOCK,
+        MAX_VALIDATORS_PER_SLOT,
+        MAX_COMMITTEES_PER_SLOT,
+        MAX_CONSOLIDATIONS,
+    >
+{
+    fn from(
+        value: &'a electra::BlindedBeaconBlockBody<
+            MAX_PROPOSER_SLASHINGS,
+            MAX_VALIDATORS_PER_SLOT,
+            MAX_COMMITTEES_PER_SLOT,
+            MAX_ATTESTER_SLASHINGS,
+            MAX_ATTESTATIONS,
+            MAX_DEPOSITS,
+            MAX_VOLUNTARY_EXITS,
+            SYNC_COMMITTEE_SIZE,
+            BYTES_PER_LOGS_BLOOM,
+            MAX_EXTRA_DATA_BYTES,
+            MAX_BLS_TO_EXECUTION_CHANGES,
+            MAX_BLOB_COMMITMENTS_PER_BLOCK,
+            MAX_CONSOLIDATIONS,
+        >,
+    ) -> Self {
+        Self::Electra(value)
     }
 }
 #[derive(Debug, PartialEq, Eq, HashTreeRoot)]
