@@ -2,8 +2,10 @@ use crate::{
     altair::SyncAggregate,
     capella::SignedBlsToExecutionChange,
     crypto::KzgCommitment,
-    deneb::ExecutionPayloadHeader,
-    electra::operations::{Attestation, AttesterSlashing, SignedConsolidation},
+    electra::{
+        operations::{Attestation, AttesterSlashing, SignedConsolidation},
+        ExecutionPayloadHeader,
+    },
     phase0::{Deposit, Eth1Data, ProposerSlashing, SignedVoluntaryExit},
     primitives::{BlsSignature, Bytes32, Root, Slot, ValidatorIndex},
     ssz::prelude::*,
