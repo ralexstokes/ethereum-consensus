@@ -487,6 +487,8 @@ pub enum BlindedBeaconBlockBodyRef<
     const MAX_VALIDATORS_PER_SLOT: usize,
     const MAX_COMMITTEES_PER_SLOT: usize,
     const MAX_CONSOLIDATIONS: usize,
+    const MAX_ATTESTER_SLASHINGS_ELECTRA: usize,
+    const MAX_ATTESTATIONS_ELECTRA: usize,
 > {
     Bellatrix(
         &'a bellatrix::BlindedBeaconBlockBody<
@@ -535,8 +537,8 @@ pub enum BlindedBeaconBlockBodyRef<
             MAX_PROPOSER_SLASHINGS,
             MAX_VALIDATORS_PER_SLOT,
             MAX_COMMITTEES_PER_SLOT,
-            MAX_ATTESTER_SLASHINGS,
-            MAX_ATTESTATIONS,
+            MAX_ATTESTER_SLASHINGS_ELECTRA,
+            MAX_ATTESTATIONS_ELECTRA,
             MAX_DEPOSITS,
             MAX_VOLUNTARY_EXITS,
             SYNC_COMMITTEE_SIZE,
@@ -563,6 +565,8 @@ impl<
         const MAX_VALIDATORS_PER_SLOT: usize,
         const MAX_COMMITTEES_PER_SLOT: usize,
         const MAX_CONSOLIDATIONS: usize,
+        const MAX_ATTESTER_SLASHINGS_ELECTRA: usize,
+        const MAX_ATTESTATIONS_ELECTRA: usize,
     >
     BlindedBeaconBlockBodyRef<
         '_,
@@ -580,6 +584,8 @@ impl<
         MAX_VALIDATORS_PER_SLOT,
         MAX_COMMITTEES_PER_SLOT,
         MAX_CONSOLIDATIONS,
+        MAX_ATTESTER_SLASHINGS_ELECTRA,
+        MAX_ATTESTATIONS_ELECTRA,
     >
 {
     pub fn bellatrix(
@@ -776,6 +782,8 @@ impl<
         const MAX_VALIDATORS_PER_SLOT: usize,
         const MAX_COMMITTEES_PER_SLOT: usize,
         const MAX_CONSOLIDATIONS: usize,
+        const MAX_ATTESTER_SLASHINGS_ELECTRA: usize,
+        const MAX_ATTESTATIONS_ELECTRA: usize,
     >
     From<
         &'a bellatrix::BlindedBeaconBlockBody<
@@ -806,6 +814,8 @@ impl<
         MAX_VALIDATORS_PER_SLOT,
         MAX_COMMITTEES_PER_SLOT,
         MAX_CONSOLIDATIONS,
+        MAX_ATTESTER_SLASHINGS_ELECTRA,
+        MAX_ATTESTATIONS_ELECTRA,
     >
 {
     fn from(
@@ -840,6 +850,8 @@ impl<
         const MAX_VALIDATORS_PER_SLOT: usize,
         const MAX_COMMITTEES_PER_SLOT: usize,
         const MAX_CONSOLIDATIONS: usize,
+        const MAX_ATTESTER_SLASHINGS_ELECTRA: usize,
+        const MAX_ATTESTATIONS_ELECTRA: usize,
     >
     From<
         &'a capella::BlindedBeaconBlockBody<
@@ -871,6 +883,8 @@ impl<
         MAX_VALIDATORS_PER_SLOT,
         MAX_COMMITTEES_PER_SLOT,
         MAX_CONSOLIDATIONS,
+        MAX_ATTESTER_SLASHINGS_ELECTRA,
+        MAX_ATTESTATIONS_ELECTRA,
     >
 {
     fn from(
@@ -906,6 +920,8 @@ impl<
         const MAX_VALIDATORS_PER_SLOT: usize,
         const MAX_COMMITTEES_PER_SLOT: usize,
         const MAX_CONSOLIDATIONS: usize,
+        const MAX_ATTESTER_SLASHINGS_ELECTRA: usize,
+        const MAX_ATTESTATIONS_ELECTRA: usize,
     >
     From<
         &'a deneb::BlindedBeaconBlockBody<
@@ -938,6 +954,8 @@ impl<
         MAX_VALIDATORS_PER_SLOT,
         MAX_COMMITTEES_PER_SLOT,
         MAX_CONSOLIDATIONS,
+        MAX_ATTESTER_SLASHINGS_ELECTRA,
+        MAX_ATTESTATIONS_ELECTRA,
     >
 {
     fn from(
@@ -974,14 +992,16 @@ impl<
         const MAX_VALIDATORS_PER_SLOT: usize,
         const MAX_COMMITTEES_PER_SLOT: usize,
         const MAX_CONSOLIDATIONS: usize,
+        const MAX_ATTESTER_SLASHINGS_ELECTRA: usize,
+        const MAX_ATTESTATIONS_ELECTRA: usize,
     >
     From<
         &'a electra::BlindedBeaconBlockBody<
             MAX_PROPOSER_SLASHINGS,
             MAX_VALIDATORS_PER_SLOT,
             MAX_COMMITTEES_PER_SLOT,
-            MAX_ATTESTER_SLASHINGS,
-            MAX_ATTESTATIONS,
+            MAX_ATTESTER_SLASHINGS_ELECTRA,
+            MAX_ATTESTATIONS_ELECTRA,
             MAX_DEPOSITS,
             MAX_VOLUNTARY_EXITS,
             SYNC_COMMITTEE_SIZE,
@@ -1008,6 +1028,8 @@ impl<
         MAX_VALIDATORS_PER_SLOT,
         MAX_COMMITTEES_PER_SLOT,
         MAX_CONSOLIDATIONS,
+        MAX_ATTESTER_SLASHINGS_ELECTRA,
+        MAX_ATTESTATIONS_ELECTRA,
     >
 {
     fn from(
@@ -1015,8 +1037,8 @@ impl<
             MAX_PROPOSER_SLASHINGS,
             MAX_VALIDATORS_PER_SLOT,
             MAX_COMMITTEES_PER_SLOT,
-            MAX_ATTESTER_SLASHINGS,
-            MAX_ATTESTATIONS,
+            MAX_ATTESTER_SLASHINGS_ELECTRA,
+            MAX_ATTESTATIONS_ELECTRA,
             MAX_DEPOSITS,
             MAX_VOLUNTARY_EXITS,
             SYNC_COMMITTEE_SIZE,

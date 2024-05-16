@@ -34,6 +34,8 @@ pub enum SignedBeaconBlock<
     const MAX_DEPOSIT_RECEIPTS_PER_PAYLOAD: usize,
     const MAX_WITHDRAWAL_REQUESTS_PER_PAYLOAD: usize,
     const MAX_CONSOLIDATIONS: usize,
+    const MAX_ATTESTER_SLASHINGS_ELECTRA: usize,
+    const MAX_ATTESTATIONS_ELECTRA: usize,
 > {
     Phase0(
         phase0::SignedBeaconBlock<
@@ -111,8 +113,8 @@ pub enum SignedBeaconBlock<
             MAX_PROPOSER_SLASHINGS,
             MAX_VALIDATORS_PER_SLOT,
             MAX_COMMITTEES_PER_SLOT,
-            MAX_ATTESTER_SLASHINGS,
-            MAX_ATTESTATIONS,
+            MAX_ATTESTER_SLASHINGS_ELECTRA,
+            MAX_ATTESTATIONS_ELECTRA,
             MAX_DEPOSITS,
             MAX_VOLUNTARY_EXITS,
             SYNC_COMMITTEE_SIZE,
@@ -149,6 +151,8 @@ impl<
         const MAX_DEPOSIT_RECEIPTS_PER_PAYLOAD: usize,
         const MAX_WITHDRAWAL_REQUESTS_PER_PAYLOAD: usize,
         const MAX_CONSOLIDATIONS: usize,
+        const MAX_ATTESTER_SLASHINGS_ELECTRA: usize,
+        const MAX_ATTESTATIONS_ELECTRA: usize,
     >
     SignedBeaconBlock<
         MAX_PROPOSER_SLASHINGS,
@@ -170,6 +174,8 @@ impl<
         MAX_DEPOSIT_RECEIPTS_PER_PAYLOAD,
         MAX_WITHDRAWAL_REQUESTS_PER_PAYLOAD,
         MAX_CONSOLIDATIONS,
+        MAX_ATTESTER_SLASHINGS_ELECTRA,
+        MAX_ATTESTATIONS_ELECTRA,
     >
 {
     pub fn phase0(
@@ -391,8 +397,8 @@ impl<
             MAX_PROPOSER_SLASHINGS,
             MAX_VALIDATORS_PER_SLOT,
             MAX_COMMITTEES_PER_SLOT,
-            MAX_ATTESTER_SLASHINGS,
-            MAX_ATTESTATIONS,
+            MAX_ATTESTER_SLASHINGS_ELECTRA,
+            MAX_ATTESTATIONS_ELECTRA,
             MAX_DEPOSITS,
             MAX_VOLUNTARY_EXITS,
             SYNC_COMMITTEE_SIZE,
@@ -420,8 +426,8 @@ impl<
             MAX_PROPOSER_SLASHINGS,
             MAX_VALIDATORS_PER_SLOT,
             MAX_COMMITTEES_PER_SLOT,
-            MAX_ATTESTER_SLASHINGS,
-            MAX_ATTESTATIONS,
+            MAX_ATTESTER_SLASHINGS_ELECTRA,
+            MAX_ATTESTATIONS_ELECTRA,
             MAX_DEPOSITS,
             MAX_VOLUNTARY_EXITS,
             SYNC_COMMITTEE_SIZE,
@@ -548,6 +554,8 @@ impl<
         const MAX_DEPOSIT_RECEIPTS_PER_PAYLOAD: usize,
         const MAX_WITHDRAWAL_REQUESTS_PER_PAYLOAD: usize,
         const MAX_CONSOLIDATIONS: usize,
+        const MAX_ATTESTER_SLASHINGS_ELECTRA: usize,
+        const MAX_ATTESTATIONS_ELECTRA: usize,
     > serde::Deserialize<'de>
     for SignedBeaconBlock<
         MAX_PROPOSER_SLASHINGS,
@@ -569,6 +577,8 @@ impl<
         MAX_DEPOSIT_RECEIPTS_PER_PAYLOAD,
         MAX_WITHDRAWAL_REQUESTS_PER_PAYLOAD,
         MAX_CONSOLIDATIONS,
+        MAX_ATTESTER_SLASHINGS_ELECTRA,
+        MAX_ATTESTATIONS_ELECTRA,
     >
 {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>

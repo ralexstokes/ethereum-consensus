@@ -32,6 +32,8 @@ pub struct Executor<
     const MAX_DEPOSIT_RECEIPTS_PER_PAYLOAD: usize,
     const MAX_WITHDRAWAL_REQUESTS_PER_PAYLOAD: usize,
     const MAX_CONSOLIDATIONS: usize,
+    const MAX_ATTESTER_SLASHINGS_ELECTRA: usize,
+    const MAX_ATTESTATIONS_ELECTRA: usize,
 > {
     pub state: BeaconState<
         SLOTS_PER_HISTORICAL_ROOT,
@@ -76,6 +78,8 @@ impl<
         const MAX_DEPOSIT_RECEIPTS_PER_PAYLOAD: usize,
         const MAX_WITHDRAWAL_REQUESTS_PER_PAYLOAD: usize,
         const MAX_CONSOLIDATIONS: usize,
+        const MAX_ATTESTER_SLASHINGS_ELECTRA: usize,
+        const MAX_ATTESTATIONS_ELECTRA: usize,
     >
     Executor<
         SLOTS_PER_HISTORICAL_ROOT,
@@ -104,6 +108,8 @@ impl<
         MAX_DEPOSIT_RECEIPTS_PER_PAYLOAD,
         MAX_WITHDRAWAL_REQUESTS_PER_PAYLOAD,
         MAX_CONSOLIDATIONS,
+        MAX_ATTESTER_SLASHINGS_ELECTRA,
+        MAX_ATTESTATIONS_ELECTRA,
     >
 {
     pub fn new(
@@ -147,6 +153,8 @@ impl<
             MAX_DEPOSIT_RECEIPTS_PER_PAYLOAD,
             MAX_WITHDRAWAL_REQUESTS_PER_PAYLOAD,
             MAX_CONSOLIDATIONS,
+            MAX_ATTESTER_SLASHINGS_ELECTRA,
+            MAX_ATTESTATIONS_ELECTRA,
         >,
     ) -> Result<()> {
         self.apply_block_with_validation(signed_block, Validation::Enabled)
@@ -174,6 +182,8 @@ impl<
             MAX_DEPOSIT_RECEIPTS_PER_PAYLOAD,
             MAX_WITHDRAWAL_REQUESTS_PER_PAYLOAD,
             MAX_CONSOLIDATIONS,
+            MAX_ATTESTER_SLASHINGS_ELECTRA,
+            MAX_ATTESTATIONS_ELECTRA,
         >,
         validation: Validation,
     ) -> Result<()> {

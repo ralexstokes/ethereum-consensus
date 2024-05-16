@@ -27,6 +27,8 @@ pub enum BlindedBeaconBlock<
     const MAX_VALIDATORS_PER_SLOT: usize,
     const MAX_COMMITTEES_PER_SLOT: usize,
     const MAX_CONSOLIDATIONS: usize,
+    const MAX_ATTESTER_SLASHINGS_ELECTRA: usize,
+    const MAX_ATTESTATIONS_ELECTRA: usize,
 > {
     Bellatrix(
         bellatrix::BlindedBeaconBlock<
@@ -75,8 +77,8 @@ pub enum BlindedBeaconBlock<
             MAX_PROPOSER_SLASHINGS,
             MAX_VALIDATORS_PER_SLOT,
             MAX_COMMITTEES_PER_SLOT,
-            MAX_ATTESTER_SLASHINGS,
-            MAX_ATTESTATIONS,
+            MAX_ATTESTER_SLASHINGS_ELECTRA,
+            MAX_ATTESTATIONS_ELECTRA,
             MAX_DEPOSITS,
             MAX_VOLUNTARY_EXITS,
             SYNC_COMMITTEE_SIZE,
@@ -103,6 +105,8 @@ impl<
         const MAX_VALIDATORS_PER_SLOT: usize,
         const MAX_COMMITTEES_PER_SLOT: usize,
         const MAX_CONSOLIDATIONS: usize,
+        const MAX_ATTESTER_SLASHINGS_ELECTRA: usize,
+        const MAX_ATTESTATIONS_ELECTRA: usize,
     >
     BlindedBeaconBlock<
         MAX_PROPOSER_SLASHINGS,
@@ -119,6 +123,8 @@ impl<
         MAX_VALIDATORS_PER_SLOT,
         MAX_COMMITTEES_PER_SLOT,
         MAX_CONSOLIDATIONS,
+        MAX_ATTESTER_SLASHINGS_ELECTRA,
+        MAX_ATTESTATIONS_ELECTRA,
     >
 {
     pub fn bellatrix(
@@ -336,6 +342,8 @@ impl<
         MAX_VALIDATORS_PER_SLOT,
         MAX_COMMITTEES_PER_SLOT,
         MAX_CONSOLIDATIONS,
+        MAX_ATTESTER_SLASHINGS_ELECTRA,
+        MAX_ATTESTATIONS_ELECTRA,
     > {
         match self {
             Self::Bellatrix(inner) => From::from(&inner.body),
@@ -383,6 +391,8 @@ impl<
         const MAX_VALIDATORS_PER_SLOT: usize,
         const MAX_COMMITTEES_PER_SLOT: usize,
         const MAX_CONSOLIDATIONS: usize,
+        const MAX_ATTESTER_SLASHINGS_ELECTRA: usize,
+        const MAX_ATTESTATIONS_ELECTRA: usize,
     > serde::Deserialize<'de>
     for BlindedBeaconBlock<
         MAX_PROPOSER_SLASHINGS,
@@ -399,6 +409,8 @@ impl<
         MAX_VALIDATORS_PER_SLOT,
         MAX_COMMITTEES_PER_SLOT,
         MAX_CONSOLIDATIONS,
+        MAX_ATTESTER_SLASHINGS_ELECTRA,
+        MAX_ATTESTATIONS_ELECTRA,
     >
 {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
@@ -439,6 +451,8 @@ pub enum BlindedBeaconBlockRef<
     const MAX_VALIDATORS_PER_SLOT: usize,
     const MAX_COMMITTEES_PER_SLOT: usize,
     const MAX_CONSOLIDATIONS: usize,
+    const MAX_ATTESTER_SLASHINGS_ELECTRA: usize,
+    const MAX_ATTESTATIONS_ELECTRA: usize,
 > {
     Bellatrix(
         &'a bellatrix::BlindedBeaconBlock<
@@ -487,8 +501,8 @@ pub enum BlindedBeaconBlockRef<
             MAX_PROPOSER_SLASHINGS,
             MAX_VALIDATORS_PER_SLOT,
             MAX_COMMITTEES_PER_SLOT,
-            MAX_ATTESTER_SLASHINGS,
-            MAX_ATTESTATIONS,
+            MAX_ATTESTER_SLASHINGS_ELECTRA,
+            MAX_ATTESTATIONS_ELECTRA,
             MAX_DEPOSITS,
             MAX_VOLUNTARY_EXITS,
             SYNC_COMMITTEE_SIZE,
@@ -515,6 +529,8 @@ impl<
         const MAX_VALIDATORS_PER_SLOT: usize,
         const MAX_COMMITTEES_PER_SLOT: usize,
         const MAX_CONSOLIDATIONS: usize,
+        const MAX_ATTESTER_SLASHINGS_ELECTRA: usize,
+        const MAX_ATTESTATIONS_ELECTRA: usize,
     >
     BlindedBeaconBlockRef<
         '_,
@@ -532,6 +548,8 @@ impl<
         MAX_VALIDATORS_PER_SLOT,
         MAX_COMMITTEES_PER_SLOT,
         MAX_CONSOLIDATIONS,
+        MAX_ATTESTER_SLASHINGS_ELECTRA,
+        MAX_ATTESTATIONS_ELECTRA,
     >
 {
     pub fn bellatrix(
@@ -654,6 +672,8 @@ impl<
         MAX_VALIDATORS_PER_SLOT,
         MAX_COMMITTEES_PER_SLOT,
         MAX_CONSOLIDATIONS,
+        MAX_ATTESTER_SLASHINGS_ELECTRA,
+        MAX_ATTESTATIONS_ELECTRA,
     > {
         match self {
             Self::Bellatrix(inner) => From::from(&inner.body),
@@ -679,6 +699,8 @@ impl<
         const MAX_VALIDATORS_PER_SLOT: usize,
         const MAX_COMMITTEES_PER_SLOT: usize,
         const MAX_CONSOLIDATIONS: usize,
+        const MAX_ATTESTER_SLASHINGS_ELECTRA: usize,
+        const MAX_ATTESTATIONS_ELECTRA: usize,
     >
     From<
         &'a bellatrix::BlindedBeaconBlock<
@@ -709,6 +731,8 @@ impl<
         MAX_VALIDATORS_PER_SLOT,
         MAX_COMMITTEES_PER_SLOT,
         MAX_CONSOLIDATIONS,
+        MAX_ATTESTER_SLASHINGS_ELECTRA,
+        MAX_ATTESTATIONS_ELECTRA,
     >
 {
     fn from(
@@ -743,6 +767,8 @@ impl<
         const MAX_VALIDATORS_PER_SLOT: usize,
         const MAX_COMMITTEES_PER_SLOT: usize,
         const MAX_CONSOLIDATIONS: usize,
+        const MAX_ATTESTER_SLASHINGS_ELECTRA: usize,
+        const MAX_ATTESTATIONS_ELECTRA: usize,
     >
     From<
         &'a capella::BlindedBeaconBlock<
@@ -774,6 +800,8 @@ impl<
         MAX_VALIDATORS_PER_SLOT,
         MAX_COMMITTEES_PER_SLOT,
         MAX_CONSOLIDATIONS,
+        MAX_ATTESTER_SLASHINGS_ELECTRA,
+        MAX_ATTESTATIONS_ELECTRA,
     >
 {
     fn from(
@@ -809,6 +837,8 @@ impl<
         const MAX_VALIDATORS_PER_SLOT: usize,
         const MAX_COMMITTEES_PER_SLOT: usize,
         const MAX_CONSOLIDATIONS: usize,
+        const MAX_ATTESTER_SLASHINGS_ELECTRA: usize,
+        const MAX_ATTESTATIONS_ELECTRA: usize,
     >
     From<
         &'a deneb::BlindedBeaconBlock<
@@ -841,6 +871,8 @@ impl<
         MAX_VALIDATORS_PER_SLOT,
         MAX_COMMITTEES_PER_SLOT,
         MAX_CONSOLIDATIONS,
+        MAX_ATTESTER_SLASHINGS_ELECTRA,
+        MAX_ATTESTATIONS_ELECTRA,
     >
 {
     fn from(
@@ -877,14 +909,16 @@ impl<
         const MAX_VALIDATORS_PER_SLOT: usize,
         const MAX_COMMITTEES_PER_SLOT: usize,
         const MAX_CONSOLIDATIONS: usize,
+        const MAX_ATTESTER_SLASHINGS_ELECTRA: usize,
+        const MAX_ATTESTATIONS_ELECTRA: usize,
     >
     From<
         &'a electra::BlindedBeaconBlock<
             MAX_PROPOSER_SLASHINGS,
             MAX_VALIDATORS_PER_SLOT,
             MAX_COMMITTEES_PER_SLOT,
-            MAX_ATTESTER_SLASHINGS,
-            MAX_ATTESTATIONS,
+            MAX_ATTESTER_SLASHINGS_ELECTRA,
+            MAX_ATTESTATIONS_ELECTRA,
             MAX_DEPOSITS,
             MAX_VOLUNTARY_EXITS,
             SYNC_COMMITTEE_SIZE,
@@ -911,6 +945,8 @@ impl<
         MAX_VALIDATORS_PER_SLOT,
         MAX_COMMITTEES_PER_SLOT,
         MAX_CONSOLIDATIONS,
+        MAX_ATTESTER_SLASHINGS_ELECTRA,
+        MAX_ATTESTATIONS_ELECTRA,
     >
 {
     fn from(
@@ -918,8 +954,8 @@ impl<
             MAX_PROPOSER_SLASHINGS,
             MAX_VALIDATORS_PER_SLOT,
             MAX_COMMITTEES_PER_SLOT,
-            MAX_ATTESTER_SLASHINGS,
-            MAX_ATTESTATIONS,
+            MAX_ATTESTER_SLASHINGS_ELECTRA,
+            MAX_ATTESTATIONS_ELECTRA,
             MAX_DEPOSITS,
             MAX_VOLUNTARY_EXITS,
             SYNC_COMMITTEE_SIZE,
@@ -948,6 +984,8 @@ pub enum BlindedBeaconBlockRefMut<
     const MAX_EXTRA_DATA_BYTES: usize,
     const MAX_BLS_TO_EXECUTION_CHANGES: usize,
     const MAX_BLOB_COMMITMENTS_PER_BLOCK: usize,
+    const MAX_ATTESTER_SLASHINGS_ELECTRA: usize,
+    const MAX_ATTESTATIONS_ELECTRA: usize,
 > {
     Bellatrix(
         &'a mut bellatrix::BlindedBeaconBlock<
@@ -1004,6 +1042,8 @@ impl<
         const MAX_EXTRA_DATA_BYTES: usize,
         const MAX_BLS_TO_EXECUTION_CHANGES: usize,
         const MAX_BLOB_COMMITMENTS_PER_BLOCK: usize,
+        const MAX_ATTESTER_SLASHINGS_ELECTRA: usize,
+        const MAX_ATTESTATIONS_ELECTRA: usize,
     >
     BlindedBeaconBlockRefMut<
         '_,
@@ -1018,6 +1058,8 @@ impl<
         MAX_EXTRA_DATA_BYTES,
         MAX_BLS_TO_EXECUTION_CHANGES,
         MAX_BLOB_COMMITMENTS_PER_BLOCK,
+        MAX_ATTESTER_SLASHINGS_ELECTRA,
+        MAX_ATTESTATIONS_ELECTRA,
     >
 {
     pub fn bellatrix(
@@ -1230,6 +1272,8 @@ impl<
         MAX_VALIDATORS_PER_SLOT,
         MAX_COMMITTEES_PER_SLOT,
         MAX_CONSOLIDATIONS,
+        MAX_ATTESTER_SLASHINGS_ELECTRA,
+        MAX_ATTESTATIONS_ELECTRA,
     > {
         match self {
             Self::Bellatrix(inner) => From::from(&inner.body),
@@ -1272,6 +1316,8 @@ impl<
         const MAX_EXTRA_DATA_BYTES: usize,
         const MAX_BLS_TO_EXECUTION_CHANGES: usize,
         const MAX_BLOB_COMMITMENTS_PER_BLOCK: usize,
+        const MAX_ATTESTER_SLASHINGS_ELECTRA: usize,
+        const MAX_ATTESTATIONS_ELECTRA: usize,
     >
     From<
         &'a mut bellatrix::BlindedBeaconBlock<
@@ -1299,6 +1345,8 @@ impl<
         MAX_EXTRA_DATA_BYTES,
         MAX_BLS_TO_EXECUTION_CHANGES,
         MAX_BLOB_COMMITMENTS_PER_BLOCK,
+        MAX_ATTESTER_SLASHINGS_ELECTRA,
+        MAX_ATTESTATIONS_ELECTRA,
     >
 {
     fn from(
@@ -1330,6 +1378,8 @@ impl<
         const MAX_EXTRA_DATA_BYTES: usize,
         const MAX_BLS_TO_EXECUTION_CHANGES: usize,
         const MAX_BLOB_COMMITMENTS_PER_BLOCK: usize,
+        const MAX_ATTESTER_SLASHINGS_ELECTRA: usize,
+        const MAX_ATTESTATIONS_ELECTRA: usize,
     >
     From<
         &'a mut capella::BlindedBeaconBlock<
@@ -1358,6 +1408,8 @@ impl<
         MAX_EXTRA_DATA_BYTES,
         MAX_BLS_TO_EXECUTION_CHANGES,
         MAX_BLOB_COMMITMENTS_PER_BLOCK,
+        MAX_ATTESTER_SLASHINGS_ELECTRA,
+        MAX_ATTESTATIONS_ELECTRA,
     >
 {
     fn from(
@@ -1390,6 +1442,8 @@ impl<
         const MAX_EXTRA_DATA_BYTES: usize,
         const MAX_BLS_TO_EXECUTION_CHANGES: usize,
         const MAX_BLOB_COMMITMENTS_PER_BLOCK: usize,
+        const MAX_ATTESTER_SLASHINGS_ELECTRA: usize,
+        const MAX_ATTESTATIONS_ELECTRA: usize,
     >
     From<
         &'a mut deneb::BlindedBeaconBlock<
@@ -1419,6 +1473,8 @@ impl<
         MAX_EXTRA_DATA_BYTES,
         MAX_BLS_TO_EXECUTION_CHANGES,
         MAX_BLOB_COMMITMENTS_PER_BLOCK,
+        MAX_ATTESTER_SLASHINGS_ELECTRA,
+        MAX_ATTESTATIONS_ELECTRA,
     >
 {
     fn from(
