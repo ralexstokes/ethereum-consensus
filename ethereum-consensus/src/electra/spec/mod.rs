@@ -27,9 +27,6 @@ pub use crate::{
         withdrawal::Withdrawal,
     },
     deneb::{
-        blinded_beacon_block::{
-            BlindedBeaconBlock, BlindedBeaconBlockBody, SignedBlindedBeaconBlock,
-        },
         blob_sidecar::{
             verify_blob_sidecar_inclusion_proof, Blob, BlobIdentifier, BlobSidecar, BlobsBundle,
             VersionedHash, VERSIONED_HASH_VERSION_KZG,
@@ -45,6 +42,9 @@ pub use crate::{
         beacon_state::{
             BeaconState, DepositReceipt, ExecutionLayerWithdrawalRequest, PendingBalanceDeposit,
             PendingConsolidation, PendingPartialWithdrawal,
+        },
+        blinded_beacon_block::{
+            BlindedBeaconBlock, BlindedBeaconBlockBody, SignedBlindedBeaconBlock,
         },
         block_processing::{
             add_validator_to_registry, apply_deposit, get_expected_withdrawals,
