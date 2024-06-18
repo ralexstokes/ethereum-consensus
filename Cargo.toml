@@ -22,7 +22,7 @@ blst = "0.3.11"
 rand = "0.8.4"
 sha2 = "0.10.8"
 integer-sqrt = "0.1.5"
-enr = "0.6.2"
+enr = "0.12.0"
 multihash = { version = "0.16", default-features = false, features = [
     "std",
     "multihash-impl",
@@ -30,7 +30,7 @@ multihash = { version = "0.16", default-features = false, features = [
     "sha2",
 ] }
 multiaddr = "0.14.0"
-c-kzg = "1.0.0"
+c-kzg = "1.0.2"
 bs58 = "0.4.0"
 eyre = "0.6.8"
 bip39 = "2.0.0"
