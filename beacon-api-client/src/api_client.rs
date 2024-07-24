@@ -26,9 +26,11 @@ use http::StatusCode;
 use itertools::Itertools;
 use mev_share_sse::{client::EventStream, EventClient};
 use std::collections::HashMap;
+use std::time::Duration;
 use url::Url;
 
 pub const CONSENSUS_VERSION_HEADER: &str = "eth-consensus-version";
+const CLIENT_REQUEST_TIMEOUT: Duration = Duration::from_secs(5);
 
 pub async fn api_error_or_ok(response: reqwest::Response) -> Result<(), Error> {
     match response.status() {
@@ -87,7 +89,7 @@ impl<C: ClientTypes> Client<C> {
     }
 
     pub fn new<U: Into<Url>>(endpoint: U) -> Self {
-        let client = reqwest::Client::new();
+        let client = reqwest::ClientBuilder::new().timeout(CLIENT_REQUEST_TIMEOUT).build().unwrap();
         Self::new_with_client(client, endpoint)
     }
 
