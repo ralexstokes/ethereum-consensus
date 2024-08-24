@@ -15,11 +15,22 @@ use ethereum_consensus::{
     altair::SyncCommitteeMessage,
     builder::SignedValidatorRegistration,
     capella::{SignedBlsToExecutionChange, Withdrawal},
+    deneb::{
+        self,
+        mainnet::{
+            BYTES_PER_LOGS_BLOOM, EPOCHS_PER_HISTORICAL_VECTOR, EPOCHS_PER_SLASHINGS_VECTOR,
+            ETH1_DATA_VOTES_BOUND, HISTORICAL_ROOTS_LIMIT, MAX_EXTRA_DATA_BYTES,
+            MAX_VALIDATORS_PER_COMMITTEE, SLOTS_PER_HISTORICAL_ROOT, SYNC_COMMITTEE_SIZE,
+            VALIDATOR_REGISTRY_LIMIT,
+        },
+        minimal::BeaconState,
+    },
     networking::PeerId,
     phase0::{AttestationData, Fork, ProposerSlashing, SignedVoluntaryExit},
     primitives::{
         BlobIndex, Bytes32, CommitteeIndex, Epoch, RandaoReveal, Root, Slot, ValidatorIndex,
     },
+    ssz::prelude::Deserialize,
     Fork as Version,
 };
 use http::StatusCode;
@@ -598,6 +609,68 @@ impl<C: ClientTypes> Client<C> {
             self.get(&format!("eth/v2/debug/beacon/states/{id}")).await?;
         Ok(result.data)
     }
+
+    pub async fn get_state_raw(&self, id: StateId) -> Result<C::BeaconState, Error> {
+        let path = format!("eth/v2/debug/beacon/states/{id}");
+        let target = self.endpoint.join(&path)?;
+        let response =
+            self.http.get(target).header("Accept", "application/octet-stream").send().await?;
+
+        let a = response.bytes().await?;
+        let b: &[u8] = &a;
+        // println!("b: {:?}", b);
+        // println!(
+        //     "b: {:?}",
+        //     deneb::BeaconState::<
+        //         SLOTS_PER_HISTORICAL_ROOT,
+        //         HISTORICAL_ROOTS_LIMIT,
+        //         ETH1_DATA_VOTES_BOUND,
+        //         VALIDATOR_REGISTRY_LIMIT,
+        //         EPOCHS_PER_HISTORICAL_VECTOR,
+        //         EPOCHS_PER_SLASHINGS_VECTOR,
+        //         MAX_VALIDATORS_PER_COMMITTEE,
+        //         SYNC_COMMITTEE_SIZE,
+        //         BYTES_PER_LOGS_BLOOM,
+        //         MAX_EXTRA_DATA_BYTES,
+        //     >::deserialize(b)
+
+        let c = deneb::BeaconState::<
+            SLOTS_PER_HISTORICAL_ROOT,
+            HISTORICAL_ROOTS_LIMIT,
+            ETH1_DATA_VOTES_BOUND,
+            VALIDATOR_REGISTRY_LIMIT,
+            EPOCHS_PER_HISTORICAL_VECTOR,
+            EPOCHS_PER_SLASHINGS_VECTOR,
+            MAX_VALIDATORS_PER_COMMITTEE,
+            SYNC_COMMITTEE_SIZE,
+            BYTES_PER_LOGS_BLOOM,
+            MAX_EXTRA_DATA_BYTES,
+        >::deserialize(b)
+        .unwrap();
+
+        println!("c.slot: {:?}", c.slot);
+
+        // );
+
+        return Err(Error::MissingExpectedData("Asd".into()));
+    }
+
+    // pub async fn get<T: serde::Serialize + serde::de::DeserializeOwned>(
+    //     &self,
+    //     path: &str,
+    // ) -> Result<T, Error> {
+    //     let result: ApiResult<T> = self.http_get(path).await?.json().await?;
+    //     match result {
+    //         ApiResult::Ok(result) => Ok(result),
+    //         ApiResult::Err(err) => Err(err.into()),
+    //     }
+    // }
+
+    // pub async fn http_get(&self, path: &str) -> Result<reqwest::Response, Error> {
+    //     let target = self.endpoint.join(path)?;
+    //     let response = self.http.get(target).send().await?;
+    //     Ok(response)
+    // }
 
     // v2 endpoint
     pub async fn get_heads(&self) -> Result<Vec<CoordinateWithMetadata>, Error> {
