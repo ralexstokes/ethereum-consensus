@@ -4,6 +4,8 @@ use crate::{
     ssz::prelude::*,
     Error,
 };
+use std::fmt::Debug;
+use tracing::info;
 
 #[derive(Default, Debug, SimpleSerialize)]
 pub struct SigningData {
@@ -30,12 +32,16 @@ pub fn sign_with_domain<T: HashTreeRoot>(
     Ok(signing_key.sign(signing_root.as_ref()))
 }
 
-pub fn verify_signed_data<T: HashTreeRoot>(
+pub fn verify_signed_data<T: HashTreeRoot + Debug>(
     data: &T,
     signature: &BlsSignature,
     public_key: &BlsPublicKey,
     domain: Domain,
 ) -> Result<(), Error> {
     let signing_root = compute_signing_root(data, domain)?;
+    info!(
+        "signing_root: {:?}, data: {:?}, pubkey: {:?}, domain: {:?}",
+        signing_root, data, public_key, domain
+    );
     crypto::verify_signature(public_key, signing_root.as_ref(), signature).map_err(Into::into)
 }

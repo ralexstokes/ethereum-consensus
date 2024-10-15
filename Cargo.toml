@@ -56,3 +56,4 @@ quote = "1.0.18"
 clap = { version = "4.5.3", features = ["derive"] }
 convert_case = "0.6.0"
 walkdir = "2.3.3"
+alloy-primitives = "0.8.6"
