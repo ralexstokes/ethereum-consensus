@@ -3,6 +3,7 @@ use crate::serde::try_bytes_from_hex_str;
 use crate::{primitives::Bytes32, ssz::prelude::*};
 use blst::{min_pk as bls_impl, BLST_ERROR};
 use sha2::{Digest, Sha256};
+use tracing::error;
 use std::{
     fmt,
     ops::{Deref, DerefMut},
@@ -72,6 +73,7 @@ pub fn verify_signature(
     if res == BLST_ERROR::BLST_SUCCESS {
         Ok(())
     } else {
+        error!("signature verify failed, err: {:?}", res);
         Err(Error::InvalidSignature)
     }
 }
