@@ -228,7 +228,7 @@ impl<'a> ArgumentsEditor<'a> {
     }
 }
 
-impl<'a> VisitMut for ArgumentsEditor<'a> {
+impl VisitMut for ArgumentsEditor<'_> {
     fn visit_angle_bracketed_generic_arguments_mut(
         &mut self,
         i: &mut syn::AngleBracketedGenericArguments,

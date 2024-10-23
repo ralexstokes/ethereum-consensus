@@ -476,7 +476,6 @@ pub enum ExecutionPayloadRef<
     ),
 }
 impl<
-        'a,
         const BYTES_PER_LOGS_BLOOM: usize,
         const MAX_EXTRA_DATA_BYTES: usize,
         const MAX_BYTES_PER_TRANSACTION: usize,
@@ -484,7 +483,7 @@ impl<
         const MAX_WITHDRAWALS_PER_PAYLOAD: usize,
     >
     ExecutionPayloadRef<
-        'a,
+        '_,
         BYTES_PER_LOGS_BLOOM,
         MAX_EXTRA_DATA_BYTES,
         MAX_BYTES_PER_TRANSACTION,
@@ -818,7 +817,6 @@ pub enum ExecutionPayloadRefMut<
     ),
 }
 impl<
-        'a,
         const BYTES_PER_LOGS_BLOOM: usize,
         const MAX_EXTRA_DATA_BYTES: usize,
         const MAX_BYTES_PER_TRANSACTION: usize,
@@ -826,7 +824,7 @@ impl<
         const MAX_WITHDRAWALS_PER_PAYLOAD: usize,
     >
     ExecutionPayloadRefMut<
-        'a,
+        '_,
         BYTES_PER_LOGS_BLOOM,
         MAX_EXTRA_DATA_BYTES,
         MAX_BYTES_PER_TRANSACTION,

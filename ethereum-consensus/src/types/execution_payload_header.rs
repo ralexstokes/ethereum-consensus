@@ -350,8 +350,8 @@ pub enum ExecutionPayloadHeaderRef<
     Capella(&'a capella::ExecutionPayloadHeader<BYTES_PER_LOGS_BLOOM, MAX_EXTRA_DATA_BYTES>),
     Deneb(&'a deneb::ExecutionPayloadHeader<BYTES_PER_LOGS_BLOOM, MAX_EXTRA_DATA_BYTES>),
 }
-impl<'a, const BYTES_PER_LOGS_BLOOM: usize, const MAX_EXTRA_DATA_BYTES: usize>
-    ExecutionPayloadHeaderRef<'a, BYTES_PER_LOGS_BLOOM, MAX_EXTRA_DATA_BYTES>
+impl<const BYTES_PER_LOGS_BLOOM: usize, const MAX_EXTRA_DATA_BYTES: usize>
+    ExecutionPayloadHeaderRef<'_, BYTES_PER_LOGS_BLOOM, MAX_EXTRA_DATA_BYTES>
 {
     pub fn bellatrix(
         &self,
@@ -548,8 +548,8 @@ pub enum ExecutionPayloadHeaderRefMut<
     Capella(&'a mut capella::ExecutionPayloadHeader<BYTES_PER_LOGS_BLOOM, MAX_EXTRA_DATA_BYTES>),
     Deneb(&'a mut deneb::ExecutionPayloadHeader<BYTES_PER_LOGS_BLOOM, MAX_EXTRA_DATA_BYTES>),
 }
-impl<'a, const BYTES_PER_LOGS_BLOOM: usize, const MAX_EXTRA_DATA_BYTES: usize>
-    ExecutionPayloadHeaderRefMut<'a, BYTES_PER_LOGS_BLOOM, MAX_EXTRA_DATA_BYTES>
+impl<const BYTES_PER_LOGS_BLOOM: usize, const MAX_EXTRA_DATA_BYTES: usize>
+    ExecutionPayloadHeaderRefMut<'_, BYTES_PER_LOGS_BLOOM, MAX_EXTRA_DATA_BYTES>
 {
     pub fn bellatrix(
         &self,
