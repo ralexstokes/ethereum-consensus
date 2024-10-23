@@ -209,7 +209,7 @@ impl Type {
                     capella::{execution_payload as capella, withdrawal::Withdrawal},
                     deneb::execution_payload as deneb,
                     electra::execution_payload as electra,
-                    electra::beacon_state::{DepositReceipt, ExecutionLayerWithdrawalRequest},
+                    electra::operations::{DepositRequest, WithdrawalRequest, ConsolidationRequest},
                     primitives::{Hash32, ExecutionAddress, Bytes32},
                     ssz::prelude::*,
                     Fork as Version,

@@ -91,8 +91,9 @@ pub struct Context {
     pub max_attester_slashings_electra: usize,
     pub max_attestations_electra: usize,
     pub max_consolidations: usize,
-    pub max_deposit_receipts_per_payload: usize,
+    pub max_deposit_requests_per_payload: usize,
     pub max_withdrawal_requests_per_payload: usize,
+    pub max_consolidation_requests_per_payload: usize,
     pub max_pending_partials_per_withdrawals_sweep: usize,
 
     // config
@@ -282,8 +283,10 @@ impl Context {
             max_attester_slashings_electra: electra_preset.max_attester_slashings_electra,
             max_attestations_electra: electra_preset.max_attestations_electra,
             max_consolidations: electra_preset.max_consolidations,
-            max_deposit_receipts_per_payload: electra_preset.max_deposit_receipts_per_payload,
+            max_deposit_requests_per_payload: electra_preset.max_deposit_requests_per_payload,
             max_withdrawal_requests_per_payload: electra_preset.max_withdrawal_requests_per_payload,
+            max_consolidation_requests_per_payload: electra_preset
+                .max_consolidation_requests_per_payload,
             max_pending_partials_per_withdrawals_sweep: electra_preset
                 .max_pending_partials_per_withdrawals_sweep,
             // config

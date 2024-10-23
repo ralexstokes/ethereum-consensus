@@ -372,38 +372,6 @@ impl<const BYTES_PER_LOGS_BLOOM: usize, const MAX_EXTRA_DATA_BYTES: usize>
             Self::Electra(inner) => Some(&mut inner.excess_blob_gas),
         }
     }
-    pub fn deposit_receipts_root(&self) -> Option<Root> {
-        match self {
-            Self::Bellatrix(_) => None,
-            Self::Capella(_) => None,
-            Self::Deneb(_) => None,
-            Self::Electra(inner) => Some(inner.deposit_receipts_root),
-        }
-    }
-    pub fn deposit_receipts_root_mut(&mut self) -> Option<&mut Root> {
-        match self {
-            Self::Bellatrix(_) => None,
-            Self::Capella(_) => None,
-            Self::Deneb(_) => None,
-            Self::Electra(inner) => Some(&mut inner.deposit_receipts_root),
-        }
-    }
-    pub fn withdrawal_requests_root(&self) -> Option<Root> {
-        match self {
-            Self::Bellatrix(_) => None,
-            Self::Capella(_) => None,
-            Self::Deneb(_) => None,
-            Self::Electra(inner) => Some(inner.withdrawal_requests_root),
-        }
-    }
-    pub fn withdrawal_requests_root_mut(&mut self) -> Option<&mut Root> {
-        match self {
-            Self::Bellatrix(_) => None,
-            Self::Capella(_) => None,
-            Self::Deneb(_) => None,
-            Self::Electra(inner) => Some(&mut inner.withdrawal_requests_root),
-        }
-    }
 }
 impl<'de, const BYTES_PER_LOGS_BLOOM: usize, const MAX_EXTRA_DATA_BYTES: usize>
     serde::Deserialize<'de> for ExecutionPayloadHeader<BYTES_PER_LOGS_BLOOM, MAX_EXTRA_DATA_BYTES>
@@ -620,22 +588,6 @@ impl<const BYTES_PER_LOGS_BLOOM: usize, const MAX_EXTRA_DATA_BYTES: usize>
             Self::Electra(inner) => Some(inner.excess_blob_gas),
         }
     }
-    pub fn deposit_receipts_root(&self) -> Option<Root> {
-        match self {
-            Self::Bellatrix(_) => None,
-            Self::Capella(_) => None,
-            Self::Deneb(_) => None,
-            Self::Electra(inner) => Some(inner.deposit_receipts_root),
-        }
-    }
-    pub fn withdrawal_requests_root(&self) -> Option<Root> {
-        match self {
-            Self::Bellatrix(_) => None,
-            Self::Capella(_) => None,
-            Self::Deneb(_) => None,
-            Self::Electra(inner) => Some(inner.withdrawal_requests_root),
-        }
-    }
 }
 impl<'a, const BYTES_PER_LOGS_BLOOM: usize, const MAX_EXTRA_DATA_BYTES: usize>
     From<&'a bellatrix::ExecutionPayloadHeader<BYTES_PER_LOGS_BLOOM, MAX_EXTRA_DATA_BYTES>>
@@ -667,16 +619,16 @@ impl<'a, const BYTES_PER_LOGS_BLOOM: usize, const MAX_EXTRA_DATA_BYTES: usize>
         Self::Deneb(value)
     }
 }
-impl<'a, const BYTES_PER_LOGS_BLOOM: usize, const MAX_EXTRA_DATA_BYTES: usize>
-    From<&'a electra::ExecutionPayloadHeader<BYTES_PER_LOGS_BLOOM, MAX_EXTRA_DATA_BYTES>>
-    for ExecutionPayloadHeaderRef<'a, BYTES_PER_LOGS_BLOOM, MAX_EXTRA_DATA_BYTES>
-{
-    fn from(
-        value: &'a electra::ExecutionPayloadHeader<BYTES_PER_LOGS_BLOOM, MAX_EXTRA_DATA_BYTES>,
-    ) -> Self {
-        Self::Electra(value)
-    }
-}
+// impl<'a, const BYTES_PER_LOGS_BLOOM: usize, const MAX_EXTRA_DATA_BYTES: usize>
+//     From<&'a electra::ExecutionPayloadHeader<BYTES_PER_LOGS_BLOOM, MAX_EXTRA_DATA_BYTES>>
+//     for ExecutionPayloadHeaderRef<'a, BYTES_PER_LOGS_BLOOM, MAX_EXTRA_DATA_BYTES>
+// {
+//     fn from(
+//         value: &'a electra::ExecutionPayloadHeader<BYTES_PER_LOGS_BLOOM, MAX_EXTRA_DATA_BYTES>,
+//     ) -> Self {
+//         Self::Electra(value)
+//     }
+// }
 #[derive(Debug, PartialEq, Eq, HashTreeRoot)]
 #[ssz(transparent)]
 pub enum ExecutionPayloadHeaderRefMut<
@@ -1043,38 +995,6 @@ impl<const BYTES_PER_LOGS_BLOOM: usize, const MAX_EXTRA_DATA_BYTES: usize>
             Self::Electra(inner) => Some(&mut inner.excess_blob_gas),
         }
     }
-    pub fn deposit_receipts_root(&self) -> Option<Root> {
-        match self {
-            Self::Bellatrix(_) => None,
-            Self::Capella(_) => None,
-            Self::Deneb(_) => None,
-            Self::Electra(inner) => Some(inner.deposit_receipts_root),
-        }
-    }
-    pub fn deposit_receipts_root_mut(&mut self) -> Option<&mut Root> {
-        match self {
-            Self::Bellatrix(_) => None,
-            Self::Capella(_) => None,
-            Self::Deneb(_) => None,
-            Self::Electra(inner) => Some(&mut inner.deposit_receipts_root),
-        }
-    }
-    pub fn withdrawal_requests_root(&self) -> Option<Root> {
-        match self {
-            Self::Bellatrix(_) => None,
-            Self::Capella(_) => None,
-            Self::Deneb(_) => None,
-            Self::Electra(inner) => Some(inner.withdrawal_requests_root),
-        }
-    }
-    pub fn withdrawal_requests_root_mut(&mut self) -> Option<&mut Root> {
-        match self {
-            Self::Bellatrix(_) => None,
-            Self::Capella(_) => None,
-            Self::Deneb(_) => None,
-            Self::Electra(inner) => Some(&mut inner.withdrawal_requests_root),
-        }
-    }
 }
 impl<'a, const BYTES_PER_LOGS_BLOOM: usize, const MAX_EXTRA_DATA_BYTES: usize>
     From<&'a mut bellatrix::ExecutionPayloadHeader<BYTES_PER_LOGS_BLOOM, MAX_EXTRA_DATA_BYTES>>
@@ -1109,13 +1029,13 @@ impl<'a, const BYTES_PER_LOGS_BLOOM: usize, const MAX_EXTRA_DATA_BYTES: usize>
         Self::Deneb(value)
     }
 }
-impl<'a, const BYTES_PER_LOGS_BLOOM: usize, const MAX_EXTRA_DATA_BYTES: usize>
-    From<&'a mut electra::ExecutionPayloadHeader<BYTES_PER_LOGS_BLOOM, MAX_EXTRA_DATA_BYTES>>
-    for ExecutionPayloadHeaderRefMut<'a, BYTES_PER_LOGS_BLOOM, MAX_EXTRA_DATA_BYTES>
-{
-    fn from(
-        value: &'a mut electra::ExecutionPayloadHeader<BYTES_PER_LOGS_BLOOM, MAX_EXTRA_DATA_BYTES>,
-    ) -> Self {
-        Self::Electra(value)
-    }
-}
+// impl<'a, const BYTES_PER_LOGS_BLOOM: usize, const MAX_EXTRA_DATA_BYTES: usize>
+//     From<&'a mut electra::ExecutionPayloadHeader<BYTES_PER_LOGS_BLOOM, MAX_EXTRA_DATA_BYTES>>
+//     for ExecutionPayloadHeaderRefMut<'a, BYTES_PER_LOGS_BLOOM, MAX_EXTRA_DATA_BYTES>
+// {
+//     fn from(
+//         value: &'a mut electra::ExecutionPayloadHeader<BYTES_PER_LOGS_BLOOM,
+// MAX_EXTRA_DATA_BYTES>,     ) -> Self {
+//         Self::Electra(value)
+//     }
+// }

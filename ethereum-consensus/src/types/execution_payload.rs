@@ -3,10 +3,7 @@ use crate::{
     bellatrix::execution_payload::{self as bellatrix, Transaction},
     capella::{execution_payload as capella, withdrawal::Withdrawal},
     deneb::execution_payload as deneb,
-    electra::{
-        beacon_state::{DepositReceipt, ExecutionLayerWithdrawalRequest},
-        execution_payload as electra,
-    },
+    electra::execution_payload as electra,
     primitives::{Bytes32, ExecutionAddress, Hash32},
     ssz::prelude::*,
     Fork as Version,
@@ -20,8 +17,6 @@ pub enum ExecutionPayload<
     const MAX_BYTES_PER_TRANSACTION: usize,
     const MAX_TRANSACTIONS_PER_PAYLOAD: usize,
     const MAX_WITHDRAWALS_PER_PAYLOAD: usize,
-    const MAX_DEPOSIT_RECEIPTS_PER_PAYLOAD: usize,
-    const MAX_WITHDRAWAL_REQUESTS_PER_PAYLOAD: usize,
 > {
     Bellatrix(
         bellatrix::ExecutionPayload<
@@ -56,8 +51,6 @@ pub enum ExecutionPayload<
             MAX_BYTES_PER_TRANSACTION,
             MAX_TRANSACTIONS_PER_PAYLOAD,
             MAX_WITHDRAWALS_PER_PAYLOAD,
-            MAX_DEPOSIT_RECEIPTS_PER_PAYLOAD,
-            MAX_WITHDRAWAL_REQUESTS_PER_PAYLOAD,
         >,
     ),
 }
@@ -67,8 +60,6 @@ impl<
         const MAX_BYTES_PER_TRANSACTION: usize,
         const MAX_TRANSACTIONS_PER_PAYLOAD: usize,
         const MAX_WITHDRAWALS_PER_PAYLOAD: usize,
-        const MAX_DEPOSIT_RECEIPTS_PER_PAYLOAD: usize,
-        const MAX_WITHDRAWAL_REQUESTS_PER_PAYLOAD: usize,
     >
     ExecutionPayload<
         BYTES_PER_LOGS_BLOOM,
@@ -76,8 +67,6 @@ impl<
         MAX_BYTES_PER_TRANSACTION,
         MAX_TRANSACTIONS_PER_PAYLOAD,
         MAX_WITHDRAWALS_PER_PAYLOAD,
-        MAX_DEPOSIT_RECEIPTS_PER_PAYLOAD,
-        MAX_WITHDRAWAL_REQUESTS_PER_PAYLOAD,
     >
 {
     pub fn bellatrix(
@@ -183,8 +172,6 @@ impl<
             MAX_BYTES_PER_TRANSACTION,
             MAX_TRANSACTIONS_PER_PAYLOAD,
             MAX_WITHDRAWALS_PER_PAYLOAD,
-            MAX_DEPOSIT_RECEIPTS_PER_PAYLOAD,
-            MAX_WITHDRAWAL_REQUESTS_PER_PAYLOAD,
         >,
     > {
         match self {
@@ -201,8 +188,6 @@ impl<
             MAX_BYTES_PER_TRANSACTION,
             MAX_TRANSACTIONS_PER_PAYLOAD,
             MAX_WITHDRAWALS_PER_PAYLOAD,
-            MAX_DEPOSIT_RECEIPTS_PER_PAYLOAD,
-            MAX_WITHDRAWAL_REQUESTS_PER_PAYLOAD,
         >,
     > {
         match self {
@@ -496,47 +481,6 @@ impl<
             Self::Electra(inner) => Some(&mut inner.excess_blob_gas),
         }
     }
-    pub fn deposit_receipts(
-        &self,
-    ) -> Option<&List<DepositReceipt, MAX_DEPOSIT_RECEIPTS_PER_PAYLOAD>> {
-        match self {
-            Self::Bellatrix(_) => None,
-            Self::Capella(_) => None,
-            Self::Deneb(_) => None,
-            Self::Electra(inner) => Some(&inner.deposit_receipts),
-        }
-    }
-    pub fn deposit_receipts_mut(
-        &mut self,
-    ) -> Option<&mut List<DepositReceipt, MAX_DEPOSIT_RECEIPTS_PER_PAYLOAD>> {
-        match self {
-            Self::Bellatrix(_) => None,
-            Self::Capella(_) => None,
-            Self::Deneb(_) => None,
-            Self::Electra(inner) => Some(&mut inner.deposit_receipts),
-        }
-    }
-    pub fn withdrawal_requests(
-        &self,
-    ) -> Option<&List<ExecutionLayerWithdrawalRequest, MAX_WITHDRAWAL_REQUESTS_PER_PAYLOAD>> {
-        match self {
-            Self::Bellatrix(_) => None,
-            Self::Capella(_) => None,
-            Self::Deneb(_) => None,
-            Self::Electra(inner) => Some(&inner.withdrawal_requests),
-        }
-    }
-    pub fn withdrawal_requests_mut(
-        &mut self,
-    ) -> Option<&mut List<ExecutionLayerWithdrawalRequest, MAX_WITHDRAWAL_REQUESTS_PER_PAYLOAD>>
-    {
-        match self {
-            Self::Bellatrix(_) => None,
-            Self::Capella(_) => None,
-            Self::Deneb(_) => None,
-            Self::Electra(inner) => Some(&mut inner.withdrawal_requests),
-        }
-    }
 }
 impl<
         'de,
@@ -545,8 +489,6 @@ impl<
         const MAX_BYTES_PER_TRANSACTION: usize,
         const MAX_TRANSACTIONS_PER_PAYLOAD: usize,
         const MAX_WITHDRAWALS_PER_PAYLOAD: usize,
-        const MAX_DEPOSIT_RECEIPTS_PER_PAYLOAD: usize,
-        const MAX_WITHDRAWAL_REQUESTS_PER_PAYLOAD: usize,
     > serde::Deserialize<'de>
     for ExecutionPayload<
         BYTES_PER_LOGS_BLOOM,
@@ -554,8 +496,6 @@ impl<
         MAX_BYTES_PER_TRANSACTION,
         MAX_TRANSACTIONS_PER_PAYLOAD,
         MAX_WITHDRAWALS_PER_PAYLOAD,
-        MAX_DEPOSIT_RECEIPTS_PER_PAYLOAD,
-        MAX_WITHDRAWAL_REQUESTS_PER_PAYLOAD,
     >
 {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>

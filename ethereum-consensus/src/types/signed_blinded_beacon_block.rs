@@ -26,9 +26,11 @@ pub enum SignedBlindedBeaconBlock<
     const MAX_BLOB_COMMITMENTS_PER_BLOCK: usize,
     const MAX_VALIDATORS_PER_SLOT: usize,
     const MAX_COMMITTEES_PER_SLOT: usize,
-    const MAX_CONSOLIDATIONS: usize,
     const MAX_ATTESTER_SLASHINGS_ELECTRA: usize,
     const MAX_ATTESTATIONS_ELECTRA: usize,
+    const MAX_DEPOSIT_REQUESTS_PER_PAYLOAD: usize,
+    const MAX_WITHDRAWAL_REQUESTS_PER_PAYLOAD: usize,
+    const MAX_CONSOLIDATION_REQUESTS_PER_PAYLOAD: usize,
 > {
     Bellatrix(
         bellatrix::SignedBlindedBeaconBlock<
@@ -86,7 +88,9 @@ pub enum SignedBlindedBeaconBlock<
             MAX_EXTRA_DATA_BYTES,
             MAX_BLS_TO_EXECUTION_CHANGES,
             MAX_BLOB_COMMITMENTS_PER_BLOCK,
-            MAX_CONSOLIDATIONS,
+            MAX_DEPOSIT_REQUESTS_PER_PAYLOAD,
+            MAX_WITHDRAWAL_REQUESTS_PER_PAYLOAD,
+            MAX_CONSOLIDATION_REQUESTS_PER_PAYLOAD,
         >,
     ),
 }
@@ -104,9 +108,11 @@ impl<
         const MAX_BLOB_COMMITMENTS_PER_BLOCK: usize,
         const MAX_VALIDATORS_PER_SLOT: usize,
         const MAX_COMMITTEES_PER_SLOT: usize,
-        const MAX_CONSOLIDATIONS: usize,
         const MAX_ATTESTER_SLASHINGS_ELECTRA: usize,
         const MAX_ATTESTATIONS_ELECTRA: usize,
+        const MAX_DEPOSIT_REQUESTS_PER_PAYLOAD: usize,
+        const MAX_WITHDRAWAL_REQUESTS_PER_PAYLOAD: usize,
+        const MAX_CONSOLIDATION_REQUESTS_PER_PAYLOAD: usize,
     >
     SignedBlindedBeaconBlock<
         MAX_PROPOSER_SLASHINGS,
@@ -122,9 +128,11 @@ impl<
         MAX_BLOB_COMMITMENTS_PER_BLOCK,
         MAX_VALIDATORS_PER_SLOT,
         MAX_COMMITTEES_PER_SLOT,
-        MAX_CONSOLIDATIONS,
         MAX_ATTESTER_SLASHINGS_ELECTRA,
         MAX_ATTESTATIONS_ELECTRA,
+        MAX_DEPOSIT_REQUESTS_PER_PAYLOAD,
+        MAX_WITHDRAWAL_REQUESTS_PER_PAYLOAD,
+        MAX_CONSOLIDATION_REQUESTS_PER_PAYLOAD,
     >
 {
     pub fn bellatrix(
@@ -269,7 +277,9 @@ impl<
             MAX_EXTRA_DATA_BYTES,
             MAX_BLS_TO_EXECUTION_CHANGES,
             MAX_BLOB_COMMITMENTS_PER_BLOCK,
-            MAX_CONSOLIDATIONS,
+            MAX_DEPOSIT_REQUESTS_PER_PAYLOAD,
+            MAX_WITHDRAWAL_REQUESTS_PER_PAYLOAD,
+            MAX_CONSOLIDATION_REQUESTS_PER_PAYLOAD,
         >,
     > {
         match self {
@@ -293,7 +303,9 @@ impl<
             MAX_EXTRA_DATA_BYTES,
             MAX_BLS_TO_EXECUTION_CHANGES,
             MAX_BLOB_COMMITMENTS_PER_BLOCK,
-            MAX_CONSOLIDATIONS,
+            MAX_DEPOSIT_REQUESTS_PER_PAYLOAD,
+            MAX_WITHDRAWAL_REQUESTS_PER_PAYLOAD,
+            MAX_CONSOLIDATION_REQUESTS_PER_PAYLOAD,
         >,
     > {
         match self {
@@ -325,9 +337,11 @@ impl<
         MAX_BLOB_COMMITMENTS_PER_BLOCK,
         MAX_VALIDATORS_PER_SLOT,
         MAX_COMMITTEES_PER_SLOT,
-        MAX_CONSOLIDATIONS,
         MAX_ATTESTER_SLASHINGS_ELECTRA,
         MAX_ATTESTATIONS_ELECTRA,
+        MAX_DEPOSIT_REQUESTS_PER_PAYLOAD,
+        MAX_WITHDRAWAL_REQUESTS_PER_PAYLOAD,
+        MAX_CONSOLIDATION_REQUESTS_PER_PAYLOAD,
     > {
         match self {
             Self::Bellatrix(inner) => From::from(&inner.message),
@@ -392,9 +406,11 @@ impl<
         const MAX_BLOB_COMMITMENTS_PER_BLOCK: usize,
         const MAX_VALIDATORS_PER_SLOT: usize,
         const MAX_COMMITTEES_PER_SLOT: usize,
-        const MAX_CONSOLIDATIONS: usize,
         const MAX_ATTESTER_SLASHINGS_ELECTRA: usize,
         const MAX_ATTESTATIONS_ELECTRA: usize,
+        const MAX_DEPOSIT_REQUESTS_PER_PAYLOAD: usize,
+        const MAX_WITHDRAWAL_REQUESTS_PER_PAYLOAD: usize,
+        const MAX_CONSOLIDATION_REQUESTS_PER_PAYLOAD: usize,
     > serde::Deserialize<'de>
     for SignedBlindedBeaconBlock<
         MAX_PROPOSER_SLASHINGS,
@@ -410,9 +426,11 @@ impl<
         MAX_BLOB_COMMITMENTS_PER_BLOCK,
         MAX_VALIDATORS_PER_SLOT,
         MAX_COMMITTEES_PER_SLOT,
-        MAX_CONSOLIDATIONS,
         MAX_ATTESTER_SLASHINGS_ELECTRA,
         MAX_ATTESTATIONS_ELECTRA,
+        MAX_DEPOSIT_REQUESTS_PER_PAYLOAD,
+        MAX_WITHDRAWAL_REQUESTS_PER_PAYLOAD,
+        MAX_CONSOLIDATION_REQUESTS_PER_PAYLOAD,
     >
 {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>

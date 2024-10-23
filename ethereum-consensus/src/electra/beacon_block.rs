@@ -4,7 +4,7 @@ use crate::{
     crypto::KzgCommitment,
     electra::{
         execution_payload::ExecutionPayload,
-        operations::{Attestation, AttesterSlashing, SignedConsolidation},
+        operations::{Attestation, AttesterSlashing, ExecutionRequests},
     },
     phase0::{Deposit, Eth1Data, ProposerSlashing, SignedVoluntaryExit},
     primitives::{BlsSignature, Bytes32, Root, Slot, ValidatorIndex},
@@ -28,11 +28,11 @@ pub struct BeaconBlockBody<
     const MAX_BYTES_PER_TRANSACTION: usize,
     const MAX_TRANSACTIONS_PER_PAYLOAD: usize,
     const MAX_WITHDRAWALS_PER_PAYLOAD: usize,
-    const MAX_DEPOSIT_RECEIPTS_PER_PAYLOAD: usize,
-    const MAX_WITHDRAWAL_REQUESTS_PER_PAYLOAD: usize,
     const MAX_BLS_TO_EXECUTION_CHANGES: usize,
     const MAX_BLOB_COMMITMENTS_PER_BLOCK: usize,
-    const MAX_CONSOLIDATIONS: usize,
+    const MAX_DEPOSIT_REQUESTS_PER_PAYLOAD: usize,
+    const MAX_WITHDRAWAL_REQUESTS_PER_PAYLOAD: usize,
+    const MAX_CONSOLIDATION_REQUESTS_PER_PAYLOAD: usize,
 > {
     pub randao_reveal: BlsSignature,
     pub eth1_data: Eth1Data,
@@ -50,12 +50,14 @@ pub struct BeaconBlockBody<
         MAX_BYTES_PER_TRANSACTION,
         MAX_TRANSACTIONS_PER_PAYLOAD,
         MAX_WITHDRAWALS_PER_PAYLOAD,
-        MAX_DEPOSIT_RECEIPTS_PER_PAYLOAD,
-        MAX_WITHDRAWAL_REQUESTS_PER_PAYLOAD,
     >,
     pub bls_to_execution_changes: List<SignedBlsToExecutionChange, MAX_BLS_TO_EXECUTION_CHANGES>,
     pub blob_kzg_commitments: List<KzgCommitment, MAX_BLOB_COMMITMENTS_PER_BLOCK>,
-    pub consolidations: List<SignedConsolidation, MAX_CONSOLIDATIONS>,
+    pub execution_requests: ExecutionRequests<
+        MAX_DEPOSIT_REQUESTS_PER_PAYLOAD,
+        MAX_WITHDRAWAL_REQUESTS_PER_PAYLOAD,
+        MAX_CONSOLIDATION_REQUESTS_PER_PAYLOAD,
+    >,
 }
 
 #[derive(
@@ -75,11 +77,11 @@ pub struct BeaconBlock<
     const MAX_BYTES_PER_TRANSACTION: usize,
     const MAX_TRANSACTIONS_PER_PAYLOAD: usize,
     const MAX_WITHDRAWALS_PER_PAYLOAD: usize,
-    const MAX_DEPOSIT_RECEIPTS_PER_PAYLOAD: usize,
-    const MAX_WITHDRAWAL_REQUESTS_PER_PAYLOAD: usize,
     const MAX_BLS_TO_EXECUTION_CHANGES: usize,
     const MAX_BLOB_COMMITMENTS_PER_BLOCK: usize,
-    const MAX_CONSOLIDATIONS: usize,
+    const MAX_DEPOSIT_REQUESTS_PER_PAYLOAD: usize,
+    const MAX_WITHDRAWAL_REQUESTS_PER_PAYLOAD: usize,
+    const MAX_CONSOLIDATION_REQUESTS_PER_PAYLOAD: usize,
 > {
     #[serde(with = "crate::serde::as_str")]
     pub slot: Slot,
@@ -101,11 +103,11 @@ pub struct BeaconBlock<
         MAX_BYTES_PER_TRANSACTION,
         MAX_TRANSACTIONS_PER_PAYLOAD,
         MAX_WITHDRAWALS_PER_PAYLOAD,
-        MAX_DEPOSIT_RECEIPTS_PER_PAYLOAD,
-        MAX_WITHDRAWAL_REQUESTS_PER_PAYLOAD,
         MAX_BLS_TO_EXECUTION_CHANGES,
         MAX_BLOB_COMMITMENTS_PER_BLOCK,
-        MAX_CONSOLIDATIONS,
+        MAX_DEPOSIT_REQUESTS_PER_PAYLOAD,
+        MAX_WITHDRAWAL_REQUESTS_PER_PAYLOAD,
+        MAX_CONSOLIDATION_REQUESTS_PER_PAYLOAD,
     >,
 }
 
@@ -126,11 +128,11 @@ pub struct SignedBeaconBlock<
     const MAX_BYTES_PER_TRANSACTION: usize,
     const MAX_TRANSACTIONS_PER_PAYLOAD: usize,
     const MAX_WITHDRAWALS_PER_PAYLOAD: usize,
-    const MAX_DEPOSIT_RECEIPTS_PER_PAYLOAD: usize,
-    const MAX_WITHDRAWAL_REQUESTS_PER_PAYLOAD: usize,
     const MAX_BLS_TO_EXECUTION_CHANGES: usize,
     const MAX_BLOB_COMMITMENTS_PER_BLOCK: usize,
-    const MAX_CONSOLIDATIONS: usize,
+    const MAX_DEPOSIT_REQUESTS_PER_PAYLOAD: usize,
+    const MAX_WITHDRAWAL_REQUESTS_PER_PAYLOAD: usize,
+    const MAX_CONSOLIDATION_REQUESTS_PER_PAYLOAD: usize,
 > {
     pub message: BeaconBlock<
         MAX_PROPOSER_SLASHINGS,
@@ -146,11 +148,11 @@ pub struct SignedBeaconBlock<
         MAX_BYTES_PER_TRANSACTION,
         MAX_TRANSACTIONS_PER_PAYLOAD,
         MAX_WITHDRAWALS_PER_PAYLOAD,
-        MAX_DEPOSIT_RECEIPTS_PER_PAYLOAD,
-        MAX_WITHDRAWAL_REQUESTS_PER_PAYLOAD,
         MAX_BLS_TO_EXECUTION_CHANGES,
         MAX_BLOB_COMMITMENTS_PER_BLOCK,
-        MAX_CONSOLIDATIONS,
+        MAX_DEPOSIT_REQUESTS_PER_PAYLOAD,
+        MAX_WITHDRAWAL_REQUESTS_PER_PAYLOAD,
+        MAX_CONSOLIDATION_REQUESTS_PER_PAYLOAD,
     >,
     pub signature: BlsSignature,
 }
