@@ -1043,7 +1043,6 @@ pub enum BeaconStateRef<
     ),
 }
 impl<
-        'a,
         const SLOTS_PER_HISTORICAL_ROOT: usize,
         const HISTORICAL_ROOTS_LIMIT: usize,
         const ETH1_DATA_VOTES_BOUND: usize,
@@ -1057,7 +1056,7 @@ impl<
         const MAX_EXTRA_DATA_BYTES: usize,
     >
     BeaconStateRef<
-        'a,
+        '_,
         SLOTS_PER_HISTORICAL_ROOT,
         HISTORICAL_ROOTS_LIMIT,
         ETH1_DATA_VOTES_BOUND,
@@ -1840,7 +1839,6 @@ pub enum BeaconStateRefMut<
     ),
 }
 impl<
-        'a,
         const SLOTS_PER_HISTORICAL_ROOT: usize,
         const HISTORICAL_ROOTS_LIMIT: usize,
         const ETH1_DATA_VOTES_BOUND: usize,
@@ -1854,7 +1852,7 @@ impl<
         const MAX_EXTRA_DATA_BYTES: usize,
     >
     BeaconStateRefMut<
-        'a,
+        '_,
         SLOTS_PER_HISTORICAL_ROOT,
         HISTORICAL_ROOTS_LIMIT,
         ETH1_DATA_VOTES_BOUND,

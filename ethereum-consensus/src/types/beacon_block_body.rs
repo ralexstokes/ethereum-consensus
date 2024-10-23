@@ -763,7 +763,6 @@ pub enum BeaconBlockBodyRef<
     ),
 }
 impl<
-        'a,
         const MAX_PROPOSER_SLASHINGS: usize,
         const MAX_VALIDATORS_PER_COMMITTEE: usize,
         const MAX_ATTESTER_SLASHINGS: usize,
@@ -780,7 +779,7 @@ impl<
         const MAX_BLOB_COMMITMENTS_PER_BLOCK: usize,
     >
     BeaconBlockBodyRef<
-        'a,
+        '_,
         MAX_PROPOSER_SLASHINGS,
         MAX_VALIDATORS_PER_COMMITTEE,
         MAX_ATTESTER_SLASHINGS,
@@ -1463,7 +1462,6 @@ pub enum BeaconBlockBodyRefMut<
     ),
 }
 impl<
-        'a,
         const MAX_PROPOSER_SLASHINGS: usize,
         const MAX_VALIDATORS_PER_COMMITTEE: usize,
         const MAX_ATTESTER_SLASHINGS: usize,
@@ -1480,7 +1478,7 @@ impl<
         const MAX_BLOB_COMMITMENTS_PER_BLOCK: usize,
     >
     BeaconBlockBodyRefMut<
-        'a,
+        '_,
         MAX_PROPOSER_SLASHINGS,
         MAX_VALIDATORS_PER_COMMITTEE,
         MAX_ATTESTER_SLASHINGS,
