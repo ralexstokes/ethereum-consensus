@@ -76,3 +76,23 @@ reth-primitives = { git = "https://github.com/paradigmxyz/reth", rev = "b89af430
 [[bin]]
 name = "ec"
 required-features = ["ec"]
+
+[[example]]
+name = "state_transitions_phase0"
+path = "examples/state_transitions/phase0_blocks.rs"
+
+[[example]]
+name = "state_transitions_altair"
+path = "examples/state_transitions/altair_blocks.rs"
+
+[[example]]
+name = "state_transitions_bellatrix"
+path = "examples/state_transitions/bellatrix_blocks.rs"
+
+[[example]]
+name = "state_transitions_capella"
+path = "examples/state_transitions/capella_blocks.rs"
+
+[[example]]
+name = "state_transitions_deneb"
+path = "examples/state_transitions/deneb_blocks.rs"
