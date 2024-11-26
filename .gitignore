@@ -12,5 +12,3 @@ Cargo.lock
 consensus-spec-tests
 
 .env
-ethereum-consensus/examples/mainnet_blocks/**/*.ssz
-ethereum-consensus/examples/mainnet_blocks/

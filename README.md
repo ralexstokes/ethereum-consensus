@@ -37,6 +37,15 @@ most circumstances.
 Refer to the code in `examples` for the suggested way to use this crate as a user. The intermediate types are laid out
 so that you can define your own customizations but you can likely use the defaults.
 
+**Working with Beacon Chain Blocks**
+
+Some state transition examples leverage mainnet blocks spanning across hardforks. The required .ssz files are stored using Git LFS.  These files are large.
+
+#### Quick Start
+- To clone repo **with** block files: `git clone <repository-url>`
+- To clone repo **without** block files: `GIT_LFS_SKIP_SMUDGE=1 git clone <repository-url>`
+
+
 ### Support for presets
 
 These crates provide support for the "preset" concept found in the `consensus-specs`. The `minimal` and `mainnet` presets are provided for each fork as hard-coded instances. If you need to support another type of preset, you can make your own using the generic types. Refer to an existing preset, like `ethereum_consensus::bellatrix::presets::minimal`, for an example.
