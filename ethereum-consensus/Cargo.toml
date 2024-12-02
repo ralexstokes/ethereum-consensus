@@ -9,8 +9,9 @@ license = "MIT OR Apache-2.0"
 default = ["serde", "async"]
 serde = ["hex", "serde_json", "serde_yaml"]
 async = ["tokio", "tokio-stream"]
-optimized = ["shuffling"]
+optimized = ["shuffling", "attestation-processing"]
 shuffling = [] # supports optimized shuffling routines
+attestation-processing = [] # supports optimized attestation processing
 secret-key-debug = [
 ] # enable if you want to be able to print `crypto::SecretKey`
 spec-tests = [] # enable extra features for testing
