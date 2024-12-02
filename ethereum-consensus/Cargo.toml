@@ -75,3 +75,7 @@ reth-primitives = { git = "https://github.com/paradigmxyz/reth", rev = "b89af430
 [[bin]]
 name = "ec"
 required-features = ["ec"]
+
+[[example]]
+name = "stf_clap_multiple_forks"
+path = "examples/stf_clap_multiple_forks.rs"
