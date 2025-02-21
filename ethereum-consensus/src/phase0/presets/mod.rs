@@ -4,7 +4,7 @@ pub mod minimal;
 use crate::primitives::{Epoch, Gwei, Slot};
 
 pub struct Preset {
-    pub max_committees_per_slot: u64,
+    pub max_committees_per_slot: usize,
     pub target_committee_size: u64,
     pub max_validators_per_committee: usize,
     pub shuffle_round_count: u64,

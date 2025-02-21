@@ -2453,7 +2453,7 @@ pub fn get_committee_count_per_slot<
     u64::max(
         1,
         u64::min(
-            context.max_committees_per_slot,
+            context.max_committees_per_slot as u64,
             get_active_validator_indices(state, epoch).len() as u64 /
                 context.slots_per_epoch /
                 context.target_committee_size,

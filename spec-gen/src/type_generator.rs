@@ -116,7 +116,6 @@ impl Type {
     }
 
     fn imports(&self) -> syn::Item {
-        // TODO: electra
         match self {
             Self::BeaconBlockBody => parse_quote! {
                 use crate::{
@@ -125,6 +124,7 @@ impl Type {
                     capella::beacon_block as capella,
                     crypto::KzgCommitment,
                     deneb::{beacon_block as deneb},
+                    electra::{beacon_block as electra},
                     phase0::{
                         beacon_block as phase0, Attestation, AttesterSlashing, Deposit, Eth1Data, ProposerSlashing,
                         SignedVoluntaryExit,
@@ -143,6 +143,7 @@ impl Type {
                     capella::blinded_beacon_block as capella,
                     crypto::KzgCommitment,
                     deneb::{blinded_beacon_block as deneb},
+                    electra::{blinded_beacon_block as electra},
                     phase0::{
                         Attestation, AttesterSlashing, Deposit, Eth1Data, ProposerSlashing,
                         SignedVoluntaryExit,
@@ -161,6 +162,7 @@ impl Type {
                     bellatrix::beacon_block as bellatrix,
                     capella::beacon_block as capella,
                     deneb::beacon_block as deneb,
+                    electra::beacon_block as electra,
                     phase0::beacon_block as phase0,
                     primitives::{Slot, ValidatorIndex, Root},
                     ssz::prelude::*,
@@ -173,6 +175,7 @@ impl Type {
                     bellatrix::blinded_beacon_block as bellatrix,
                     capella::blinded_beacon_block as capella,
                     deneb::blinded_beacon_block as deneb,
+                    electra::blinded_beacon_block as electra,
                     primitives::{Slot, ValidatorIndex, Root},
                     ssz::prelude::*,
                     Fork as Version,
@@ -185,6 +188,7 @@ impl Type {
                     bellatrix::beacon_block as bellatrix,
                     capella::beacon_block as capella,
                     deneb::beacon_block as deneb,
+                    electra::beacon_block as electra,
                     phase0::beacon_block as phase0,
                     primitives::BlsSignature,
                     ssz::prelude::*,
@@ -197,6 +201,7 @@ impl Type {
                     bellatrix::blinded_beacon_block as bellatrix,
                     capella::blinded_beacon_block as capella,
                     deneb::blinded_beacon_block as deneb,
+                    electra::blinded_beacon_block as electra,
                     primitives::BlsSignature,
                     ssz::prelude::*,
                     Fork as Version,
@@ -208,6 +213,7 @@ impl Type {
                     bellatrix::execution_payload::{self as bellatrix, Transaction},
                     capella::{execution_payload as capella, withdrawal::Withdrawal},
                     deneb::execution_payload as deneb,
+                    electra::execution_payload as electra,
                     primitives::{Hash32, ExecutionAddress, Bytes32},
                     ssz::prelude::*,
                     Fork as Version,
@@ -218,6 +224,7 @@ impl Type {
                     bellatrix::execution_payload as bellatrix,
                     capella::execution_payload as capella,
                     deneb::execution_payload as deneb,
+                    electra::execution_payload as electra,
                     primitives::{Hash32, Root, ExecutionAddress, Bytes32},
                     ssz::prelude::*,
                     Fork as Version,
@@ -230,6 +237,7 @@ impl Type {
                     bellatrix::beacon_state as bellatrix,
                     capella::beacon_state::{HistoricalSummary, self as capella},
                     deneb::beacon_state as deneb,
+                    electra::beacon_state as electra,
                     phase0::beacon_state::{self as phase0, Fork},
                     phase0::{JUSTIFICATION_BITS_LENGTH, beacon_block::BeaconBlockHeader, validator::Validator, operations::{PendingAttestation, Checkpoint, Eth1Data}},
                     primitives::{Root, ValidatorIndex, WithdrawalIndex, ParticipationFlags, Slot, Gwei, Bytes32},
@@ -823,7 +831,8 @@ fn render(target_type: &Type, items: Vec<Item>) {
 }
 
 pub fn run() {
-    let fork_sequence = &[Fork::Phase0, Fork::Altair, Fork::Bellatrix, Fork::Capella, Fork::Deneb];
+    let fork_sequence =
+        &[Fork::Phase0, Fork::Altair, Fork::Bellatrix, Fork::Capella, Fork::Deneb, Fork::Electra];
     let types = [
         Type::BeaconBlockBody,
         Type::BeaconBlock,

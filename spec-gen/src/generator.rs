@@ -96,6 +96,8 @@ impl Fork {
             Self::Electra => &[
                 "beacon_block",
                 "beacon_state",
+                "blinded_beacon_block",
+                "blob_sidecar",
                 "block_processing",
                 "constants",
                 "epoch_processing",

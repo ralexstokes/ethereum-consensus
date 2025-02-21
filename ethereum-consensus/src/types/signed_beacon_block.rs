@@ -4,6 +4,7 @@ use crate::{
     bellatrix::beacon_block as bellatrix,
     capella::beacon_block as capella,
     deneb::beacon_block as deneb,
+    electra::beacon_block as electra,
     phase0::beacon_block as phase0,
     primitives::BlsSignature,
     ssz::prelude::*,
@@ -28,6 +29,10 @@ pub enum SignedBeaconBlock<
     const MAX_WITHDRAWALS_PER_PAYLOAD: usize,
     const MAX_BLS_TO_EXECUTION_CHANGES: usize,
     const MAX_BLOB_COMMITMENTS_PER_BLOCK: usize,
+    const MAX_COMMITTEES_PER_SLOT: usize,
+    const MAX_DEPOSIT_REQUESTS_PER_PAYLOAD: usize,
+    const MAX_WITHDRAWAL_REQUESTS_PER_PAYLOAD: usize,
+    const MAX_CONSOLIDATION_REQUESTS_PER_PAYLOAD: usize,
 > {
     Phase0(
         phase0::SignedBeaconBlock<
@@ -100,6 +105,28 @@ pub enum SignedBeaconBlock<
             MAX_BLOB_COMMITMENTS_PER_BLOCK,
         >,
     ),
+    Electra(
+        electra::SignedBeaconBlock<
+            MAX_PROPOSER_SLASHINGS,
+            MAX_VALIDATORS_PER_COMMITTEE,
+            MAX_ATTESTER_SLASHINGS,
+            MAX_ATTESTATIONS,
+            MAX_DEPOSITS,
+            MAX_VOLUNTARY_EXITS,
+            SYNC_COMMITTEE_SIZE,
+            BYTES_PER_LOGS_BLOOM,
+            MAX_EXTRA_DATA_BYTES,
+            MAX_BYTES_PER_TRANSACTION,
+            MAX_TRANSACTIONS_PER_PAYLOAD,
+            MAX_WITHDRAWALS_PER_PAYLOAD,
+            MAX_BLS_TO_EXECUTION_CHANGES,
+            MAX_BLOB_COMMITMENTS_PER_BLOCK,
+            MAX_COMMITTEES_PER_SLOT,
+            MAX_DEPOSIT_REQUESTS_PER_PAYLOAD,
+            MAX_WITHDRAWAL_REQUESTS_PER_PAYLOAD,
+            MAX_CONSOLIDATION_REQUESTS_PER_PAYLOAD,
+        >,
+    ),
 }
 impl<
         const MAX_PROPOSER_SLASHINGS: usize,
@@ -116,6 +143,10 @@ impl<
         const MAX_WITHDRAWALS_PER_PAYLOAD: usize,
         const MAX_BLS_TO_EXECUTION_CHANGES: usize,
         const MAX_BLOB_COMMITMENTS_PER_BLOCK: usize,
+        const MAX_COMMITTEES_PER_SLOT: usize,
+        const MAX_DEPOSIT_REQUESTS_PER_PAYLOAD: usize,
+        const MAX_WITHDRAWAL_REQUESTS_PER_PAYLOAD: usize,
+        const MAX_CONSOLIDATION_REQUESTS_PER_PAYLOAD: usize,
     >
     SignedBeaconBlock<
         MAX_PROPOSER_SLASHINGS,
@@ -132,6 +163,10 @@ impl<
         MAX_WITHDRAWALS_PER_PAYLOAD,
         MAX_BLS_TO_EXECUTION_CHANGES,
         MAX_BLOB_COMMITMENTS_PER_BLOCK,
+        MAX_COMMITTEES_PER_SLOT,
+        MAX_DEPOSIT_REQUESTS_PER_PAYLOAD,
+        MAX_WITHDRAWAL_REQUESTS_PER_PAYLOAD,
+        MAX_CONSOLIDATION_REQUESTS_PER_PAYLOAD,
     >
 {
     pub fn phase0(
@@ -346,6 +381,64 @@ impl<
             _ => None,
         }
     }
+    pub fn electra(
+        &self,
+    ) -> Option<
+        &electra::SignedBeaconBlock<
+            MAX_PROPOSER_SLASHINGS,
+            MAX_VALIDATORS_PER_COMMITTEE,
+            MAX_ATTESTER_SLASHINGS,
+            MAX_ATTESTATIONS,
+            MAX_DEPOSITS,
+            MAX_VOLUNTARY_EXITS,
+            SYNC_COMMITTEE_SIZE,
+            BYTES_PER_LOGS_BLOOM,
+            MAX_EXTRA_DATA_BYTES,
+            MAX_BYTES_PER_TRANSACTION,
+            MAX_TRANSACTIONS_PER_PAYLOAD,
+            MAX_WITHDRAWALS_PER_PAYLOAD,
+            MAX_BLS_TO_EXECUTION_CHANGES,
+            MAX_BLOB_COMMITMENTS_PER_BLOCK,
+            MAX_COMMITTEES_PER_SLOT,
+            MAX_DEPOSIT_REQUESTS_PER_PAYLOAD,
+            MAX_WITHDRAWAL_REQUESTS_PER_PAYLOAD,
+            MAX_CONSOLIDATION_REQUESTS_PER_PAYLOAD,
+        >,
+    > {
+        match self {
+            Self::Electra(inner) => Some(inner),
+            _ => None,
+        }
+    }
+    pub fn electra_mut(
+        &mut self,
+    ) -> Option<
+        &mut electra::SignedBeaconBlock<
+            MAX_PROPOSER_SLASHINGS,
+            MAX_VALIDATORS_PER_COMMITTEE,
+            MAX_ATTESTER_SLASHINGS,
+            MAX_ATTESTATIONS,
+            MAX_DEPOSITS,
+            MAX_VOLUNTARY_EXITS,
+            SYNC_COMMITTEE_SIZE,
+            BYTES_PER_LOGS_BLOOM,
+            MAX_EXTRA_DATA_BYTES,
+            MAX_BYTES_PER_TRANSACTION,
+            MAX_TRANSACTIONS_PER_PAYLOAD,
+            MAX_WITHDRAWALS_PER_PAYLOAD,
+            MAX_BLS_TO_EXECUTION_CHANGES,
+            MAX_BLOB_COMMITMENTS_PER_BLOCK,
+            MAX_COMMITTEES_PER_SLOT,
+            MAX_DEPOSIT_REQUESTS_PER_PAYLOAD,
+            MAX_WITHDRAWAL_REQUESTS_PER_PAYLOAD,
+            MAX_CONSOLIDATION_REQUESTS_PER_PAYLOAD,
+        >,
+    > {
+        match self {
+            Self::Electra(inner) => Some(inner),
+            _ => None,
+        }
+    }
     pub fn version(&self) -> Version {
         match self {
             Self::Phase0(_) => Version::Phase0,
@@ -353,6 +446,7 @@ impl<
             Self::Bellatrix(_) => Version::Bellatrix,
             Self::Capella(_) => Version::Capella,
             Self::Deneb(_) => Version::Deneb,
+            Self::Electra(_) => Version::Electra,
         }
     }
     pub fn message(
@@ -372,6 +466,10 @@ impl<
         MAX_WITHDRAWALS_PER_PAYLOAD,
         MAX_BLS_TO_EXECUTION_CHANGES,
         MAX_BLOB_COMMITMENTS_PER_BLOCK,
+        MAX_COMMITTEES_PER_SLOT,
+        MAX_DEPOSIT_REQUESTS_PER_PAYLOAD,
+        MAX_WITHDRAWAL_REQUESTS_PER_PAYLOAD,
+        MAX_CONSOLIDATION_REQUESTS_PER_PAYLOAD,
     > {
         match self {
             Self::Phase0(inner) => From::from(&inner.message),
@@ -379,6 +477,7 @@ impl<
             Self::Bellatrix(inner) => From::from(&inner.message),
             Self::Capella(inner) => From::from(&inner.message),
             Self::Deneb(inner) => From::from(&inner.message),
+            Self::Electra(inner) => From::from(&inner.message),
         }
     }
     pub fn message_mut(
@@ -398,6 +497,10 @@ impl<
         MAX_WITHDRAWALS_PER_PAYLOAD,
         MAX_BLS_TO_EXECUTION_CHANGES,
         MAX_BLOB_COMMITMENTS_PER_BLOCK,
+        MAX_COMMITTEES_PER_SLOT,
+        MAX_DEPOSIT_REQUESTS_PER_PAYLOAD,
+        MAX_WITHDRAWAL_REQUESTS_PER_PAYLOAD,
+        MAX_CONSOLIDATION_REQUESTS_PER_PAYLOAD,
     > {
         match self {
             Self::Phase0(inner) => From::from(&mut inner.message),
@@ -405,6 +508,7 @@ impl<
             Self::Bellatrix(inner) => From::from(&mut inner.message),
             Self::Capella(inner) => From::from(&mut inner.message),
             Self::Deneb(inner) => From::from(&mut inner.message),
+            Self::Electra(inner) => From::from(&mut inner.message),
         }
     }
     pub fn signature(&self) -> &BlsSignature {
@@ -414,6 +518,7 @@ impl<
             Self::Bellatrix(inner) => &inner.signature,
             Self::Capella(inner) => &inner.signature,
             Self::Deneb(inner) => &inner.signature,
+            Self::Electra(inner) => &inner.signature,
         }
     }
     pub fn signature_mut(&mut self) -> &mut BlsSignature {
@@ -423,6 +528,7 @@ impl<
             Self::Bellatrix(inner) => &mut inner.signature,
             Self::Capella(inner) => &mut inner.signature,
             Self::Deneb(inner) => &mut inner.signature,
+            Self::Electra(inner) => &mut inner.signature,
         }
     }
 }
@@ -442,6 +548,10 @@ impl<
         const MAX_WITHDRAWALS_PER_PAYLOAD: usize,
         const MAX_BLS_TO_EXECUTION_CHANGES: usize,
         const MAX_BLOB_COMMITMENTS_PER_BLOCK: usize,
+        const MAX_COMMITTEES_PER_SLOT: usize,
+        const MAX_DEPOSIT_REQUESTS_PER_PAYLOAD: usize,
+        const MAX_WITHDRAWAL_REQUESTS_PER_PAYLOAD: usize,
+        const MAX_CONSOLIDATION_REQUESTS_PER_PAYLOAD: usize,
     > serde::Deserialize<'de>
     for SignedBeaconBlock<
         MAX_PROPOSER_SLASHINGS,
@@ -458,6 +568,10 @@ impl<
         MAX_WITHDRAWALS_PER_PAYLOAD,
         MAX_BLS_TO_EXECUTION_CHANGES,
         MAX_BLOB_COMMITMENTS_PER_BLOCK,
+        MAX_COMMITTEES_PER_SLOT,
+        MAX_DEPOSIT_REQUESTS_PER_PAYLOAD,
+        MAX_WITHDRAWAL_REQUESTS_PER_PAYLOAD,
+        MAX_CONSOLIDATION_REQUESTS_PER_PAYLOAD,
     >
 {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
@@ -465,6 +579,9 @@ impl<
         D: serde::Deserializer<'de>,
     {
         let value = serde_json::Value::deserialize(deserializer)?;
+        if let Ok(inner) = <_ as serde::Deserialize>::deserialize(&value) {
+            return Ok(Self::Electra(inner));
+        }
         if let Ok(inner) = <_ as serde::Deserialize>::deserialize(&value) {
             return Ok(Self::Deneb(inner));
         }

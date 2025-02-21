@@ -17,10 +17,10 @@ use crate::{
         switch_to_compounding_validator, verify_signed_data, Attestation, BeaconBlockBody,
         BeaconState, BlsPublicKey, BlsSignature, Bytes32, DepositMessage, DepositReceipt,
         DomainType, ExecutionAddress, ExecutionLayerWithdrawalRequest, ExecutionPayload,
-        ExecutionPayloadHeader, Gwei, InvalidAttestation, InvalidConsolidation, InvalidDeposit,
-        InvalidExecutionPayload, InvalidOperation, InvalidVoluntaryExit, InvalidWithdrawals,
-        NewPayloadRequest, ParticipationFlags, PendingBalanceDeposit, PendingConsolidation,
-        PendingPartialWithdrawal, SignedConsolidation, SignedVoluntaryExit, Validator, Withdrawal,
+        ExecutionPayloadHeader, ExecutionRequests, Gwei, InvalidAttestation, InvalidConsolidation,
+        InvalidDeposit, InvalidExecutionPayload, InvalidOperation, InvalidVoluntaryExit,
+        InvalidWithdrawals, NewPayloadRequest, ParticipationFlags, PendingConsolidation,
+        PendingDeposit, PendingPartialWithdrawal, SignedVoluntaryExit, Validator, Withdrawal,
         FAR_FUTURE_EPOCH, FULL_EXIT_REQUEST_AMOUNT, PARTICIPATION_FLAG_WEIGHTS, PROPOSER_WEIGHT,
         UNSET_DEPOSIT_RECEIPTS_START_INDEX, WEIGHT_DENOMINATOR,
     },
@@ -29,6 +29,8 @@ use crate::{
     state_transition::Context,
     Error,
 };
+
+use super::operations::{ConsolidationRequest, DepositRequest, WithdrawalRequest};
 
 pub fn get_expected_withdrawals<
     const SLOTS_PER_HISTORICAL_ROOT: usize,
@@ -41,7 +43,7 @@ pub fn get_expected_withdrawals<
     const SYNC_COMMITTEE_SIZE: usize,
     const BYTES_PER_LOGS_BLOOM: usize,
     const MAX_EXTRA_DATA_BYTES: usize,
-    const PENDING_BALANCE_DEPOSITS_LIMIT: usize,
+    const PENDING_DEPOSITS_LIMIT: usize,
     const PENDING_PARTIAL_WITHDRAWALS_LIMIT: usize,
     const PENDING_CONSOLIDATIONS_LIMIT: usize,
 >(
@@ -56,7 +58,7 @@ pub fn get_expected_withdrawals<
         SYNC_COMMITTEE_SIZE,
         BYTES_PER_LOGS_BLOOM,
         MAX_EXTRA_DATA_BYTES,
-        PENDING_BALANCE_DEPOSITS_LIMIT,
+        PENDING_DEPOSITS_LIMIT,
         PENDING_PARTIAL_WITHDRAWALS_LIMIT,
         PENDING_CONSOLIDATIONS_LIMIT,
     >,
@@ -149,14 +151,12 @@ pub fn process_withdrawals<
     const SYNC_COMMITTEE_SIZE: usize,
     const BYTES_PER_LOGS_BLOOM: usize,
     const MAX_EXTRA_DATA_BYTES: usize,
-    const PENDING_BALANCE_DEPOSITS_LIMIT: usize,
+    const PENDING_DEPOSITS_LIMIT: usize,
     const PENDING_PARTIAL_WITHDRAWALS_LIMIT: usize,
     const PENDING_CONSOLIDATIONS_LIMIT: usize,
     const MAX_BYTES_PER_TRANSACTION: usize,
     const MAX_TRANSACTIONS_PER_PAYLOAD: usize,
     const MAX_WITHDRAWALS_PER_PAYLOAD: usize,
-    const MAX_DEPOSIT_RECEIPTS_PER_PAYLOAD: usize,
-    const MAX_WITHDRAWAL_REQUESTS_PER_PAYLOAD: usize,
 >(
     state: &mut BeaconState<
         SLOTS_PER_HISTORICAL_ROOT,
@@ -169,7 +169,7 @@ pub fn process_withdrawals<
         SYNC_COMMITTEE_SIZE,
         BYTES_PER_LOGS_BLOOM,
         MAX_EXTRA_DATA_BYTES,
-        PENDING_BALANCE_DEPOSITS_LIMIT,
+        PENDING_DEPOSITS_LIMIT,
         PENDING_PARTIAL_WITHDRAWALS_LIMIT,
         PENDING_CONSOLIDATIONS_LIMIT,
     >,
@@ -179,8 +179,6 @@ pub fn process_withdrawals<
         MAX_BYTES_PER_TRANSACTION,
         MAX_TRANSACTIONS_PER_PAYLOAD,
         MAX_WITHDRAWALS_PER_PAYLOAD,
-        MAX_DEPOSIT_RECEIPTS_PER_PAYLOAD,
-        MAX_WITHDRAWAL_REQUESTS_PER_PAYLOAD,
     >,
     context: &Context,
 ) -> Result<(), Error> {
@@ -231,11 +229,10 @@ pub fn process_execution_payload<
     const SYNC_COMMITTEE_SIZE: usize,
     const BYTES_PER_LOGS_BLOOM: usize,
     const MAX_EXTRA_DATA_BYTES: usize,
-    const PENDING_BALANCE_DEPOSITS_LIMIT: usize,
+    const PENDING_DEPOSITS_LIMIT: usize,
     const PENDING_PARTIAL_WITHDRAWALS_LIMIT: usize,
     const PENDING_CONSOLIDATIONS_LIMIT: usize,
     const MAX_PROPOSER_SLASHINGS: usize,
-    const MAX_VALIDATORS_PER_SLOT: usize,
     const MAX_COMMITTEES_PER_SLOT: usize,
     const MAX_ATTESTER_SLASHINGS: usize,
     const MAX_ATTESTATIONS: usize,
@@ -244,11 +241,11 @@ pub fn process_execution_payload<
     const MAX_BYTES_PER_TRANSACTION: usize,
     const MAX_TRANSACTIONS_PER_PAYLOAD: usize,
     const MAX_WITHDRAWALS_PER_PAYLOAD: usize,
-    const MAX_DEPOSIT_RECEIPTS_PER_PAYLOAD: usize,
-    const MAX_WITHDRAWAL_REQUESTS_PER_PAYLOAD: usize,
     const MAX_BLS_TO_EXECUTION_CHANGES: usize,
     const MAX_BLOB_COMMITMENTS_PER_BLOCK: usize,
-    const MAX_CONSOLIDATIONS: usize,
+    const MAX_DEPOSIT_REQUESTS_PER_PAYLOAD: usize,
+    const MAX_WITHDRAWAL_REQUESTS_PER_PAYLOAD: usize,
+    const MAX_CONSOLIDATION_REQUESTS_PER_PAYLOAD: usize,
 >(
     state: &mut BeaconState<
         SLOTS_PER_HISTORICAL_ROOT,
@@ -261,14 +258,13 @@ pub fn process_execution_payload<
         SYNC_COMMITTEE_SIZE,
         BYTES_PER_LOGS_BLOOM,
         MAX_EXTRA_DATA_BYTES,
-        PENDING_BALANCE_DEPOSITS_LIMIT,
+        PENDING_DEPOSITS_LIMIT,
         PENDING_PARTIAL_WITHDRAWALS_LIMIT,
         PENDING_CONSOLIDATIONS_LIMIT,
     >,
     body: &BeaconBlockBody<
         MAX_PROPOSER_SLASHINGS,
-        MAX_VALIDATORS_PER_SLOT,
-        MAX_COMMITTEES_PER_SLOT,
+        MAX_VALIDATORS_PER_COMMITTEE,
         MAX_ATTESTER_SLASHINGS,
         MAX_ATTESTATIONS,
         MAX_DEPOSITS,
@@ -279,11 +275,12 @@ pub fn process_execution_payload<
         MAX_BYTES_PER_TRANSACTION,
         MAX_TRANSACTIONS_PER_PAYLOAD,
         MAX_WITHDRAWALS_PER_PAYLOAD,
-        MAX_DEPOSIT_RECEIPTS_PER_PAYLOAD,
-        MAX_WITHDRAWAL_REQUESTS_PER_PAYLOAD,
         MAX_BLS_TO_EXECUTION_CHANGES,
         MAX_BLOB_COMMITMENTS_PER_BLOCK,
-        MAX_CONSOLIDATIONS,
+        MAX_COMMITTEES_PER_SLOT,
+        MAX_DEPOSIT_REQUESTS_PER_PAYLOAD,
+        MAX_WITHDRAWAL_REQUESTS_PER_PAYLOAD,
+        MAX_CONSOLIDATION_REQUESTS_PER_PAYLOAD,
     >,
     context: &Context,
 ) -> Result<(), Error> {
@@ -363,8 +360,6 @@ pub fn process_execution_payload<
         withdrawals_root: payload.withdrawals.hash_tree_root()?,
         blob_gas_used: payload.blob_gas_used,
         excess_blob_gas: payload.excess_blob_gas,
-        deposit_receipts_root: payload.deposit_receipts.hash_tree_root()?,
-        withdrawal_requests_root: payload.withdrawal_requests.hash_tree_root()?,
     };
 
     Ok(())
@@ -381,11 +376,10 @@ pub fn process_operations<
     const SYNC_COMMITTEE_SIZE: usize,
     const BYTES_PER_LOGS_BLOOM: usize,
     const MAX_EXTRA_DATA_BYTES: usize,
-    const PENDING_BALANCE_DEPOSITS_LIMIT: usize,
+    const PENDING_DEPOSITS_LIMIT: usize,
     const PENDING_PARTIAL_WITHDRAWALS_LIMIT: usize,
     const PENDING_CONSOLIDATIONS_LIMIT: usize,
     const MAX_PROPOSER_SLASHINGS: usize,
-    const MAX_VALIDATORS_PER_SLOT: usize,
     const MAX_COMMITTEES_PER_SLOT: usize,
     const MAX_ATTESTER_SLASHINGS: usize,
     const MAX_ATTESTATIONS: usize,
@@ -394,11 +388,11 @@ pub fn process_operations<
     const MAX_BYTES_PER_TRANSACTION: usize,
     const MAX_TRANSACTIONS_PER_PAYLOAD: usize,
     const MAX_WITHDRAWALS_PER_PAYLOAD: usize,
-    const MAX_DEPOSIT_RECEIPTS_PER_PAYLOAD: usize,
+    const MAX_DEPOSIT_REQUESTS_PER_PAYLOAD: usize,
     const MAX_WITHDRAWAL_REQUESTS_PER_PAYLOAD: usize,
     const MAX_BLS_TO_EXECUTION_CHANGES: usize,
     const MAX_BLOB_COMMITMENTS_PER_BLOCK: usize,
-    const MAX_CONSOLIDATIONS: usize,
+    const MAX_CONSOLIDATION_REQUESTS_PER_PAYLOAD: usize,
 >(
     state: &mut BeaconState<
         SLOTS_PER_HISTORICAL_ROOT,
@@ -411,14 +405,13 @@ pub fn process_operations<
         SYNC_COMMITTEE_SIZE,
         BYTES_PER_LOGS_BLOOM,
         MAX_EXTRA_DATA_BYTES,
-        PENDING_BALANCE_DEPOSITS_LIMIT,
+        PENDING_DEPOSITS_LIMIT,
         PENDING_PARTIAL_WITHDRAWALS_LIMIT,
         PENDING_CONSOLIDATIONS_LIMIT,
     >,
     body: &BeaconBlockBody<
         MAX_PROPOSER_SLASHINGS,
-        MAX_VALIDATORS_PER_SLOT,
-        MAX_COMMITTEES_PER_SLOT,
+        MAX_VALIDATORS_PER_COMMITTEE,
         MAX_ATTESTER_SLASHINGS,
         MAX_ATTESTATIONS,
         MAX_DEPOSITS,
@@ -429,11 +422,12 @@ pub fn process_operations<
         MAX_BYTES_PER_TRANSACTION,
         MAX_TRANSACTIONS_PER_PAYLOAD,
         MAX_WITHDRAWALS_PER_PAYLOAD,
-        MAX_DEPOSIT_RECEIPTS_PER_PAYLOAD,
-        MAX_WITHDRAWAL_REQUESTS_PER_PAYLOAD,
         MAX_BLS_TO_EXECUTION_CHANGES,
         MAX_BLOB_COMMITMENTS_PER_BLOCK,
-        MAX_CONSOLIDATIONS,
+        MAX_COMMITTEES_PER_SLOT,
+        MAX_DEPOSIT_REQUESTS_PER_PAYLOAD,
+        MAX_WITHDRAWAL_REQUESTS_PER_PAYLOAD,
+        MAX_CONSOLIDATION_REQUESTS_PER_PAYLOAD,
     >,
     context: &Context,
 ) -> Result<(), Error> {
@@ -467,15 +461,18 @@ pub fn process_operations<
     body.bls_to_execution_changes
         .iter()
         .try_for_each(|op| process_bls_to_execution_change(state, op, context))?;
-    body.execution_payload
-        .withdrawal_requests
+    body.execution_requests
+        .deposits
         .iter()
-        .try_for_each(|op| process_execution_layer_withdrawal_request(state, op, context))?;
-    body.execution_payload
-        .deposit_receipts
+        .try_for_each(|op| process_deposit_request(state, op, context))?;
+    body.execution_requests
+        .withdrawals
         .iter()
-        .try_for_each(|op| process_deposit_receipt(state, op, context))?;
-    body.consolidations.iter().try_for_each(|op| process_consolidation(state, op, context))?;
+        .try_for_each(|op| process_withdrawal_request(state, op, context))?;
+    body.execution_requests
+        .consolidations
+        .iter()
+        .try_for_each(|op| process_consolidation_request(state, op, context))?;
 
     Ok(())
 }
@@ -491,10 +488,9 @@ pub fn process_attestation<
     const SYNC_COMMITTEE_SIZE: usize,
     const BYTES_PER_LOGS_BLOOM: usize,
     const MAX_EXTRA_DATA_BYTES: usize,
-    const PENDING_BALANCE_DEPOSITS_LIMIT: usize,
+    const PENDING_DEPOSITS_LIMIT: usize,
     const PENDING_PARTIAL_WITHDRAWALS_LIMIT: usize,
     const PENDING_CONSOLIDATIONS_LIMIT: usize,
-    const MAX_VALIDATORS_PER_SLOT: usize,
     const MAX_COMMITTEES_PER_SLOT: usize,
 >(
     state: &mut BeaconState<
@@ -508,11 +504,11 @@ pub fn process_attestation<
         SYNC_COMMITTEE_SIZE,
         BYTES_PER_LOGS_BLOOM,
         MAX_EXTRA_DATA_BYTES,
-        PENDING_BALANCE_DEPOSITS_LIMIT,
+        PENDING_DEPOSITS_LIMIT,
         PENDING_PARTIAL_WITHDRAWALS_LIMIT,
         PENDING_CONSOLIDATIONS_LIMIT,
     >,
-    attestation: &Attestation<MAX_VALIDATORS_PER_SLOT, MAX_COMMITTEES_PER_SLOT>,
+    attestation: &Attestation<MAX_VALIDATORS_PER_COMMITTEE, MAX_COMMITTEES_PER_SLOT>,
     context: &Context,
 ) -> Result<(), Error> {
     let data = &attestation.data;
@@ -628,7 +624,7 @@ pub fn apply_deposit<
     const SYNC_COMMITTEE_SIZE: usize,
     const BYTES_PER_LOGS_BLOOM: usize,
     const MAX_EXTRA_DATA_BYTES: usize,
-    const PENDING_BALANCE_DEPOSITS_LIMIT: usize,
+    const PENDING_DEPOSITS_LIMIT: usize,
     const PENDING_PARTIAL_WITHDRAWALS_LIMIT: usize,
     const PENDING_CONSOLIDATIONS_LIMIT: usize,
 >(
@@ -643,7 +639,7 @@ pub fn apply_deposit<
         SYNC_COMMITTEE_SIZE,
         BYTES_PER_LOGS_BLOOM,
         MAX_EXTRA_DATA_BYTES,
-        PENDING_BALANCE_DEPOSITS_LIMIT,
+        PENDING_DEPOSITS_LIMIT,
         PENDING_PARTIAL_WITHDRAWALS_LIMIT,
         PENDING_CONSOLIDATIONS_LIMIT,
     >,
@@ -655,7 +651,7 @@ pub fn apply_deposit<
 ) -> Result<(), Error> {
     let validator = state.validators.iter().enumerate().find(|(_, v)| v.public_key == *public_key);
     if let Some((index, validator)) = validator {
-        state.pending_balance_deposits.push(PendingBalanceDeposit { index, amount });
+        state.pending_deposits.push(PendingDeposit { index, amount });
 
         is_valid_deposit_signature(
             public_key,
@@ -709,7 +705,7 @@ pub fn add_validator_to_registry<
     const SYNC_COMMITTEE_SIZE: usize,
     const BYTES_PER_LOGS_BLOOM: usize,
     const MAX_EXTRA_DATA_BYTES: usize,
-    const PENDING_BALANCE_DEPOSITS_LIMIT: usize,
+    const PENDING_DEPOSITS_LIMIT: usize,
     const PENDING_PARTIAL_WITHDRAWALS_LIMIT: usize,
     const PENDING_CONSOLIDATIONS_LIMIT: usize,
 >(
@@ -724,7 +720,7 @@ pub fn add_validator_to_registry<
         SYNC_COMMITTEE_SIZE,
         BYTES_PER_LOGS_BLOOM,
         MAX_EXTRA_DATA_BYTES,
-        PENDING_BALANCE_DEPOSITS_LIMIT,
+        PENDING_DEPOSITS_LIMIT,
         PENDING_PARTIAL_WITHDRAWALS_LIMIT,
         PENDING_CONSOLIDATIONS_LIMIT,
     >,
@@ -738,7 +734,7 @@ pub fn add_validator_to_registry<
     state.previous_epoch_participation.push(ParticipationFlags::default());
     state.current_epoch_participation.push(ParticipationFlags::default());
     state.inactivity_scores.push(0);
-    state.pending_balance_deposits.push(PendingBalanceDeposit { index, amount });
+    state.pending_deposits.push(PendingDeposit { index, amount });
 }
 
 pub fn get_validator_from_deposit(
@@ -768,7 +764,7 @@ pub fn process_voluntary_exit<
     const SYNC_COMMITTEE_SIZE: usize,
     const BYTES_PER_LOGS_BLOOM: usize,
     const MAX_EXTRA_DATA_BYTES: usize,
-    const PENDING_BALANCE_DEPOSITS_LIMIT: usize,
+    const PENDING_DEPOSITS_LIMIT: usize,
     const PENDING_PARTIAL_WITHDRAWALS_LIMIT: usize,
     const PENDING_CONSOLIDATIONS_LIMIT: usize,
 >(
@@ -783,7 +779,7 @@ pub fn process_voluntary_exit<
         SYNC_COMMITTEE_SIZE,
         BYTES_PER_LOGS_BLOOM,
         MAX_EXTRA_DATA_BYTES,
-        PENDING_BALANCE_DEPOSITS_LIMIT,
+        PENDING_DEPOSITS_LIMIT,
         PENDING_PARTIAL_WITHDRAWALS_LIMIT,
         PENDING_CONSOLIDATIONS_LIMIT,
     >,
@@ -868,7 +864,7 @@ pub fn process_execution_layer_withdrawal_request<
     const SYNC_COMMITTEE_SIZE: usize,
     const BYTES_PER_LOGS_BLOOM: usize,
     const MAX_EXTRA_DATA_BYTES: usize,
-    const PENDING_BALANCE_DEPOSITS_LIMIT: usize,
+    const PENDING_DEPOSITS_LIMIT: usize,
     const PENDING_PARTIAL_WITHDRAWALS_LIMIT: usize,
     const PENDING_CONSOLIDATIONS_LIMIT: usize,
 >(
@@ -883,7 +879,7 @@ pub fn process_execution_layer_withdrawal_request<
         SYNC_COMMITTEE_SIZE,
         BYTES_PER_LOGS_BLOOM,
         MAX_EXTRA_DATA_BYTES,
-        PENDING_BALANCE_DEPOSITS_LIMIT,
+        PENDING_DEPOSITS_LIMIT,
         PENDING_PARTIAL_WITHDRAWALS_LIMIT,
         PENDING_CONSOLIDATIONS_LIMIT,
     >,
@@ -970,7 +966,7 @@ pub fn process_deposit_receipt<
     const SYNC_COMMITTEE_SIZE: usize,
     const BYTES_PER_LOGS_BLOOM: usize,
     const MAX_EXTRA_DATA_BYTES: usize,
-    const PENDING_BALANCE_DEPOSITS_LIMIT: usize,
+    const PENDING_DEPOSITS_LIMIT: usize,
     const PENDING_PARTIAL_WITHDRAWALS_LIMIT: usize,
     const PENDING_CONSOLIDATIONS_LIMIT: usize,
 >(
@@ -985,7 +981,7 @@ pub fn process_deposit_receipt<
         SYNC_COMMITTEE_SIZE,
         BYTES_PER_LOGS_BLOOM,
         MAX_EXTRA_DATA_BYTES,
-        PENDING_BALANCE_DEPOSITS_LIMIT,
+        PENDING_DEPOSITS_LIMIT,
         PENDING_PARTIAL_WITHDRAWALS_LIMIT,
         PENDING_CONSOLIDATIONS_LIMIT,
     >,
@@ -1005,7 +1001,7 @@ pub fn process_deposit_receipt<
     )
 }
 
-pub fn process_consolidation<
+pub fn process_consolidation_request<
     const SLOTS_PER_HISTORICAL_ROOT: usize,
     const HISTORICAL_ROOTS_LIMIT: usize,
     const ETH1_DATA_VOTES_BOUND: usize,
@@ -1016,7 +1012,7 @@ pub fn process_consolidation<
     const SYNC_COMMITTEE_SIZE: usize,
     const BYTES_PER_LOGS_BLOOM: usize,
     const MAX_EXTRA_DATA_BYTES: usize,
-    const PENDING_BALANCE_DEPOSITS_LIMIT: usize,
+    const PENDING_DEPOSITS_LIMIT: usize,
     const PENDING_PARTIAL_WITHDRAWALS_LIMIT: usize,
     const PENDING_CONSOLIDATIONS_LIMIT: usize,
 >(
@@ -1031,122 +1027,194 @@ pub fn process_consolidation<
         SYNC_COMMITTEE_SIZE,
         BYTES_PER_LOGS_BLOOM,
         MAX_EXTRA_DATA_BYTES,
-        PENDING_BALANCE_DEPOSITS_LIMIT,
+        PENDING_DEPOSITS_LIMIT,
         PENDING_PARTIAL_WITHDRAWALS_LIMIT,
         PENDING_CONSOLIDATIONS_LIMIT,
     >,
-    signed_consolidation: &SignedConsolidation,
+    consolidation_request: &ConsolidationRequest,
     context: &Context,
 ) -> Result<(), Error> {
-    if state.pending_consolidations.len() >= context.pending_consolidations_limit {
-        return Err(invalid_operation_error(InvalidOperation::InvalidConsolidation(
-            InvalidConsolidation::PendingConsolidationsQueueFull,
-        )));
-    }
-    let consolidation_churn_limit = get_consolidation_churn_limit(state, context)?;
-    if consolidation_churn_limit <= context.min_activation_balance {
-        return Err(invalid_operation_error(InvalidOperation::InvalidConsolidation(
-            InvalidConsolidation::InsufficientConsolidationChurnLimit,
-        )));
-    }
+    // if state.pending_consolidations.len() >= context.pending_consolidations_limit {
+    //     return Err(invalid_operation_error(InvalidOperation::InvalidConsolidation(
+    //         InvalidConsolidation::PendingConsolidationsQueueFull,
+    //     )));
+    // }
+    // let consolidation_churn_limit = get_consolidation_churn_limit(state, context)?;
+    // if consolidation_churn_limit <= context.min_activation_balance {
+    //     return Err(invalid_operation_error(InvalidOperation::InvalidConsolidation(
+    //         InvalidConsolidation::InsufficientConsolidationChurnLimit,
+    //     )));
+    // }
 
-    let consolidation = &signed_consolidation.message;
-    if consolidation.source_index == consolidation.target_index {
-        return Err(invalid_operation_error(InvalidOperation::InvalidConsolidation(
-            InvalidConsolidation::EqualSourceAndTargetIndices(consolidation.source_index),
-        )));
-    }
+    // let consolidation = &signed_consolidation.message;
+    // if consolidation.source_index == consolidation.target_index {
+    //     return Err(invalid_operation_error(InvalidOperation::InvalidConsolidation(
+    //         InvalidConsolidation::EqualSourceAndTargetIndices(consolidation.source_index),
+    //     )));
+    // }
 
-    if consolidation.source_index >= state.validators.len() {
-        return Err(invalid_operation_error(InvalidOperation::InvalidConsolidation(
-            InvalidConsolidation::InvalidIndex(consolidation.source_index),
-        )));
-    }
-    let source_validator = state.validators[consolidation.source_index].clone();
-    if consolidation.target_index >= state.validators.len() {
-        return Err(invalid_operation_error(InvalidOperation::InvalidConsolidation(
-            InvalidConsolidation::InvalidIndex(consolidation.target_index),
-        )));
-    }
-    let target_validator = state.validators[consolidation.target_index].clone();
+    // if consolidation.source_index >= state.validators.len() {
+    //     return Err(invalid_operation_error(InvalidOperation::InvalidConsolidation(
+    //         InvalidConsolidation::InvalidIndex(consolidation.source_index),
+    //     )));
+    // }
+    // let source_validator = state.validators[consolidation.source_index].clone();
+    // if consolidation.target_index >= state.validators.len() {
+    //     return Err(invalid_operation_error(InvalidOperation::InvalidConsolidation(
+    //         InvalidConsolidation::InvalidIndex(consolidation.target_index),
+    //     )));
+    // }
+    // let target_validator = state.validators[consolidation.target_index].clone();
 
-    let current_epoch = get_current_epoch(state, context);
-    if !is_active_validator(&source_validator, current_epoch) {
-        return Err(invalid_operation_error(InvalidOperation::InvalidConsolidation(
-            InvalidConsolidation::InactiveValidator(consolidation.source_index, current_epoch),
-        )));
-    }
-    if !is_active_validator(&target_validator, current_epoch) {
-        return Err(invalid_operation_error(InvalidOperation::InvalidConsolidation(
-            InvalidConsolidation::InactiveValidator(consolidation.target_index, current_epoch),
-        )));
-    }
+    // let current_epoch = get_current_epoch(state, context);
+    // if !is_active_validator(&source_validator, current_epoch) {
+    //     return Err(invalid_operation_error(InvalidOperation::InvalidConsolidation(
+    //         InvalidConsolidation::InactiveValidator(consolidation.source_index, current_epoch),
+    //     )));
+    // }
+    // if !is_active_validator(&target_validator, current_epoch) {
+    //     return Err(invalid_operation_error(InvalidOperation::InvalidConsolidation(
+    //         InvalidConsolidation::InactiveValidator(consolidation.target_index, current_epoch),
+    //     )));
+    // }
 
-    if source_validator.exit_epoch != FAR_FUTURE_EPOCH {
-        return Err(invalid_operation_error(InvalidOperation::InvalidConsolidation(
-            InvalidConsolidation::ExitInitiatedForValidator(consolidation.source_index),
-        )));
-    }
-    if target_validator.exit_epoch != FAR_FUTURE_EPOCH {
-        return Err(invalid_operation_error(InvalidOperation::InvalidConsolidation(
-            InvalidConsolidation::ExitInitiatedForValidator(consolidation.target_index),
-        )));
-    }
+    // if source_validator.exit_epoch != FAR_FUTURE_EPOCH {
+    //     return Err(invalid_operation_error(InvalidOperation::InvalidConsolidation(
+    //         InvalidConsolidation::ExitInitiatedForValidator(consolidation.source_index),
+    //     )));
+    // }
+    // if target_validator.exit_epoch != FAR_FUTURE_EPOCH {
+    //     return Err(invalid_operation_error(InvalidOperation::InvalidConsolidation(
+    //         InvalidConsolidation::ExitInitiatedForValidator(consolidation.target_index),
+    //     )));
+    // }
 
-    if current_epoch < consolidation.epoch {
-        return Err(invalid_operation_error(InvalidOperation::InvalidConsolidation(
-            InvalidConsolidation::EarlyConsolidation {
-                current_epoch,
-                consolidation_epoch: consolidation.epoch,
-            },
-        )));
-    }
+    // if current_epoch < consolidation.epoch {
+    //     return Err(invalid_operation_error(InvalidOperation::InvalidConsolidation(
+    //         InvalidConsolidation::EarlyConsolidation {
+    //             current_epoch,
+    //             consolidation_epoch: consolidation.epoch,
+    //         },
+    //     )));
+    // }
 
-    if !has_execution_withdrawal_credential(&source_validator) {
-        return Err(invalid_operation_error(InvalidOperation::InvalidConsolidation(
-            InvalidConsolidation::MissingExecutionWithdrawalCredentials(consolidation.source_index),
-        )));
-    }
-    if !has_execution_withdrawal_credential(&target_validator) {
-        return Err(invalid_operation_error(InvalidOperation::InvalidConsolidation(
-            InvalidConsolidation::MissingExecutionWithdrawalCredentials(consolidation.target_index),
-        )));
-    }
+    // if !has_execution_withdrawal_credential(&source_validator) {
+    //     return Err(invalid_operation_error(InvalidOperation::InvalidConsolidation(
+    //         InvalidConsolidation::MissingExecutionWithdrawalCredentials(consolidation.
+    // source_index),     )));
+    // }
+    // if !has_execution_withdrawal_credential(&target_validator) {
+    //     return Err(invalid_operation_error(InvalidOperation::InvalidConsolidation(
+    //         InvalidConsolidation::MissingExecutionWithdrawalCredentials(consolidation.
+    // target_index),     )));
+    // }
 
-    let source_withdrawal_credentials = &source_validator.withdrawal_credentials;
-    let target_withdrawal_credentials = &target_validator.withdrawal_credentials;
-    if source_withdrawal_credentials[12..] != target_withdrawal_credentials[12..] {
-        let mut source_address = ExecutionAddress::default();
-        source_address.copy_from_slice(&source_withdrawal_credentials[12..]);
-        let mut target_address = ExecutionAddress::default();
-        target_address.copy_from_slice(&target_withdrawal_credentials[12..]);
-        return Err(invalid_operation_error(InvalidOperation::InvalidConsolidation(
-            InvalidConsolidation::WithdrawalCredentialsMismatch { source_address, target_address },
-        )));
-    }
+    // let source_withdrawal_credentials = &source_validator.withdrawal_credentials;
+    // let target_withdrawal_credentials = &target_validator.withdrawal_credentials;
+    // if source_withdrawal_credentials[12..] != target_withdrawal_credentials[12..] {
+    //     let mut source_address = ExecutionAddress::default();
+    //     source_address.copy_from_slice(&source_withdrawal_credentials[12..]);
+    //     let mut target_address = ExecutionAddress::default();
+    //     target_address.copy_from_slice(&target_withdrawal_credentials[12..]);
+    //     return Err(invalid_operation_error(InvalidOperation::InvalidConsolidation(
+    //         InvalidConsolidation::WithdrawalCredentialsMismatch { source_address, target_address
+    // },     )));
+    // }
 
-    let domain = compute_domain(
-        DomainType::Consolidation,
-        None,
-        Some(state.genesis_validators_root),
-        context,
-    )?;
-    let signing_root = compute_signing_root(consolidation, domain)?;
-    let public_keys = [&source_validator.public_key, &target_validator.public_key];
-    fast_aggregate_verify(&public_keys[..], &signing_root[..], &signed_consolidation.signature)?;
+    // let domain = compute_domain(
+    //     DomainType::Consolidation,
+    //     None,
+    //     Some(state.genesis_validators_root),
+    //     context,
+    // )?;
+    // let signing_root = compute_signing_root(consolidation, domain)?;
+    // let public_keys = [&source_validator.public_key, &target_validator.public_key];
+    // fast_aggregate_verify(&public_keys[..], &signing_root[..], &signed_consolidation.signature)?;
 
-    state.validators[consolidation.source_index].exit_epoch =
-        compute_consolidation_epoch_and_update_churn(
-            state,
-            source_validator.effective_balance,
-            context,
-        )?;
-    state.validators[consolidation.source_index].withdrawable_epoch =
-        source_validator.exit_epoch + context.min_validator_withdrawability_delay;
-    state.pending_consolidations.push(PendingConsolidation {
-        source_index: consolidation.source_index,
-        target_index: consolidation.target_index,
-    });
+    // state.validators[consolidation.source_index].exit_epoch =
+    //     compute_consolidation_epoch_and_update_churn(
+    //         state,
+    //         source_validator.effective_balance,
+    //         context,
+    //     )?;
+    // state.validators[consolidation.source_index].withdrawable_epoch =
+    //     source_validator.exit_epoch + context.min_validator_withdrawability_delay;
+    // state.pending_consolidations.push(PendingConsolidation {
+    //     source_index: consolidation.source_index,
+    //     target_index: consolidation.target_index,
+    // });
 
+    Ok(())
+}
+
+pub fn process_deposit_request<
+    const SLOTS_PER_HISTORICAL_ROOT: usize,
+    const HISTORICAL_ROOTS_LIMIT: usize,
+    const ETH1_DATA_VOTES_BOUND: usize,
+    const VALIDATOR_REGISTRY_LIMIT: usize,
+    const EPOCHS_PER_HISTORICAL_VECTOR: usize,
+    const EPOCHS_PER_SLASHINGS_VECTOR: usize,
+    const MAX_VALIDATORS_PER_COMMITTEE: usize,
+    const SYNC_COMMITTEE_SIZE: usize,
+    const BYTES_PER_LOGS_BLOOM: usize,
+    const MAX_EXTRA_DATA_BYTES: usize,
+    const PENDING_DEPOSITS_LIMIT: usize,
+    const PENDING_PARTIAL_WITHDRAWALS_LIMIT: usize,
+    const PENDING_CONSOLIDATIONS_LIMIT: usize,
+>(
+    state: &mut BeaconState<
+        SLOTS_PER_HISTORICAL_ROOT,
+        HISTORICAL_ROOTS_LIMIT,
+        ETH1_DATA_VOTES_BOUND,
+        VALIDATOR_REGISTRY_LIMIT,
+        EPOCHS_PER_HISTORICAL_VECTOR,
+        EPOCHS_PER_SLASHINGS_VECTOR,
+        MAX_VALIDATORS_PER_COMMITTEE,
+        SYNC_COMMITTEE_SIZE,
+        BYTES_PER_LOGS_BLOOM,
+        MAX_EXTRA_DATA_BYTES,
+        PENDING_DEPOSITS_LIMIT,
+        PENDING_PARTIAL_WITHDRAWALS_LIMIT,
+        PENDING_CONSOLIDATIONS_LIMIT,
+    >,
+    deposit_request: &DepositRequest,
+    context: &Context,
+) -> Result<(), Error> {
+    Ok(())
+}
+
+pub fn process_withdrawal_request<
+    const SLOTS_PER_HISTORICAL_ROOT: usize,
+    const HISTORICAL_ROOTS_LIMIT: usize,
+    const ETH1_DATA_VOTES_BOUND: usize,
+    const VALIDATOR_REGISTRY_LIMIT: usize,
+    const EPOCHS_PER_HISTORICAL_VECTOR: usize,
+    const EPOCHS_PER_SLASHINGS_VECTOR: usize,
+    const MAX_VALIDATORS_PER_COMMITTEE: usize,
+    const SYNC_COMMITTEE_SIZE: usize,
+    const BYTES_PER_LOGS_BLOOM: usize,
+    const MAX_EXTRA_DATA_BYTES: usize,
+    const PENDING_DEPOSITS_LIMIT: usize,
+    const PENDING_PARTIAL_WITHDRAWALS_LIMIT: usize,
+    const PENDING_CONSOLIDATIONS_LIMIT: usize,
+>(
+    state: &mut BeaconState<
+        SLOTS_PER_HISTORICAL_ROOT,
+        HISTORICAL_ROOTS_LIMIT,
+        ETH1_DATA_VOTES_BOUND,
+        VALIDATOR_REGISTRY_LIMIT,
+        EPOCHS_PER_HISTORICAL_VECTOR,
+        EPOCHS_PER_SLASHINGS_VECTOR,
+        MAX_VALIDATORS_PER_COMMITTEE,
+        SYNC_COMMITTEE_SIZE,
+        BYTES_PER_LOGS_BLOOM,
+        MAX_EXTRA_DATA_BYTES,
+        PENDING_DEPOSITS_LIMIT,
+        PENDING_PARTIAL_WITHDRAWALS_LIMIT,
+        PENDING_CONSOLIDATIONS_LIMIT,
+    >,
+    withdrawal_request: &WithdrawalRequest,
+    context: &Context,
+) -> Result<(), Error> {
     Ok(())
 }

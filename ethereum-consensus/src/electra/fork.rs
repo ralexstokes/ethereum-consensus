@@ -27,7 +27,7 @@ pub fn upgrade_to_electra<
     const SYNC_COMMITTEE_SIZE: usize,
     const BYTES_PER_LOGS_BLOOM: usize,
     const MAX_EXTRA_DATA_BYTES: usize,
-    const PENDING_BALANCE_DEPOSITS_LIMIT: usize,
+    const PENDING_DEPOSITS_LIMIT: usize,
     const PENDING_PARTIAL_WITHDRAWALS_LIMIT: usize,
     const PENDING_CONSOLIDATIONS_LIMIT: usize,
 >(
@@ -56,7 +56,7 @@ pub fn upgrade_to_electra<
         SYNC_COMMITTEE_SIZE,
         BYTES_PER_LOGS_BLOOM,
         MAX_EXTRA_DATA_BYTES,
-        PENDING_BALANCE_DEPOSITS_LIMIT,
+        PENDING_DEPOSITS_LIMIT,
         PENDING_PARTIAL_WITHDRAWALS_LIMIT,
         PENDING_CONSOLIDATIONS_LIMIT,
     >,
@@ -82,8 +82,6 @@ pub fn upgrade_to_electra<
         withdrawals_root: latest_execution_payload_header.withdrawals_root,
         blob_gas_used: latest_execution_payload_header.blob_gas_used,
         excess_blob_gas: latest_execution_payload_header.excess_blob_gas,
-        deposit_receipts_root: Default::default(),
-        withdrawal_requests_root: Default::default(),
     };
 
     let exit_epoch = state
@@ -133,7 +131,7 @@ pub fn upgrade_to_electra<
         earliest_exit_epoch,
         consolidation_balance_to_consume: 0,
         earliest_consolidation_epoch: compute_activation_exit_epoch(epoch, context),
-        pending_balance_deposits: Default::default(),
+        pending_deposits: Default::default(),
         pending_partial_withdrawals: Default::default(),
         pending_consolidations: Default::default(),
     };

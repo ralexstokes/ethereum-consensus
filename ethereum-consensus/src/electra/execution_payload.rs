@@ -1,7 +1,6 @@
 use crate::{
     bellatrix::Transaction,
     capella::Withdrawal,
-    electra::beacon_state::{DepositReceipt, ExecutionLayerWithdrawalRequest},
     primitives::{Bytes32, ExecutionAddress, Hash32, Root},
     ssz::prelude::*,
     Error,
@@ -16,8 +15,6 @@ pub struct ExecutionPayload<
     const MAX_BYTES_PER_TRANSACTION: usize,
     const MAX_TRANSACTIONS_PER_PAYLOAD: usize,
     const MAX_WITHDRAWALS_PER_PAYLOAD: usize,
-    const MAX_DEPOSIT_RECEIPTS_PER_PAYLOAD: usize,
-    const MAX_WITHDRAWAL_REQUESTS_PER_PAYLOAD: usize,
 > {
     pub parent_hash: Hash32,
     pub fee_recipient: ExecutionAddress,
@@ -43,9 +40,6 @@ pub struct ExecutionPayload<
     pub blob_gas_used: u64,
     #[serde(with = "crate::serde::as_str")]
     pub excess_blob_gas: u64,
-    pub deposit_receipts: List<DepositReceipt, MAX_DEPOSIT_RECEIPTS_PER_PAYLOAD>,
-    pub withdrawal_requests:
-        List<ExecutionLayerWithdrawalRequest, MAX_WITHDRAWAL_REQUESTS_PER_PAYLOAD>,
 }
 
 #[derive(
@@ -79,8 +73,6 @@ pub struct ExecutionPayloadHeader<
     pub blob_gas_used: u64,
     #[serde(with = "crate::serde::as_str")]
     pub excess_blob_gas: u64,
-    pub deposit_receipts_root: Root,
-    pub withdrawal_requests_root: Root,
 }
 
 impl<
@@ -90,8 +82,6 @@ impl<
         const MAX_BYTES_PER_TRANSACTION: usize,
         const MAX_TRANSACTIONS_PER_PAYLOAD: usize,
         const MAX_WITHDRAWALS_PER_PAYLOAD: usize,
-        const MAX_DEPOSIT_RECEIPTS_PER_PAYLOAD: usize,
-        const MAX_WITHDRAWAL_REQUESTS_PER_PAYLOAD: usize,
     >
     TryFrom<
         &'a ExecutionPayload<
@@ -100,8 +90,6 @@ impl<
             MAX_BYTES_PER_TRANSACTION,
             MAX_TRANSACTIONS_PER_PAYLOAD,
             MAX_WITHDRAWALS_PER_PAYLOAD,
-            MAX_DEPOSIT_RECEIPTS_PER_PAYLOAD,
-            MAX_WITHDRAWAL_REQUESTS_PER_PAYLOAD,
         >,
     > for ExecutionPayloadHeader<BYTES_PER_LOGS_BLOOM, MAX_EXTRA_DATA_BYTES>
 {
@@ -114,15 +102,11 @@ impl<
             MAX_BYTES_PER_TRANSACTION,
             MAX_TRANSACTIONS_PER_PAYLOAD,
             MAX_WITHDRAWALS_PER_PAYLOAD,
-            MAX_DEPOSIT_RECEIPTS_PER_PAYLOAD,
-            MAX_WITHDRAWAL_REQUESTS_PER_PAYLOAD,
         >,
     ) -> Result<ExecutionPayloadHeader<BYTES_PER_LOGS_BLOOM, MAX_EXTRA_DATA_BYTES>, Self::Error>
     {
         let transactions_root = payload.transactions.hash_tree_root()?;
         let withdrawals_root = payload.withdrawals.hash_tree_root()?;
-        let deposit_receipts_root = payload.deposit_receipts.hash_tree_root()?;
-        let withdrawal_requests_root = payload.withdrawal_requests.hash_tree_root()?;
 
         Ok(ExecutionPayloadHeader {
             parent_hash: payload.parent_hash.clone(),
@@ -142,8 +126,6 @@ impl<
             withdrawals_root,
             blob_gas_used: payload.blob_gas_used,
             excess_blob_gas: payload.excess_blob_gas,
-            deposit_receipts_root,
-            withdrawal_requests_root,
         })
     }
 }

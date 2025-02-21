@@ -27,7 +27,7 @@ pub struct DepositReceipt {
 #[derive(
     Default, Debug, Clone, SimpleSerialize, PartialEq, Eq, serde::Serialize, serde::Deserialize,
 )]
-pub struct PendingBalanceDeposit {
+pub struct PendingDeposit {
     #[serde(with = "crate::serde::as_str")]
     pub index: ValidatorIndex,
     #[serde(with = "crate::serde::as_str")]
@@ -81,7 +81,7 @@ pub struct BeaconState<
     const SYNC_COMMITTEE_SIZE: usize,
     const BYTES_PER_LOGS_BLOOM: usize,
     const MAX_EXTRA_DATA_BYTES: usize,
-    const PENDING_BALANCE_DEPOSITS_LIMIT: usize,
+    const PENDING_DEPOSITS_LIMIT: usize,
     const PENDING_PARTIAL_WITHDRAWALS_LIMIT: usize,
     const PENDING_CONSOLIDATIONS_LIMIT: usize,
 > {
@@ -136,7 +136,7 @@ pub struct BeaconState<
     pub consolidation_balance_to_consume: Gwei,
     #[serde(with = "crate::serde::as_str")]
     pub earliest_consolidation_epoch: Epoch,
-    pub pending_balance_deposits: List<PendingBalanceDeposit, PENDING_BALANCE_DEPOSITS_LIMIT>,
+    pub pending_deposits: List<PendingDeposit, PENDING_DEPOSITS_LIMIT>,
     pub pending_partial_withdrawals:
         List<PendingPartialWithdrawal, PENDING_PARTIAL_WITHDRAWALS_LIMIT>,
     pub pending_consolidations: List<PendingConsolidation, PENDING_CONSOLIDATIONS_LIMIT>,

@@ -2,7 +2,7 @@ use crate::phase0::{presets::Preset, spec};
 
 pub use spec::*;
 
-pub const MAX_COMMITTEES_PER_SLOT: u64 = 64;
+pub const MAX_COMMITTEES_PER_SLOT: usize = 64;
 pub const TARGET_COMMITTEE_SIZE: u64 = 128;
 pub const MAX_VALIDATORS_PER_COMMITTEE: usize = 2048;
 pub const SHUFFLE_ROUND_COUNT: u64 = 90;

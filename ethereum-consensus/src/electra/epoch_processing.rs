@@ -26,7 +26,7 @@ pub fn process_epoch<
     const SYNC_COMMITTEE_SIZE: usize,
     const BYTES_PER_LOGS_BLOOM: usize,
     const MAX_EXTRA_DATA_BYTES: usize,
-    const PENDING_BALANCE_DEPOSITS_LIMIT: usize,
+    const PENDING_DEPOSITS_LIMIT: usize,
     const PENDING_PARTIAL_WITHDRAWALS_LIMIT: usize,
     const PENDING_CONSOLIDATIONS_LIMIT: usize,
 >(
@@ -41,7 +41,7 @@ pub fn process_epoch<
         SYNC_COMMITTEE_SIZE,
         BYTES_PER_LOGS_BLOOM,
         MAX_EXTRA_DATA_BYTES,
-        PENDING_BALANCE_DEPOSITS_LIMIT,
+        PENDING_DEPOSITS_LIMIT,
         PENDING_PARTIAL_WITHDRAWALS_LIMIT,
         PENDING_CONSOLIDATIONS_LIMIT,
     >,
@@ -53,7 +53,7 @@ pub fn process_epoch<
     process_registry_updates(state, context)?;
     process_slashings(state, context)?;
     process_eth1_data_reset(state, context);
-    process_pending_balance_deposits(state, context)?;
+    process_pending_deposits(state, context)?;
     process_pending_consolidations(state, context)?;
     process_effective_balance_updates(state, context);
     process_slashings_reset(state, context);
@@ -75,7 +75,7 @@ pub fn process_registry_updates<
     const SYNC_COMMITTEE_SIZE: usize,
     const BYTES_PER_LOGS_BLOOM: usize,
     const MAX_EXTRA_DATA_BYTES: usize,
-    const PENDING_BALANCE_DEPOSITS_LIMIT: usize,
+    const PENDING_DEPOSITS_LIMIT: usize,
     const PENDING_PARTIAL_WITHDRAWALS_LIMIT: usize,
     const PENDING_CONSOLIDATIONS_LIMIT: usize,
 >(
@@ -90,7 +90,7 @@ pub fn process_registry_updates<
         SYNC_COMMITTEE_SIZE,
         BYTES_PER_LOGS_BLOOM,
         MAX_EXTRA_DATA_BYTES,
-        PENDING_BALANCE_DEPOSITS_LIMIT,
+        PENDING_DEPOSITS_LIMIT,
         PENDING_PARTIAL_WITHDRAWALS_LIMIT,
         PENDING_CONSOLIDATIONS_LIMIT,
     >,
@@ -121,7 +121,7 @@ pub fn process_registry_updates<
     Ok(())
 }
 
-pub fn process_pending_balance_deposits<
+pub fn process_pending_deposits<
     const SLOTS_PER_HISTORICAL_ROOT: usize,
     const HISTORICAL_ROOTS_LIMIT: usize,
     const ETH1_DATA_VOTES_BOUND: usize,
@@ -132,7 +132,7 @@ pub fn process_pending_balance_deposits<
     const SYNC_COMMITTEE_SIZE: usize,
     const BYTES_PER_LOGS_BLOOM: usize,
     const MAX_EXTRA_DATA_BYTES: usize,
-    const PENDING_BALANCE_DEPOSITS_LIMIT: usize,
+    const PENDING_DEPOSITS_LIMIT: usize,
     const PENDING_PARTIAL_WITHDRAWALS_LIMIT: usize,
     const PENDING_CONSOLIDATIONS_LIMIT: usize,
 >(
@@ -147,7 +147,7 @@ pub fn process_pending_balance_deposits<
         SYNC_COMMITTEE_SIZE,
         BYTES_PER_LOGS_BLOOM,
         MAX_EXTRA_DATA_BYTES,
-        PENDING_BALANCE_DEPOSITS_LIMIT,
+        PENDING_DEPOSITS_LIMIT,
         PENDING_PARTIAL_WITHDRAWALS_LIMIT,
         PENDING_CONSOLIDATIONS_LIMIT,
     >,
@@ -158,8 +158,8 @@ pub fn process_pending_balance_deposits<
     let mut processed_amount = 0;
     let mut next_deposit_index = 0;
 
-    for i in 0..state.pending_balance_deposits.len() {
-        let deposit = &state.pending_balance_deposits[i];
+    for i in 0..state.pending_deposits.len() {
+        let deposit = &state.pending_deposits[i];
         let index = deposit.index;
         let amount = deposit.amount;
         if processed_amount + deposit.amount > available_for_processing {
@@ -170,9 +170,9 @@ pub fn process_pending_balance_deposits<
         next_deposit_index += 1;
     }
 
-    state.pending_balance_deposits.drain(..next_deposit_index);
+    state.pending_deposits.drain(..next_deposit_index);
 
-    if state.pending_balance_deposits.is_empty() {
+    if state.pending_deposits.is_empty() {
         state.deposit_balance_to_consume = 0;
     } else {
         state.deposit_balance_to_consume = available_for_processing - processed_amount;
@@ -192,7 +192,7 @@ pub fn process_pending_consolidations<
     const SYNC_COMMITTEE_SIZE: usize,
     const BYTES_PER_LOGS_BLOOM: usize,
     const MAX_EXTRA_DATA_BYTES: usize,
-    const PENDING_BALANCE_DEPOSITS_LIMIT: usize,
+    const PENDING_DEPOSITS_LIMIT: usize,
     const PENDING_PARTIAL_WITHDRAWALS_LIMIT: usize,
     const PENDING_CONSOLIDATIONS_LIMIT: usize,
 >(
@@ -207,7 +207,7 @@ pub fn process_pending_consolidations<
         SYNC_COMMITTEE_SIZE,
         BYTES_PER_LOGS_BLOOM,
         MAX_EXTRA_DATA_BYTES,
-        PENDING_BALANCE_DEPOSITS_LIMIT,
+        PENDING_DEPOSITS_LIMIT,
         PENDING_PARTIAL_WITHDRAWALS_LIMIT,
         PENDING_CONSOLIDATIONS_LIMIT,
     >,
@@ -250,7 +250,7 @@ pub fn process_effective_balance_updates<
     const SYNC_COMMITTEE_SIZE: usize,
     const BYTES_PER_LOGS_BLOOM: usize,
     const MAX_EXTRA_DATA_BYTES: usize,
-    const PENDING_BALANCE_DEPOSITS_LIMIT: usize,
+    const PENDING_DEPOSITS_LIMIT: usize,
     const PENDING_PARTIAL_WITHDRAWALS_LIMIT: usize,
     const PENDING_CONSOLIDATIONS_LIMIT: usize,
 >(
@@ -265,7 +265,7 @@ pub fn process_effective_balance_updates<
         SYNC_COMMITTEE_SIZE,
         BYTES_PER_LOGS_BLOOM,
         MAX_EXTRA_DATA_BYTES,
-        PENDING_BALANCE_DEPOSITS_LIMIT,
+        PENDING_DEPOSITS_LIMIT,
         PENDING_PARTIAL_WITHDRAWALS_LIMIT,
         PENDING_CONSOLIDATIONS_LIMIT,
     >,

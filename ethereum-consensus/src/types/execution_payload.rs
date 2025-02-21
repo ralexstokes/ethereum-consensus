@@ -3,6 +3,7 @@ use crate::{
     bellatrix::execution_payload::{self as bellatrix, Transaction},
     capella::{execution_payload as capella, withdrawal::Withdrawal},
     deneb::execution_payload as deneb,
+    electra::execution_payload as electra,
     primitives::{Bytes32, ExecutionAddress, Hash32},
     ssz::prelude::*,
     Fork as Version,
@@ -36,6 +37,15 @@ pub enum ExecutionPayload<
     ),
     Deneb(
         deneb::ExecutionPayload<
+            BYTES_PER_LOGS_BLOOM,
+            MAX_EXTRA_DATA_BYTES,
+            MAX_BYTES_PER_TRANSACTION,
+            MAX_TRANSACTIONS_PER_PAYLOAD,
+            MAX_WITHDRAWALS_PER_PAYLOAD,
+        >,
+    ),
+    Electra(
+        electra::ExecutionPayload<
             BYTES_PER_LOGS_BLOOM,
             MAX_EXTRA_DATA_BYTES,
             MAX_BYTES_PER_TRANSACTION,
@@ -153,11 +163,44 @@ impl<
             _ => None,
         }
     }
+    pub fn electra(
+        &self,
+    ) -> Option<
+        &electra::ExecutionPayload<
+            BYTES_PER_LOGS_BLOOM,
+            MAX_EXTRA_DATA_BYTES,
+            MAX_BYTES_PER_TRANSACTION,
+            MAX_TRANSACTIONS_PER_PAYLOAD,
+            MAX_WITHDRAWALS_PER_PAYLOAD,
+        >,
+    > {
+        match self {
+            Self::Electra(inner) => Some(inner),
+            _ => None,
+        }
+    }
+    pub fn electra_mut(
+        &mut self,
+    ) -> Option<
+        &mut electra::ExecutionPayload<
+            BYTES_PER_LOGS_BLOOM,
+            MAX_EXTRA_DATA_BYTES,
+            MAX_BYTES_PER_TRANSACTION,
+            MAX_TRANSACTIONS_PER_PAYLOAD,
+            MAX_WITHDRAWALS_PER_PAYLOAD,
+        >,
+    > {
+        match self {
+            Self::Electra(inner) => Some(inner),
+            _ => None,
+        }
+    }
     pub fn version(&self) -> Version {
         match self {
             Self::Bellatrix(_) => Version::Bellatrix,
             Self::Capella(_) => Version::Capella,
             Self::Deneb(_) => Version::Deneb,
+            Self::Electra(_) => Version::Electra,
         }
     }
     pub fn parent_hash(&self) -> &Hash32 {
@@ -165,6 +208,7 @@ impl<
             Self::Bellatrix(inner) => &inner.parent_hash,
             Self::Capella(inner) => &inner.parent_hash,
             Self::Deneb(inner) => &inner.parent_hash,
+            Self::Electra(inner) => &inner.parent_hash,
         }
     }
     pub fn parent_hash_mut(&mut self) -> &mut Hash32 {
@@ -172,6 +216,7 @@ impl<
             Self::Bellatrix(inner) => &mut inner.parent_hash,
             Self::Capella(inner) => &mut inner.parent_hash,
             Self::Deneb(inner) => &mut inner.parent_hash,
+            Self::Electra(inner) => &mut inner.parent_hash,
         }
     }
     pub fn fee_recipient(&self) -> &ExecutionAddress {
@@ -179,6 +224,7 @@ impl<
             Self::Bellatrix(inner) => &inner.fee_recipient,
             Self::Capella(inner) => &inner.fee_recipient,
             Self::Deneb(inner) => &inner.fee_recipient,
+            Self::Electra(inner) => &inner.fee_recipient,
         }
     }
     pub fn fee_recipient_mut(&mut self) -> &mut ExecutionAddress {
@@ -186,6 +232,7 @@ impl<
             Self::Bellatrix(inner) => &mut inner.fee_recipient,
             Self::Capella(inner) => &mut inner.fee_recipient,
             Self::Deneb(inner) => &mut inner.fee_recipient,
+            Self::Electra(inner) => &mut inner.fee_recipient,
         }
     }
     pub fn state_root(&self) -> &Bytes32 {
@@ -193,6 +240,7 @@ impl<
             Self::Bellatrix(inner) => &inner.state_root,
             Self::Capella(inner) => &inner.state_root,
             Self::Deneb(inner) => &inner.state_root,
+            Self::Electra(inner) => &inner.state_root,
         }
     }
     pub fn state_root_mut(&mut self) -> &mut Bytes32 {
@@ -200,6 +248,7 @@ impl<
             Self::Bellatrix(inner) => &mut inner.state_root,
             Self::Capella(inner) => &mut inner.state_root,
             Self::Deneb(inner) => &mut inner.state_root,
+            Self::Electra(inner) => &mut inner.state_root,
         }
     }
     pub fn receipts_root(&self) -> &Bytes32 {
@@ -207,6 +256,7 @@ impl<
             Self::Bellatrix(inner) => &inner.receipts_root,
             Self::Capella(inner) => &inner.receipts_root,
             Self::Deneb(inner) => &inner.receipts_root,
+            Self::Electra(inner) => &inner.receipts_root,
         }
     }
     pub fn receipts_root_mut(&mut self) -> &mut Bytes32 {
@@ -214,6 +264,7 @@ impl<
             Self::Bellatrix(inner) => &mut inner.receipts_root,
             Self::Capella(inner) => &mut inner.receipts_root,
             Self::Deneb(inner) => &mut inner.receipts_root,
+            Self::Electra(inner) => &mut inner.receipts_root,
         }
     }
     pub fn logs_bloom(&self) -> &ByteVector<BYTES_PER_LOGS_BLOOM> {
@@ -221,6 +272,7 @@ impl<
             Self::Bellatrix(inner) => &inner.logs_bloom,
             Self::Capella(inner) => &inner.logs_bloom,
             Self::Deneb(inner) => &inner.logs_bloom,
+            Self::Electra(inner) => &inner.logs_bloom,
         }
     }
     pub fn logs_bloom_mut(&mut self) -> &mut ByteVector<BYTES_PER_LOGS_BLOOM> {
@@ -228,6 +280,7 @@ impl<
             Self::Bellatrix(inner) => &mut inner.logs_bloom,
             Self::Capella(inner) => &mut inner.logs_bloom,
             Self::Deneb(inner) => &mut inner.logs_bloom,
+            Self::Electra(inner) => &mut inner.logs_bloom,
         }
     }
     pub fn prev_randao(&self) -> &Bytes32 {
@@ -235,6 +288,7 @@ impl<
             Self::Bellatrix(inner) => &inner.prev_randao,
             Self::Capella(inner) => &inner.prev_randao,
             Self::Deneb(inner) => &inner.prev_randao,
+            Self::Electra(inner) => &inner.prev_randao,
         }
     }
     pub fn prev_randao_mut(&mut self) -> &mut Bytes32 {
@@ -242,6 +296,7 @@ impl<
             Self::Bellatrix(inner) => &mut inner.prev_randao,
             Self::Capella(inner) => &mut inner.prev_randao,
             Self::Deneb(inner) => &mut inner.prev_randao,
+            Self::Electra(inner) => &mut inner.prev_randao,
         }
     }
     pub fn block_number(&self) -> u64 {
@@ -249,6 +304,7 @@ impl<
             Self::Bellatrix(inner) => inner.block_number,
             Self::Capella(inner) => inner.block_number,
             Self::Deneb(inner) => inner.block_number,
+            Self::Electra(inner) => inner.block_number,
         }
     }
     pub fn block_number_mut(&mut self) -> &mut u64 {
@@ -256,6 +312,7 @@ impl<
             Self::Bellatrix(inner) => &mut inner.block_number,
             Self::Capella(inner) => &mut inner.block_number,
             Self::Deneb(inner) => &mut inner.block_number,
+            Self::Electra(inner) => &mut inner.block_number,
         }
     }
     pub fn gas_limit(&self) -> u64 {
@@ -263,6 +320,7 @@ impl<
             Self::Bellatrix(inner) => inner.gas_limit,
             Self::Capella(inner) => inner.gas_limit,
             Self::Deneb(inner) => inner.gas_limit,
+            Self::Electra(inner) => inner.gas_limit,
         }
     }
     pub fn gas_limit_mut(&mut self) -> &mut u64 {
@@ -270,6 +328,7 @@ impl<
             Self::Bellatrix(inner) => &mut inner.gas_limit,
             Self::Capella(inner) => &mut inner.gas_limit,
             Self::Deneb(inner) => &mut inner.gas_limit,
+            Self::Electra(inner) => &mut inner.gas_limit,
         }
     }
     pub fn gas_used(&self) -> u64 {
@@ -277,6 +336,7 @@ impl<
             Self::Bellatrix(inner) => inner.gas_used,
             Self::Capella(inner) => inner.gas_used,
             Self::Deneb(inner) => inner.gas_used,
+            Self::Electra(inner) => inner.gas_used,
         }
     }
     pub fn gas_used_mut(&mut self) -> &mut u64 {
@@ -284,6 +344,7 @@ impl<
             Self::Bellatrix(inner) => &mut inner.gas_used,
             Self::Capella(inner) => &mut inner.gas_used,
             Self::Deneb(inner) => &mut inner.gas_used,
+            Self::Electra(inner) => &mut inner.gas_used,
         }
     }
     pub fn timestamp(&self) -> u64 {
@@ -291,6 +352,7 @@ impl<
             Self::Bellatrix(inner) => inner.timestamp,
             Self::Capella(inner) => inner.timestamp,
             Self::Deneb(inner) => inner.timestamp,
+            Self::Electra(inner) => inner.timestamp,
         }
     }
     pub fn timestamp_mut(&mut self) -> &mut u64 {
@@ -298,6 +360,7 @@ impl<
             Self::Bellatrix(inner) => &mut inner.timestamp,
             Self::Capella(inner) => &mut inner.timestamp,
             Self::Deneb(inner) => &mut inner.timestamp,
+            Self::Electra(inner) => &mut inner.timestamp,
         }
     }
     pub fn extra_data(&self) -> &ByteList<MAX_EXTRA_DATA_BYTES> {
@@ -305,6 +368,7 @@ impl<
             Self::Bellatrix(inner) => &inner.extra_data,
             Self::Capella(inner) => &inner.extra_data,
             Self::Deneb(inner) => &inner.extra_data,
+            Self::Electra(inner) => &inner.extra_data,
         }
     }
     pub fn extra_data_mut(&mut self) -> &mut ByteList<MAX_EXTRA_DATA_BYTES> {
@@ -312,6 +376,7 @@ impl<
             Self::Bellatrix(inner) => &mut inner.extra_data,
             Self::Capella(inner) => &mut inner.extra_data,
             Self::Deneb(inner) => &mut inner.extra_data,
+            Self::Electra(inner) => &mut inner.extra_data,
         }
     }
     pub fn base_fee_per_gas(&self) -> &U256 {
@@ -319,6 +384,7 @@ impl<
             Self::Bellatrix(inner) => &inner.base_fee_per_gas,
             Self::Capella(inner) => &inner.base_fee_per_gas,
             Self::Deneb(inner) => &inner.base_fee_per_gas,
+            Self::Electra(inner) => &inner.base_fee_per_gas,
         }
     }
     pub fn base_fee_per_gas_mut(&mut self) -> &mut U256 {
@@ -326,6 +392,7 @@ impl<
             Self::Bellatrix(inner) => &mut inner.base_fee_per_gas,
             Self::Capella(inner) => &mut inner.base_fee_per_gas,
             Self::Deneb(inner) => &mut inner.base_fee_per_gas,
+            Self::Electra(inner) => &mut inner.base_fee_per_gas,
         }
     }
     pub fn block_hash(&self) -> &Hash32 {
@@ -333,6 +400,7 @@ impl<
             Self::Bellatrix(inner) => &inner.block_hash,
             Self::Capella(inner) => &inner.block_hash,
             Self::Deneb(inner) => &inner.block_hash,
+            Self::Electra(inner) => &inner.block_hash,
         }
     }
     pub fn block_hash_mut(&mut self) -> &mut Hash32 {
@@ -340,6 +408,7 @@ impl<
             Self::Bellatrix(inner) => &mut inner.block_hash,
             Self::Capella(inner) => &mut inner.block_hash,
             Self::Deneb(inner) => &mut inner.block_hash,
+            Self::Electra(inner) => &mut inner.block_hash,
         }
     }
     pub fn transactions(
@@ -349,6 +418,7 @@ impl<
             Self::Bellatrix(inner) => &inner.transactions,
             Self::Capella(inner) => &inner.transactions,
             Self::Deneb(inner) => &inner.transactions,
+            Self::Electra(inner) => &inner.transactions,
         }
     }
     pub fn transactions_mut(
@@ -358,6 +428,7 @@ impl<
             Self::Bellatrix(inner) => &mut inner.transactions,
             Self::Capella(inner) => &mut inner.transactions,
             Self::Deneb(inner) => &mut inner.transactions,
+            Self::Electra(inner) => &mut inner.transactions,
         }
     }
     pub fn withdrawals(&self) -> Option<&List<Withdrawal, MAX_WITHDRAWALS_PER_PAYLOAD>> {
@@ -365,6 +436,7 @@ impl<
             Self::Bellatrix(_) => None,
             Self::Capella(inner) => Some(&inner.withdrawals),
             Self::Deneb(inner) => Some(&inner.withdrawals),
+            Self::Electra(inner) => Some(&inner.withdrawals),
         }
     }
     pub fn withdrawals_mut(
@@ -374,6 +446,7 @@ impl<
             Self::Bellatrix(_) => None,
             Self::Capella(inner) => Some(&mut inner.withdrawals),
             Self::Deneb(inner) => Some(&mut inner.withdrawals),
+            Self::Electra(inner) => Some(&mut inner.withdrawals),
         }
     }
     pub fn blob_gas_used(&self) -> Option<u64> {
@@ -381,6 +454,7 @@ impl<
             Self::Bellatrix(_) => None,
             Self::Capella(_) => None,
             Self::Deneb(inner) => Some(inner.blob_gas_used),
+            Self::Electra(inner) => Some(inner.blob_gas_used),
         }
     }
     pub fn blob_gas_used_mut(&mut self) -> Option<&mut u64> {
@@ -388,6 +462,7 @@ impl<
             Self::Bellatrix(_) => None,
             Self::Capella(_) => None,
             Self::Deneb(inner) => Some(&mut inner.blob_gas_used),
+            Self::Electra(inner) => Some(&mut inner.blob_gas_used),
         }
     }
     pub fn excess_blob_gas(&self) -> Option<u64> {
@@ -395,6 +470,7 @@ impl<
             Self::Bellatrix(_) => None,
             Self::Capella(_) => None,
             Self::Deneb(inner) => Some(inner.excess_blob_gas),
+            Self::Electra(inner) => Some(inner.excess_blob_gas),
         }
     }
     pub fn excess_blob_gas_mut(&mut self) -> Option<&mut u64> {
@@ -402,6 +478,7 @@ impl<
             Self::Bellatrix(_) => None,
             Self::Capella(_) => None,
             Self::Deneb(inner) => Some(&mut inner.excess_blob_gas),
+            Self::Electra(inner) => Some(&mut inner.excess_blob_gas),
         }
     }
 }
@@ -426,6 +503,9 @@ impl<
         D: serde::Deserializer<'de>,
     {
         let value = serde_json::Value::deserialize(deserializer)?;
+        if let Ok(inner) = <_ as serde::Deserialize>::deserialize(&value) {
+            return Ok(Self::Electra(inner));
+        }
         if let Ok(inner) = <_ as serde::Deserialize>::deserialize(&value) {
             return Ok(Self::Deneb(inner));
         }
@@ -474,8 +554,18 @@ pub enum ExecutionPayloadRef<
             MAX_WITHDRAWALS_PER_PAYLOAD,
         >,
     ),
+    Electra(
+        &'a electra::ExecutionPayload<
+            BYTES_PER_LOGS_BLOOM,
+            MAX_EXTRA_DATA_BYTES,
+            MAX_BYTES_PER_TRANSACTION,
+            MAX_TRANSACTIONS_PER_PAYLOAD,
+            MAX_WITHDRAWALS_PER_PAYLOAD,
+        >,
+    ),
 }
 impl<
+        'a,
         const BYTES_PER_LOGS_BLOOM: usize,
         const MAX_EXTRA_DATA_BYTES: usize,
         const MAX_BYTES_PER_TRANSACTION: usize,
@@ -483,7 +573,7 @@ impl<
         const MAX_WITHDRAWALS_PER_PAYLOAD: usize,
     >
     ExecutionPayloadRef<
-        '_,
+        'a,
         BYTES_PER_LOGS_BLOOM,
         MAX_EXTRA_DATA_BYTES,
         MAX_BYTES_PER_TRANSACTION,
@@ -538,11 +628,28 @@ impl<
             _ => None,
         }
     }
+    pub fn electra(
+        &self,
+    ) -> Option<
+        &electra::ExecutionPayload<
+            BYTES_PER_LOGS_BLOOM,
+            MAX_EXTRA_DATA_BYTES,
+            MAX_BYTES_PER_TRANSACTION,
+            MAX_TRANSACTIONS_PER_PAYLOAD,
+            MAX_WITHDRAWALS_PER_PAYLOAD,
+        >,
+    > {
+        match self {
+            Self::Electra(inner) => Some(inner),
+            _ => None,
+        }
+    }
     pub fn version(&self) -> Version {
         match self {
             Self::Bellatrix(_) => Version::Bellatrix,
             Self::Capella(_) => Version::Capella,
             Self::Deneb(_) => Version::Deneb,
+            Self::Electra(_) => Version::Electra,
         }
     }
     pub fn parent_hash(&self) -> &Hash32 {
@@ -550,6 +657,7 @@ impl<
             Self::Bellatrix(inner) => &inner.parent_hash,
             Self::Capella(inner) => &inner.parent_hash,
             Self::Deneb(inner) => &inner.parent_hash,
+            Self::Electra(inner) => &inner.parent_hash,
         }
     }
     pub fn fee_recipient(&self) -> &ExecutionAddress {
@@ -557,6 +665,7 @@ impl<
             Self::Bellatrix(inner) => &inner.fee_recipient,
             Self::Capella(inner) => &inner.fee_recipient,
             Self::Deneb(inner) => &inner.fee_recipient,
+            Self::Electra(inner) => &inner.fee_recipient,
         }
     }
     pub fn state_root(&self) -> &Bytes32 {
@@ -564,6 +673,7 @@ impl<
             Self::Bellatrix(inner) => &inner.state_root,
             Self::Capella(inner) => &inner.state_root,
             Self::Deneb(inner) => &inner.state_root,
+            Self::Electra(inner) => &inner.state_root,
         }
     }
     pub fn receipts_root(&self) -> &Bytes32 {
@@ -571,6 +681,7 @@ impl<
             Self::Bellatrix(inner) => &inner.receipts_root,
             Self::Capella(inner) => &inner.receipts_root,
             Self::Deneb(inner) => &inner.receipts_root,
+            Self::Electra(inner) => &inner.receipts_root,
         }
     }
     pub fn logs_bloom(&self) -> &ByteVector<BYTES_PER_LOGS_BLOOM> {
@@ -578,6 +689,7 @@ impl<
             Self::Bellatrix(inner) => &inner.logs_bloom,
             Self::Capella(inner) => &inner.logs_bloom,
             Self::Deneb(inner) => &inner.logs_bloom,
+            Self::Electra(inner) => &inner.logs_bloom,
         }
     }
     pub fn prev_randao(&self) -> &Bytes32 {
@@ -585,6 +697,7 @@ impl<
             Self::Bellatrix(inner) => &inner.prev_randao,
             Self::Capella(inner) => &inner.prev_randao,
             Self::Deneb(inner) => &inner.prev_randao,
+            Self::Electra(inner) => &inner.prev_randao,
         }
     }
     pub fn block_number(&self) -> u64 {
@@ -592,6 +705,7 @@ impl<
             Self::Bellatrix(inner) => inner.block_number,
             Self::Capella(inner) => inner.block_number,
             Self::Deneb(inner) => inner.block_number,
+            Self::Electra(inner) => inner.block_number,
         }
     }
     pub fn gas_limit(&self) -> u64 {
@@ -599,6 +713,7 @@ impl<
             Self::Bellatrix(inner) => inner.gas_limit,
             Self::Capella(inner) => inner.gas_limit,
             Self::Deneb(inner) => inner.gas_limit,
+            Self::Electra(inner) => inner.gas_limit,
         }
     }
     pub fn gas_used(&self) -> u64 {
@@ -606,6 +721,7 @@ impl<
             Self::Bellatrix(inner) => inner.gas_used,
             Self::Capella(inner) => inner.gas_used,
             Self::Deneb(inner) => inner.gas_used,
+            Self::Electra(inner) => inner.gas_used,
         }
     }
     pub fn timestamp(&self) -> u64 {
@@ -613,6 +729,7 @@ impl<
             Self::Bellatrix(inner) => inner.timestamp,
             Self::Capella(inner) => inner.timestamp,
             Self::Deneb(inner) => inner.timestamp,
+            Self::Electra(inner) => inner.timestamp,
         }
     }
     pub fn extra_data(&self) -> &ByteList<MAX_EXTRA_DATA_BYTES> {
@@ -620,6 +737,7 @@ impl<
             Self::Bellatrix(inner) => &inner.extra_data,
             Self::Capella(inner) => &inner.extra_data,
             Self::Deneb(inner) => &inner.extra_data,
+            Self::Electra(inner) => &inner.extra_data,
         }
     }
     pub fn base_fee_per_gas(&self) -> &U256 {
@@ -627,6 +745,7 @@ impl<
             Self::Bellatrix(inner) => &inner.base_fee_per_gas,
             Self::Capella(inner) => &inner.base_fee_per_gas,
             Self::Deneb(inner) => &inner.base_fee_per_gas,
+            Self::Electra(inner) => &inner.base_fee_per_gas,
         }
     }
     pub fn block_hash(&self) -> &Hash32 {
@@ -634,6 +753,7 @@ impl<
             Self::Bellatrix(inner) => &inner.block_hash,
             Self::Capella(inner) => &inner.block_hash,
             Self::Deneb(inner) => &inner.block_hash,
+            Self::Electra(inner) => &inner.block_hash,
         }
     }
     pub fn transactions(
@@ -643,6 +763,7 @@ impl<
             Self::Bellatrix(inner) => &inner.transactions,
             Self::Capella(inner) => &inner.transactions,
             Self::Deneb(inner) => &inner.transactions,
+            Self::Electra(inner) => &inner.transactions,
         }
     }
     pub fn withdrawals(&self) -> Option<&List<Withdrawal, MAX_WITHDRAWALS_PER_PAYLOAD>> {
@@ -650,6 +771,7 @@ impl<
             Self::Bellatrix(_) => None,
             Self::Capella(inner) => Some(&inner.withdrawals),
             Self::Deneb(inner) => Some(&inner.withdrawals),
+            Self::Electra(inner) => Some(&inner.withdrawals),
         }
     }
     pub fn blob_gas_used(&self) -> Option<u64> {
@@ -657,6 +779,7 @@ impl<
             Self::Bellatrix(_) => None,
             Self::Capella(_) => None,
             Self::Deneb(inner) => Some(inner.blob_gas_used),
+            Self::Electra(inner) => Some(inner.blob_gas_used),
         }
     }
     pub fn excess_blob_gas(&self) -> Option<u64> {
@@ -664,6 +787,7 @@ impl<
             Self::Bellatrix(_) => None,
             Self::Capella(_) => None,
             Self::Deneb(inner) => Some(inner.excess_blob_gas),
+            Self::Electra(inner) => Some(inner.excess_blob_gas),
         }
     }
 }
@@ -779,6 +903,44 @@ impl<
         Self::Deneb(value)
     }
 }
+impl<
+        'a,
+        const BYTES_PER_LOGS_BLOOM: usize,
+        const MAX_EXTRA_DATA_BYTES: usize,
+        const MAX_BYTES_PER_TRANSACTION: usize,
+        const MAX_TRANSACTIONS_PER_PAYLOAD: usize,
+        const MAX_WITHDRAWALS_PER_PAYLOAD: usize,
+    >
+    From<
+        &'a electra::ExecutionPayload<
+            BYTES_PER_LOGS_BLOOM,
+            MAX_EXTRA_DATA_BYTES,
+            MAX_BYTES_PER_TRANSACTION,
+            MAX_TRANSACTIONS_PER_PAYLOAD,
+            MAX_WITHDRAWALS_PER_PAYLOAD,
+        >,
+    >
+    for ExecutionPayloadRef<
+        'a,
+        BYTES_PER_LOGS_BLOOM,
+        MAX_EXTRA_DATA_BYTES,
+        MAX_BYTES_PER_TRANSACTION,
+        MAX_TRANSACTIONS_PER_PAYLOAD,
+        MAX_WITHDRAWALS_PER_PAYLOAD,
+    >
+{
+    fn from(
+        value: &'a electra::ExecutionPayload<
+            BYTES_PER_LOGS_BLOOM,
+            MAX_EXTRA_DATA_BYTES,
+            MAX_BYTES_PER_TRANSACTION,
+            MAX_TRANSACTIONS_PER_PAYLOAD,
+            MAX_WITHDRAWALS_PER_PAYLOAD,
+        >,
+    ) -> Self {
+        Self::Electra(value)
+    }
+}
 #[derive(Debug, PartialEq, Eq, HashTreeRoot)]
 #[ssz(transparent)]
 pub enum ExecutionPayloadRefMut<
@@ -815,8 +977,18 @@ pub enum ExecutionPayloadRefMut<
             MAX_WITHDRAWALS_PER_PAYLOAD,
         >,
     ),
+    Electra(
+        &'a mut electra::ExecutionPayload<
+            BYTES_PER_LOGS_BLOOM,
+            MAX_EXTRA_DATA_BYTES,
+            MAX_BYTES_PER_TRANSACTION,
+            MAX_TRANSACTIONS_PER_PAYLOAD,
+            MAX_WITHDRAWALS_PER_PAYLOAD,
+        >,
+    ),
 }
 impl<
+        'a,
         const BYTES_PER_LOGS_BLOOM: usize,
         const MAX_EXTRA_DATA_BYTES: usize,
         const MAX_BYTES_PER_TRANSACTION: usize,
@@ -824,7 +996,7 @@ impl<
         const MAX_WITHDRAWALS_PER_PAYLOAD: usize,
     >
     ExecutionPayloadRefMut<
-        '_,
+        'a,
         BYTES_PER_LOGS_BLOOM,
         MAX_EXTRA_DATA_BYTES,
         MAX_BYTES_PER_TRANSACTION,
@@ -926,11 +1098,44 @@ impl<
             _ => None,
         }
     }
+    pub fn electra(
+        &self,
+    ) -> Option<
+        &electra::ExecutionPayload<
+            BYTES_PER_LOGS_BLOOM,
+            MAX_EXTRA_DATA_BYTES,
+            MAX_BYTES_PER_TRANSACTION,
+            MAX_TRANSACTIONS_PER_PAYLOAD,
+            MAX_WITHDRAWALS_PER_PAYLOAD,
+        >,
+    > {
+        match self {
+            Self::Electra(inner) => Some(inner),
+            _ => None,
+        }
+    }
+    pub fn electra_mut(
+        &mut self,
+    ) -> Option<
+        &mut electra::ExecutionPayload<
+            BYTES_PER_LOGS_BLOOM,
+            MAX_EXTRA_DATA_BYTES,
+            MAX_BYTES_PER_TRANSACTION,
+            MAX_TRANSACTIONS_PER_PAYLOAD,
+            MAX_WITHDRAWALS_PER_PAYLOAD,
+        >,
+    > {
+        match self {
+            Self::Electra(inner) => Some(inner),
+            _ => None,
+        }
+    }
     pub fn version(&self) -> Version {
         match self {
             Self::Bellatrix(_) => Version::Bellatrix,
             Self::Capella(_) => Version::Capella,
             Self::Deneb(_) => Version::Deneb,
+            Self::Electra(_) => Version::Electra,
         }
     }
     pub fn parent_hash(&self) -> &Hash32 {
@@ -938,6 +1143,7 @@ impl<
             Self::Bellatrix(inner) => &inner.parent_hash,
             Self::Capella(inner) => &inner.parent_hash,
             Self::Deneb(inner) => &inner.parent_hash,
+            Self::Electra(inner) => &inner.parent_hash,
         }
     }
     pub fn parent_hash_mut(&mut self) -> &mut Hash32 {
@@ -945,6 +1151,7 @@ impl<
             Self::Bellatrix(inner) => &mut inner.parent_hash,
             Self::Capella(inner) => &mut inner.parent_hash,
             Self::Deneb(inner) => &mut inner.parent_hash,
+            Self::Electra(inner) => &mut inner.parent_hash,
         }
     }
     pub fn fee_recipient(&self) -> &ExecutionAddress {
@@ -952,6 +1159,7 @@ impl<
             Self::Bellatrix(inner) => &inner.fee_recipient,
             Self::Capella(inner) => &inner.fee_recipient,
             Self::Deneb(inner) => &inner.fee_recipient,
+            Self::Electra(inner) => &inner.fee_recipient,
         }
     }
     pub fn fee_recipient_mut(&mut self) -> &mut ExecutionAddress {
@@ -959,6 +1167,7 @@ impl<
             Self::Bellatrix(inner) => &mut inner.fee_recipient,
             Self::Capella(inner) => &mut inner.fee_recipient,
             Self::Deneb(inner) => &mut inner.fee_recipient,
+            Self::Electra(inner) => &mut inner.fee_recipient,
         }
     }
     pub fn state_root(&self) -> &Bytes32 {
@@ -966,6 +1175,7 @@ impl<
             Self::Bellatrix(inner) => &inner.state_root,
             Self::Capella(inner) => &inner.state_root,
             Self::Deneb(inner) => &inner.state_root,
+            Self::Electra(inner) => &inner.state_root,
         }
     }
     pub fn state_root_mut(&mut self) -> &mut Bytes32 {
@@ -973,6 +1183,7 @@ impl<
             Self::Bellatrix(inner) => &mut inner.state_root,
             Self::Capella(inner) => &mut inner.state_root,
             Self::Deneb(inner) => &mut inner.state_root,
+            Self::Electra(inner) => &mut inner.state_root,
         }
     }
     pub fn receipts_root(&self) -> &Bytes32 {
@@ -980,6 +1191,7 @@ impl<
             Self::Bellatrix(inner) => &inner.receipts_root,
             Self::Capella(inner) => &inner.receipts_root,
             Self::Deneb(inner) => &inner.receipts_root,
+            Self::Electra(inner) => &inner.receipts_root,
         }
     }
     pub fn receipts_root_mut(&mut self) -> &mut Bytes32 {
@@ -987,6 +1199,7 @@ impl<
             Self::Bellatrix(inner) => &mut inner.receipts_root,
             Self::Capella(inner) => &mut inner.receipts_root,
             Self::Deneb(inner) => &mut inner.receipts_root,
+            Self::Electra(inner) => &mut inner.receipts_root,
         }
     }
     pub fn logs_bloom(&self) -> &ByteVector<BYTES_PER_LOGS_BLOOM> {
@@ -994,6 +1207,7 @@ impl<
             Self::Bellatrix(inner) => &inner.logs_bloom,
             Self::Capella(inner) => &inner.logs_bloom,
             Self::Deneb(inner) => &inner.logs_bloom,
+            Self::Electra(inner) => &inner.logs_bloom,
         }
     }
     pub fn logs_bloom_mut(&mut self) -> &mut ByteVector<BYTES_PER_LOGS_BLOOM> {
@@ -1001,6 +1215,7 @@ impl<
             Self::Bellatrix(inner) => &mut inner.logs_bloom,
             Self::Capella(inner) => &mut inner.logs_bloom,
             Self::Deneb(inner) => &mut inner.logs_bloom,
+            Self::Electra(inner) => &mut inner.logs_bloom,
         }
     }
     pub fn prev_randao(&self) -> &Bytes32 {
@@ -1008,6 +1223,7 @@ impl<
             Self::Bellatrix(inner) => &inner.prev_randao,
             Self::Capella(inner) => &inner.prev_randao,
             Self::Deneb(inner) => &inner.prev_randao,
+            Self::Electra(inner) => &inner.prev_randao,
         }
     }
     pub fn prev_randao_mut(&mut self) -> &mut Bytes32 {
@@ -1015,6 +1231,7 @@ impl<
             Self::Bellatrix(inner) => &mut inner.prev_randao,
             Self::Capella(inner) => &mut inner.prev_randao,
             Self::Deneb(inner) => &mut inner.prev_randao,
+            Self::Electra(inner) => &mut inner.prev_randao,
         }
     }
     pub fn block_number(&self) -> u64 {
@@ -1022,6 +1239,7 @@ impl<
             Self::Bellatrix(inner) => inner.block_number,
             Self::Capella(inner) => inner.block_number,
             Self::Deneb(inner) => inner.block_number,
+            Self::Electra(inner) => inner.block_number,
         }
     }
     pub fn block_number_mut(&mut self) -> &mut u64 {
@@ -1029,6 +1247,7 @@ impl<
             Self::Bellatrix(inner) => &mut inner.block_number,
             Self::Capella(inner) => &mut inner.block_number,
             Self::Deneb(inner) => &mut inner.block_number,
+            Self::Electra(inner) => &mut inner.block_number,
         }
     }
     pub fn gas_limit(&self) -> u64 {
@@ -1036,6 +1255,7 @@ impl<
             Self::Bellatrix(inner) => inner.gas_limit,
             Self::Capella(inner) => inner.gas_limit,
             Self::Deneb(inner) => inner.gas_limit,
+            Self::Electra(inner) => inner.gas_limit,
         }
     }
     pub fn gas_limit_mut(&mut self) -> &mut u64 {
@@ -1043,6 +1263,7 @@ impl<
             Self::Bellatrix(inner) => &mut inner.gas_limit,
             Self::Capella(inner) => &mut inner.gas_limit,
             Self::Deneb(inner) => &mut inner.gas_limit,
+            Self::Electra(inner) => &mut inner.gas_limit,
         }
     }
     pub fn gas_used(&self) -> u64 {
@@ -1050,6 +1271,7 @@ impl<
             Self::Bellatrix(inner) => inner.gas_used,
             Self::Capella(inner) => inner.gas_used,
             Self::Deneb(inner) => inner.gas_used,
+            Self::Electra(inner) => inner.gas_used,
         }
     }
     pub fn gas_used_mut(&mut self) -> &mut u64 {
@@ -1057,6 +1279,7 @@ impl<
             Self::Bellatrix(inner) => &mut inner.gas_used,
             Self::Capella(inner) => &mut inner.gas_used,
             Self::Deneb(inner) => &mut inner.gas_used,
+            Self::Electra(inner) => &mut inner.gas_used,
         }
     }
     pub fn timestamp(&self) -> u64 {
@@ -1064,6 +1287,7 @@ impl<
             Self::Bellatrix(inner) => inner.timestamp,
             Self::Capella(inner) => inner.timestamp,
             Self::Deneb(inner) => inner.timestamp,
+            Self::Electra(inner) => inner.timestamp,
         }
     }
     pub fn timestamp_mut(&mut self) -> &mut u64 {
@@ -1071,6 +1295,7 @@ impl<
             Self::Bellatrix(inner) => &mut inner.timestamp,
             Self::Capella(inner) => &mut inner.timestamp,
             Self::Deneb(inner) => &mut inner.timestamp,
+            Self::Electra(inner) => &mut inner.timestamp,
         }
     }
     pub fn extra_data(&self) -> &ByteList<MAX_EXTRA_DATA_BYTES> {
@@ -1078,6 +1303,7 @@ impl<
             Self::Bellatrix(inner) => &inner.extra_data,
             Self::Capella(inner) => &inner.extra_data,
             Self::Deneb(inner) => &inner.extra_data,
+            Self::Electra(inner) => &inner.extra_data,
         }
     }
     pub fn extra_data_mut(&mut self) -> &mut ByteList<MAX_EXTRA_DATA_BYTES> {
@@ -1085,6 +1311,7 @@ impl<
             Self::Bellatrix(inner) => &mut inner.extra_data,
             Self::Capella(inner) => &mut inner.extra_data,
             Self::Deneb(inner) => &mut inner.extra_data,
+            Self::Electra(inner) => &mut inner.extra_data,
         }
     }
     pub fn base_fee_per_gas(&self) -> &U256 {
@@ -1092,6 +1319,7 @@ impl<
             Self::Bellatrix(inner) => &inner.base_fee_per_gas,
             Self::Capella(inner) => &inner.base_fee_per_gas,
             Self::Deneb(inner) => &inner.base_fee_per_gas,
+            Self::Electra(inner) => &inner.base_fee_per_gas,
         }
     }
     pub fn base_fee_per_gas_mut(&mut self) -> &mut U256 {
@@ -1099,6 +1327,7 @@ impl<
             Self::Bellatrix(inner) => &mut inner.base_fee_per_gas,
             Self::Capella(inner) => &mut inner.base_fee_per_gas,
             Self::Deneb(inner) => &mut inner.base_fee_per_gas,
+            Self::Electra(inner) => &mut inner.base_fee_per_gas,
         }
     }
     pub fn block_hash(&self) -> &Hash32 {
@@ -1106,6 +1335,7 @@ impl<
             Self::Bellatrix(inner) => &inner.block_hash,
             Self::Capella(inner) => &inner.block_hash,
             Self::Deneb(inner) => &inner.block_hash,
+            Self::Electra(inner) => &inner.block_hash,
         }
     }
     pub fn block_hash_mut(&mut self) -> &mut Hash32 {
@@ -1113,6 +1343,7 @@ impl<
             Self::Bellatrix(inner) => &mut inner.block_hash,
             Self::Capella(inner) => &mut inner.block_hash,
             Self::Deneb(inner) => &mut inner.block_hash,
+            Self::Electra(inner) => &mut inner.block_hash,
         }
     }
     pub fn transactions(
@@ -1122,6 +1353,7 @@ impl<
             Self::Bellatrix(inner) => &inner.transactions,
             Self::Capella(inner) => &inner.transactions,
             Self::Deneb(inner) => &inner.transactions,
+            Self::Electra(inner) => &inner.transactions,
         }
     }
     pub fn transactions_mut(
@@ -1131,6 +1363,7 @@ impl<
             Self::Bellatrix(inner) => &mut inner.transactions,
             Self::Capella(inner) => &mut inner.transactions,
             Self::Deneb(inner) => &mut inner.transactions,
+            Self::Electra(inner) => &mut inner.transactions,
         }
     }
     pub fn withdrawals(&self) -> Option<&List<Withdrawal, MAX_WITHDRAWALS_PER_PAYLOAD>> {
@@ -1138,6 +1371,7 @@ impl<
             Self::Bellatrix(_) => None,
             Self::Capella(inner) => Some(&inner.withdrawals),
             Self::Deneb(inner) => Some(&inner.withdrawals),
+            Self::Electra(inner) => Some(&inner.withdrawals),
         }
     }
     pub fn withdrawals_mut(
@@ -1147,6 +1381,7 @@ impl<
             Self::Bellatrix(_) => None,
             Self::Capella(inner) => Some(&mut inner.withdrawals),
             Self::Deneb(inner) => Some(&mut inner.withdrawals),
+            Self::Electra(inner) => Some(&mut inner.withdrawals),
         }
     }
     pub fn blob_gas_used(&self) -> Option<u64> {
@@ -1154,6 +1389,7 @@ impl<
             Self::Bellatrix(_) => None,
             Self::Capella(_) => None,
             Self::Deneb(inner) => Some(inner.blob_gas_used),
+            Self::Electra(inner) => Some(inner.blob_gas_used),
         }
     }
     pub fn blob_gas_used_mut(&mut self) -> Option<&mut u64> {
@@ -1161,6 +1397,7 @@ impl<
             Self::Bellatrix(_) => None,
             Self::Capella(_) => None,
             Self::Deneb(inner) => Some(&mut inner.blob_gas_used),
+            Self::Electra(inner) => Some(&mut inner.blob_gas_used),
         }
     }
     pub fn excess_blob_gas(&self) -> Option<u64> {
@@ -1168,6 +1405,7 @@ impl<
             Self::Bellatrix(_) => None,
             Self::Capella(_) => None,
             Self::Deneb(inner) => Some(inner.excess_blob_gas),
+            Self::Electra(inner) => Some(inner.excess_blob_gas),
         }
     }
     pub fn excess_blob_gas_mut(&mut self) -> Option<&mut u64> {
@@ -1175,6 +1413,7 @@ impl<
             Self::Bellatrix(_) => None,
             Self::Capella(_) => None,
             Self::Deneb(inner) => Some(&mut inner.excess_blob_gas),
+            Self::Electra(inner) => Some(&mut inner.excess_blob_gas),
         }
     }
 }
@@ -1288,5 +1527,43 @@ impl<
         >,
     ) -> Self {
         Self::Deneb(value)
+    }
+}
+impl<
+        'a,
+        const BYTES_PER_LOGS_BLOOM: usize,
+        const MAX_EXTRA_DATA_BYTES: usize,
+        const MAX_BYTES_PER_TRANSACTION: usize,
+        const MAX_TRANSACTIONS_PER_PAYLOAD: usize,
+        const MAX_WITHDRAWALS_PER_PAYLOAD: usize,
+    >
+    From<
+        &'a mut electra::ExecutionPayload<
+            BYTES_PER_LOGS_BLOOM,
+            MAX_EXTRA_DATA_BYTES,
+            MAX_BYTES_PER_TRANSACTION,
+            MAX_TRANSACTIONS_PER_PAYLOAD,
+            MAX_WITHDRAWALS_PER_PAYLOAD,
+        >,
+    >
+    for ExecutionPayloadRefMut<
+        'a,
+        BYTES_PER_LOGS_BLOOM,
+        MAX_EXTRA_DATA_BYTES,
+        MAX_BYTES_PER_TRANSACTION,
+        MAX_TRANSACTIONS_PER_PAYLOAD,
+        MAX_WITHDRAWALS_PER_PAYLOAD,
+    >
+{
+    fn from(
+        value: &'a mut electra::ExecutionPayload<
+            BYTES_PER_LOGS_BLOOM,
+            MAX_EXTRA_DATA_BYTES,
+            MAX_BYTES_PER_TRANSACTION,
+            MAX_TRANSACTIONS_PER_PAYLOAD,
+            MAX_WITHDRAWALS_PER_PAYLOAD,
+        >,
+    ) -> Self {
+        Self::Electra(value)
     }
 }

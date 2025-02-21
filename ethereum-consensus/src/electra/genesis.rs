@@ -18,11 +18,10 @@ pub fn initialize_beacon_state_from_eth1<
     const EPOCHS_PER_SLASHINGS_VECTOR: usize,
     const MAX_VALIDATORS_PER_COMMITTEE: usize,
     const SYNC_COMMITTEE_SIZE: usize,
-    const PENDING_BALANCE_DEPOSITS_LIMIT: usize,
+    const PENDING_DEPOSITS_LIMIT: usize,
     const PENDING_PARTIAL_WITHDRAWALS_LIMIT: usize,
     const PENDING_CONSOLIDATIONS_LIMIT: usize,
     const MAX_PROPOSER_SLASHINGS: usize,
-    const MAX_VALIDATORS_PER_SLOT: usize,
     const MAX_COMMITTEES_PER_SLOT: usize,
     const MAX_ATTESTER_SLASHINGS: usize,
     const MAX_ATTESTATIONS: usize,
@@ -33,11 +32,11 @@ pub fn initialize_beacon_state_from_eth1<
     const MAX_BYTES_PER_TRANSACTION: usize,
     const MAX_TRANSACTIONS_PER_PAYLOAD: usize,
     const MAX_WITHDRAWALS_PER_PAYLOAD: usize,
-    const MAX_DEPOSIT_RECEIPTS_PER_PAYLOAD: usize,
+    const MAX_DEPOSIT_REQUESTS_PER_PAYLOAD: usize,
     const MAX_WITHDRAWAL_REQUESTS_PER_PAYLOAD: usize,
     const MAX_BLS_TO_EXECUTION_CHANGES: usize,
     const MAX_BLOB_COMMITMENTS_PER_BLOCK: usize,
-    const MAX_CONSOLIDATIONS: usize,
+    const MAX_CONSOLIDATION_REQUESTS_PER_PAYLOAD: usize,
 >(
     eth1_block_hash: Hash32,
     eth1_timestamp: u64,
@@ -58,7 +57,7 @@ pub fn initialize_beacon_state_from_eth1<
         SYNC_COMMITTEE_SIZE,
         BYTES_PER_LOGS_BLOOM,
         MAX_EXTRA_DATA_BYTES,
-        PENDING_BALANCE_DEPOSITS_LIMIT,
+        PENDING_DEPOSITS_LIMIT,
         PENDING_PARTIAL_WITHDRAWALS_LIMIT,
         PENDING_CONSOLIDATIONS_LIMIT,
     >,
@@ -75,7 +74,7 @@ pub fn initialize_beacon_state_from_eth1<
     };
     let latest_block_body = BeaconBlockBody::<
         MAX_PROPOSER_SLASHINGS,
-        MAX_VALIDATORS_PER_SLOT,
+        MAX_VALIDATORS_PER_COMMITTEE,
         MAX_COMMITTEES_PER_SLOT,
         MAX_ATTESTER_SLASHINGS,
         MAX_ATTESTATIONS,
@@ -87,11 +86,11 @@ pub fn initialize_beacon_state_from_eth1<
         MAX_BYTES_PER_TRANSACTION,
         MAX_TRANSACTIONS_PER_PAYLOAD,
         MAX_WITHDRAWALS_PER_PAYLOAD,
-        MAX_DEPOSIT_RECEIPTS_PER_PAYLOAD,
+        MAX_DEPOSIT_REQUESTS_PER_PAYLOAD,
         MAX_WITHDRAWAL_REQUESTS_PER_PAYLOAD,
         MAX_BLS_TO_EXECUTION_CHANGES,
         MAX_BLOB_COMMITMENTS_PER_BLOCK,
-        MAX_CONSOLIDATIONS,
+        MAX_CONSOLIDATION_REQUESTS_PER_PAYLOAD,
     >::default();
     let body_root = latest_block_body.hash_tree_root()?;
     let latest_block_header = BeaconBlockHeader { body_root, ..Default::default() };
@@ -119,7 +118,7 @@ pub fn initialize_beacon_state_from_eth1<
         process_deposit(&mut state, deposit, context)?;
     }
 
-    let pending_balance_deposits = std::mem::take(&mut state.pending_balance_deposits);
+    let pending_balance_deposits = std::mem::take(&mut state.pending_deposits);
     for deposit in pending_balance_deposits.iter() {
         increase_balance(&mut state, deposit.index, deposit.amount);
     }

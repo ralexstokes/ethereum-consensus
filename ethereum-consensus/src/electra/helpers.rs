@@ -2,7 +2,7 @@ use crate::{
     altair::{PROPOSER_WEIGHT, WEIGHT_DENOMINATOR},
     capella::has_eth1_withdrawal_credential,
     electra::{
-        beacon_state::{BeaconState, PendingBalanceDeposit},
+        beacon_state::{BeaconState, PendingDeposit},
         decrease_balance, get_beacon_committee, get_beacon_proposer_index, get_current_epoch,
         get_total_active_balance, increase_balance,
         operations::{Attestation, IndexedAttestation},
@@ -80,7 +80,7 @@ pub fn get_balance_churn_limit<
     const SYNC_COMMITTEE_SIZE: usize,
     const BYTES_PER_LOGS_BLOOM: usize,
     const MAX_EXTRA_DATA_BYTES: usize,
-    const PENDING_BALANCE_DEPOSITS_LIMIT: usize,
+    const PENDING_DEPOSITS_LIMIT: usize,
     const PENDING_PARTIAL_WITHDRAWALS_LIMIT: usize,
     const PENDING_CONSOLIDATIONS_LIMIT: usize,
 >(
@@ -95,7 +95,7 @@ pub fn get_balance_churn_limit<
         SYNC_COMMITTEE_SIZE,
         BYTES_PER_LOGS_BLOOM,
         MAX_EXTRA_DATA_BYTES,
-        PENDING_BALANCE_DEPOSITS_LIMIT,
+        PENDING_DEPOSITS_LIMIT,
         PENDING_PARTIAL_WITHDRAWALS_LIMIT,
         PENDING_CONSOLIDATIONS_LIMIT,
     >,
@@ -117,7 +117,7 @@ pub fn get_activation_exit_churn_limit<
     const SYNC_COMMITTEE_SIZE: usize,
     const BYTES_PER_LOGS_BLOOM: usize,
     const MAX_EXTRA_DATA_BYTES: usize,
-    const PENDING_BALANCE_DEPOSITS_LIMIT: usize,
+    const PENDING_DEPOSITS_LIMIT: usize,
     const PENDING_PARTIAL_WITHDRAWALS_LIMIT: usize,
     const PENDING_CONSOLIDATIONS_LIMIT: usize,
 >(
@@ -132,7 +132,7 @@ pub fn get_activation_exit_churn_limit<
         SYNC_COMMITTEE_SIZE,
         BYTES_PER_LOGS_BLOOM,
         MAX_EXTRA_DATA_BYTES,
-        PENDING_BALANCE_DEPOSITS_LIMIT,
+        PENDING_DEPOSITS_LIMIT,
         PENDING_PARTIAL_WITHDRAWALS_LIMIT,
         PENDING_CONSOLIDATIONS_LIMIT,
     >,
@@ -153,7 +153,7 @@ pub fn get_consolidation_churn_limit<
     const SYNC_COMMITTEE_SIZE: usize,
     const BYTES_PER_LOGS_BLOOM: usize,
     const MAX_EXTRA_DATA_BYTES: usize,
-    const PENDING_BALANCE_DEPOSITS_LIMIT: usize,
+    const PENDING_DEPOSITS_LIMIT: usize,
     const PENDING_PARTIAL_WITHDRAWALS_LIMIT: usize,
     const PENDING_CONSOLIDATIONS_LIMIT: usize,
 >(
@@ -168,7 +168,7 @@ pub fn get_consolidation_churn_limit<
         SYNC_COMMITTEE_SIZE,
         BYTES_PER_LOGS_BLOOM,
         MAX_EXTRA_DATA_BYTES,
-        PENDING_BALANCE_DEPOSITS_LIMIT,
+        PENDING_DEPOSITS_LIMIT,
         PENDING_PARTIAL_WITHDRAWALS_LIMIT,
         PENDING_CONSOLIDATIONS_LIMIT,
     >,
@@ -188,7 +188,7 @@ pub fn get_active_balance<
     const SYNC_COMMITTEE_SIZE: usize,
     const BYTES_PER_LOGS_BLOOM: usize,
     const MAX_EXTRA_DATA_BYTES: usize,
-    const PENDING_BALANCE_DEPOSITS_LIMIT: usize,
+    const PENDING_DEPOSITS_LIMIT: usize,
     const PENDING_PARTIAL_WITHDRAWALS_LIMIT: usize,
     const PENDING_CONSOLIDATIONS_LIMIT: usize,
 >(
@@ -203,7 +203,7 @@ pub fn get_active_balance<
         SYNC_COMMITTEE_SIZE,
         BYTES_PER_LOGS_BLOOM,
         MAX_EXTRA_DATA_BYTES,
-        PENDING_BALANCE_DEPOSITS_LIMIT,
+        PENDING_DEPOSITS_LIMIT,
         PENDING_PARTIAL_WITHDRAWALS_LIMIT,
         PENDING_CONSOLIDATIONS_LIMIT,
     >,
@@ -226,7 +226,7 @@ pub fn get_pending_balance_to_withdraw<
     const SYNC_COMMITTEE_SIZE: usize,
     const BYTES_PER_LOGS_BLOOM: usize,
     const MAX_EXTRA_DATA_BYTES: usize,
-    const PENDING_BALANCE_DEPOSITS_LIMIT: usize,
+    const PENDING_DEPOSITS_LIMIT: usize,
     const PENDING_PARTIAL_WITHDRAWALS_LIMIT: usize,
     const PENDING_CONSOLIDATIONS_LIMIT: usize,
 >(
@@ -241,7 +241,7 @@ pub fn get_pending_balance_to_withdraw<
         SYNC_COMMITTEE_SIZE,
         BYTES_PER_LOGS_BLOOM,
         MAX_EXTRA_DATA_BYTES,
-        PENDING_BALANCE_DEPOSITS_LIMIT,
+        PENDING_DEPOSITS_LIMIT,
         PENDING_PARTIAL_WITHDRAWALS_LIMIT,
         PENDING_CONSOLIDATIONS_LIMIT,
     >,
@@ -271,10 +271,9 @@ pub fn get_attesting_indices<
     const SYNC_COMMITTEE_SIZE: usize,
     const BYTES_PER_LOGS_BLOOM: usize,
     const MAX_EXTRA_DATA_BYTES: usize,
-    const PENDING_BALANCE_DEPOSITS_LIMIT: usize,
+    const PENDING_DEPOSITS_LIMIT: usize,
     const PENDING_PARTIAL_WITHDRAWALS_LIMIT: usize,
     const PENDING_CONSOLIDATIONS_LIMIT: usize,
-    const MAX_VALIDATORS_PER_SLOT: usize,
     const MAX_COMMITTEES_PER_SLOT: usize,
 >(
     state: &BeaconState<
@@ -288,16 +287,16 @@ pub fn get_attesting_indices<
         SYNC_COMMITTEE_SIZE,
         BYTES_PER_LOGS_BLOOM,
         MAX_EXTRA_DATA_BYTES,
-        PENDING_BALANCE_DEPOSITS_LIMIT,
+        PENDING_DEPOSITS_LIMIT,
         PENDING_PARTIAL_WITHDRAWALS_LIMIT,
         PENDING_CONSOLIDATIONS_LIMIT,
     >,
-    attestation: &Attestation<MAX_VALIDATORS_PER_SLOT, MAX_COMMITTEES_PER_SLOT>,
+    attestation: &Attestation<MAX_VALIDATORS_PER_COMMITTEE, MAX_COMMITTEES_PER_SLOT>,
     context: &Context,
 ) -> Result<HashSet<ValidatorIndex>, Error> {
     let committee_indices = get_committee_indices(&attestation.committee_bits);
 
-    let mut indices = HashSet::with_capacity(MAX_VALIDATORS_PER_SLOT);
+    let mut indices = HashSet::with_capacity(MAX_VALIDATORS_PER_COMMITTEE);
 
     for (committee_offset, index) in committee_indices.into_iter().enumerate() {
         let committee = get_beacon_committee(state, attestation.data.slot, index, context)?;
@@ -322,10 +321,9 @@ pub fn get_indexed_attestation<
     const SYNC_COMMITTEE_SIZE: usize,
     const BYTES_PER_LOGS_BLOOM: usize,
     const MAX_EXTRA_DATA_BYTES: usize,
-    const PENDING_BALANCE_DEPOSITS_LIMIT: usize,
+    const PENDING_DEPOSITS_LIMIT: usize,
     const PENDING_PARTIAL_WITHDRAWALS_LIMIT: usize,
     const PENDING_CONSOLIDATIONS_LIMIT: usize,
-    const MAX_VALIDATORS_PER_SLOT: usize,
     const MAX_COMMITTEES_PER_SLOT: usize,
 >(
     state: &BeaconState<
@@ -339,13 +337,13 @@ pub fn get_indexed_attestation<
         SYNC_COMMITTEE_SIZE,
         BYTES_PER_LOGS_BLOOM,
         MAX_EXTRA_DATA_BYTES,
-        PENDING_BALANCE_DEPOSITS_LIMIT,
+        PENDING_DEPOSITS_LIMIT,
         PENDING_PARTIAL_WITHDRAWALS_LIMIT,
         PENDING_CONSOLIDATIONS_LIMIT,
     >,
-    attestation: &Attestation<MAX_VALIDATORS_PER_SLOT, MAX_COMMITTEES_PER_SLOT>,
+    attestation: &Attestation<MAX_VALIDATORS_PER_COMMITTEE, MAX_COMMITTEES_PER_SLOT>,
     context: &Context,
-) -> Result<IndexedAttestation<MAX_VALIDATORS_PER_SLOT>, Error> {
+) -> Result<IndexedAttestation<MAX_VALIDATORS_PER_COMMITTEE>, Error> {
     let mut attesting_indices =
         get_attesting_indices(state, attestation, context)?.into_iter().collect::<Vec<_>>();
     // NOTE: `attesting_indices` has no duplicates by contract, and so unstable sort is fine.
@@ -369,7 +367,7 @@ pub fn initiate_validator_exit<
     const SYNC_COMMITTEE_SIZE: usize,
     const BYTES_PER_LOGS_BLOOM: usize,
     const MAX_EXTRA_DATA_BYTES: usize,
-    const PENDING_BALANCE_DEPOSITS_LIMIT: usize,
+    const PENDING_DEPOSITS_LIMIT: usize,
     const PENDING_PARTIAL_WITHDRAWALS_LIMIT: usize,
     const PENDING_CONSOLIDATIONS_LIMIT: usize,
 >(
@@ -384,7 +382,7 @@ pub fn initiate_validator_exit<
         SYNC_COMMITTEE_SIZE,
         BYTES_PER_LOGS_BLOOM,
         MAX_EXTRA_DATA_BYTES,
-        PENDING_BALANCE_DEPOSITS_LIMIT,
+        PENDING_DEPOSITS_LIMIT,
         PENDING_PARTIAL_WITHDRAWALS_LIMIT,
         PENDING_CONSOLIDATIONS_LIMIT,
     >,
@@ -420,7 +418,7 @@ pub fn switch_to_compounding_validator<
     const SYNC_COMMITTEE_SIZE: usize,
     const BYTES_PER_LOGS_BLOOM: usize,
     const MAX_EXTRA_DATA_BYTES: usize,
-    const PENDING_BALANCE_DEPOSITS_LIMIT: usize,
+    const PENDING_DEPOSITS_LIMIT: usize,
     const PENDING_PARTIAL_WITHDRAWALS_LIMIT: usize,
     const PENDING_CONSOLIDATIONS_LIMIT: usize,
 >(
@@ -435,7 +433,7 @@ pub fn switch_to_compounding_validator<
         SYNC_COMMITTEE_SIZE,
         BYTES_PER_LOGS_BLOOM,
         MAX_EXTRA_DATA_BYTES,
-        PENDING_BALANCE_DEPOSITS_LIMIT,
+        PENDING_DEPOSITS_LIMIT,
         PENDING_PARTIAL_WITHDRAWALS_LIMIT,
         PENDING_CONSOLIDATIONS_LIMIT,
     >,
@@ -460,7 +458,7 @@ pub fn queue_excess_active_balance<
     const SYNC_COMMITTEE_SIZE: usize,
     const BYTES_PER_LOGS_BLOOM: usize,
     const MAX_EXTRA_DATA_BYTES: usize,
-    const PENDING_BALANCE_DEPOSITS_LIMIT: usize,
+    const PENDING_DEPOSITS_LIMIT: usize,
     const PENDING_PARTIAL_WITHDRAWALS_LIMIT: usize,
     const PENDING_CONSOLIDATIONS_LIMIT: usize,
 >(
@@ -475,7 +473,7 @@ pub fn queue_excess_active_balance<
         SYNC_COMMITTEE_SIZE,
         BYTES_PER_LOGS_BLOOM,
         MAX_EXTRA_DATA_BYTES,
-        PENDING_BALANCE_DEPOSITS_LIMIT,
+        PENDING_DEPOSITS_LIMIT,
         PENDING_PARTIAL_WITHDRAWALS_LIMIT,
         PENDING_CONSOLIDATIONS_LIMIT,
     >,
@@ -487,7 +485,7 @@ pub fn queue_excess_active_balance<
         let excess_balance =
             balance.checked_sub(context.min_activation_balance).ok_or(Error::Underflow)?;
         state.balances[index] = context.min_activation_balance;
-        state.pending_balance_deposits.push(PendingBalanceDeposit { index, amount: excess_balance })
+        state.pending_deposits.push(PendingDeposit { index, amount: excess_balance })
     }
     Ok(())
 }
@@ -503,7 +501,7 @@ pub fn queue_entire_balance_and_reset_validator<
     const SYNC_COMMITTEE_SIZE: usize,
     const BYTES_PER_LOGS_BLOOM: usize,
     const MAX_EXTRA_DATA_BYTES: usize,
-    const PENDING_BALANCE_DEPOSITS_LIMIT: usize,
+    const PENDING_DEPOSITS_LIMIT: usize,
     const PENDING_PARTIAL_WITHDRAWALS_LIMIT: usize,
     const PENDING_CONSOLIDATIONS_LIMIT: usize,
 >(
@@ -518,7 +516,7 @@ pub fn queue_entire_balance_and_reset_validator<
         SYNC_COMMITTEE_SIZE,
         BYTES_PER_LOGS_BLOOM,
         MAX_EXTRA_DATA_BYTES,
-        PENDING_BALANCE_DEPOSITS_LIMIT,
+        PENDING_DEPOSITS_LIMIT,
         PENDING_PARTIAL_WITHDRAWALS_LIMIT,
         PENDING_CONSOLIDATIONS_LIMIT,
     >,
@@ -530,7 +528,7 @@ pub fn queue_entire_balance_and_reset_validator<
     let validator = &mut state.validators[index];
     validator.effective_balance = 0;
     validator.activation_eligibility_epoch = FAR_FUTURE_EPOCH;
-    state.pending_balance_deposits.push(PendingBalanceDeposit { index, amount: balance });
+    state.pending_deposits.push(PendingDeposit { index, amount: balance });
 }
 
 pub fn compute_exit_epoch_and_update_churn<
@@ -544,7 +542,7 @@ pub fn compute_exit_epoch_and_update_churn<
     const SYNC_COMMITTEE_SIZE: usize,
     const BYTES_PER_LOGS_BLOOM: usize,
     const MAX_EXTRA_DATA_BYTES: usize,
-    const PENDING_BALANCE_DEPOSITS_LIMIT: usize,
+    const PENDING_DEPOSITS_LIMIT: usize,
     const PENDING_PARTIAL_WITHDRAWALS_LIMIT: usize,
     const PENDING_CONSOLIDATIONS_LIMIT: usize,
 >(
@@ -559,7 +557,7 @@ pub fn compute_exit_epoch_and_update_churn<
         SYNC_COMMITTEE_SIZE,
         BYTES_PER_LOGS_BLOOM,
         MAX_EXTRA_DATA_BYTES,
-        PENDING_BALANCE_DEPOSITS_LIMIT,
+        PENDING_DEPOSITS_LIMIT,
         PENDING_PARTIAL_WITHDRAWALS_LIMIT,
         PENDING_CONSOLIDATIONS_LIMIT,
     >,
@@ -600,7 +598,7 @@ pub fn compute_consolidation_epoch_and_update_churn<
     const SYNC_COMMITTEE_SIZE: usize,
     const BYTES_PER_LOGS_BLOOM: usize,
     const MAX_EXTRA_DATA_BYTES: usize,
-    const PENDING_BALANCE_DEPOSITS_LIMIT: usize,
+    const PENDING_DEPOSITS_LIMIT: usize,
     const PENDING_PARTIAL_WITHDRAWALS_LIMIT: usize,
     const PENDING_CONSOLIDATIONS_LIMIT: usize,
 >(
@@ -615,7 +613,7 @@ pub fn compute_consolidation_epoch_and_update_churn<
         SYNC_COMMITTEE_SIZE,
         BYTES_PER_LOGS_BLOOM,
         MAX_EXTRA_DATA_BYTES,
-        PENDING_BALANCE_DEPOSITS_LIMIT,
+        PENDING_DEPOSITS_LIMIT,
         PENDING_PARTIAL_WITHDRAWALS_LIMIT,
         PENDING_CONSOLIDATIONS_LIMIT,
     >,
@@ -659,7 +657,7 @@ pub fn slash_validator<
     const SYNC_COMMITTEE_SIZE: usize,
     const BYTES_PER_LOGS_BLOOM: usize,
     const MAX_EXTRA_DATA_BYTES: usize,
-    const PENDING_BALANCE_DEPOSITS_LIMIT: usize,
+    const PENDING_DEPOSITS_LIMIT: usize,
     const PENDING_PARTIAL_WITHDRAWALS_LIMIT: usize,
     const PENDING_CONSOLIDATIONS_LIMIT: usize,
 >(
@@ -674,7 +672,7 @@ pub fn slash_validator<
         SYNC_COMMITTEE_SIZE,
         BYTES_PER_LOGS_BLOOM,
         MAX_EXTRA_DATA_BYTES,
-        PENDING_BALANCE_DEPOSITS_LIMIT,
+        PENDING_DEPOSITS_LIMIT,
         PENDING_PARTIAL_WITHDRAWALS_LIMIT,
         PENDING_CONSOLIDATIONS_LIMIT,
     >,

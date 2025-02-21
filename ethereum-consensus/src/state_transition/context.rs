@@ -19,7 +19,7 @@ pub const DEFAULT_EXECUTION_ENGINE_VALIDITY: bool = true;
 #[derive(Clone)]
 pub struct Context {
     // phase0 preset
-    pub max_committees_per_slot: u64,
+    pub max_committees_per_slot: usize,
     pub target_committee_size: u64,
     pub max_validators_per_committee: usize,
     pub shuffle_round_count: u64,
@@ -85,13 +85,13 @@ pub struct Context {
     pub max_effective_balance_electra: Gwei,
     pub min_slashing_penalty_quotient_electra: u64,
     pub whistleblower_reward_quotient_electra: u64,
-    pub pending_balance_deposits_limit: usize,
+    pub pending_deposits_limit: usize,
     pub pending_partial_withdrawals_limit: usize,
     pub pending_consolidations_limit: usize,
     pub max_attester_slashings_electra: usize,
     pub max_attestations_electra: usize,
-    pub max_consolidations: usize,
-    pub max_deposit_receipts_per_payload: usize,
+    pub max_consolidation_requests_per_payload: usize,
+    pub max_deposit_requests_per_payload: usize,
     pub max_withdrawal_requests_per_payload: usize,
     pub max_pending_partials_per_withdrawals_sweep: usize,
 
@@ -276,13 +276,14 @@ impl Context {
                 .min_slashing_penalty_quotient_electra,
             whistleblower_reward_quotient_electra: electra_preset
                 .whistleblower_reward_quotient_electra,
-            pending_balance_deposits_limit: electra_preset.pending_balance_deposits_limit,
+            pending_deposits_limit: electra_preset.pending_deposits_limit,
             pending_partial_withdrawals_limit: electra_preset.pending_partial_withdrawals_limit,
             pending_consolidations_limit: electra_preset.pending_consolidations_limit,
             max_attester_slashings_electra: electra_preset.max_attester_slashings_electra,
             max_attestations_electra: electra_preset.max_attestations_electra,
-            max_consolidations: electra_preset.max_consolidations,
-            max_deposit_receipts_per_payload: electra_preset.max_deposit_receipts_per_payload,
+            max_consolidation_requests_per_payload: electra_preset
+                .max_consolidation_requests_per_payload,
+            max_deposit_requests_per_payload: electra_preset.max_deposit_requests_per_payload,
             max_withdrawal_requests_per_payload: electra_preset.max_withdrawal_requests_per_payload,
             max_pending_partials_per_withdrawals_sweep: electra_preset
                 .max_pending_partials_per_withdrawals_sweep,

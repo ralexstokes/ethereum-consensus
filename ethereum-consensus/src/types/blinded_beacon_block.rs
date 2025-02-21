@@ -3,6 +3,7 @@ use crate::{
     bellatrix::blinded_beacon_block as bellatrix,
     capella::blinded_beacon_block as capella,
     deneb::blinded_beacon_block as deneb,
+    electra::blinded_beacon_block as electra,
     primitives::{Root, Slot, ValidatorIndex},
     ssz::prelude::*,
     types::blinded_beacon_block_body::{BlindedBeaconBlockBodyRef, BlindedBeaconBlockBodyRefMut},
@@ -23,6 +24,10 @@ pub enum BlindedBeaconBlock<
     const MAX_EXTRA_DATA_BYTES: usize,
     const MAX_BLS_TO_EXECUTION_CHANGES: usize,
     const MAX_BLOB_COMMITMENTS_PER_BLOCK: usize,
+    const MAX_COMMITTEES_PER_SLOT: usize,
+    const MAX_DEPOSIT_REQUESTS_PER_PAYLOAD: usize,
+    const MAX_WITHDRAWAL_REQUESTS_PER_PAYLOAD: usize,
+    const MAX_CONSOLIDATION_REQUESTS_PER_PAYLOAD: usize,
 > {
     Bellatrix(
         bellatrix::BlindedBeaconBlock<
@@ -66,6 +71,25 @@ pub enum BlindedBeaconBlock<
             MAX_BLOB_COMMITMENTS_PER_BLOCK,
         >,
     ),
+    Electra(
+        electra::BlindedBeaconBlock<
+            MAX_PROPOSER_SLASHINGS,
+            MAX_VALIDATORS_PER_COMMITTEE,
+            MAX_ATTESTER_SLASHINGS,
+            MAX_ATTESTATIONS,
+            MAX_DEPOSITS,
+            MAX_VOLUNTARY_EXITS,
+            SYNC_COMMITTEE_SIZE,
+            BYTES_PER_LOGS_BLOOM,
+            MAX_EXTRA_DATA_BYTES,
+            MAX_BLS_TO_EXECUTION_CHANGES,
+            MAX_BLOB_COMMITMENTS_PER_BLOCK,
+            MAX_COMMITTEES_PER_SLOT,
+            MAX_DEPOSIT_REQUESTS_PER_PAYLOAD,
+            MAX_WITHDRAWAL_REQUESTS_PER_PAYLOAD,
+            MAX_CONSOLIDATION_REQUESTS_PER_PAYLOAD,
+        >,
+    ),
 }
 impl<
         const MAX_PROPOSER_SLASHINGS: usize,
@@ -79,6 +103,10 @@ impl<
         const MAX_EXTRA_DATA_BYTES: usize,
         const MAX_BLS_TO_EXECUTION_CHANGES: usize,
         const MAX_BLOB_COMMITMENTS_PER_BLOCK: usize,
+        const MAX_COMMITTEES_PER_SLOT: usize,
+        const MAX_DEPOSIT_REQUESTS_PER_PAYLOAD: usize,
+        const MAX_WITHDRAWAL_REQUESTS_PER_PAYLOAD: usize,
+        const MAX_CONSOLIDATION_REQUESTS_PER_PAYLOAD: usize,
     >
     BlindedBeaconBlock<
         MAX_PROPOSER_SLASHINGS,
@@ -92,6 +120,10 @@ impl<
         MAX_EXTRA_DATA_BYTES,
         MAX_BLS_TO_EXECUTION_CHANGES,
         MAX_BLOB_COMMITMENTS_PER_BLOCK,
+        MAX_COMMITTEES_PER_SLOT,
+        MAX_DEPOSIT_REQUESTS_PER_PAYLOAD,
+        MAX_WITHDRAWAL_REQUESTS_PER_PAYLOAD,
+        MAX_CONSOLIDATION_REQUESTS_PER_PAYLOAD,
     >
 {
     pub fn bellatrix(
@@ -220,11 +252,64 @@ impl<
             _ => None,
         }
     }
+    pub fn electra(
+        &self,
+    ) -> Option<
+        &electra::BlindedBeaconBlock<
+            MAX_PROPOSER_SLASHINGS,
+            MAX_VALIDATORS_PER_COMMITTEE,
+            MAX_ATTESTER_SLASHINGS,
+            MAX_ATTESTATIONS,
+            MAX_DEPOSITS,
+            MAX_VOLUNTARY_EXITS,
+            SYNC_COMMITTEE_SIZE,
+            BYTES_PER_LOGS_BLOOM,
+            MAX_EXTRA_DATA_BYTES,
+            MAX_BLS_TO_EXECUTION_CHANGES,
+            MAX_BLOB_COMMITMENTS_PER_BLOCK,
+            MAX_COMMITTEES_PER_SLOT,
+            MAX_DEPOSIT_REQUESTS_PER_PAYLOAD,
+            MAX_WITHDRAWAL_REQUESTS_PER_PAYLOAD,
+            MAX_CONSOLIDATION_REQUESTS_PER_PAYLOAD,
+        >,
+    > {
+        match self {
+            Self::Electra(inner) => Some(inner),
+            _ => None,
+        }
+    }
+    pub fn electra_mut(
+        &mut self,
+    ) -> Option<
+        &mut electra::BlindedBeaconBlock<
+            MAX_PROPOSER_SLASHINGS,
+            MAX_VALIDATORS_PER_COMMITTEE,
+            MAX_ATTESTER_SLASHINGS,
+            MAX_ATTESTATIONS,
+            MAX_DEPOSITS,
+            MAX_VOLUNTARY_EXITS,
+            SYNC_COMMITTEE_SIZE,
+            BYTES_PER_LOGS_BLOOM,
+            MAX_EXTRA_DATA_BYTES,
+            MAX_BLS_TO_EXECUTION_CHANGES,
+            MAX_BLOB_COMMITMENTS_PER_BLOCK,
+            MAX_COMMITTEES_PER_SLOT,
+            MAX_DEPOSIT_REQUESTS_PER_PAYLOAD,
+            MAX_WITHDRAWAL_REQUESTS_PER_PAYLOAD,
+            MAX_CONSOLIDATION_REQUESTS_PER_PAYLOAD,
+        >,
+    > {
+        match self {
+            Self::Electra(inner) => Some(inner),
+            _ => None,
+        }
+    }
     pub fn version(&self) -> Version {
         match self {
             Self::Bellatrix(_) => Version::Bellatrix,
             Self::Capella(_) => Version::Capella,
             Self::Deneb(_) => Version::Deneb,
+            Self::Electra(_) => Version::Electra,
         }
     }
     pub fn slot(&self) -> Slot {
@@ -232,6 +317,7 @@ impl<
             Self::Bellatrix(inner) => inner.slot,
             Self::Capella(inner) => inner.slot,
             Self::Deneb(inner) => inner.slot,
+            Self::Electra(inner) => inner.slot,
         }
     }
     pub fn slot_mut(&mut self) -> &mut Slot {
@@ -239,6 +325,7 @@ impl<
             Self::Bellatrix(inner) => &mut inner.slot,
             Self::Capella(inner) => &mut inner.slot,
             Self::Deneb(inner) => &mut inner.slot,
+            Self::Electra(inner) => &mut inner.slot,
         }
     }
     pub fn proposer_index(&self) -> ValidatorIndex {
@@ -246,6 +333,7 @@ impl<
             Self::Bellatrix(inner) => inner.proposer_index,
             Self::Capella(inner) => inner.proposer_index,
             Self::Deneb(inner) => inner.proposer_index,
+            Self::Electra(inner) => inner.proposer_index,
         }
     }
     pub fn proposer_index_mut(&mut self) -> &mut ValidatorIndex {
@@ -253,6 +341,7 @@ impl<
             Self::Bellatrix(inner) => &mut inner.proposer_index,
             Self::Capella(inner) => &mut inner.proposer_index,
             Self::Deneb(inner) => &mut inner.proposer_index,
+            Self::Electra(inner) => &mut inner.proposer_index,
         }
     }
     pub fn parent_root(&self) -> Root {
@@ -260,6 +349,7 @@ impl<
             Self::Bellatrix(inner) => inner.parent_root,
             Self::Capella(inner) => inner.parent_root,
             Self::Deneb(inner) => inner.parent_root,
+            Self::Electra(inner) => inner.parent_root,
         }
     }
     pub fn parent_root_mut(&mut self) -> &mut Root {
@@ -267,6 +357,7 @@ impl<
             Self::Bellatrix(inner) => &mut inner.parent_root,
             Self::Capella(inner) => &mut inner.parent_root,
             Self::Deneb(inner) => &mut inner.parent_root,
+            Self::Electra(inner) => &mut inner.parent_root,
         }
     }
     pub fn state_root(&self) -> Root {
@@ -274,6 +365,7 @@ impl<
             Self::Bellatrix(inner) => inner.state_root,
             Self::Capella(inner) => inner.state_root,
             Self::Deneb(inner) => inner.state_root,
+            Self::Electra(inner) => inner.state_root,
         }
     }
     pub fn state_root_mut(&mut self) -> &mut Root {
@@ -281,6 +373,7 @@ impl<
             Self::Bellatrix(inner) => &mut inner.state_root,
             Self::Capella(inner) => &mut inner.state_root,
             Self::Deneb(inner) => &mut inner.state_root,
+            Self::Electra(inner) => &mut inner.state_root,
         }
     }
     pub fn body(
@@ -297,11 +390,16 @@ impl<
         MAX_EXTRA_DATA_BYTES,
         MAX_BLS_TO_EXECUTION_CHANGES,
         MAX_BLOB_COMMITMENTS_PER_BLOCK,
+        MAX_COMMITTEES_PER_SLOT,
+        MAX_DEPOSIT_REQUESTS_PER_PAYLOAD,
+        MAX_WITHDRAWAL_REQUESTS_PER_PAYLOAD,
+        MAX_CONSOLIDATION_REQUESTS_PER_PAYLOAD,
     > {
         match self {
             Self::Bellatrix(inner) => From::from(&inner.body),
             Self::Capella(inner) => From::from(&inner.body),
             Self::Deneb(inner) => From::from(&inner.body),
+            Self::Electra(inner) => From::from(&inner.body),
         }
     }
     pub fn body_mut(
@@ -318,11 +416,16 @@ impl<
         MAX_EXTRA_DATA_BYTES,
         MAX_BLS_TO_EXECUTION_CHANGES,
         MAX_BLOB_COMMITMENTS_PER_BLOCK,
+        MAX_COMMITTEES_PER_SLOT,
+        MAX_DEPOSIT_REQUESTS_PER_PAYLOAD,
+        MAX_WITHDRAWAL_REQUESTS_PER_PAYLOAD,
+        MAX_CONSOLIDATION_REQUESTS_PER_PAYLOAD,
     > {
         match self {
             Self::Bellatrix(inner) => From::from(&mut inner.body),
             Self::Capella(inner) => From::from(&mut inner.body),
             Self::Deneb(inner) => From::from(&mut inner.body),
+            Self::Electra(inner) => From::from(&mut inner.body),
         }
     }
 }
@@ -339,6 +442,10 @@ impl<
         const MAX_EXTRA_DATA_BYTES: usize,
         const MAX_BLS_TO_EXECUTION_CHANGES: usize,
         const MAX_BLOB_COMMITMENTS_PER_BLOCK: usize,
+        const MAX_COMMITTEES_PER_SLOT: usize,
+        const MAX_DEPOSIT_REQUESTS_PER_PAYLOAD: usize,
+        const MAX_WITHDRAWAL_REQUESTS_PER_PAYLOAD: usize,
+        const MAX_CONSOLIDATION_REQUESTS_PER_PAYLOAD: usize,
     > serde::Deserialize<'de>
     for BlindedBeaconBlock<
         MAX_PROPOSER_SLASHINGS,
@@ -352,6 +459,10 @@ impl<
         MAX_EXTRA_DATA_BYTES,
         MAX_BLS_TO_EXECUTION_CHANGES,
         MAX_BLOB_COMMITMENTS_PER_BLOCK,
+        MAX_COMMITTEES_PER_SLOT,
+        MAX_DEPOSIT_REQUESTS_PER_PAYLOAD,
+        MAX_WITHDRAWAL_REQUESTS_PER_PAYLOAD,
+        MAX_CONSOLIDATION_REQUESTS_PER_PAYLOAD,
     >
 {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
@@ -359,6 +470,9 @@ impl<
         D: serde::Deserializer<'de>,
     {
         let value = serde_json::Value::deserialize(deserializer)?;
+        if let Ok(inner) = <_ as serde::Deserialize>::deserialize(&value) {
+            return Ok(Self::Electra(inner));
+        }
         if let Ok(inner) = <_ as serde::Deserialize>::deserialize(&value) {
             return Ok(Self::Deneb(inner));
         }
@@ -386,6 +500,10 @@ pub enum BlindedBeaconBlockRef<
     const MAX_EXTRA_DATA_BYTES: usize,
     const MAX_BLS_TO_EXECUTION_CHANGES: usize,
     const MAX_BLOB_COMMITMENTS_PER_BLOCK: usize,
+    const MAX_COMMITTEES_PER_SLOT: usize,
+    const MAX_DEPOSIT_REQUESTS_PER_PAYLOAD: usize,
+    const MAX_WITHDRAWAL_REQUESTS_PER_PAYLOAD: usize,
+    const MAX_CONSOLIDATION_REQUESTS_PER_PAYLOAD: usize,
 > {
     Bellatrix(
         &'a bellatrix::BlindedBeaconBlock<
@@ -429,8 +547,28 @@ pub enum BlindedBeaconBlockRef<
             MAX_BLOB_COMMITMENTS_PER_BLOCK,
         >,
     ),
+    Electra(
+        &'a electra::BlindedBeaconBlock<
+            MAX_PROPOSER_SLASHINGS,
+            MAX_VALIDATORS_PER_COMMITTEE,
+            MAX_ATTESTER_SLASHINGS,
+            MAX_ATTESTATIONS,
+            MAX_DEPOSITS,
+            MAX_VOLUNTARY_EXITS,
+            SYNC_COMMITTEE_SIZE,
+            BYTES_PER_LOGS_BLOOM,
+            MAX_EXTRA_DATA_BYTES,
+            MAX_BLS_TO_EXECUTION_CHANGES,
+            MAX_BLOB_COMMITMENTS_PER_BLOCK,
+            MAX_COMMITTEES_PER_SLOT,
+            MAX_DEPOSIT_REQUESTS_PER_PAYLOAD,
+            MAX_WITHDRAWAL_REQUESTS_PER_PAYLOAD,
+            MAX_CONSOLIDATION_REQUESTS_PER_PAYLOAD,
+        >,
+    ),
 }
 impl<
+        'a,
         const MAX_PROPOSER_SLASHINGS: usize,
         const MAX_VALIDATORS_PER_COMMITTEE: usize,
         const MAX_ATTESTER_SLASHINGS: usize,
@@ -442,9 +580,13 @@ impl<
         const MAX_EXTRA_DATA_BYTES: usize,
         const MAX_BLS_TO_EXECUTION_CHANGES: usize,
         const MAX_BLOB_COMMITMENTS_PER_BLOCK: usize,
+        const MAX_COMMITTEES_PER_SLOT: usize,
+        const MAX_DEPOSIT_REQUESTS_PER_PAYLOAD: usize,
+        const MAX_WITHDRAWAL_REQUESTS_PER_PAYLOAD: usize,
+        const MAX_CONSOLIDATION_REQUESTS_PER_PAYLOAD: usize,
     >
     BlindedBeaconBlockRef<
-        '_,
+        'a,
         MAX_PROPOSER_SLASHINGS,
         MAX_VALIDATORS_PER_COMMITTEE,
         MAX_ATTESTER_SLASHINGS,
@@ -456,6 +598,10 @@ impl<
         MAX_EXTRA_DATA_BYTES,
         MAX_BLS_TO_EXECUTION_CHANGES,
         MAX_BLOB_COMMITMENTS_PER_BLOCK,
+        MAX_COMMITTEES_PER_SLOT,
+        MAX_DEPOSIT_REQUESTS_PER_PAYLOAD,
+        MAX_WITHDRAWAL_REQUESTS_PER_PAYLOAD,
+        MAX_CONSOLIDATION_REQUESTS_PER_PAYLOAD,
     >
 {
     pub fn bellatrix(
@@ -521,11 +667,38 @@ impl<
             _ => None,
         }
     }
+    pub fn electra(
+        &self,
+    ) -> Option<
+        &electra::BlindedBeaconBlock<
+            MAX_PROPOSER_SLASHINGS,
+            MAX_VALIDATORS_PER_COMMITTEE,
+            MAX_ATTESTER_SLASHINGS,
+            MAX_ATTESTATIONS,
+            MAX_DEPOSITS,
+            MAX_VOLUNTARY_EXITS,
+            SYNC_COMMITTEE_SIZE,
+            BYTES_PER_LOGS_BLOOM,
+            MAX_EXTRA_DATA_BYTES,
+            MAX_BLS_TO_EXECUTION_CHANGES,
+            MAX_BLOB_COMMITMENTS_PER_BLOCK,
+            MAX_COMMITTEES_PER_SLOT,
+            MAX_DEPOSIT_REQUESTS_PER_PAYLOAD,
+            MAX_WITHDRAWAL_REQUESTS_PER_PAYLOAD,
+            MAX_CONSOLIDATION_REQUESTS_PER_PAYLOAD,
+        >,
+    > {
+        match self {
+            Self::Electra(inner) => Some(inner),
+            _ => None,
+        }
+    }
     pub fn version(&self) -> Version {
         match self {
             Self::Bellatrix(_) => Version::Bellatrix,
             Self::Capella(_) => Version::Capella,
             Self::Deneb(_) => Version::Deneb,
+            Self::Electra(_) => Version::Electra,
         }
     }
     pub fn slot(&self) -> Slot {
@@ -533,6 +706,7 @@ impl<
             Self::Bellatrix(inner) => inner.slot,
             Self::Capella(inner) => inner.slot,
             Self::Deneb(inner) => inner.slot,
+            Self::Electra(inner) => inner.slot,
         }
     }
     pub fn proposer_index(&self) -> ValidatorIndex {
@@ -540,6 +714,7 @@ impl<
             Self::Bellatrix(inner) => inner.proposer_index,
             Self::Capella(inner) => inner.proposer_index,
             Self::Deneb(inner) => inner.proposer_index,
+            Self::Electra(inner) => inner.proposer_index,
         }
     }
     pub fn parent_root(&self) -> Root {
@@ -547,6 +722,7 @@ impl<
             Self::Bellatrix(inner) => inner.parent_root,
             Self::Capella(inner) => inner.parent_root,
             Self::Deneb(inner) => inner.parent_root,
+            Self::Electra(inner) => inner.parent_root,
         }
     }
     pub fn state_root(&self) -> Root {
@@ -554,6 +730,7 @@ impl<
             Self::Bellatrix(inner) => inner.state_root,
             Self::Capella(inner) => inner.state_root,
             Self::Deneb(inner) => inner.state_root,
+            Self::Electra(inner) => inner.state_root,
         }
     }
     pub fn body(
@@ -570,11 +747,16 @@ impl<
         MAX_EXTRA_DATA_BYTES,
         MAX_BLS_TO_EXECUTION_CHANGES,
         MAX_BLOB_COMMITMENTS_PER_BLOCK,
+        MAX_COMMITTEES_PER_SLOT,
+        MAX_DEPOSIT_REQUESTS_PER_PAYLOAD,
+        MAX_WITHDRAWAL_REQUESTS_PER_PAYLOAD,
+        MAX_CONSOLIDATION_REQUESTS_PER_PAYLOAD,
     > {
         match self {
             Self::Bellatrix(inner) => From::from(&inner.body),
             Self::Capella(inner) => From::from(&inner.body),
             Self::Deneb(inner) => From::from(&inner.body),
+            Self::Electra(inner) => From::from(&inner.body),
         }
     }
 }
@@ -591,6 +773,10 @@ impl<
         const MAX_EXTRA_DATA_BYTES: usize,
         const MAX_BLS_TO_EXECUTION_CHANGES: usize,
         const MAX_BLOB_COMMITMENTS_PER_BLOCK: usize,
+        const MAX_COMMITTEES_PER_SLOT: usize,
+        const MAX_DEPOSIT_REQUESTS_PER_PAYLOAD: usize,
+        const MAX_WITHDRAWAL_REQUESTS_PER_PAYLOAD: usize,
+        const MAX_CONSOLIDATION_REQUESTS_PER_PAYLOAD: usize,
     >
     From<
         &'a bellatrix::BlindedBeaconBlock<
@@ -618,6 +804,10 @@ impl<
         MAX_EXTRA_DATA_BYTES,
         MAX_BLS_TO_EXECUTION_CHANGES,
         MAX_BLOB_COMMITMENTS_PER_BLOCK,
+        MAX_COMMITTEES_PER_SLOT,
+        MAX_DEPOSIT_REQUESTS_PER_PAYLOAD,
+        MAX_WITHDRAWAL_REQUESTS_PER_PAYLOAD,
+        MAX_CONSOLIDATION_REQUESTS_PER_PAYLOAD,
     >
 {
     fn from(
@@ -649,6 +839,10 @@ impl<
         const MAX_EXTRA_DATA_BYTES: usize,
         const MAX_BLS_TO_EXECUTION_CHANGES: usize,
         const MAX_BLOB_COMMITMENTS_PER_BLOCK: usize,
+        const MAX_COMMITTEES_PER_SLOT: usize,
+        const MAX_DEPOSIT_REQUESTS_PER_PAYLOAD: usize,
+        const MAX_WITHDRAWAL_REQUESTS_PER_PAYLOAD: usize,
+        const MAX_CONSOLIDATION_REQUESTS_PER_PAYLOAD: usize,
     >
     From<
         &'a capella::BlindedBeaconBlock<
@@ -677,6 +871,10 @@ impl<
         MAX_EXTRA_DATA_BYTES,
         MAX_BLS_TO_EXECUTION_CHANGES,
         MAX_BLOB_COMMITMENTS_PER_BLOCK,
+        MAX_COMMITTEES_PER_SLOT,
+        MAX_DEPOSIT_REQUESTS_PER_PAYLOAD,
+        MAX_WITHDRAWAL_REQUESTS_PER_PAYLOAD,
+        MAX_CONSOLIDATION_REQUESTS_PER_PAYLOAD,
     >
 {
     fn from(
@@ -709,6 +907,10 @@ impl<
         const MAX_EXTRA_DATA_BYTES: usize,
         const MAX_BLS_TO_EXECUTION_CHANGES: usize,
         const MAX_BLOB_COMMITMENTS_PER_BLOCK: usize,
+        const MAX_COMMITTEES_PER_SLOT: usize,
+        const MAX_DEPOSIT_REQUESTS_PER_PAYLOAD: usize,
+        const MAX_WITHDRAWAL_REQUESTS_PER_PAYLOAD: usize,
+        const MAX_CONSOLIDATION_REQUESTS_PER_PAYLOAD: usize,
     >
     From<
         &'a deneb::BlindedBeaconBlock<
@@ -738,6 +940,10 @@ impl<
         MAX_EXTRA_DATA_BYTES,
         MAX_BLS_TO_EXECUTION_CHANGES,
         MAX_BLOB_COMMITMENTS_PER_BLOCK,
+        MAX_COMMITTEES_PER_SLOT,
+        MAX_DEPOSIT_REQUESTS_PER_PAYLOAD,
+        MAX_WITHDRAWAL_REQUESTS_PER_PAYLOAD,
+        MAX_CONSOLIDATION_REQUESTS_PER_PAYLOAD,
     >
 {
     fn from(
@@ -758,6 +964,84 @@ impl<
         Self::Deneb(value)
     }
 }
+impl<
+        'a,
+        const MAX_PROPOSER_SLASHINGS: usize,
+        const MAX_VALIDATORS_PER_COMMITTEE: usize,
+        const MAX_ATTESTER_SLASHINGS: usize,
+        const MAX_ATTESTATIONS: usize,
+        const MAX_DEPOSITS: usize,
+        const MAX_VOLUNTARY_EXITS: usize,
+        const SYNC_COMMITTEE_SIZE: usize,
+        const BYTES_PER_LOGS_BLOOM: usize,
+        const MAX_EXTRA_DATA_BYTES: usize,
+        const MAX_BLS_TO_EXECUTION_CHANGES: usize,
+        const MAX_BLOB_COMMITMENTS_PER_BLOCK: usize,
+        const MAX_COMMITTEES_PER_SLOT: usize,
+        const MAX_DEPOSIT_REQUESTS_PER_PAYLOAD: usize,
+        const MAX_WITHDRAWAL_REQUESTS_PER_PAYLOAD: usize,
+        const MAX_CONSOLIDATION_REQUESTS_PER_PAYLOAD: usize,
+    >
+    From<
+        &'a electra::BlindedBeaconBlock<
+            MAX_PROPOSER_SLASHINGS,
+            MAX_VALIDATORS_PER_COMMITTEE,
+            MAX_ATTESTER_SLASHINGS,
+            MAX_ATTESTATIONS,
+            MAX_DEPOSITS,
+            MAX_VOLUNTARY_EXITS,
+            SYNC_COMMITTEE_SIZE,
+            BYTES_PER_LOGS_BLOOM,
+            MAX_EXTRA_DATA_BYTES,
+            MAX_BLS_TO_EXECUTION_CHANGES,
+            MAX_BLOB_COMMITMENTS_PER_BLOCK,
+            MAX_COMMITTEES_PER_SLOT,
+            MAX_DEPOSIT_REQUESTS_PER_PAYLOAD,
+            MAX_WITHDRAWAL_REQUESTS_PER_PAYLOAD,
+            MAX_CONSOLIDATION_REQUESTS_PER_PAYLOAD,
+        >,
+    >
+    for BlindedBeaconBlockRef<
+        'a,
+        MAX_PROPOSER_SLASHINGS,
+        MAX_VALIDATORS_PER_COMMITTEE,
+        MAX_ATTESTER_SLASHINGS,
+        MAX_ATTESTATIONS,
+        MAX_DEPOSITS,
+        MAX_VOLUNTARY_EXITS,
+        SYNC_COMMITTEE_SIZE,
+        BYTES_PER_LOGS_BLOOM,
+        MAX_EXTRA_DATA_BYTES,
+        MAX_BLS_TO_EXECUTION_CHANGES,
+        MAX_BLOB_COMMITMENTS_PER_BLOCK,
+        MAX_COMMITTEES_PER_SLOT,
+        MAX_DEPOSIT_REQUESTS_PER_PAYLOAD,
+        MAX_WITHDRAWAL_REQUESTS_PER_PAYLOAD,
+        MAX_CONSOLIDATION_REQUESTS_PER_PAYLOAD,
+    >
+{
+    fn from(
+        value: &'a electra::BlindedBeaconBlock<
+            MAX_PROPOSER_SLASHINGS,
+            MAX_VALIDATORS_PER_COMMITTEE,
+            MAX_ATTESTER_SLASHINGS,
+            MAX_ATTESTATIONS,
+            MAX_DEPOSITS,
+            MAX_VOLUNTARY_EXITS,
+            SYNC_COMMITTEE_SIZE,
+            BYTES_PER_LOGS_BLOOM,
+            MAX_EXTRA_DATA_BYTES,
+            MAX_BLS_TO_EXECUTION_CHANGES,
+            MAX_BLOB_COMMITMENTS_PER_BLOCK,
+            MAX_COMMITTEES_PER_SLOT,
+            MAX_DEPOSIT_REQUESTS_PER_PAYLOAD,
+            MAX_WITHDRAWAL_REQUESTS_PER_PAYLOAD,
+            MAX_CONSOLIDATION_REQUESTS_PER_PAYLOAD,
+        >,
+    ) -> Self {
+        Self::Electra(value)
+    }
+}
 #[derive(Debug, PartialEq, Eq, HashTreeRoot)]
 #[ssz(transparent)]
 pub enum BlindedBeaconBlockRefMut<
@@ -773,6 +1057,10 @@ pub enum BlindedBeaconBlockRefMut<
     const MAX_EXTRA_DATA_BYTES: usize,
     const MAX_BLS_TO_EXECUTION_CHANGES: usize,
     const MAX_BLOB_COMMITMENTS_PER_BLOCK: usize,
+    const MAX_COMMITTEES_PER_SLOT: usize,
+    const MAX_DEPOSIT_REQUESTS_PER_PAYLOAD: usize,
+    const MAX_WITHDRAWAL_REQUESTS_PER_PAYLOAD: usize,
+    const MAX_CONSOLIDATION_REQUESTS_PER_PAYLOAD: usize,
 > {
     Bellatrix(
         &'a mut bellatrix::BlindedBeaconBlock<
@@ -816,8 +1104,28 @@ pub enum BlindedBeaconBlockRefMut<
             MAX_BLOB_COMMITMENTS_PER_BLOCK,
         >,
     ),
+    Electra(
+        &'a mut electra::BlindedBeaconBlock<
+            MAX_PROPOSER_SLASHINGS,
+            MAX_VALIDATORS_PER_COMMITTEE,
+            MAX_ATTESTER_SLASHINGS,
+            MAX_ATTESTATIONS,
+            MAX_DEPOSITS,
+            MAX_VOLUNTARY_EXITS,
+            SYNC_COMMITTEE_SIZE,
+            BYTES_PER_LOGS_BLOOM,
+            MAX_EXTRA_DATA_BYTES,
+            MAX_BLS_TO_EXECUTION_CHANGES,
+            MAX_BLOB_COMMITMENTS_PER_BLOCK,
+            MAX_COMMITTEES_PER_SLOT,
+            MAX_DEPOSIT_REQUESTS_PER_PAYLOAD,
+            MAX_WITHDRAWAL_REQUESTS_PER_PAYLOAD,
+            MAX_CONSOLIDATION_REQUESTS_PER_PAYLOAD,
+        >,
+    ),
 }
 impl<
+        'a,
         const MAX_PROPOSER_SLASHINGS: usize,
         const MAX_VALIDATORS_PER_COMMITTEE: usize,
         const MAX_ATTESTER_SLASHINGS: usize,
@@ -829,9 +1137,13 @@ impl<
         const MAX_EXTRA_DATA_BYTES: usize,
         const MAX_BLS_TO_EXECUTION_CHANGES: usize,
         const MAX_BLOB_COMMITMENTS_PER_BLOCK: usize,
+        const MAX_COMMITTEES_PER_SLOT: usize,
+        const MAX_DEPOSIT_REQUESTS_PER_PAYLOAD: usize,
+        const MAX_WITHDRAWAL_REQUESTS_PER_PAYLOAD: usize,
+        const MAX_CONSOLIDATION_REQUESTS_PER_PAYLOAD: usize,
     >
     BlindedBeaconBlockRefMut<
-        '_,
+        'a,
         MAX_PROPOSER_SLASHINGS,
         MAX_VALIDATORS_PER_COMMITTEE,
         MAX_ATTESTER_SLASHINGS,
@@ -843,6 +1155,10 @@ impl<
         MAX_EXTRA_DATA_BYTES,
         MAX_BLS_TO_EXECUTION_CHANGES,
         MAX_BLOB_COMMITMENTS_PER_BLOCK,
+        MAX_COMMITTEES_PER_SLOT,
+        MAX_DEPOSIT_REQUESTS_PER_PAYLOAD,
+        MAX_WITHDRAWAL_REQUESTS_PER_PAYLOAD,
+        MAX_CONSOLIDATION_REQUESTS_PER_PAYLOAD,
     >
 {
     pub fn bellatrix(
@@ -971,11 +1287,64 @@ impl<
             _ => None,
         }
     }
+    pub fn electra(
+        &self,
+    ) -> Option<
+        &electra::BlindedBeaconBlock<
+            MAX_PROPOSER_SLASHINGS,
+            MAX_VALIDATORS_PER_COMMITTEE,
+            MAX_ATTESTER_SLASHINGS,
+            MAX_ATTESTATIONS,
+            MAX_DEPOSITS,
+            MAX_VOLUNTARY_EXITS,
+            SYNC_COMMITTEE_SIZE,
+            BYTES_PER_LOGS_BLOOM,
+            MAX_EXTRA_DATA_BYTES,
+            MAX_BLS_TO_EXECUTION_CHANGES,
+            MAX_BLOB_COMMITMENTS_PER_BLOCK,
+            MAX_COMMITTEES_PER_SLOT,
+            MAX_DEPOSIT_REQUESTS_PER_PAYLOAD,
+            MAX_WITHDRAWAL_REQUESTS_PER_PAYLOAD,
+            MAX_CONSOLIDATION_REQUESTS_PER_PAYLOAD,
+        >,
+    > {
+        match self {
+            Self::Electra(inner) => Some(inner),
+            _ => None,
+        }
+    }
+    pub fn electra_mut(
+        &mut self,
+    ) -> Option<
+        &mut electra::BlindedBeaconBlock<
+            MAX_PROPOSER_SLASHINGS,
+            MAX_VALIDATORS_PER_COMMITTEE,
+            MAX_ATTESTER_SLASHINGS,
+            MAX_ATTESTATIONS,
+            MAX_DEPOSITS,
+            MAX_VOLUNTARY_EXITS,
+            SYNC_COMMITTEE_SIZE,
+            BYTES_PER_LOGS_BLOOM,
+            MAX_EXTRA_DATA_BYTES,
+            MAX_BLS_TO_EXECUTION_CHANGES,
+            MAX_BLOB_COMMITMENTS_PER_BLOCK,
+            MAX_COMMITTEES_PER_SLOT,
+            MAX_DEPOSIT_REQUESTS_PER_PAYLOAD,
+            MAX_WITHDRAWAL_REQUESTS_PER_PAYLOAD,
+            MAX_CONSOLIDATION_REQUESTS_PER_PAYLOAD,
+        >,
+    > {
+        match self {
+            Self::Electra(inner) => Some(inner),
+            _ => None,
+        }
+    }
     pub fn version(&self) -> Version {
         match self {
             Self::Bellatrix(_) => Version::Bellatrix,
             Self::Capella(_) => Version::Capella,
             Self::Deneb(_) => Version::Deneb,
+            Self::Electra(_) => Version::Electra,
         }
     }
     pub fn slot(&self) -> Slot {
@@ -983,6 +1352,7 @@ impl<
             Self::Bellatrix(inner) => inner.slot,
             Self::Capella(inner) => inner.slot,
             Self::Deneb(inner) => inner.slot,
+            Self::Electra(inner) => inner.slot,
         }
     }
     pub fn slot_mut(&mut self) -> &mut Slot {
@@ -990,6 +1360,7 @@ impl<
             Self::Bellatrix(inner) => &mut inner.slot,
             Self::Capella(inner) => &mut inner.slot,
             Self::Deneb(inner) => &mut inner.slot,
+            Self::Electra(inner) => &mut inner.slot,
         }
     }
     pub fn proposer_index(&self) -> ValidatorIndex {
@@ -997,6 +1368,7 @@ impl<
             Self::Bellatrix(inner) => inner.proposer_index,
             Self::Capella(inner) => inner.proposer_index,
             Self::Deneb(inner) => inner.proposer_index,
+            Self::Electra(inner) => inner.proposer_index,
         }
     }
     pub fn proposer_index_mut(&mut self) -> &mut ValidatorIndex {
@@ -1004,6 +1376,7 @@ impl<
             Self::Bellatrix(inner) => &mut inner.proposer_index,
             Self::Capella(inner) => &mut inner.proposer_index,
             Self::Deneb(inner) => &mut inner.proposer_index,
+            Self::Electra(inner) => &mut inner.proposer_index,
         }
     }
     pub fn parent_root(&self) -> Root {
@@ -1011,6 +1384,7 @@ impl<
             Self::Bellatrix(inner) => inner.parent_root,
             Self::Capella(inner) => inner.parent_root,
             Self::Deneb(inner) => inner.parent_root,
+            Self::Electra(inner) => inner.parent_root,
         }
     }
     pub fn parent_root_mut(&mut self) -> &mut Root {
@@ -1018,6 +1392,7 @@ impl<
             Self::Bellatrix(inner) => &mut inner.parent_root,
             Self::Capella(inner) => &mut inner.parent_root,
             Self::Deneb(inner) => &mut inner.parent_root,
+            Self::Electra(inner) => &mut inner.parent_root,
         }
     }
     pub fn state_root(&self) -> Root {
@@ -1025,6 +1400,7 @@ impl<
             Self::Bellatrix(inner) => inner.state_root,
             Self::Capella(inner) => inner.state_root,
             Self::Deneb(inner) => inner.state_root,
+            Self::Electra(inner) => inner.state_root,
         }
     }
     pub fn state_root_mut(&mut self) -> &mut Root {
@@ -1032,6 +1408,7 @@ impl<
             Self::Bellatrix(inner) => &mut inner.state_root,
             Self::Capella(inner) => &mut inner.state_root,
             Self::Deneb(inner) => &mut inner.state_root,
+            Self::Electra(inner) => &mut inner.state_root,
         }
     }
     pub fn body(
@@ -1048,11 +1425,16 @@ impl<
         MAX_EXTRA_DATA_BYTES,
         MAX_BLS_TO_EXECUTION_CHANGES,
         MAX_BLOB_COMMITMENTS_PER_BLOCK,
+        MAX_COMMITTEES_PER_SLOT,
+        MAX_DEPOSIT_REQUESTS_PER_PAYLOAD,
+        MAX_WITHDRAWAL_REQUESTS_PER_PAYLOAD,
+        MAX_CONSOLIDATION_REQUESTS_PER_PAYLOAD,
     > {
         match self {
             Self::Bellatrix(inner) => From::from(&inner.body),
             Self::Capella(inner) => From::from(&inner.body),
             Self::Deneb(inner) => From::from(&inner.body),
+            Self::Electra(inner) => From::from(&inner.body),
         }
     }
     pub fn body_mut(
@@ -1069,11 +1451,16 @@ impl<
         MAX_EXTRA_DATA_BYTES,
         MAX_BLS_TO_EXECUTION_CHANGES,
         MAX_BLOB_COMMITMENTS_PER_BLOCK,
+        MAX_COMMITTEES_PER_SLOT,
+        MAX_DEPOSIT_REQUESTS_PER_PAYLOAD,
+        MAX_WITHDRAWAL_REQUESTS_PER_PAYLOAD,
+        MAX_CONSOLIDATION_REQUESTS_PER_PAYLOAD,
     > {
         match self {
             Self::Bellatrix(inner) => From::from(&mut inner.body),
             Self::Capella(inner) => From::from(&mut inner.body),
             Self::Deneb(inner) => From::from(&mut inner.body),
+            Self::Electra(inner) => From::from(&mut inner.body),
         }
     }
 }
@@ -1090,6 +1477,10 @@ impl<
         const MAX_EXTRA_DATA_BYTES: usize,
         const MAX_BLS_TO_EXECUTION_CHANGES: usize,
         const MAX_BLOB_COMMITMENTS_PER_BLOCK: usize,
+        const MAX_COMMITTEES_PER_SLOT: usize,
+        const MAX_DEPOSIT_REQUESTS_PER_PAYLOAD: usize,
+        const MAX_WITHDRAWAL_REQUESTS_PER_PAYLOAD: usize,
+        const MAX_CONSOLIDATION_REQUESTS_PER_PAYLOAD: usize,
     >
     From<
         &'a mut bellatrix::BlindedBeaconBlock<
@@ -1117,6 +1508,10 @@ impl<
         MAX_EXTRA_DATA_BYTES,
         MAX_BLS_TO_EXECUTION_CHANGES,
         MAX_BLOB_COMMITMENTS_PER_BLOCK,
+        MAX_COMMITTEES_PER_SLOT,
+        MAX_DEPOSIT_REQUESTS_PER_PAYLOAD,
+        MAX_WITHDRAWAL_REQUESTS_PER_PAYLOAD,
+        MAX_CONSOLIDATION_REQUESTS_PER_PAYLOAD,
     >
 {
     fn from(
@@ -1148,6 +1543,10 @@ impl<
         const MAX_EXTRA_DATA_BYTES: usize,
         const MAX_BLS_TO_EXECUTION_CHANGES: usize,
         const MAX_BLOB_COMMITMENTS_PER_BLOCK: usize,
+        const MAX_COMMITTEES_PER_SLOT: usize,
+        const MAX_DEPOSIT_REQUESTS_PER_PAYLOAD: usize,
+        const MAX_WITHDRAWAL_REQUESTS_PER_PAYLOAD: usize,
+        const MAX_CONSOLIDATION_REQUESTS_PER_PAYLOAD: usize,
     >
     From<
         &'a mut capella::BlindedBeaconBlock<
@@ -1176,6 +1575,10 @@ impl<
         MAX_EXTRA_DATA_BYTES,
         MAX_BLS_TO_EXECUTION_CHANGES,
         MAX_BLOB_COMMITMENTS_PER_BLOCK,
+        MAX_COMMITTEES_PER_SLOT,
+        MAX_DEPOSIT_REQUESTS_PER_PAYLOAD,
+        MAX_WITHDRAWAL_REQUESTS_PER_PAYLOAD,
+        MAX_CONSOLIDATION_REQUESTS_PER_PAYLOAD,
     >
 {
     fn from(
@@ -1208,6 +1611,10 @@ impl<
         const MAX_EXTRA_DATA_BYTES: usize,
         const MAX_BLS_TO_EXECUTION_CHANGES: usize,
         const MAX_BLOB_COMMITMENTS_PER_BLOCK: usize,
+        const MAX_COMMITTEES_PER_SLOT: usize,
+        const MAX_DEPOSIT_REQUESTS_PER_PAYLOAD: usize,
+        const MAX_WITHDRAWAL_REQUESTS_PER_PAYLOAD: usize,
+        const MAX_CONSOLIDATION_REQUESTS_PER_PAYLOAD: usize,
     >
     From<
         &'a mut deneb::BlindedBeaconBlock<
@@ -1237,6 +1644,10 @@ impl<
         MAX_EXTRA_DATA_BYTES,
         MAX_BLS_TO_EXECUTION_CHANGES,
         MAX_BLOB_COMMITMENTS_PER_BLOCK,
+        MAX_COMMITTEES_PER_SLOT,
+        MAX_DEPOSIT_REQUESTS_PER_PAYLOAD,
+        MAX_WITHDRAWAL_REQUESTS_PER_PAYLOAD,
+        MAX_CONSOLIDATION_REQUESTS_PER_PAYLOAD,
     >
 {
     fn from(
@@ -1255,5 +1666,83 @@ impl<
         >,
     ) -> Self {
         Self::Deneb(value)
+    }
+}
+impl<
+        'a,
+        const MAX_PROPOSER_SLASHINGS: usize,
+        const MAX_VALIDATORS_PER_COMMITTEE: usize,
+        const MAX_ATTESTER_SLASHINGS: usize,
+        const MAX_ATTESTATIONS: usize,
+        const MAX_DEPOSITS: usize,
+        const MAX_VOLUNTARY_EXITS: usize,
+        const SYNC_COMMITTEE_SIZE: usize,
+        const BYTES_PER_LOGS_BLOOM: usize,
+        const MAX_EXTRA_DATA_BYTES: usize,
+        const MAX_BLS_TO_EXECUTION_CHANGES: usize,
+        const MAX_BLOB_COMMITMENTS_PER_BLOCK: usize,
+        const MAX_COMMITTEES_PER_SLOT: usize,
+        const MAX_DEPOSIT_REQUESTS_PER_PAYLOAD: usize,
+        const MAX_WITHDRAWAL_REQUESTS_PER_PAYLOAD: usize,
+        const MAX_CONSOLIDATION_REQUESTS_PER_PAYLOAD: usize,
+    >
+    From<
+        &'a mut electra::BlindedBeaconBlock<
+            MAX_PROPOSER_SLASHINGS,
+            MAX_VALIDATORS_PER_COMMITTEE,
+            MAX_ATTESTER_SLASHINGS,
+            MAX_ATTESTATIONS,
+            MAX_DEPOSITS,
+            MAX_VOLUNTARY_EXITS,
+            SYNC_COMMITTEE_SIZE,
+            BYTES_PER_LOGS_BLOOM,
+            MAX_EXTRA_DATA_BYTES,
+            MAX_BLS_TO_EXECUTION_CHANGES,
+            MAX_BLOB_COMMITMENTS_PER_BLOCK,
+            MAX_COMMITTEES_PER_SLOT,
+            MAX_DEPOSIT_REQUESTS_PER_PAYLOAD,
+            MAX_WITHDRAWAL_REQUESTS_PER_PAYLOAD,
+            MAX_CONSOLIDATION_REQUESTS_PER_PAYLOAD,
+        >,
+    >
+    for BlindedBeaconBlockRefMut<
+        'a,
+        MAX_PROPOSER_SLASHINGS,
+        MAX_VALIDATORS_PER_COMMITTEE,
+        MAX_ATTESTER_SLASHINGS,
+        MAX_ATTESTATIONS,
+        MAX_DEPOSITS,
+        MAX_VOLUNTARY_EXITS,
+        SYNC_COMMITTEE_SIZE,
+        BYTES_PER_LOGS_BLOOM,
+        MAX_EXTRA_DATA_BYTES,
+        MAX_BLS_TO_EXECUTION_CHANGES,
+        MAX_BLOB_COMMITMENTS_PER_BLOCK,
+        MAX_COMMITTEES_PER_SLOT,
+        MAX_DEPOSIT_REQUESTS_PER_PAYLOAD,
+        MAX_WITHDRAWAL_REQUESTS_PER_PAYLOAD,
+        MAX_CONSOLIDATION_REQUESTS_PER_PAYLOAD,
+    >
+{
+    fn from(
+        value: &'a mut electra::BlindedBeaconBlock<
+            MAX_PROPOSER_SLASHINGS,
+            MAX_VALIDATORS_PER_COMMITTEE,
+            MAX_ATTESTER_SLASHINGS,
+            MAX_ATTESTATIONS,
+            MAX_DEPOSITS,
+            MAX_VOLUNTARY_EXITS,
+            SYNC_COMMITTEE_SIZE,
+            BYTES_PER_LOGS_BLOOM,
+            MAX_EXTRA_DATA_BYTES,
+            MAX_BLS_TO_EXECUTION_CHANGES,
+            MAX_BLOB_COMMITMENTS_PER_BLOCK,
+            MAX_COMMITTEES_PER_SLOT,
+            MAX_DEPOSIT_REQUESTS_PER_PAYLOAD,
+            MAX_WITHDRAWAL_REQUESTS_PER_PAYLOAD,
+            MAX_CONSOLIDATION_REQUESTS_PER_PAYLOAD,
+        >,
+    ) -> Self {
+        Self::Electra(value)
     }
 }
