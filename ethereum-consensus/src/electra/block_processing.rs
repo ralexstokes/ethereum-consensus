@@ -1,28 +1,26 @@
 use crate::{
-    crypto::fast_aggregate_verify,
     electra::{
-        add_flag, compute_consolidation_epoch_and_update_churn, compute_domain,
-        compute_epoch_at_slot, compute_exit_epoch_and_update_churn, compute_signing_root,
+        add_flag, compute_domain, compute_epoch_at_slot, compute_exit_epoch_and_update_churn,
         compute_timestamp_at_slot, decrease_balance, get_attestation_participation_flag_indices,
         get_attesting_indices, get_base_reward, get_beacon_committee, get_beacon_proposer_index,
-        get_committee_count_per_slot, get_committee_indices, get_consolidation_churn_limit,
-        get_current_epoch, get_indexed_attestation, get_pending_balance_to_withdraw,
-        get_previous_epoch, get_randao_mix, get_validator_max_effective_balance,
-        has_compounding_withdrawal_credential, has_eth1_withdrawal_credential,
-        has_execution_withdrawal_credential, has_flag, increase_balance, initiate_validator_exit,
-        invalid_operation_error, is_active_validator, is_compounding_withdrawal_credential,
-        is_fully_withdrawable_validator, is_partially_withdrawable_validator,
-        is_valid_indexed_attestation, kzg_commitment_to_versioned_hash, process_attester_slashing,
+        get_committee_count_per_slot, get_committee_indices, get_current_epoch,
+        get_indexed_attestation, get_pending_balance_to_withdraw, get_previous_epoch,
+        get_randao_mix, get_validator_max_effective_balance, has_compounding_withdrawal_credential,
+        has_eth1_withdrawal_credential, has_execution_withdrawal_credential, has_flag,
+        increase_balance, initiate_validator_exit, invalid_operation_error, is_active_validator,
+        is_compounding_withdrawal_credential, is_fully_withdrawable_validator,
+        is_partially_withdrawable_validator, is_valid_indexed_attestation,
+        kzg_commitment_to_versioned_hash, process_attester_slashing,
         process_bls_to_execution_change, process_deposit, process_proposer_slashing,
         switch_to_compounding_validator, verify_signed_data, Attestation, BeaconBlockBody,
         BeaconState, BlsPublicKey, BlsSignature, Bytes32, DepositMessage, DepositReceipt,
         DomainType, ExecutionAddress, ExecutionLayerWithdrawalRequest, ExecutionPayload,
-        ExecutionPayloadHeader, ExecutionRequests, Gwei, InvalidAttestation, InvalidConsolidation,
-        InvalidDeposit, InvalidExecutionPayload, InvalidOperation, InvalidVoluntaryExit,
-        InvalidWithdrawals, NewPayloadRequest, ParticipationFlags, PendingConsolidation,
-        PendingDeposit, PendingPartialWithdrawal, SignedVoluntaryExit, Validator, Withdrawal,
-        FAR_FUTURE_EPOCH, FULL_EXIT_REQUEST_AMOUNT, PARTICIPATION_FLAG_WEIGHTS, PROPOSER_WEIGHT,
-        UNSET_DEPOSIT_RECEIPTS_START_INDEX, WEIGHT_DENOMINATOR,
+        ExecutionPayloadHeader, Gwei, InvalidAttestation, InvalidDeposit, InvalidExecutionPayload,
+        InvalidOperation, InvalidVoluntaryExit, InvalidWithdrawals, NewPayloadRequest,
+        ParticipationFlags, PendingDeposit, PendingPartialWithdrawal, SignedVoluntaryExit,
+        Validator, Withdrawal, FAR_FUTURE_EPOCH, FULL_EXIT_REQUEST_AMOUNT,
+        PARTICIPATION_FLAG_WEIGHTS, PROPOSER_WEIGHT, UNSET_DEPOSIT_RECEIPTS_START_INDEX,
+        WEIGHT_DENOMINATOR,
     },
     execution_engine::ExecutionEngine,
     ssz::prelude::HashTreeRoot,
@@ -83,9 +81,9 @@ pub fn get_expected_withdrawals<
         let has_sufficient_effective_balance =
             validator.effective_balance > context.min_activation_balance;
         let has_excess_balance = balance > context.min_activation_balance;
-        if validator.exit_epoch == FAR_FUTURE_EPOCH &&
-            has_sufficient_effective_balance &&
-            has_excess_balance
+        if validator.exit_epoch == FAR_FUTURE_EPOCH
+            && has_sufficient_effective_balance
+            && has_excess_balance
         {
             let withdrawable_balance =
                 u64::min(balance - context.min_activation_balance, withdrawal.amount);
@@ -190,7 +188,7 @@ pub fn process_withdrawals<
                 provided: payload.withdrawals.to_vec(),
                 expected: expected_withdrawals,
             },
-        )))
+        )));
     }
 
     for withdrawal in payload.withdrawals.iter() {
@@ -246,6 +244,9 @@ pub fn process_execution_payload<
     const MAX_DEPOSIT_REQUESTS_PER_PAYLOAD: usize,
     const MAX_WITHDRAWAL_REQUESTS_PER_PAYLOAD: usize,
     const MAX_CONSOLIDATION_REQUESTS_PER_PAYLOAD: usize,
+    const MAX_ATTESTER_SLASHINGS_ELECTRA: usize,
+    const MAX_ATTESTATIONS_ELECTRA: usize,
+    const MAX_VALIDATORS_PER_SLOT: usize,
 >(
     state: &mut BeaconState<
         SLOTS_PER_HISTORICAL_ROOT,
@@ -281,86 +282,89 @@ pub fn process_execution_payload<
         MAX_DEPOSIT_REQUESTS_PER_PAYLOAD,
         MAX_WITHDRAWAL_REQUESTS_PER_PAYLOAD,
         MAX_CONSOLIDATION_REQUESTS_PER_PAYLOAD,
+        MAX_ATTESTER_SLASHINGS_ELECTRA,
+        MAX_ATTESTATIONS_ELECTRA,
+        MAX_VALIDATORS_PER_SLOT,
     >,
     context: &Context,
 ) -> Result<(), Error> {
-    let payload = &body.execution_payload;
+    // let payload = &body.execution_payload;
 
-    let parent_hash_invalid =
-        payload.parent_hash != state.latest_execution_payload_header.block_hash;
-    if parent_hash_invalid {
-        return Err(invalid_operation_error(
-            InvalidExecutionPayload::InvalidParentHash {
-                provided: payload.parent_hash.clone(),
-                expected: state.latest_execution_payload_header.block_hash.clone(),
-            }
-            .into(),
-        ))
-    }
+    // let parent_hash_invalid =
+    //     payload.parent_hash != state.latest_execution_payload_header.block_hash;
+    // if parent_hash_invalid {
+    //     return Err(invalid_operation_error(
+    //         InvalidExecutionPayload::InvalidParentHash {
+    //             provided: payload.parent_hash.clone(),
+    //             expected: state.latest_execution_payload_header.block_hash.clone(),
+    //         }
+    //         .into(),
+    //     ));
+    // }
 
-    let current_epoch = get_current_epoch(state, context);
-    let randao_mix = get_randao_mix(state, current_epoch);
-    if &payload.prev_randao != randao_mix {
-        return Err(invalid_operation_error(
-            InvalidExecutionPayload::InvalidPrevRandao {
-                provided: payload.prev_randao.clone(),
-                expected: randao_mix.clone(),
-            }
-            .into(),
-        ))
-    }
+    // let current_epoch = get_current_epoch(state, context);
+    // let randao_mix = get_randao_mix(state, current_epoch);
+    // if &payload.prev_randao != randao_mix {
+    //     return Err(invalid_operation_error(
+    //         InvalidExecutionPayload::InvalidPrevRandao {
+    //             provided: payload.prev_randao.clone(),
+    //             expected: randao_mix.clone(),
+    //         }
+    //         .into(),
+    //     ));
+    // }
 
-    let timestamp = compute_timestamp_at_slot(state, state.slot, context)?;
-    if payload.timestamp != timestamp {
-        return Err(invalid_operation_error(
-            InvalidExecutionPayload::InvalidTimestamp {
-                provided: payload.timestamp,
-                expected: timestamp,
-            }
-            .into(),
-        ))
-    }
+    // let timestamp = compute_timestamp_at_slot(state, state.slot, context)?;
+    // if payload.timestamp != timestamp {
+    //     return Err(invalid_operation_error(
+    //         InvalidExecutionPayload::InvalidTimestamp {
+    //             provided: payload.timestamp,
+    //             expected: timestamp,
+    //         }
+    //         .into(),
+    //     ));
+    // }
 
-    if body.blob_kzg_commitments.len() > context.max_blobs_per_block {
-        return Err(invalid_operation_error(
-            InvalidExecutionPayload::InvalidBlobCommitments {
-                provided: body.blob_kzg_commitments.len(),
-                limit: context.max_blobs_per_block,
-            }
-            .into(),
-        ))
-    }
+    // if body.blob_kzg_commitments.len() > context.max_blobs_per_block {
+    //     return Err(invalid_operation_error(
+    //         InvalidExecutionPayload::InvalidBlobCommitments {
+    //             provided: body.blob_kzg_commitments.len(),
+    //             limit: context.max_blobs_per_block,
+    //         }
+    //         .into(),
+    //     ));
+    // }
 
-    let versioned_hashes =
-        body.blob_kzg_commitments.iter().map(kzg_commitment_to_versioned_hash).collect::<Vec<_>>();
+    // let versioned_hashes =
+    //     body.blob_kzg_commitments.iter().map(kzg_commitment_to_versioned_hash).collect::<Vec<_>>();
 
-    let execution_engine = context.execution_engine();
-    let new_payload_request = NewPayloadRequest {
-        execution_payload: payload.clone(),
-        versioned_hashes,
-        parent_beacon_block_root: state.latest_block_header.parent_root,
-    };
-    execution_engine.verify_and_notify_new_payload(&new_payload_request)?;
+    // let execution_engine = context.execution_engine();
+    // let new_payload_request = NewPayloadRequest {
+    //     execution_payload: payload.clone(),
+    //     versioned_hashes,
+    //     parent_beacon_block_root: state.latest_block_header.parent_root,
+    // };
+    // execution_engine.verify_and_notify_new_payload(&new_payload_request)?;
 
-    state.latest_execution_payload_header = ExecutionPayloadHeader {
-        parent_hash: payload.parent_hash.clone(),
-        fee_recipient: payload.fee_recipient.clone(),
-        state_root: payload.state_root.clone(),
-        receipts_root: payload.receipts_root.clone(),
-        logs_bloom: payload.logs_bloom.clone(),
-        prev_randao: payload.prev_randao.clone(),
-        block_number: payload.block_number,
-        gas_limit: payload.gas_limit,
-        gas_used: payload.gas_used,
-        timestamp: payload.timestamp,
-        extra_data: payload.extra_data.clone(),
-        base_fee_per_gas: payload.base_fee_per_gas,
-        block_hash: payload.block_hash.clone(),
-        transactions_root: payload.transactions.hash_tree_root()?,
-        withdrawals_root: payload.withdrawals.hash_tree_root()?,
-        blob_gas_used: payload.blob_gas_used,
-        excess_blob_gas: payload.excess_blob_gas,
-    };
+    // state.latest_execution_payload_header = ExecutionPayloadHeader {
+    //     parent_hash: payload.parent_hash.clone(),
+    //     fee_recipient: payload.fee_recipient.clone(),
+    //     state_root: payload.state_root.clone(),
+    //     receipts_root: payload.receipts_root.clone(),
+    //     logs_bloom: payload.logs_bloom.clone(),
+    //     prev_randao: payload.prev_randao.clone(),
+    //     block_number: payload.block_number,
+    //     gas_limit: payload.gas_limit,
+    //     gas_used: payload.gas_used,
+    //     timestamp: payload.timestamp,
+    //     extra_data: payload.extra_data.clone(),
+    //     base_fee_per_gas: payload.base_fee_per_gas,
+    //     block_hash: payload.block_hash.clone(),
+    //     transactions_root: payload.transactions.hash_tree_root()?,
+    //     withdrawals_root: payload.withdrawals.hash_tree_root()?,
+    //     blob_gas_used: payload.blob_gas_used,
+    //     excess_blob_gas: payload.excess_blob_gas,
+    // };
 
     Ok(())
 }
@@ -393,6 +397,9 @@ pub fn process_operations<
     const MAX_BLS_TO_EXECUTION_CHANGES: usize,
     const MAX_BLOB_COMMITMENTS_PER_BLOCK: usize,
     const MAX_CONSOLIDATION_REQUESTS_PER_PAYLOAD: usize,
+    const MAX_ATTESTER_SLASHINGS_ELECTRA: usize,
+    const MAX_ATTESTATIONS_ELECTRA: usize,
+    const MAX_VALIDATORS_PER_SLOT: usize,
 >(
     state: &mut BeaconState<
         SLOTS_PER_HISTORICAL_ROOT,
@@ -428,51 +435,54 @@ pub fn process_operations<
         MAX_DEPOSIT_REQUESTS_PER_PAYLOAD,
         MAX_WITHDRAWAL_REQUESTS_PER_PAYLOAD,
         MAX_CONSOLIDATION_REQUESTS_PER_PAYLOAD,
+        MAX_ATTESTER_SLASHINGS_ELECTRA,
+        MAX_ATTESTATIONS_ELECTRA,
+        MAX_VALIDATORS_PER_SLOT,
     >,
     context: &Context,
 ) -> Result<(), Error> {
-    let eth1_deposit_index_limit =
-        u64::min(state.eth1_data.deposit_count, state.deposit_receipts_start_index);
-    if state.eth1_deposit_index < eth1_deposit_index_limit {
-        let expected = u64::min(
-            context.max_deposits as u64,
-            eth1_deposit_index_limit - state.eth1_deposit_index,
-        ) as usize;
-        if body.deposits.len() != expected {
-            return Err(invalid_operation_error(InvalidOperation::Deposit(
-                InvalidDeposit::IncorrectCount { expected, count: body.deposits.len() },
-            )));
-        } else if !body.deposits.is_empty() {
-            return Err(invalid_operation_error(InvalidOperation::Deposit(
-                InvalidDeposit::IncorrectCount { expected: 0, count: body.deposits.len() },
-            )));
-        }
-    }
+    // let eth1_deposit_index_limit =
+    //     u64::min(state.eth1_data.deposit_count, state.deposit_receipts_start_index);
+    // if state.eth1_deposit_index < eth1_deposit_index_limit {
+    //     let expected = u64::min(
+    //         context.max_deposits as u64,
+    //         eth1_deposit_index_limit - state.eth1_deposit_index,
+    //     ) as usize;
+    //     if body.deposits.len() != expected {
+    //         return Err(invalid_operation_error(InvalidOperation::Deposit(
+    //             InvalidDeposit::IncorrectCount { expected, count: body.deposits.len() },
+    //         )));
+    //     } else if !body.deposits.is_empty() {
+    //         return Err(invalid_operation_error(InvalidOperation::Deposit(
+    //             InvalidDeposit::IncorrectCount { expected: 0, count: body.deposits.len() },
+    //         )));
+    //     }
+    // }
 
-    body.proposer_slashings
-        .iter()
-        .try_for_each(|op| process_proposer_slashing(state, op, context))?;
-    body.attester_slashings
-        .iter()
-        .try_for_each(|op| process_attester_slashing(state, op, context))?;
-    body.attestations.iter().try_for_each(|op| process_attestation(state, op, context))?;
-    body.deposits.iter().try_for_each(|op| process_deposit(state, op, context))?;
-    body.voluntary_exits.iter().try_for_each(|op| process_voluntary_exit(state, op, context))?;
-    body.bls_to_execution_changes
-        .iter()
-        .try_for_each(|op| process_bls_to_execution_change(state, op, context))?;
-    body.execution_requests
-        .deposits
-        .iter()
-        .try_for_each(|op| process_deposit_request(state, op, context))?;
-    body.execution_requests
-        .withdrawals
-        .iter()
-        .try_for_each(|op| process_withdrawal_request(state, op, context))?;
-    body.execution_requests
-        .consolidations
-        .iter()
-        .try_for_each(|op| process_consolidation_request(state, op, context))?;
+    // body.proposer_slashings
+    //     .iter()
+    //     .try_for_each(|op| process_proposer_slashing(state, op, context))?;
+    // body.attester_slashings
+    //     .iter()
+    //     .try_for_each(|op| process_attester_slashing(state, op, context))?;
+    // body.attestations.iter().try_for_each(|op| process_attestation(state, op, context))?;
+    // body.deposits.iter().try_for_each(|op| process_deposit(state, op, context))?;
+    // body.voluntary_exits.iter().try_for_each(|op| process_voluntary_exit(state, op, context))?;
+    // body.bls_to_execution_changes
+    //     .iter()
+    //     .try_for_each(|op| process_bls_to_execution_change(state, op, context))?;
+    // body.execution_requests
+    //     .deposits
+    //     .iter()
+    //     .try_for_each(|op| process_deposit_request(state, op, context))?;
+    // body.execution_requests
+    //     .withdrawals
+    //     .iter()
+    //     .try_for_each(|op| process_withdrawal_request(state, op, context))?;
+    // body.execution_requests
+    //     .consolidations
+    //     .iter()
+    //     .try_for_each(|op| process_consolidation_request(state, op, context))?;
 
     Ok(())
 }
@@ -492,6 +502,7 @@ pub fn process_attestation<
     const PENDING_PARTIAL_WITHDRAWALS_LIMIT: usize,
     const PENDING_CONSOLIDATIONS_LIMIT: usize,
     const MAX_COMMITTEES_PER_SLOT: usize,
+    const MAX_VALIDATORS_PER_SLOT: usize,
 >(
     state: &mut BeaconState<
         SLOTS_PER_HISTORICAL_ROOT,
@@ -522,7 +533,7 @@ pub fn process_attestation<
                 target: data.target.epoch,
                 current: current_epoch,
             },
-        )))
+        )));
     }
     let attestation_epoch = compute_epoch_at_slot(data.slot, context);
     if data.target.epoch != attestation_epoch {
@@ -532,7 +543,7 @@ pub fn process_attestation<
                 epoch: attestation_epoch,
                 target: data.target.epoch,
             },
-        )))
+        )));
     }
     let attestation_is_timely = data.slot + context.min_attestation_inclusion_delay <= state.slot;
     if !attestation_is_timely {
@@ -542,7 +553,7 @@ pub fn process_attestation<
                 state_slot: state.slot,
                 required_delay: context.min_attestation_inclusion_delay,
             },
-        )))
+        )));
     }
 
     if data.index != 0 {
@@ -572,7 +583,7 @@ pub fn process_attestation<
                 expected_length: participants_count,
                 length: attestation.aggregation_bits.len(),
             },
-        )))
+        )));
     }
 
     let inclusion_delay = state.slot - data.slot;
@@ -589,15 +600,15 @@ pub fn process_attestation<
     for index in attesting_indices {
         for (flag_index, weight) in PARTICIPATION_FLAG_WEIGHTS.iter().enumerate() {
             if is_current {
-                if participation_flag_indices.contains(&flag_index) &&
-                    !has_flag(state.current_epoch_participation[index], flag_index)
+                if participation_flag_indices.contains(&flag_index)
+                    && !has_flag(state.current_epoch_participation[index], flag_index)
                 {
                     state.current_epoch_participation[index] =
                         add_flag(state.current_epoch_participation[index], flag_index);
                     proposer_reward_numerator += get_base_reward(state, index, context)? * weight;
                 }
-            } else if participation_flag_indices.contains(&flag_index) &&
-                !has_flag(state.previous_epoch_participation[index], flag_index)
+            } else if participation_flag_indices.contains(&flag_index)
+                && !has_flag(state.previous_epoch_participation[index], flag_index)
             {
                 state.previous_epoch_participation[index] =
                     add_flag(state.previous_epoch_participation[index], flag_index);
@@ -662,8 +673,8 @@ pub fn apply_deposit<
         )?;
 
         // NOTE: if we did not return from signature check, then we know the signature is valid
-        if is_compounding_withdrawal_credential(withdrawal_credentials) &&
-            has_eth1_withdrawal_credential(validator)
+        if is_compounding_withdrawal_credential(withdrawal_credentials)
+            && has_eth1_withdrawal_credential(validator)
         {
             switch_to_compounding_validator(state, index, context)?;
         }
@@ -889,8 +900,8 @@ pub fn process_execution_layer_withdrawal_request<
     let amount = execution_layer_withdrawal_request.amount;
     let is_full_exit_request = amount == FULL_EXIT_REQUEST_AMOUNT;
 
-    if state.pending_partial_withdrawals.len() == PENDING_PARTIAL_WITHDRAWALS_LIMIT &&
-        !is_full_exit_request
+    if state.pending_partial_withdrawals.len() == PENDING_PARTIAL_WITHDRAWALS_LIMIT
+        && !is_full_exit_request
     {
         return Ok(());
     }
@@ -903,8 +914,8 @@ pub fn process_execution_layer_withdrawal_request<
     };
 
     let has_correct_credential = has_execution_withdrawal_credential(validator);
-    let is_correct_source_address = validator.withdrawal_credentials[12..] ==
-        execution_layer_withdrawal_request.source_address[..];
+    let is_correct_source_address = validator.withdrawal_credentials[12..]
+        == execution_layer_withdrawal_request.source_address[..];
     if !(has_correct_credential && is_correct_source_address) {
         return Ok(());
     }
@@ -935,9 +946,9 @@ pub fn process_execution_layer_withdrawal_request<
         validator.effective_balance >= context.min_activation_balance;
     let has_excess_balance =
         state.balances[index] > context.min_activation_balance + pending_balance_to_withdraw;
-    if has_compounding_withdrawal_credential &&
-        has_sufficient_effective_balance &&
-        has_excess_balance
+    if has_compounding_withdrawal_credential
+        && has_sufficient_effective_balance
+        && has_excess_balance
     {
         let to_withdraw = u64::min(
             state.balances[index] - context.min_activation_balance - pending_balance_to_withdraw,

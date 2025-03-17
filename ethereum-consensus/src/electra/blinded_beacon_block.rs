@@ -29,15 +29,20 @@ pub struct BlindedBeaconBlockBody<
     const MAX_DEPOSIT_REQUESTS_PER_PAYLOAD: usize,
     const MAX_WITHDRAWAL_REQUESTS_PER_PAYLOAD: usize,
     const MAX_CONSOLIDATION_REQUESTS_PER_PAYLOAD: usize,
+    const MAX_ATTESTER_SLASHINGS_ELECTRA: usize,
+    const MAX_ATTESTATIONS_ELECTRA: usize,
+    const MAX_VALIDATORS_PER_SLOT: usize,
 > {
     pub randao_reveal: BlsSignature,
     pub eth1_data: Eth1Data,
     pub graffiti: Bytes32,
     pub proposer_slashings: List<ProposerSlashing, MAX_PROPOSER_SLASHINGS>,
     pub attester_slashings:
-        List<AttesterSlashing<MAX_VALIDATORS_PER_COMMITTEE>, MAX_ATTESTER_SLASHINGS>,
-    pub attestations:
-        List<Attestation<MAX_VALIDATORS_PER_COMMITTEE, MAX_COMMITTEES_PER_SLOT>, MAX_ATTESTATIONS>,
+        List<AttesterSlashing<MAX_VALIDATORS_PER_SLOT>, MAX_ATTESTER_SLASHINGS_ELECTRA>,
+    pub attestations: List<
+        Attestation<MAX_VALIDATORS_PER_SLOT, MAX_COMMITTEES_PER_SLOT>,
+        MAX_ATTESTATIONS_ELECTRA,
+    >,
     pub deposits: List<Deposit, MAX_DEPOSITS>,
     pub voluntary_exits: List<SignedVoluntaryExit, MAX_VOLUNTARY_EXITS>,
     pub sync_aggregate: SyncAggregate<SYNC_COMMITTEE_SIZE>,
@@ -71,6 +76,9 @@ pub struct BlindedBeaconBlock<
     const MAX_DEPOSIT_REQUESTS_PER_PAYLOAD: usize,
     const MAX_WITHDRAWAL_REQUESTS_PER_PAYLOAD: usize,
     const MAX_CONSOLIDATION_REQUESTS_PER_PAYLOAD: usize,
+    const MAX_ATTESTER_SLASHINGS_ELECTRA: usize,
+    const MAX_ATTESTATIONS_ELECTRA: usize,
+    const MAX_VALIDATORS_PER_SLOT: usize,
 > {
     #[serde(with = "crate::serde::as_str")]
     pub slot: Slot,
@@ -94,6 +102,9 @@ pub struct BlindedBeaconBlock<
         MAX_DEPOSIT_REQUESTS_PER_PAYLOAD,
         MAX_WITHDRAWAL_REQUESTS_PER_PAYLOAD,
         MAX_CONSOLIDATION_REQUESTS_PER_PAYLOAD,
+        MAX_ATTESTER_SLASHINGS_ELECTRA,
+        MAX_ATTESTATIONS_ELECTRA,
+        MAX_VALIDATORS_PER_SLOT,
     >,
 }
 
@@ -116,6 +127,9 @@ pub struct SignedBlindedBeaconBlock<
     const MAX_DEPOSIT_REQUESTS_PER_PAYLOAD: usize,
     const MAX_WITHDRAWAL_REQUESTS_PER_PAYLOAD: usize,
     const MAX_CONSOLIDATION_REQUESTS_PER_PAYLOAD: usize,
+    const MAX_ATTESTER_SLASHINGS_ELECTRA: usize,
+    const MAX_ATTESTATIONS_ELECTRA: usize,
+    const MAX_VALIDATORS_PER_SLOT: usize,
 > {
     pub message: BlindedBeaconBlock<
         MAX_PROPOSER_SLASHINGS,
@@ -133,6 +147,9 @@ pub struct SignedBlindedBeaconBlock<
         MAX_DEPOSIT_REQUESTS_PER_PAYLOAD,
         MAX_WITHDRAWAL_REQUESTS_PER_PAYLOAD,
         MAX_CONSOLIDATION_REQUESTS_PER_PAYLOAD,
+        MAX_ATTESTER_SLASHINGS_ELECTRA,
+        MAX_ATTESTATIONS_ELECTRA,
+        MAX_VALIDATORS_PER_SLOT,
     >,
     pub signature: BlsSignature,
 }

@@ -1,6 +1,6 @@
 use crate::{
     phase0::AttestationData,
-    primitives::{BlsSignature, Epoch, ValidatorIndex},
+    primitives::{BlsSignature, ValidatorIndex},
     ssz::prelude::*,
 };
 
@@ -9,17 +9,17 @@ use super::{BlsPublicKey, Bytes32, ExecutionAddress, Gwei};
 #[derive(
     Default, Debug, SimpleSerialize, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize,
 )]
-pub struct AttesterSlashing<const MAX_VALIDATORS_PER_COMMITTEE: usize> {
-    pub attestation_1: IndexedAttestation<MAX_VALIDATORS_PER_COMMITTEE>,
-    pub attestation_2: IndexedAttestation<MAX_VALIDATORS_PER_COMMITTEE>,
+pub struct AttesterSlashing<const MAX_VALIDATORS_PER_SLOT: usize> {
+    pub attestation_1: IndexedAttestation<MAX_VALIDATORS_PER_SLOT>,
+    pub attestation_2: IndexedAttestation<MAX_VALIDATORS_PER_SLOT>,
 }
 
 #[derive(
     Default, Debug, SimpleSerialize, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize,
 )]
-pub struct IndexedAttestation<const MAX_VALIDATORS_PER_COMMITTEE: usize> {
+pub struct IndexedAttestation<const MAX_VALIDATORS_PER_SLOT: usize> {
     #[serde(with = "crate::serde::seq_of_str")]
-    pub attesting_indices: List<ValidatorIndex, MAX_VALIDATORS_PER_COMMITTEE>,
+    pub attesting_indices: List<ValidatorIndex, MAX_VALIDATORS_PER_SLOT>,
     pub data: AttestationData,
     pub signature: BlsSignature,
 }
@@ -27,14 +27,11 @@ pub struct IndexedAttestation<const MAX_VALIDATORS_PER_COMMITTEE: usize> {
 #[derive(
     Default, Debug, SimpleSerialize, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize,
 )]
-pub struct Attestation<
-    const MAX_VALIDATORS_PER_COMMITTEE: usize,
-    const MAX_COMMITTEES_PER_SLOT: usize,
-> {
-    pub aggregation_bits: Bitlist<MAX_VALIDATORS_PER_COMMITTEE>,
+pub struct Attestation<const MAX_VALIDATORS_PER_SLOT: usize, const MAX_COMMITTEES_PER_SLOT: usize> {
+    pub aggregation_bits: Bitlist<MAX_VALIDATORS_PER_SLOT>,
     pub data: AttestationData,
-    pub committee_bits: Bitvector<MAX_COMMITTEES_PER_SLOT>,
     pub signature: BlsSignature,
+    pub committee_bits: Bitvector<MAX_COMMITTEES_PER_SLOT>,
 }
 
 #[derive(

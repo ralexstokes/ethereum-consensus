@@ -37,6 +37,9 @@ pub fn initialize_beacon_state_from_eth1<
     const MAX_BLS_TO_EXECUTION_CHANGES: usize,
     const MAX_BLOB_COMMITMENTS_PER_BLOCK: usize,
     const MAX_CONSOLIDATION_REQUESTS_PER_PAYLOAD: usize,
+    const MAX_ATTESTER_SLASHINGS_ELECTRA: usize,
+    const MAX_ATTESTATIONS_ELECTRA: usize,
+    const MAX_VALIDATORS_PER_SLOT: usize,
 >(
     eth1_block_hash: Hash32,
     eth1_timestamp: u64,
@@ -91,6 +94,9 @@ pub fn initialize_beacon_state_from_eth1<
         MAX_BLS_TO_EXECUTION_CHANGES,
         MAX_BLOB_COMMITMENTS_PER_BLOCK,
         MAX_CONSOLIDATION_REQUESTS_PER_PAYLOAD,
+        MAX_ATTESTER_SLASHINGS_ELECTRA,
+        MAX_ATTESTATIONS_ELECTRA,
+        MAX_VALIDATORS_PER_SLOT,
     >::default();
     let body_root = latest_block_body.hash_tree_root()?;
     let latest_block_header = BeaconBlockHeader { body_root, ..Default::default() };

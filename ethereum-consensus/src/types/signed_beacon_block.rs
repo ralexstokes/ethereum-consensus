@@ -33,6 +33,9 @@ pub enum SignedBeaconBlock<
     const MAX_DEPOSIT_REQUESTS_PER_PAYLOAD: usize,
     const MAX_WITHDRAWAL_REQUESTS_PER_PAYLOAD: usize,
     const MAX_CONSOLIDATION_REQUESTS_PER_PAYLOAD: usize,
+    const MAX_ATTESTER_SLASHINGS_ELECTRA: usize,
+    const MAX_ATTESTATIONS_ELECTRA: usize,
+    const MAX_VALIDATORS_PER_SLOT: usize,
 > {
     Phase0(
         phase0::SignedBeaconBlock<
@@ -125,6 +128,9 @@ pub enum SignedBeaconBlock<
             MAX_DEPOSIT_REQUESTS_PER_PAYLOAD,
             MAX_WITHDRAWAL_REQUESTS_PER_PAYLOAD,
             MAX_CONSOLIDATION_REQUESTS_PER_PAYLOAD,
+            MAX_ATTESTER_SLASHINGS_ELECTRA,
+            MAX_ATTESTATIONS_ELECTRA,
+            MAX_VALIDATORS_PER_SLOT,
         >,
     ),
 }
@@ -147,6 +153,9 @@ impl<
         const MAX_DEPOSIT_REQUESTS_PER_PAYLOAD: usize,
         const MAX_WITHDRAWAL_REQUESTS_PER_PAYLOAD: usize,
         const MAX_CONSOLIDATION_REQUESTS_PER_PAYLOAD: usize,
+        const MAX_ATTESTER_SLASHINGS_ELECTRA: usize,
+        const MAX_ATTESTATIONS_ELECTRA: usize,
+        const MAX_VALIDATORS_PER_SLOT: usize,
     >
     SignedBeaconBlock<
         MAX_PROPOSER_SLASHINGS,
@@ -167,6 +176,9 @@ impl<
         MAX_DEPOSIT_REQUESTS_PER_PAYLOAD,
         MAX_WITHDRAWAL_REQUESTS_PER_PAYLOAD,
         MAX_CONSOLIDATION_REQUESTS_PER_PAYLOAD,
+        MAX_ATTESTER_SLASHINGS_ELECTRA,
+        MAX_ATTESTATIONS_ELECTRA,
+        MAX_VALIDATORS_PER_SLOT,
     >
 {
     pub fn phase0(
@@ -403,6 +415,9 @@ impl<
             MAX_DEPOSIT_REQUESTS_PER_PAYLOAD,
             MAX_WITHDRAWAL_REQUESTS_PER_PAYLOAD,
             MAX_CONSOLIDATION_REQUESTS_PER_PAYLOAD,
+            MAX_ATTESTER_SLASHINGS_ELECTRA,
+            MAX_ATTESTATIONS_ELECTRA,
+            MAX_VALIDATORS_PER_SLOT,
         >,
     > {
         match self {
@@ -432,6 +447,9 @@ impl<
             MAX_DEPOSIT_REQUESTS_PER_PAYLOAD,
             MAX_WITHDRAWAL_REQUESTS_PER_PAYLOAD,
             MAX_CONSOLIDATION_REQUESTS_PER_PAYLOAD,
+            MAX_ATTESTER_SLASHINGS_ELECTRA,
+            MAX_ATTESTATIONS_ELECTRA,
+            MAX_VALIDATORS_PER_SLOT,
         >,
     > {
         match self {
@@ -470,6 +488,9 @@ impl<
         MAX_DEPOSIT_REQUESTS_PER_PAYLOAD,
         MAX_WITHDRAWAL_REQUESTS_PER_PAYLOAD,
         MAX_CONSOLIDATION_REQUESTS_PER_PAYLOAD,
+        MAX_ATTESTER_SLASHINGS_ELECTRA,
+        MAX_ATTESTATIONS_ELECTRA,
+        MAX_VALIDATORS_PER_SLOT,
     > {
         match self {
             Self::Phase0(inner) => From::from(&inner.message),
@@ -501,6 +522,9 @@ impl<
         MAX_DEPOSIT_REQUESTS_PER_PAYLOAD,
         MAX_WITHDRAWAL_REQUESTS_PER_PAYLOAD,
         MAX_CONSOLIDATION_REQUESTS_PER_PAYLOAD,
+        MAX_ATTESTER_SLASHINGS_ELECTRA,
+        MAX_ATTESTATIONS_ELECTRA,
+        MAX_VALIDATORS_PER_SLOT,
     > {
         match self {
             Self::Phase0(inner) => From::from(&mut inner.message),
@@ -552,6 +576,9 @@ impl<
         const MAX_DEPOSIT_REQUESTS_PER_PAYLOAD: usize,
         const MAX_WITHDRAWAL_REQUESTS_PER_PAYLOAD: usize,
         const MAX_CONSOLIDATION_REQUESTS_PER_PAYLOAD: usize,
+        const MAX_ATTESTER_SLASHINGS_ELECTRA: usize,
+        const MAX_ATTESTATIONS_ELECTRA: usize,
+        const MAX_VALIDATORS_PER_SLOT: usize,
     > serde::Deserialize<'de>
     for SignedBeaconBlock<
         MAX_PROPOSER_SLASHINGS,
@@ -572,6 +599,9 @@ impl<
         MAX_DEPOSIT_REQUESTS_PER_PAYLOAD,
         MAX_WITHDRAWAL_REQUESTS_PER_PAYLOAD,
         MAX_CONSOLIDATION_REQUESTS_PER_PAYLOAD,
+        MAX_ATTESTER_SLASHINGS_ELECTRA,
+        MAX_ATTESTATIONS_ELECTRA,
+        MAX_VALIDATORS_PER_SLOT,
     >
 {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>

@@ -6,9 +6,7 @@ use crate::{
     crypto::KzgCommitment,
     deneb::blinded_beacon_block as deneb,
     electra::{blinded_beacon_block as electra, ExecutionRequests},
-    phase0::{
-        Attestation, AttesterSlashing, Deposit, Eth1Data, ProposerSlashing, SignedVoluntaryExit,
-    },
+    phase0::{Deposit, Eth1Data, ProposerSlashing, SignedVoluntaryExit},
     primitives::{BlsSignature, Bytes32},
     ssz::prelude::*,
     types::execution_payload_header::{ExecutionPayloadHeaderRef, ExecutionPayloadHeaderRefMut},
@@ -33,6 +31,9 @@ pub enum BlindedBeaconBlockBody<
     const MAX_DEPOSIT_REQUESTS_PER_PAYLOAD: usize,
     const MAX_WITHDRAWAL_REQUESTS_PER_PAYLOAD: usize,
     const MAX_CONSOLIDATION_REQUESTS_PER_PAYLOAD: usize,
+    const MAX_ATTESTER_SLASHINGS_ELECTRA: usize,
+    const MAX_ATTESTATIONS_ELECTRA: usize,
+    const MAX_VALIDATORS_PER_SLOT: usize,
 > {
     Bellatrix(
         bellatrix::BlindedBeaconBlockBody<
@@ -93,6 +94,9 @@ pub enum BlindedBeaconBlockBody<
             MAX_DEPOSIT_REQUESTS_PER_PAYLOAD,
             MAX_WITHDRAWAL_REQUESTS_PER_PAYLOAD,
             MAX_CONSOLIDATION_REQUESTS_PER_PAYLOAD,
+            MAX_ATTESTER_SLASHINGS_ELECTRA,
+            MAX_ATTESTATIONS_ELECTRA,
+            MAX_VALIDATORS_PER_SLOT,
         >,
     ),
 }
@@ -112,6 +116,9 @@ impl<
         const MAX_DEPOSIT_REQUESTS_PER_PAYLOAD: usize,
         const MAX_WITHDRAWAL_REQUESTS_PER_PAYLOAD: usize,
         const MAX_CONSOLIDATION_REQUESTS_PER_PAYLOAD: usize,
+        const MAX_ATTESTER_SLASHINGS_ELECTRA: usize,
+        const MAX_ATTESTATIONS_ELECTRA: usize,
+        const MAX_VALIDATORS_PER_SLOT: usize,
     >
     BlindedBeaconBlockBody<
         MAX_PROPOSER_SLASHINGS,
@@ -129,6 +136,9 @@ impl<
         MAX_DEPOSIT_REQUESTS_PER_PAYLOAD,
         MAX_WITHDRAWAL_REQUESTS_PER_PAYLOAD,
         MAX_CONSOLIDATION_REQUESTS_PER_PAYLOAD,
+        MAX_ATTESTER_SLASHINGS_ELECTRA,
+        MAX_ATTESTATIONS_ELECTRA,
+        MAX_VALIDATORS_PER_SLOT,
     >
 {
     pub fn bellatrix(
@@ -276,6 +286,9 @@ impl<
             MAX_DEPOSIT_REQUESTS_PER_PAYLOAD,
             MAX_WITHDRAWAL_REQUESTS_PER_PAYLOAD,
             MAX_CONSOLIDATION_REQUESTS_PER_PAYLOAD,
+            MAX_ATTESTER_SLASHINGS_ELECTRA,
+            MAX_ATTESTATIONS_ELECTRA,
+            MAX_VALIDATORS_PER_SLOT,
         >,
     > {
         match self {
@@ -302,6 +315,9 @@ impl<
             MAX_DEPOSIT_REQUESTS_PER_PAYLOAD,
             MAX_WITHDRAWAL_REQUESTS_PER_PAYLOAD,
             MAX_CONSOLIDATION_REQUESTS_PER_PAYLOAD,
+            MAX_ATTESTER_SLASHINGS_ELECTRA,
+            MAX_ATTESTATIONS_ELECTRA,
+            MAX_VALIDATORS_PER_SLOT,
         >,
     > {
         match self {
@@ -585,6 +601,9 @@ impl<
         const MAX_DEPOSIT_REQUESTS_PER_PAYLOAD: usize,
         const MAX_WITHDRAWAL_REQUESTS_PER_PAYLOAD: usize,
         const MAX_CONSOLIDATION_REQUESTS_PER_PAYLOAD: usize,
+        const MAX_ATTESTER_SLASHINGS_ELECTRA: usize,
+        const MAX_ATTESTATIONS_ELECTRA: usize,
+        const MAX_VALIDATORS_PER_SLOT: usize,
     > serde::Deserialize<'de>
     for BlindedBeaconBlockBody<
         MAX_PROPOSER_SLASHINGS,
@@ -602,6 +621,9 @@ impl<
         MAX_DEPOSIT_REQUESTS_PER_PAYLOAD,
         MAX_WITHDRAWAL_REQUESTS_PER_PAYLOAD,
         MAX_CONSOLIDATION_REQUESTS_PER_PAYLOAD,
+        MAX_ATTESTER_SLASHINGS_ELECTRA,
+        MAX_ATTESTATIONS_ELECTRA,
+        MAX_VALIDATORS_PER_SLOT,
     >
 {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
@@ -643,6 +665,9 @@ pub enum BlindedBeaconBlockBodyRef<
     const MAX_DEPOSIT_REQUESTS_PER_PAYLOAD: usize,
     const MAX_WITHDRAWAL_REQUESTS_PER_PAYLOAD: usize,
     const MAX_CONSOLIDATION_REQUESTS_PER_PAYLOAD: usize,
+    const MAX_ATTESTER_SLASHINGS_ELECTRA: usize,
+    const MAX_ATTESTATIONS_ELECTRA: usize,
+    const MAX_VALIDATORS_PER_SLOT: usize,
 > {
     Bellatrix(
         &'a bellatrix::BlindedBeaconBlockBody<
@@ -703,6 +728,9 @@ pub enum BlindedBeaconBlockBodyRef<
             MAX_DEPOSIT_REQUESTS_PER_PAYLOAD,
             MAX_WITHDRAWAL_REQUESTS_PER_PAYLOAD,
             MAX_CONSOLIDATION_REQUESTS_PER_PAYLOAD,
+            MAX_ATTESTER_SLASHINGS_ELECTRA,
+            MAX_ATTESTATIONS_ELECTRA,
+            MAX_VALIDATORS_PER_SLOT,
         >,
     ),
 }
@@ -723,6 +751,9 @@ impl<
         const MAX_DEPOSIT_REQUESTS_PER_PAYLOAD: usize,
         const MAX_WITHDRAWAL_REQUESTS_PER_PAYLOAD: usize,
         const MAX_CONSOLIDATION_REQUESTS_PER_PAYLOAD: usize,
+        const MAX_ATTESTER_SLASHINGS_ELECTRA: usize,
+        const MAX_ATTESTATIONS_ELECTRA: usize,
+        const MAX_VALIDATORS_PER_SLOT: usize,
     >
     BlindedBeaconBlockBodyRef<
         'a,
@@ -741,6 +772,9 @@ impl<
         MAX_DEPOSIT_REQUESTS_PER_PAYLOAD,
         MAX_WITHDRAWAL_REQUESTS_PER_PAYLOAD,
         MAX_CONSOLIDATION_REQUESTS_PER_PAYLOAD,
+        MAX_ATTESTER_SLASHINGS_ELECTRA,
+        MAX_ATTESTATIONS_ELECTRA,
+        MAX_VALIDATORS_PER_SLOT,
     >
 {
     pub fn bellatrix(
@@ -825,6 +859,9 @@ impl<
             MAX_DEPOSIT_REQUESTS_PER_PAYLOAD,
             MAX_WITHDRAWAL_REQUESTS_PER_PAYLOAD,
             MAX_CONSOLIDATION_REQUESTS_PER_PAYLOAD,
+            MAX_ATTESTER_SLASHINGS_ELECTRA,
+            MAX_ATTESTATIONS_ELECTRA,
+            MAX_VALIDATORS_PER_SLOT,
         >,
     > {
         match self {
@@ -981,6 +1018,9 @@ impl<
         const MAX_DEPOSIT_REQUESTS_PER_PAYLOAD: usize,
         const MAX_WITHDRAWAL_REQUESTS_PER_PAYLOAD: usize,
         const MAX_CONSOLIDATION_REQUESTS_PER_PAYLOAD: usize,
+        const MAX_ATTESTER_SLASHINGS_ELECTRA: usize,
+        const MAX_ATTESTATIONS_ELECTRA: usize,
+        const MAX_VALIDATORS_PER_SLOT: usize,
     >
     From<
         &'a bellatrix::BlindedBeaconBlockBody<
@@ -1012,6 +1052,9 @@ impl<
         MAX_DEPOSIT_REQUESTS_PER_PAYLOAD,
         MAX_WITHDRAWAL_REQUESTS_PER_PAYLOAD,
         MAX_CONSOLIDATION_REQUESTS_PER_PAYLOAD,
+        MAX_ATTESTER_SLASHINGS_ELECTRA,
+        MAX_ATTESTATIONS_ELECTRA,
+        MAX_VALIDATORS_PER_SLOT,
     >
 {
     fn from(
@@ -1047,6 +1090,9 @@ impl<
         const MAX_DEPOSIT_REQUESTS_PER_PAYLOAD: usize,
         const MAX_WITHDRAWAL_REQUESTS_PER_PAYLOAD: usize,
         const MAX_CONSOLIDATION_REQUESTS_PER_PAYLOAD: usize,
+        const MAX_ATTESTER_SLASHINGS_ELECTRA: usize,
+        const MAX_ATTESTATIONS_ELECTRA: usize,
+        const MAX_VALIDATORS_PER_SLOT: usize,
     >
     From<
         &'a capella::BlindedBeaconBlockBody<
@@ -1079,6 +1125,9 @@ impl<
         MAX_DEPOSIT_REQUESTS_PER_PAYLOAD,
         MAX_WITHDRAWAL_REQUESTS_PER_PAYLOAD,
         MAX_CONSOLIDATION_REQUESTS_PER_PAYLOAD,
+        MAX_ATTESTER_SLASHINGS_ELECTRA,
+        MAX_ATTESTATIONS_ELECTRA,
+        MAX_VALIDATORS_PER_SLOT,
     >
 {
     fn from(
@@ -1115,6 +1164,9 @@ impl<
         const MAX_DEPOSIT_REQUESTS_PER_PAYLOAD: usize,
         const MAX_WITHDRAWAL_REQUESTS_PER_PAYLOAD: usize,
         const MAX_CONSOLIDATION_REQUESTS_PER_PAYLOAD: usize,
+        const MAX_ATTESTER_SLASHINGS_ELECTRA: usize,
+        const MAX_ATTESTATIONS_ELECTRA: usize,
+        const MAX_VALIDATORS_PER_SLOT: usize,
     >
     From<
         &'a deneb::BlindedBeaconBlockBody<
@@ -1148,6 +1200,9 @@ impl<
         MAX_DEPOSIT_REQUESTS_PER_PAYLOAD,
         MAX_WITHDRAWAL_REQUESTS_PER_PAYLOAD,
         MAX_CONSOLIDATION_REQUESTS_PER_PAYLOAD,
+        MAX_ATTESTER_SLASHINGS_ELECTRA,
+        MAX_ATTESTATIONS_ELECTRA,
+        MAX_VALIDATORS_PER_SLOT,
     >
 {
     fn from(
@@ -1185,6 +1240,9 @@ impl<
         const MAX_DEPOSIT_REQUESTS_PER_PAYLOAD: usize,
         const MAX_WITHDRAWAL_REQUESTS_PER_PAYLOAD: usize,
         const MAX_CONSOLIDATION_REQUESTS_PER_PAYLOAD: usize,
+        const MAX_ATTESTER_SLASHINGS_ELECTRA: usize,
+        const MAX_ATTESTATIONS_ELECTRA: usize,
+        const MAX_VALIDATORS_PER_SLOT: usize,
     >
     From<
         &'a electra::BlindedBeaconBlockBody<
@@ -1203,6 +1261,9 @@ impl<
             MAX_DEPOSIT_REQUESTS_PER_PAYLOAD,
             MAX_WITHDRAWAL_REQUESTS_PER_PAYLOAD,
             MAX_CONSOLIDATION_REQUESTS_PER_PAYLOAD,
+            MAX_ATTESTER_SLASHINGS_ELECTRA,
+            MAX_ATTESTATIONS_ELECTRA,
+            MAX_VALIDATORS_PER_SLOT,
         >,
     >
     for BlindedBeaconBlockBodyRef<
@@ -1222,6 +1283,9 @@ impl<
         MAX_DEPOSIT_REQUESTS_PER_PAYLOAD,
         MAX_WITHDRAWAL_REQUESTS_PER_PAYLOAD,
         MAX_CONSOLIDATION_REQUESTS_PER_PAYLOAD,
+        MAX_ATTESTER_SLASHINGS_ELECTRA,
+        MAX_ATTESTATIONS_ELECTRA,
+        MAX_VALIDATORS_PER_SLOT,
     >
 {
     fn from(
@@ -1241,6 +1305,9 @@ impl<
             MAX_DEPOSIT_REQUESTS_PER_PAYLOAD,
             MAX_WITHDRAWAL_REQUESTS_PER_PAYLOAD,
             MAX_CONSOLIDATION_REQUESTS_PER_PAYLOAD,
+            MAX_ATTESTER_SLASHINGS_ELECTRA,
+            MAX_ATTESTATIONS_ELECTRA,
+            MAX_VALIDATORS_PER_SLOT,
         >,
     ) -> Self {
         Self::Electra(value)
@@ -1265,6 +1332,9 @@ pub enum BlindedBeaconBlockBodyRefMut<
     const MAX_DEPOSIT_REQUESTS_PER_PAYLOAD: usize,
     const MAX_WITHDRAWAL_REQUESTS_PER_PAYLOAD: usize,
     const MAX_CONSOLIDATION_REQUESTS_PER_PAYLOAD: usize,
+    const MAX_ATTESTER_SLASHINGS_ELECTRA: usize,
+    const MAX_ATTESTATIONS_ELECTRA: usize,
+    const MAX_VALIDATORS_PER_SLOT: usize,
 > {
     Bellatrix(
         &'a mut bellatrix::BlindedBeaconBlockBody<
@@ -1325,6 +1395,9 @@ pub enum BlindedBeaconBlockBodyRefMut<
             MAX_DEPOSIT_REQUESTS_PER_PAYLOAD,
             MAX_WITHDRAWAL_REQUESTS_PER_PAYLOAD,
             MAX_CONSOLIDATION_REQUESTS_PER_PAYLOAD,
+            MAX_ATTESTER_SLASHINGS_ELECTRA,
+            MAX_ATTESTATIONS_ELECTRA,
+            MAX_VALIDATORS_PER_SLOT,
         >,
     ),
 }
@@ -1345,6 +1418,9 @@ impl<
         const MAX_DEPOSIT_REQUESTS_PER_PAYLOAD: usize,
         const MAX_WITHDRAWAL_REQUESTS_PER_PAYLOAD: usize,
         const MAX_CONSOLIDATION_REQUESTS_PER_PAYLOAD: usize,
+        const MAX_ATTESTER_SLASHINGS_ELECTRA: usize,
+        const MAX_ATTESTATIONS_ELECTRA: usize,
+        const MAX_VALIDATORS_PER_SLOT: usize,
     >
     BlindedBeaconBlockBodyRefMut<
         'a,
@@ -1363,6 +1439,9 @@ impl<
         MAX_DEPOSIT_REQUESTS_PER_PAYLOAD,
         MAX_WITHDRAWAL_REQUESTS_PER_PAYLOAD,
         MAX_CONSOLIDATION_REQUESTS_PER_PAYLOAD,
+        MAX_ATTESTER_SLASHINGS_ELECTRA,
+        MAX_ATTESTATIONS_ELECTRA,
+        MAX_VALIDATORS_PER_SLOT,
     >
 {
     pub fn bellatrix(
@@ -1510,6 +1589,9 @@ impl<
             MAX_DEPOSIT_REQUESTS_PER_PAYLOAD,
             MAX_WITHDRAWAL_REQUESTS_PER_PAYLOAD,
             MAX_CONSOLIDATION_REQUESTS_PER_PAYLOAD,
+            MAX_ATTESTER_SLASHINGS_ELECTRA,
+            MAX_ATTESTATIONS_ELECTRA,
+            MAX_VALIDATORS_PER_SLOT,
         >,
     > {
         match self {
@@ -1536,6 +1618,9 @@ impl<
             MAX_DEPOSIT_REQUESTS_PER_PAYLOAD,
             MAX_WITHDRAWAL_REQUESTS_PER_PAYLOAD,
             MAX_CONSOLIDATION_REQUESTS_PER_PAYLOAD,
+            MAX_ATTESTER_SLASHINGS_ELECTRA,
+            MAX_ATTESTATIONS_ELECTRA,
+            MAX_VALIDATORS_PER_SLOT,
         >,
     > {
         match self {
@@ -1819,6 +1904,9 @@ impl<
         const MAX_DEPOSIT_REQUESTS_PER_PAYLOAD: usize,
         const MAX_WITHDRAWAL_REQUESTS_PER_PAYLOAD: usize,
         const MAX_CONSOLIDATION_REQUESTS_PER_PAYLOAD: usize,
+        const MAX_ATTESTER_SLASHINGS_ELECTRA: usize,
+        const MAX_ATTESTATIONS_ELECTRA: usize,
+        const MAX_VALIDATORS_PER_SLOT: usize,
     >
     From<
         &'a mut bellatrix::BlindedBeaconBlockBody<
@@ -1850,6 +1938,9 @@ impl<
         MAX_DEPOSIT_REQUESTS_PER_PAYLOAD,
         MAX_WITHDRAWAL_REQUESTS_PER_PAYLOAD,
         MAX_CONSOLIDATION_REQUESTS_PER_PAYLOAD,
+        MAX_ATTESTER_SLASHINGS_ELECTRA,
+        MAX_ATTESTATIONS_ELECTRA,
+        MAX_VALIDATORS_PER_SLOT,
     >
 {
     fn from(
@@ -1885,6 +1976,9 @@ impl<
         const MAX_DEPOSIT_REQUESTS_PER_PAYLOAD: usize,
         const MAX_WITHDRAWAL_REQUESTS_PER_PAYLOAD: usize,
         const MAX_CONSOLIDATION_REQUESTS_PER_PAYLOAD: usize,
+        const MAX_ATTESTER_SLASHINGS_ELECTRA: usize,
+        const MAX_ATTESTATIONS_ELECTRA: usize,
+        const MAX_VALIDATORS_PER_SLOT: usize,
     >
     From<
         &'a mut capella::BlindedBeaconBlockBody<
@@ -1917,6 +2011,9 @@ impl<
         MAX_DEPOSIT_REQUESTS_PER_PAYLOAD,
         MAX_WITHDRAWAL_REQUESTS_PER_PAYLOAD,
         MAX_CONSOLIDATION_REQUESTS_PER_PAYLOAD,
+        MAX_ATTESTER_SLASHINGS_ELECTRA,
+        MAX_ATTESTATIONS_ELECTRA,
+        MAX_VALIDATORS_PER_SLOT,
     >
 {
     fn from(
@@ -1953,6 +2050,9 @@ impl<
         const MAX_DEPOSIT_REQUESTS_PER_PAYLOAD: usize,
         const MAX_WITHDRAWAL_REQUESTS_PER_PAYLOAD: usize,
         const MAX_CONSOLIDATION_REQUESTS_PER_PAYLOAD: usize,
+        const MAX_ATTESTER_SLASHINGS_ELECTRA: usize,
+        const MAX_ATTESTATIONS_ELECTRA: usize,
+        const MAX_VALIDATORS_PER_SLOT: usize,
     >
     From<
         &'a mut deneb::BlindedBeaconBlockBody<
@@ -1986,6 +2086,9 @@ impl<
         MAX_DEPOSIT_REQUESTS_PER_PAYLOAD,
         MAX_WITHDRAWAL_REQUESTS_PER_PAYLOAD,
         MAX_CONSOLIDATION_REQUESTS_PER_PAYLOAD,
+        MAX_ATTESTER_SLASHINGS_ELECTRA,
+        MAX_ATTESTATIONS_ELECTRA,
+        MAX_VALIDATORS_PER_SLOT,
     >
 {
     fn from(
@@ -2023,6 +2126,9 @@ impl<
         const MAX_DEPOSIT_REQUESTS_PER_PAYLOAD: usize,
         const MAX_WITHDRAWAL_REQUESTS_PER_PAYLOAD: usize,
         const MAX_CONSOLIDATION_REQUESTS_PER_PAYLOAD: usize,
+        const MAX_ATTESTER_SLASHINGS_ELECTRA: usize,
+        const MAX_ATTESTATIONS_ELECTRA: usize,
+        const MAX_VALIDATORS_PER_SLOT: usize,
     >
     From<
         &'a mut electra::BlindedBeaconBlockBody<
@@ -2041,6 +2147,9 @@ impl<
             MAX_DEPOSIT_REQUESTS_PER_PAYLOAD,
             MAX_WITHDRAWAL_REQUESTS_PER_PAYLOAD,
             MAX_CONSOLIDATION_REQUESTS_PER_PAYLOAD,
+            MAX_ATTESTER_SLASHINGS_ELECTRA,
+            MAX_ATTESTATIONS_ELECTRA,
+            MAX_VALIDATORS_PER_SLOT,
         >,
     >
     for BlindedBeaconBlockBodyRefMut<
@@ -2060,6 +2169,9 @@ impl<
         MAX_DEPOSIT_REQUESTS_PER_PAYLOAD,
         MAX_WITHDRAWAL_REQUESTS_PER_PAYLOAD,
         MAX_CONSOLIDATION_REQUESTS_PER_PAYLOAD,
+        MAX_ATTESTER_SLASHINGS_ELECTRA,
+        MAX_ATTESTATIONS_ELECTRA,
+        MAX_VALIDATORS_PER_SLOT,
     >
 {
     fn from(
@@ -2079,6 +2191,9 @@ impl<
             MAX_DEPOSIT_REQUESTS_PER_PAYLOAD,
             MAX_WITHDRAWAL_REQUESTS_PER_PAYLOAD,
             MAX_CONSOLIDATION_REQUESTS_PER_PAYLOAD,
+            MAX_ATTESTER_SLASHINGS_ELECTRA,
+            MAX_ATTESTATIONS_ELECTRA,
+            MAX_VALIDATORS_PER_SLOT,
         >,
     ) -> Self {
         Self::Electra(value)

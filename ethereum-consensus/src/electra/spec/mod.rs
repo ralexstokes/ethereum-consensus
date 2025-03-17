@@ -144,6 +144,9 @@ pub fn process_block<
     const MAX_DEPOSIT_REQUESTS_PER_PAYLOAD: usize,
     const MAX_WITHDRAWAL_REQUESTS_PER_PAYLOAD: usize,
     const MAX_CONSOLIDATION_REQUESTS_PER_PAYLOAD: usize,
+    const MAX_ATTESTER_SLASHINGS_ELECTRA: usize,
+    const MAX_ATTESTATIONS_ELECTRA: usize,
+    const MAX_VALIDATORS_PER_SLOT: usize,
 >(
     state: &mut BeaconState<
         SLOTS_PER_HISTORICAL_ROOT,
@@ -179,6 +182,9 @@ pub fn process_block<
         MAX_DEPOSIT_REQUESTS_PER_PAYLOAD,
         MAX_WITHDRAWAL_REQUESTS_PER_PAYLOAD,
         MAX_CONSOLIDATION_REQUESTS_PER_PAYLOAD,
+        MAX_ATTESTER_SLASHINGS_ELECTRA,
+        MAX_ATTESTATIONS_ELECTRA,
+        MAX_VALIDATORS_PER_SLOT,
     >,
     context: &Context,
 ) -> Result<()> {
@@ -571,6 +577,9 @@ pub fn process_block_header<
     const MAX_DEPOSIT_REQUESTS_PER_PAYLOAD: usize,
     const MAX_WITHDRAWAL_REQUESTS_PER_PAYLOAD: usize,
     const MAX_CONSOLIDATION_REQUESTS_PER_PAYLOAD: usize,
+    const MAX_ATTESTER_SLASHINGS_ELECTRA: usize,
+    const MAX_ATTESTATIONS_ELECTRA: usize,
+    const MAX_VALIDATORS_PER_SLOT: usize,
 >(
     state: &mut BeaconState<
         SLOTS_PER_HISTORICAL_ROOT,
@@ -606,6 +615,9 @@ pub fn process_block_header<
         MAX_DEPOSIT_REQUESTS_PER_PAYLOAD,
         MAX_WITHDRAWAL_REQUESTS_PER_PAYLOAD,
         MAX_CONSOLIDATION_REQUESTS_PER_PAYLOAD,
+        MAX_ATTESTER_SLASHINGS_ELECTRA,
+        MAX_ATTESTATIONS_ELECTRA,
+        MAX_VALIDATORS_PER_SLOT,
     >,
     context: &Context,
 ) -> Result<()> {
@@ -644,7 +656,9 @@ pub fn process_block_header<
     };
     let proposer = &state.validators[block.proposer_index];
     if proposer.slashed {
-        return Err(invalid_header_error(InvalidBeaconBlockHeader::ProposerSlashed(proposer_index)));
+        return Err(invalid_header_error(InvalidBeaconBlockHeader::ProposerSlashed(
+            proposer_index,
+        )));
     }
     Ok(())
 }
@@ -676,6 +690,9 @@ pub fn process_randao<
     const MAX_DEPOSIT_REQUESTS_PER_PAYLOAD: usize,
     const MAX_WITHDRAWAL_REQUESTS_PER_PAYLOAD: usize,
     const MAX_CONSOLIDATION_REQUESTS_PER_PAYLOAD: usize,
+    const MAX_ATTESTER_SLASHINGS_ELECTRA: usize,
+    const MAX_ATTESTATIONS_ELECTRA: usize,
+    const MAX_VALIDATORS_PER_SLOT: usize,
 >(
     state: &mut BeaconState<
         SLOTS_PER_HISTORICAL_ROOT,
@@ -711,6 +728,9 @@ pub fn process_randao<
         MAX_DEPOSIT_REQUESTS_PER_PAYLOAD,
         MAX_WITHDRAWAL_REQUESTS_PER_PAYLOAD,
         MAX_CONSOLIDATION_REQUESTS_PER_PAYLOAD,
+        MAX_ATTESTER_SLASHINGS_ELECTRA,
+        MAX_ATTESTATIONS_ELECTRA,
+        MAX_VALIDATORS_PER_SLOT,
     >,
     context: &Context,
 ) -> Result<()> {
@@ -754,6 +774,9 @@ pub fn process_eth1_data<
     const MAX_DEPOSIT_REQUESTS_PER_PAYLOAD: usize,
     const MAX_WITHDRAWAL_REQUESTS_PER_PAYLOAD: usize,
     const MAX_CONSOLIDATION_REQUESTS_PER_PAYLOAD: usize,
+    const MAX_ATTESTER_SLASHINGS_ELECTRA: usize,
+    const MAX_ATTESTATIONS_ELECTRA: usize,
+    const MAX_VALIDATORS_PER_SLOT: usize,
 >(
     state: &mut BeaconState<
         SLOTS_PER_HISTORICAL_ROOT,
@@ -789,6 +812,9 @@ pub fn process_eth1_data<
         MAX_DEPOSIT_REQUESTS_PER_PAYLOAD,
         MAX_WITHDRAWAL_REQUESTS_PER_PAYLOAD,
         MAX_CONSOLIDATION_REQUESTS_PER_PAYLOAD,
+        MAX_ATTESTER_SLASHINGS_ELECTRA,
+        MAX_ATTESTATIONS_ELECTRA,
+        MAX_VALIDATORS_PER_SLOT,
     >,
     context: &Context,
 ) {
@@ -881,8 +907,8 @@ pub fn process_slashings<
     );
     for i in 0..state.validators.len() {
         let validator = &state.validators[i];
-        if validator.slashed &&
-            (epoch + context.epochs_per_slashings_vector / 2) == validator.withdrawable_epoch
+        if validator.slashed
+            && (epoch + context.epochs_per_slashings_vector / 2) == validator.withdrawable_epoch
         {
             let increment = context.effective_balance_increment;
             let penalty_numerator =
@@ -1538,8 +1564,8 @@ pub fn is_valid_genesis_state<
     if state.genesis_time < context.min_genesis_time {
         return false;
     }
-    get_active_validator_indices(state, GENESIS_EPOCH).len() >=
-        context.min_genesis_active_validator_count
+    get_active_validator_indices(state, GENESIS_EPOCH).len()
+        >= context.min_genesis_active_validator_count
 }
 pub fn get_genesis_block<
     const SLOTS_PER_HISTORICAL_ROOT: usize,
@@ -1569,6 +1595,9 @@ pub fn get_genesis_block<
     const MAX_DEPOSIT_REQUESTS_PER_PAYLOAD: usize,
     const MAX_WITHDRAWAL_REQUESTS_PER_PAYLOAD: usize,
     const MAX_CONSOLIDATION_REQUESTS_PER_PAYLOAD: usize,
+    const MAX_ATTESTER_SLASHINGS_ELECTRA: usize,
+    const MAX_ATTESTATIONS_ELECTRA: usize,
+    const MAX_VALIDATORS_PER_SLOT: usize,
 >(
     genesis_state: &BeaconState<
         SLOTS_PER_HISTORICAL_ROOT,
@@ -1605,6 +1634,9 @@ pub fn get_genesis_block<
         MAX_DEPOSIT_REQUESTS_PER_PAYLOAD,
         MAX_WITHDRAWAL_REQUESTS_PER_PAYLOAD,
         MAX_CONSOLIDATION_REQUESTS_PER_PAYLOAD,
+        MAX_ATTESTER_SLASHINGS_ELECTRA,
+        MAX_ATTESTATIONS_ELECTRA,
+        MAX_VALIDATORS_PER_SLOT,
     >,
 > {
     Ok(BeaconBlock { state_root: genesis_state.hash_tree_root()?, ..Default::default() })
@@ -1658,10 +1690,10 @@ pub fn get_attestation_participation_flag_indices<
             },
         )));
     }
-    let is_matching_target = is_matching_source &&
-        (data.target.root == *get_block_root(state, data.target.epoch, context)?);
-    let is_matching_head = is_matching_target &&
-        (data.beacon_block_root == *get_block_root_at_slot(state, data.slot)?);
+    let is_matching_target = is_matching_source
+        && (data.target.root == *get_block_root(state, data.target.epoch, context)?);
+    let is_matching_head = is_matching_target
+        && (data.beacon_block_root == *get_block_root_at_slot(state, data.slot)?);
     let mut participation_flag_indices = Vec::new();
     if is_matching_source && inclusion_delay <= context.slots_per_epoch.integer_sqrt() {
         participation_flag_indices.push(TIMELY_SOURCE_FLAG_INDEX);
@@ -1823,6 +1855,9 @@ pub fn is_merge_transition_block<
     const MAX_DEPOSIT_REQUESTS_PER_PAYLOAD: usize,
     const MAX_WITHDRAWAL_REQUESTS_PER_PAYLOAD: usize,
     const MAX_CONSOLIDATION_REQUESTS_PER_PAYLOAD: usize,
+    const MAX_ATTESTER_SLASHINGS_ELECTRA: usize,
+    const MAX_ATTESTATIONS_ELECTRA: usize,
+    const MAX_VALIDATORS_PER_SLOT: usize,
 >(
     state: &BeaconState<
         SLOTS_PER_HISTORICAL_ROOT,
@@ -1858,6 +1893,9 @@ pub fn is_merge_transition_block<
         MAX_DEPOSIT_REQUESTS_PER_PAYLOAD,
         MAX_WITHDRAWAL_REQUESTS_PER_PAYLOAD,
         MAX_CONSOLIDATION_REQUESTS_PER_PAYLOAD,
+        MAX_ATTESTER_SLASHINGS_ELECTRA,
+        MAX_ATTESTATIONS_ELECTRA,
+        MAX_VALIDATORS_PER_SLOT,
     >,
 ) -> bool {
     let transition_is_not_complete = !is_merge_transition_complete(state);
@@ -1892,6 +1930,9 @@ pub fn is_execution_enabled<
     const MAX_DEPOSIT_REQUESTS_PER_PAYLOAD: usize,
     const MAX_WITHDRAWAL_REQUESTS_PER_PAYLOAD: usize,
     const MAX_CONSOLIDATION_REQUESTS_PER_PAYLOAD: usize,
+    const MAX_ATTESTER_SLASHINGS_ELECTRA: usize,
+    const MAX_ATTESTATIONS_ELECTRA: usize,
+    const MAX_VALIDATORS_PER_SLOT: usize,
 >(
     state: &BeaconState<
         SLOTS_PER_HISTORICAL_ROOT,
@@ -1927,6 +1968,9 @@ pub fn is_execution_enabled<
         MAX_DEPOSIT_REQUESTS_PER_PAYLOAD,
         MAX_WITHDRAWAL_REQUESTS_PER_PAYLOAD,
         MAX_CONSOLIDATION_REQUESTS_PER_PAYLOAD,
+        MAX_ATTESTER_SLASHINGS_ELECTRA,
+        MAX_ATTESTATIONS_ELECTRA,
+        MAX_VALIDATORS_PER_SLOT,
     >,
 ) -> bool {
     let is_transition_block = is_merge_transition_block(state, body);
@@ -2102,8 +2146,8 @@ pub fn get_base_reward_per_increment<
     >,
     context: &Context,
 ) -> Result<Gwei> {
-    Ok(context.effective_balance_increment * context.base_reward_factor /
-        get_total_active_balance(state, context)?.integer_sqrt())
+    Ok(context.effective_balance_increment * context.base_reward_factor
+        / get_total_active_balance(state, context)?.integer_sqrt())
 }
 pub fn get_unslashed_participating_indices<
     const SLOTS_PER_HISTORICAL_ROOT: usize,
@@ -2255,8 +2299,8 @@ pub fn is_eligible_for_activation<
     >,
     validator: &Validator,
 ) -> bool {
-    validator.activation_eligibility_epoch <= state.finalized_checkpoint.epoch &&
-        validator.activation_epoch == FAR_FUTURE_EPOCH
+    validator.activation_eligibility_epoch <= state.finalized_checkpoint.epoch
+        && validator.activation_epoch == FAR_FUTURE_EPOCH
 }
 pub fn is_valid_indexed_attestation<
     const SLOTS_PER_HISTORICAL_ROOT: usize,
@@ -2362,6 +2406,9 @@ pub fn verify_block_signature<
     const MAX_DEPOSIT_REQUESTS_PER_PAYLOAD: usize,
     const MAX_WITHDRAWAL_REQUESTS_PER_PAYLOAD: usize,
     const MAX_CONSOLIDATION_REQUESTS_PER_PAYLOAD: usize,
+    const MAX_ATTESTER_SLASHINGS_ELECTRA: usize,
+    const MAX_ATTESTATIONS_ELECTRA: usize,
+    const MAX_VALIDATORS_PER_SLOT: usize,
 >(
     state: &BeaconState<
         SLOTS_PER_HISTORICAL_ROOT,
@@ -2397,6 +2444,9 @@ pub fn verify_block_signature<
         MAX_DEPOSIT_REQUESTS_PER_PAYLOAD,
         MAX_WITHDRAWAL_REQUESTS_PER_PAYLOAD,
         MAX_CONSOLIDATION_REQUESTS_PER_PAYLOAD,
+        MAX_ATTESTER_SLASHINGS_ELECTRA,
+        MAX_ATTESTATIONS_ELECTRA,
+        MAX_VALIDATORS_PER_SLOT,
     >,
     context: &Context,
 ) -> Result<()> {
@@ -2905,9 +2955,9 @@ pub fn get_committee_count_per_slot<
         1,
         u64::min(
             context.max_committees_per_slot as u64,
-            get_active_validator_indices(state, epoch).len() as u64 /
-                context.slots_per_epoch /
-                context.target_committee_size,
+            get_active_validator_indices(state, epoch).len() as u64
+                / context.slots_per_epoch
+                / context.target_committee_size,
         ),
     ) as usize
 }
@@ -3177,8 +3227,8 @@ pub fn get_eligible_validator_indices<
 ) -> impl Iterator<Item = ValidatorIndex> + 'a {
     let previous_epoch = get_previous_epoch(state, context);
     state.validators.iter().enumerate().filter_map(move |(i, validator)| {
-        if is_active_validator(validator, previous_epoch) ||
-            (validator.slashed && previous_epoch + 1 < validator.withdrawable_epoch)
+        if is_active_validator(validator, previous_epoch)
+            || (validator.slashed && previous_epoch + 1 < validator.withdrawable_epoch)
         {
             Some(i)
         } else {
@@ -3302,6 +3352,9 @@ pub fn state_transition_block_in_slot<
     const MAX_DEPOSIT_REQUESTS_PER_PAYLOAD: usize,
     const MAX_WITHDRAWAL_REQUESTS_PER_PAYLOAD: usize,
     const MAX_CONSOLIDATION_REQUESTS_PER_PAYLOAD: usize,
+    const MAX_ATTESTER_SLASHINGS_ELECTRA: usize,
+    const MAX_ATTESTATIONS_ELECTRA: usize,
+    const MAX_VALIDATORS_PER_SLOT: usize,
 >(
     state: &mut BeaconState<
         SLOTS_PER_HISTORICAL_ROOT,
@@ -3337,6 +3390,9 @@ pub fn state_transition_block_in_slot<
         MAX_DEPOSIT_REQUESTS_PER_PAYLOAD,
         MAX_WITHDRAWAL_REQUESTS_PER_PAYLOAD,
         MAX_CONSOLIDATION_REQUESTS_PER_PAYLOAD,
+        MAX_ATTESTER_SLASHINGS_ELECTRA,
+        MAX_ATTESTATIONS_ELECTRA,
+        MAX_VALIDATORS_PER_SLOT,
     >,
     validation: Validation,
     context: &Context,
@@ -3384,6 +3440,9 @@ pub fn state_transition<
     const MAX_DEPOSIT_REQUESTS_PER_PAYLOAD: usize,
     const MAX_WITHDRAWAL_REQUESTS_PER_PAYLOAD: usize,
     const MAX_CONSOLIDATION_REQUESTS_PER_PAYLOAD: usize,
+    const MAX_ATTESTER_SLASHINGS_ELECTRA: usize,
+    const MAX_ATTESTATIONS_ELECTRA: usize,
+    const MAX_VALIDATORS_PER_SLOT: usize,
 >(
     state: &mut BeaconState<
         SLOTS_PER_HISTORICAL_ROOT,
@@ -3419,6 +3478,9 @@ pub fn state_transition<
         MAX_DEPOSIT_REQUESTS_PER_PAYLOAD,
         MAX_WITHDRAWAL_REQUESTS_PER_PAYLOAD,
         MAX_CONSOLIDATION_REQUESTS_PER_PAYLOAD,
+        MAX_ATTESTER_SLASHINGS_ELECTRA,
+        MAX_ATTESTATIONS_ELECTRA,
+        MAX_VALIDATORS_PER_SLOT,
     >,
     validation: Validation,
     context: &Context,
