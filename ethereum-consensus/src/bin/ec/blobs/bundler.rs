@@ -43,5 +43,5 @@ pub fn bundle(blobs: Vec<Blob>, kzg_settings: &spec::KzgSettings) -> Result<Blob
 pub fn from_reader(reader: impl Read) -> Result<BlobsBundle, Error> {
     let kzg_settings = c_kzg::ethereum_kzg_settings(PRECOMPUTE);
     let blobs: Vec<Blob> = serde_json::from_reader(reader)?;
-    bundle(blobs, &kzg_settings)
+    bundle(blobs, kzg_settings)
 }
