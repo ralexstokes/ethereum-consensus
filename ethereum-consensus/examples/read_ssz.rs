@@ -1,5 +1,6 @@
+use alloy_eips::Decodable2718;
 use ethereum_consensus::deneb::mainnet as spec;
-use reth_primitives::transaction::{TransactionSigned, TxType};
+use reth_ethereum_primitives::{TransactionSigned, TxType};
 use ssz_rs::prelude::*;
 use std::{env, fs};
 
@@ -19,8 +20,8 @@ fn main() {
         dbg!(versioned_hash);
     }
     for txn in block.message.body.execution_payload.transactions.iter_mut() {
-        let txn = TransactionSigned::decode_enveloped(&mut txn.as_ref()).unwrap();
-        if matches!(txn.transaction.tx_type(), TxType::Eip4844) {
+        let txn = TransactionSigned::decode_2718(&mut txn.as_ref()).unwrap();
+        if matches!(txn.transaction().tx_type(), TxType::Eip4844) {
             dbg!(txn);
         }
     }

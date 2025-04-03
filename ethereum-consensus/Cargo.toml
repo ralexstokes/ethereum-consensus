@@ -68,9 +68,13 @@ bitvec = { workspace = true, optional = true }
 
 [dev-dependencies]
 toml = "0.8.2"
-reth-primitives = { git = "https://github.com/paradigmxyz/reth", rev = "b89af430e2f45f8a6e53776a6e5150c1b21458c6", default-features = false, features = [
+reth-primitives = { git = "https://github.com/paradigmxyz/reth", rev = "faedf98db3b1c965052b12b1663038a078807780", default-features = false, features = [
     "c-kzg",
 ] }
+alloy-eips = { version = "0.13.0", default-features = false}
+
+reth-ethereum-primitives = { git = "https://github.com/paradigmxyz/reth", tag = "v1.3.7", default-features = false }
+
 
 [[bin]]
 name = "ec"
