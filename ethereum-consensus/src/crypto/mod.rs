@@ -6,4 +6,7 @@ pub use bls::{
     fast_aggregate_verify, hash, verify_signature, Error as BlsError, PublicKey, SecretKey,
     Signature,
 };
-pub use kzg::{Error as KzgError, KzgCommitment, KzgProof, KzgSettings};
+pub use kzg::{
+    kzg_settings_with_precompute_arc, Error as KzgError, KzgCommitment, KzgProof, KzgSettings,
+    PRECOMPUTE,
+};

@@ -1,8 +1,7 @@
 use crate::blobs::{Blob, Error};
 use ethereum_consensus::{
-    crypto::kzg as spec,
-    deneb::{self, presets::PRECOMPUTE},
-    Error as ConsensusError,
+    crypto::{kzg as spec, kzg::kzg_settings_with_precompute_arc, PRECOMPUTE},
+    deneb, Error as ConsensusError,
 };
 use std::io::Read;
 
@@ -41,7 +40,7 @@ pub fn bundle(blobs: Vec<Blob>, kzg_settings: &spec::KzgSettings) -> Result<Blob
 
 // Assumes a serde_json-encoded array of `Vec<Blob>` on `reader` and uses the mainnet trusted setup.
 pub fn from_reader(reader: impl Read) -> Result<BlobsBundle, Error> {
-    let kzg_settings = c_kzg::ethereum_kzg_settings(PRECOMPUTE);
+    let kzg_settings = kzg_settings_with_precompute_arc(PRECOMPUTE);
     let blobs: Vec<Blob> = serde_json::from_reader(reader)?;
-    bundle(blobs, &kzg_settings)
+    bundle(blobs, kzg_settings.as_ref())
 }

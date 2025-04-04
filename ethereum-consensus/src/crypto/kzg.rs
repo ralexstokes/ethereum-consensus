@@ -1,7 +1,14 @@
 use crate::{primitives::Bytes32, ssz::prelude::*};
 pub use c_kzg::KzgSettings;
+use std::sync::Arc;
 use thiserror::Error;
 
+/// Precompute value that optimizes computing cell kzg proofs.
+///
+/// Set to 0 as we do not use `compute_cells_and_kzg_proofs` or `recover_cells_and_kzg_proofs`.
+///
+/// Learn more: <https://github.com/ethereum/c-kzg-4844/blob/dffa18ee350aeef38f749ffad24a27c1645fb4f8/README.md?plain=1#L112>
+pub const PRECOMPUTE: u64 = 0;
 pub const BYTES_PER_FIELD_ELEMENT: usize = 32;
 pub const BYTES_PER_COMMITMENT: usize = 48;
 pub const BYTES_PER_PROOF: usize = 48;
@@ -13,6 +20,10 @@ pub type KzgCommitment = ByteVector<BYTES_PER_COMMITMENT>;
 pub type KzgProof = ByteVector<BYTES_PER_PROOF>;
 pub type G1Point = KzgCommitment;
 pub type G2Point = ByteVector<BYTES_PER_G2_POINT>;
+
+pub fn kzg_settings_with_precompute_arc(precompute: u64) -> Arc<KzgSettings> {
+    c_kzg::ethereum_kzg_settings_arc(precompute)
+}
 
 #[derive(Debug, Error)]
 pub enum Error {

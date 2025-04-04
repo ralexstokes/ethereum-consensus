@@ -2,9 +2,8 @@ use crate::{
     altair, bellatrix, capella,
     clock::{self, Clock, SystemTimeProvider},
     configs::{self, Config},
-    crypto::KzgSettings,
-    deneb::{self, presets::PRECOMPUTE},
-    electra,
+    crypto::{kzg_settings_with_precompute_arc, KzgSettings, PRECOMPUTE},
+    deneb, electra,
     execution_engine::ExecutionEngine,
     networks::Network,
     phase0,
@@ -203,7 +202,7 @@ impl Context {
         electra_preset: &electra::Preset,
         config: &Config,
     ) -> Self {
-        let kzg_settings = c_kzg::ethereum_kzg_settings_arc(PRECOMPUTE);
+        let kzg_settings = kzg_settings_with_precompute_arc(PRECOMPUTE);
 
         Self {
             // phase0
