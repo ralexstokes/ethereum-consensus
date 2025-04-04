@@ -2,9 +2,8 @@ use crate::{
     altair, bellatrix, capella,
     clock::{self, Clock, SystemTimeProvider},
     configs::{self, Config},
-    crypto::{kzg_settings_from_json, KzgSettings},
-    deneb::{self, presets::TRUSTED_SETUP_JSON},
-    electra,
+    crypto::{kzg_settings_with_precompute_arc, KzgSettings, PRECOMPUTE},
+    deneb, electra,
     execution_engine::ExecutionEngine,
     networks::Network,
     phase0,
@@ -203,7 +202,7 @@ impl Context {
         electra_preset: &electra::Preset,
         config: &Config,
     ) -> Self {
-        let kzg_settings = kzg_settings_from_json(TRUSTED_SETUP_JSON).unwrap();
+        let kzg_settings = kzg_settings_with_precompute_arc(PRECOMPUTE);
 
         Self {
             // phase0
@@ -324,7 +323,7 @@ impl Context {
             deposit_network_id: config.deposit_network_id,
             deposit_contract_address: config.deposit_contract_address.clone(),
             execution_engine: DEFAULT_EXECUTION_ENGINE_VALIDITY,
-            kzg_settings: Arc::new(kzg_settings),
+            kzg_settings,
         }
     }
 

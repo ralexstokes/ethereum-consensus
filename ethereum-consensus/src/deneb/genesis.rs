@@ -80,8 +80,7 @@ pub fn initialize_beacon_state_from_eth1<
     let body_root = latest_block_body.hash_tree_root()?;
     let latest_block_header = BeaconBlockHeader { body_root, ..Default::default() };
     let randao_mixes = Vector::try_from(
-        std::iter::repeat(eth1_block_hash)
-            .take(context.epochs_per_historical_vector as usize)
+        std::iter::repeat_n(eth1_block_hash, context.epochs_per_historical_vector as usize)
             .collect::<Vec<_>>(),
     )
     .map_err(|(_, err)| err)?;
