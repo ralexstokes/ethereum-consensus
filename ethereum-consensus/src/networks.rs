@@ -15,6 +15,7 @@ pub enum Network {
     Sepolia,
     Goerli,
     Holesky,
+    Hoodi,
     Custom(String),
 }
 
@@ -25,6 +26,7 @@ impl std::fmt::Display for Network {
             Self::Sepolia => write!(f, "sepolia"),
             Self::Goerli => write!(f, "goerli"),
             Self::Holesky => write!(f, "holesky"),
+            Self::Hoodi => write!(f, "hoodi"),
             Self::Custom(config_dir) => write!(f, "custom ({config_dir}/config.yaml)"),
         }
     }
@@ -43,6 +45,7 @@ impl From<String> for Network {
             "sepolia" => Self::Sepolia,
             "goerli" => Self::Goerli,
             "holesky" => Self::Holesky,
+            "hoodi" => Self::Hoodi,
             _ => Self::Custom(value),
         }
     }
@@ -57,6 +60,7 @@ impl TryFrom<Network> for Context {
             Network::Sepolia => Ok(Context::for_sepolia()),
             Network::Goerli => Ok(Context::for_goerli()),
             Network::Holesky => Ok(Context::for_holesky()),
+            Network::Hoodi => Ok(Context::for_hoodi()),
             Network::Custom(config) => {
                 let config_file = PathBuf::from(config).join("config.yaml");
                 Context::try_from_file(config_file)

@@ -422,6 +422,25 @@ impl Context {
         )
     }
 
+    pub fn for_hoodi() -> Self {
+        let config = &configs::hoodi::config();
+        let phase0_preset = &phase0::mainnet::PRESET;
+        let altair_preset = &altair::mainnet::PRESET;
+        let bellatrix_preset = &bellatrix::mainnet::PRESET;
+        let capella_preset = &capella::mainnet::PRESET;
+        let deneb_preset = &deneb::mainnet::PRESET;
+        let electra_preset = &electra::mainnet::PRESET;
+        Self::from(
+            phase0_preset,
+            altair_preset,
+            bellatrix_preset,
+            capella_preset,
+            deneb_preset,
+            electra_preset,
+            config,
+        )
+    }
+
     pub fn fork_for(&self, slot: Slot) -> Fork {
         let epoch = slot / self.slots_per_epoch;
         if epoch >= self.electra_fork_epoch {
