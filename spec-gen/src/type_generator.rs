@@ -208,6 +208,8 @@ impl Type {
                     bellatrix::execution_payload::{self as bellatrix, Transaction},
                     capella::{execution_payload as capella, withdrawal::Withdrawal},
                     deneb::execution_payload as deneb,
+                    electra::execution_payload as electra,
+                    electra::operations::{DepositRequest, WithdrawalRequest, ConsolidationRequest},
                     primitives::{Hash32, ExecutionAddress, Bytes32},
                     ssz::prelude::*,
                     Fork as Version,
@@ -218,6 +220,7 @@ impl Type {
                     bellatrix::execution_payload as bellatrix,
                     capella::execution_payload as capella,
                     deneb::execution_payload as deneb,
+                    electra::execution_payload as electra,
                     primitives::{Hash32, Root, ExecutionAddress, Bytes32},
                     ssz::prelude::*,
                     Fork as Version,
@@ -835,6 +838,17 @@ pub fn run() {
         Type::SignedBlindedBeaconBlock,
         Type::BeaconState,
     ];
+
+    for target_type in &types {
+        let defns = load_type_defns(target_type, fork_sequence);
+        let merge_type = derive_merge_type(fork_sequence, defns);
+        let output = as_syn(target_type, &merge_type);
+        render(target_type, output)
+    }
+
+    let fork_sequence =
+        &[Fork::Phase0, Fork::Altair, Fork::Bellatrix, Fork::Capella, Fork::Deneb, Fork::Electra];
+    let types = [Type::ExecutionPayload, Type::ExecutionPayloadHeader];
 
     for target_type in &types {
         let defns = load_type_defns(target_type, fork_sequence);

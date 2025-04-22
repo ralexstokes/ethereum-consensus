@@ -3,8 +3,8 @@ use crate::{
     capella::SignedBlsToExecutionChange,
     crypto::KzgCommitment,
     electra::{
-        execution_payload::ExecutionPayload,
         operations::{Attestation, AttesterSlashing, ExecutionRequests},
+        ExecutionPayloadHeader,
     },
     phase0::{Deposit, Eth1Data, ProposerSlashing, SignedVoluntaryExit},
     primitives::{BlsSignature, Bytes32, Root, Slot, ValidatorIndex},
@@ -12,9 +12,9 @@ use crate::{
 };
 
 #[derive(
-    Default, Debug, Clone, SimpleSerialize, PartialEq, Eq, serde::Serialize, serde::Deserialize,
+    Default, Debug, Clone, PartialEq, Eq, SimpleSerialize, serde::Serialize, serde::Deserialize,
 )]
-pub struct BeaconBlockBody<
+pub struct BlindedBeaconBlockBody<
     const MAX_PROPOSER_SLASHINGS: usize,
     const MAX_VALIDATORS_PER_SLOT: usize,
     const MAX_COMMITTEES_PER_SLOT: usize,
@@ -25,9 +25,6 @@ pub struct BeaconBlockBody<
     const SYNC_COMMITTEE_SIZE: usize,
     const BYTES_PER_LOGS_BLOOM: usize,
     const MAX_EXTRA_DATA_BYTES: usize,
-    const MAX_BYTES_PER_TRANSACTION: usize,
-    const MAX_TRANSACTIONS_PER_PAYLOAD: usize,
-    const MAX_WITHDRAWALS_PER_PAYLOAD: usize,
     const MAX_BLS_TO_EXECUTION_CHANGES: usize,
     const MAX_BLOB_COMMITMENTS_PER_BLOCK: usize,
     const MAX_DEPOSIT_REQUESTS_PER_PAYLOAD: usize,
@@ -44,13 +41,8 @@ pub struct BeaconBlockBody<
     pub deposits: List<Deposit, MAX_DEPOSITS>,
     pub voluntary_exits: List<SignedVoluntaryExit, MAX_VOLUNTARY_EXITS>,
     pub sync_aggregate: SyncAggregate<SYNC_COMMITTEE_SIZE>,
-    pub execution_payload: ExecutionPayload<
-        BYTES_PER_LOGS_BLOOM,
-        MAX_EXTRA_DATA_BYTES,
-        MAX_BYTES_PER_TRANSACTION,
-        MAX_TRANSACTIONS_PER_PAYLOAD,
-        MAX_WITHDRAWALS_PER_PAYLOAD,
-    >,
+    pub execution_payload_header:
+        ExecutionPayloadHeader<BYTES_PER_LOGS_BLOOM, MAX_EXTRA_DATA_BYTES>,
     pub bls_to_execution_changes: List<SignedBlsToExecutionChange, MAX_BLS_TO_EXECUTION_CHANGES>,
     pub blob_kzg_commitments: List<KzgCommitment, MAX_BLOB_COMMITMENTS_PER_BLOCK>,
     pub execution_requests: ExecutionRequests<
@@ -61,9 +53,9 @@ pub struct BeaconBlockBody<
 }
 
 #[derive(
-    Default, Debug, Clone, SimpleSerialize, PartialEq, Eq, serde::Serialize, serde::Deserialize,
+    Default, Debug, Clone, PartialEq, Eq, SimpleSerialize, serde::Serialize, serde::Deserialize,
 )]
-pub struct BeaconBlock<
+pub struct BlindedBeaconBlock<
     const MAX_PROPOSER_SLASHINGS: usize,
     const MAX_VALIDATORS_PER_SLOT: usize,
     const MAX_COMMITTEES_PER_SLOT: usize,
@@ -74,9 +66,6 @@ pub struct BeaconBlock<
     const SYNC_COMMITTEE_SIZE: usize,
     const BYTES_PER_LOGS_BLOOM: usize,
     const MAX_EXTRA_DATA_BYTES: usize,
-    const MAX_BYTES_PER_TRANSACTION: usize,
-    const MAX_TRANSACTIONS_PER_PAYLOAD: usize,
-    const MAX_WITHDRAWALS_PER_PAYLOAD: usize,
     const MAX_BLS_TO_EXECUTION_CHANGES: usize,
     const MAX_BLOB_COMMITMENTS_PER_BLOCK: usize,
     const MAX_DEPOSIT_REQUESTS_PER_PAYLOAD: usize,
@@ -89,7 +78,7 @@ pub struct BeaconBlock<
     pub proposer_index: ValidatorIndex,
     pub parent_root: Root,
     pub state_root: Root,
-    pub body: BeaconBlockBody<
+    pub body: BlindedBeaconBlockBody<
         MAX_PROPOSER_SLASHINGS,
         MAX_VALIDATORS_PER_SLOT,
         MAX_COMMITTEES_PER_SLOT,
@@ -100,9 +89,6 @@ pub struct BeaconBlock<
         SYNC_COMMITTEE_SIZE,
         BYTES_PER_LOGS_BLOOM,
         MAX_EXTRA_DATA_BYTES,
-        MAX_BYTES_PER_TRANSACTION,
-        MAX_TRANSACTIONS_PER_PAYLOAD,
-        MAX_WITHDRAWALS_PER_PAYLOAD,
         MAX_BLS_TO_EXECUTION_CHANGES,
         MAX_BLOB_COMMITMENTS_PER_BLOCK,
         MAX_DEPOSIT_REQUESTS_PER_PAYLOAD,
@@ -112,9 +98,9 @@ pub struct BeaconBlock<
 }
 
 #[derive(
-    Default, Debug, Clone, SimpleSerialize, PartialEq, Eq, serde::Serialize, serde::Deserialize,
+    Default, Debug, Clone, PartialEq, Eq, SimpleSerialize, serde::Serialize, serde::Deserialize,
 )]
-pub struct SignedBeaconBlock<
+pub struct SignedBlindedBeaconBlock<
     const MAX_PROPOSER_SLASHINGS: usize,
     const MAX_VALIDATORS_PER_SLOT: usize,
     const MAX_COMMITTEES_PER_SLOT: usize,
@@ -125,16 +111,13 @@ pub struct SignedBeaconBlock<
     const SYNC_COMMITTEE_SIZE: usize,
     const BYTES_PER_LOGS_BLOOM: usize,
     const MAX_EXTRA_DATA_BYTES: usize,
-    const MAX_BYTES_PER_TRANSACTION: usize,
-    const MAX_TRANSACTIONS_PER_PAYLOAD: usize,
-    const MAX_WITHDRAWALS_PER_PAYLOAD: usize,
     const MAX_BLS_TO_EXECUTION_CHANGES: usize,
     const MAX_BLOB_COMMITMENTS_PER_BLOCK: usize,
     const MAX_DEPOSIT_REQUESTS_PER_PAYLOAD: usize,
     const MAX_WITHDRAWAL_REQUESTS_PER_PAYLOAD: usize,
     const MAX_CONSOLIDATION_REQUESTS_PER_PAYLOAD: usize,
 > {
-    pub message: BeaconBlock<
+    pub message: BlindedBeaconBlock<
         MAX_PROPOSER_SLASHINGS,
         MAX_VALIDATORS_PER_SLOT,
         MAX_COMMITTEES_PER_SLOT,
@@ -145,9 +128,6 @@ pub struct SignedBeaconBlock<
         SYNC_COMMITTEE_SIZE,
         BYTES_PER_LOGS_BLOOM,
         MAX_EXTRA_DATA_BYTES,
-        MAX_BYTES_PER_TRANSACTION,
-        MAX_TRANSACTIONS_PER_PAYLOAD,
-        MAX_WITHDRAWALS_PER_PAYLOAD,
         MAX_BLS_TO_EXECUTION_CHANGES,
         MAX_BLOB_COMMITMENTS_PER_BLOCK,
         MAX_DEPOSIT_REQUESTS_PER_PAYLOAD,

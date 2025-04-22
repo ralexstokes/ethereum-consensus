@@ -1,5 +1,6 @@
 pub mod beacon_block;
 pub mod beacon_state;
+pub mod blinded_beacon_block;
 pub mod block_processing;
 pub mod constants;
 pub mod epoch_processing;
