@@ -1,7 +1,7 @@
 use crate::{
     altair::SyncCommittee,
     capella::HistoricalSummary,
-    electra::ExecutionPayloadHeader,
+    deneb::ExecutionPayloadHeader,
     phase0::{BeaconBlockHeader, Checkpoint, Eth1Data, Fork, Validator, JUSTIFICATION_BITS_LENGTH},
     primitives::{
         BlsPublicKey, BlsSignature, Bytes32, Epoch, ExecutionAddress, Gwei, ParticipationFlags,
