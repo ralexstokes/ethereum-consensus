@@ -1,9 +1,8 @@
 use crate::{
-    deneb,
+    deneb::{self, ExecutionPayloadHeader},
     electra::{
         beacon_state::BeaconState,
         constants::UNSET_DEPOSIT_RECEIPTS_START_INDEX,
-        execution_payload::ExecutionPayloadHeader,
         helpers::{
             get_activation_exit_churn_limit, get_consolidation_churn_limit,
             has_compounding_withdrawal_credential, queue_entire_balance_and_reset_validator,
@@ -82,8 +81,6 @@ pub fn upgrade_to_electra<
         withdrawals_root: latest_execution_payload_header.withdrawals_root,
         blob_gas_used: latest_execution_payload_header.blob_gas_used,
         excess_blob_gas: latest_execution_payload_header.excess_blob_gas,
-        deposit_receipts_root: Default::default(),
-        withdrawal_requests_root: Default::default(),
     };
 
     let exit_epoch = state

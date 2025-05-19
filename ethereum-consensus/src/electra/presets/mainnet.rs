@@ -1,5 +1,8 @@
 pub use crate::electra::presets::Preset;
-use crate::electra::spec;
+use crate::{
+    deneb::mainnet::MAX_VALIDATORS_PER_COMMITTEE, electra::spec,
+    phase0::mainnet::MAX_COMMITTEES_PER_SLOT,
+};
 
 pub use spec::*;
 
@@ -16,6 +19,8 @@ pub const MAX_CONSOLIDATIONS: usize = 1;
 pub const MAX_DEPOSIT_RECEIPTS_PER_PAYLOAD: usize = 8192;
 pub const MAX_WITHDRAWAL_REQUESTS_PER_PAYLOAD: usize = 16;
 pub const MAX_PENDING_PARTIALS_PER_WITHDRAWALS_SWEEP: usize = 8;
+pub const MAX_VALIDATORS_PER_SLOT: usize =
+    MAX_VALIDATORS_PER_COMMITTEE * MAX_COMMITTEES_PER_SLOT as usize;
 
 pub const PRESET: Preset = Preset {
     min_activation_balance: MIN_ACTIVATION_BALANCE,

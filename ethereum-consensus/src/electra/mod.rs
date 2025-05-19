@@ -4,7 +4,6 @@ pub mod block_processing;
 pub mod constants;
 pub mod epoch_processing;
 pub mod execution_engine;
-pub mod execution_payload;
 pub mod fork;
 pub mod genesis;
 pub mod helpers;
