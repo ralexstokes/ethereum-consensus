@@ -191,6 +191,9 @@ impl TryFrom<String> for SecretKey {
 impl TryFrom<&[u8]> for SecretKey {
     type Error = Error;
 
+    /// **NOTE**: This interface only accepts representations of **valid** secret keys.
+    ///
+    /// If you are not sure if your input is already valid, then use [Self::from_bytes].
     fn try_from(data: &[u8]) -> Result<Self, Self::Error> {
         let inner = bls_impl::SecretKey::from_bytes(data).map_err(BLSTError::from)?;
         Ok(Self(inner))
@@ -221,6 +224,14 @@ impl SecretKey {
 
     pub fn to_bytes(self) -> [u8; 32] {
         self.0.to_bytes()
+    }
+
+    /// Generates a key following EIP-2333.
+    /// Allows for more permissive input than [Self::try_from].
+    /// Use this if you e.g. are working with key material from a mnemonic seed phrase.
+    pub fn from_bytes(input: &[u8]) -> Result<Self, Error> {
+        let sk = bls_impl::SecretKey::derive_master_eip2333(input).map_err(BLSTError::from)?;
+        Ok(Self(sk))
     }
 }
 
@@ -441,6 +452,30 @@ mod tests {
     fn random_secret_key() {
         let mut rng = thread_rng();
         let _ = SecretKey::random(&mut rng).unwrap();
+    }
+
+    #[test]
+    fn secret_key_from_arbitrary_input() {
+        let mut rng = thread_rng();
+        let mut input = vec![0u8; 256];
+        rng.fill_bytes(input.as_mut_slice());
+        let result = SecretKey::try_from(input.as_ref());
+        assert!(result.is_err());
+        let result = SecretKey::from_bytes(input.as_slice());
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn secret_key_from_input_outside_field_order() {
+        let input: [u8; BLS_SECRET_KEY_BYTES_LEN] = [
+            0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+            0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+            0xff, 0xff, 0xff, 0xff,
+        ];
+        let result = SecretKey::try_from(input.as_ref());
+        assert!(result.is_err());
+        let result = SecretKey::from_bytes(input.as_slice());
+        assert!(result.is_ok());
     }
 
     #[test]
