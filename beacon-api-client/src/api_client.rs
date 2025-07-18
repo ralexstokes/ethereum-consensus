@@ -609,7 +609,7 @@ impl<C: ClientTypes> Client<C> {
     /* events namespace */
     pub async fn get_events<T: Topic>(&self) -> Result<EventStream<T::Data>, Error> {
         let name = T::NAME;
-        let path = format!("/eth/v1/events?topics={name}");
+        let path = format!("eth/v1/events?topics={name}");
         let target = self.endpoint.join(&path)?.to_string();
 
         let client = EventClient::default();
@@ -873,5 +873,25 @@ impl<C: ClientTypes> Client<C> {
             ApiResult::Ok(result) => Ok(result.data),
             ApiResult::Err(err) => Err(err.into()),
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use url::Url;
+
+    #[test]
+    fn url_join_should_work() {
+        let url =
+            Url::parse("https://ethereum-mainnet.core.chainstack.com/beacon/fake_token_2373821y372y32189732136218u981231/").unwrap();
+        let url0 = url.join("/eth/v1/events?topics=head").unwrap();
+        assert_eq!(
+            url0.to_string(),
+            "https://ethereum-mainnet.core.chainstack.com/eth/v1/events?topics=head"
+        );
+
+        let url1 = url.join("eth/v1/events?topics=head").unwrap();
+
+        assert_eq!(url1.to_string(), "https://ethereum-mainnet.core.chainstack.com/beacon/fake_token_2373821y372y32189732136218u981231/eth/v1/events?topics=head");
     }
 }
