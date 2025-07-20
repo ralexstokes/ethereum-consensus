@@ -49,9 +49,9 @@ pub use crate::{
         block_processing::{
             add_validator_to_registry, apply_deposit, get_expected_withdrawals,
             get_validator_from_deposit, is_valid_deposit_signature, process_attestation,
-            process_consolidation, process_deposit_receipt,
-            process_execution_layer_withdrawal_request, process_execution_payload,
-            process_operations, process_voluntary_exit, process_withdrawals,
+            process_deposit_receipt, process_execution_layer_withdrawal_request,
+            process_execution_payload, process_operations, process_voluntary_exit,
+            process_withdrawals,
         },
         constants::{FULL_EXIT_REQUEST_AMOUNT, UNSET_DEPOSIT_RECEIPTS_START_INDEX},
         epoch_processing::{
@@ -59,7 +59,6 @@ pub use crate::{
             process_pending_consolidations, process_registry_updates,
         },
         execution_engine::NewPayloadRequest,
-        execution_payload::{ExecutionPayload, ExecutionPayloadHeader},
         fork::upgrade_to_electra,
         genesis::initialize_beacon_state_from_eth1,
         helpers::{
@@ -74,9 +73,7 @@ pub use crate::{
             queue_entire_balance_and_reset_validator, queue_excess_active_balance, slash_validator,
             switch_to_compounding_validator,
         },
-        operations::{
-            Attestation, AttesterSlashing, Consolidation, IndexedAttestation, SignedConsolidation,
-        },
+        operations::{Attestation, AttesterSlashing, ConsolidationRequest, IndexedAttestation},
     },
     error::*,
     phase0::{
@@ -105,6 +102,7 @@ pub use crate::{
 };
 use crate::{
     crypto::{eth_aggregate_public_keys, eth_fast_aggregate_verify, fast_aggregate_verify, hash},
+    deneb::{ExecutionPayload, ExecutionPayloadHeader},
     ssz::prelude::*,
 };
 use integer_sqrt::IntegerSquareRoot;

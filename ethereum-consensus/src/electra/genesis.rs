@@ -1,8 +1,9 @@
 use crate::{
+    deneb::ExecutionPayloadHeader,
     electra::{
         get_next_sync_committee, increase_balance, process_deposit, BeaconBlockBody,
-        BeaconBlockHeader, BeaconState, Deposit, DepositData, Eth1Data, ExecutionPayloadHeader,
-        Fork, DEPOSIT_DATA_LIST_BOUND,
+        BeaconBlockHeader, BeaconState, Deposit, DepositData, Eth1Data, Fork,
+        DEPOSIT_DATA_LIST_BOUND,
     },
     primitives::{Gwei, Hash32, GENESIS_EPOCH},
     ssz::prelude::*,
