@@ -5,7 +5,7 @@ use crate::{
     crypto::{kzg_settings_with_precompute_arc, KzgSettings, PRECOMPUTE},
     deneb, electra,
     execution_engine::ExecutionEngine,
-    networks::Network,
+    networks::{typical_genesis_time, Network},
     phase0,
     primitives::{Epoch, ExecutionAddress, Gwei, Hash32, Slot, Version, U256},
     Error, Fork,
@@ -469,13 +469,13 @@ impl Context {
         }
     }
 
-    pub fn genesis_time(&self) -> Result<u64, Error> {
+    pub fn genesis_time(&self) -> u64 {
         match &self.name {
-            Network::Mainnet => Ok(crate::clock::MAINNET_GENESIS_TIME),
-            Network::Sepolia => Ok(crate::clock::SEPOLIA_GENESIS_TIME),
-            Network::Goerli => Ok(crate::clock::GOERLI_GENESIS_TIME),
-            Network::Holesky => Ok(crate::clock::HOLESKY_GENESIS_TIME),
-            name => Err(Error::UnknownGenesisTime(name.to_string())),
+            Network::Mainnet => crate::clock::MAINNET_GENESIS_TIME,
+            Network::Sepolia => crate::clock::SEPOLIA_GENESIS_TIME,
+            Network::Goerli => crate::clock::GOERLI_GENESIS_TIME,
+            Network::Holesky => crate::clock::HOLESKY_GENESIS_TIME,
+            _ => typical_genesis_time(self),
         }
     }
 
