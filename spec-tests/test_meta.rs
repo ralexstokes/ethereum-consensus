@@ -33,6 +33,7 @@ pub enum Fork {
     Bellatrix,
     Capella,
     Deneb,
+    Electra,
     Eip6110,
     Whisk,
 }
@@ -45,6 +46,7 @@ impl From<&str> for Fork {
             "bellatrix" => Self::Bellatrix,
             "capella" => Self::Capella,
             "deneb" => Self::Deneb,
+            "electra" => Self::Electra,
             "eip6110" => Self::Eip6110,
             "whisk" => Self::Whisk,
             fork => panic!("unsupported fork: {fork:?}"),

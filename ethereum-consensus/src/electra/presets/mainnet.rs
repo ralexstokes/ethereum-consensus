@@ -1,5 +1,8 @@
 pub use crate::electra::presets::Preset;
-use crate::electra::spec;
+use crate::{
+    electra::spec,
+    phase0::mainnet::{MAX_COMMITTEES_PER_SLOT, MAX_VALIDATORS_PER_COMMITTEE},
+};
 
 pub use spec::*;
 
@@ -32,3 +35,9 @@ pub const PRESET: Preset = Preset {
     max_withdrawal_requests_per_payload: MAX_WITHDRAWAL_REQUESTS_PER_PAYLOAD,
     max_pending_partials_per_withdrawals_sweep: MAX_PENDING_PARTIALS_PER_WITHDRAWALS_SWEEP,
 };
+
+const MAX_VALIDATORS_PER_SLOT: usize =
+    MAX_COMMITTEES_PER_SLOT as usize * MAX_VALIDATORS_PER_COMMITTEE;
+
+pub type Attestation =
+    spec::Attestation<MAX_VALIDATORS_PER_SLOT, { MAX_COMMITTEES_PER_SLOT as usize }>;
