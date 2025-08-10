@@ -923,23 +923,78 @@ pub fn get_inclusion_delay_deltas<
     let previous_epoch = get_previous_epoch(state, context);
     let validator_count = state.validators.len();
     let mut rewards = vec![0; validator_count];
-    let matching_source_attestations =
-        get_matching_source_attestations(state, previous_epoch, context)?;
-    for i in get_unslashed_attesting_indices(state, matching_source_attestations.iter(), context)? {
-        let mut attestations = Vec::new();
-        for a in matching_source_attestations.iter() {
-            if get_attesting_indices(state, &a.data, &a.aggregation_bits, context)?.contains(&i) {
-                attestations.push(a)
+
+    #[cfg(feature = "attestation-processing")]
+    {
+        #[derive(Default, Clone)]
+        struct AttesterStatus {
+            min_inclusion_delay: u64,
+            proposer_index: usize,
+        }
+
+        let eligible_validators: Vec<bool> = state.validators.iter().map(|v| !v.slashed).collect();
+        let matching_source_attestations =
+            get_matching_source_attestations(state, previous_epoch, context)?;
+        let mut attester_statuses: Vec<AttesterStatus> =
+            vec![AttesterStatus::default(); validator_count];
+
+        // Process all attestations once and store minimum inclusion delays
+        for attestation in matching_source_attestations.iter() {
+            let attesting_indices = get_attesting_indices(
+                state,
+                &attestation.data,
+                &attestation.aggregation_bits,
+                context,
+            )?;
+            for &validator_index in &attesting_indices {
+                if !eligible_validators[validator_index] {
+                    continue;
+                }
+                let current_status = &mut attester_statuses[validator_index];
+                if current_status.min_inclusion_delay == 0 ||
+                    attestation.inclusion_delay < current_status.min_inclusion_delay
+                {
+                    current_status.min_inclusion_delay = attestation.inclusion_delay;
+                    current_status.proposer_index = attestation.proposer_index;
+                }
             }
         }
-        let attestation = attestations
-            .iter()
-            .min_by(|&a, &b| a.inclusion_delay.cmp(&b.inclusion_delay))
-            .expect("at least one attestation in collection");
-        rewards[attestation.proposer_index] += get_proposer_reward(state, i, context)?;
-        let max_attester_reward =
-            get_base_reward(state, i, context)? - get_proposer_reward(state, i, context)?;
-        rewards[i] += max_attester_reward / attestation.inclusion_delay;
+        // Calculate rewards based on pre-computed data
+        for (validator_index, status) in attester_statuses.iter().enumerate() {
+            if status.min_inclusion_delay == 0 || !eligible_validators[validator_index] {
+                continue;
+            }
+            let proposer_reward = get_proposer_reward(state, validator_index, context)?;
+            rewards[status.proposer_index] += proposer_reward;
+            let max_attester_reward =
+                get_base_reward(state, validator_index, context)? - proposer_reward;
+            rewards[validator_index] += max_attester_reward / status.min_inclusion_delay;
+        }
+    }
+
+    #[cfg(not(feature = "attestation-processing"))]
+    {
+        let matching_source_attestations =
+            get_matching_source_attestations(state, previous_epoch, context)?;
+        for i in
+            get_unslashed_attesting_indices(state, matching_source_attestations.iter(), context)?
+        {
+            let mut attestations = Vec::new();
+            for a in matching_source_attestations.iter() {
+                if get_attesting_indices(state, &a.data, &a.aggregation_bits, context)?.contains(&i)
+                {
+                    attestations.push(a)
+                }
+            }
+            let attestation = attestations
+                .iter()
+                .min_by(|&a, &b| a.inclusion_delay.cmp(&b.inclusion_delay))
+                .expect("at least one attestation in collection");
+            rewards[attestation.proposer_index] += get_proposer_reward(state, i, context)?;
+            let max_attester_reward =
+                get_base_reward(state, i, context)? - get_proposer_reward(state, i, context)?;
+            rewards[i] += max_attester_reward / attestation.inclusion_delay;
+        }
     }
     Ok((rewards, vec![0; validator_count]))
 }
