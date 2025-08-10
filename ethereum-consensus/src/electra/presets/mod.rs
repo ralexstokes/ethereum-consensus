@@ -14,7 +14,8 @@ pub struct Preset {
     pub max_attester_slashings_electra: usize,
     pub max_attestations_electra: usize,
     pub max_consolidations: usize,
-    pub max_deposit_receipts_per_payload: usize,
+    pub max_deposit_requests_per_payload: usize,
     pub max_withdrawal_requests_per_payload: usize,
+    pub max_consolidation_requests_per_payload: usize,
     pub max_pending_partials_per_withdrawals_sweep: usize,
 }

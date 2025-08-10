@@ -82,8 +82,6 @@ pub fn upgrade_to_electra<
         withdrawals_root: latest_execution_payload_header.withdrawals_root,
         blob_gas_used: latest_execution_payload_header.blob_gas_used,
         excess_blob_gas: latest_execution_payload_header.excess_blob_gas,
-        deposit_receipts_root: Default::default(),
-        withdrawal_requests_root: Default::default(),
     };
 
     let exit_epoch = state

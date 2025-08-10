@@ -4,25 +4,10 @@ use crate::{
     electra::ExecutionPayloadHeader,
     phase0::{BeaconBlockHeader, Checkpoint, Eth1Data, Fork, Validator, JUSTIFICATION_BITS_LENGTH},
     primitives::{
-        BlsPublicKey, BlsSignature, Bytes32, Epoch, ExecutionAddress, Gwei, ParticipationFlags,
-        Root, Slot, ValidatorIndex, WithdrawalIndex,
+        Bytes32, Epoch, Gwei, ParticipationFlags, Root, Slot, ValidatorIndex, WithdrawalIndex,
     },
     ssz::prelude::*,
 };
-
-#[derive(
-    Default, Debug, Clone, SimpleSerialize, PartialEq, Eq, serde::Serialize, serde::Deserialize,
-)]
-pub struct DepositReceipt {
-    #[serde(rename = "pubkey")]
-    pub public_key: BlsPublicKey,
-    pub withdrawal_credentials: Bytes32,
-    #[serde(with = "crate::serde::as_str")]
-    pub amount: Gwei,
-    pub signature: BlsSignature,
-    #[serde(with = "crate::serde::as_str")]
-    pub index: u64,
-}
 
 #[derive(
     Default, Debug, Clone, SimpleSerialize, PartialEq, Eq, serde::Serialize, serde::Deserialize,
@@ -54,17 +39,6 @@ pub struct PendingConsolidation {
     pub source_index: ValidatorIndex,
     #[serde(with = "crate::serde::as_str")]
     pub target_index: ValidatorIndex,
-}
-
-#[derive(
-    Default, Debug, Clone, SimpleSerialize, PartialEq, Eq, serde::Serialize, serde::Deserialize,
-)]
-pub struct ExecutionLayerWithdrawalRequest {
-    pub source_address: ExecutionAddress,
-    #[serde(rename = "pubkey")]
-    pub validator_public_key: BlsPublicKey,
-    #[serde(with = "crate::serde::as_str")]
-    pub amount: Gwei,
 }
 
 #[derive(
