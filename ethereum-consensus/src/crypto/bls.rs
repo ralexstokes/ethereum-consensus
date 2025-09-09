@@ -48,7 +48,7 @@ pub struct BLSTError(String);
 impl From<BLST_ERROR> for BLSTError {
     fn from(err: BLST_ERROR) -> Self {
         let inner = match err {
-            BLST_ERROR::BLST_SUCCESS => unreachable!("do not create a BLSTError from a sucess"),
+            BLST_ERROR::BLST_SUCCESS => unreachable!("do not create a BLSTError from a success"),
             BLST_ERROR::BLST_BAD_ENCODING => "bad encoding",
             BLST_ERROR::BLST_POINT_NOT_ON_CURVE => "point not on curve",
             BLST_ERROR::BLST_POINT_NOT_IN_GROUP => "point not in group",
