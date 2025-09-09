@@ -1,6 +1,6 @@
 use std::path::PathBuf;
 
-/// This module contains support for various Ethereum netowrks.
+/// This module contains support for various Ethereum networks.
 use crate::state_transition::Context;
 use crate::Error;
 
